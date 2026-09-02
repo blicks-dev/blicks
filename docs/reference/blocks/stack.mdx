@@ -1,0 +1,83 @@
+---
+title: "Stack"
+description: "A one-dimensional flex layout for arranging child blocks vertically or horizontally."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/stack/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/stack` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`layout.flexDirection` · `layout.justifyContent` · `layout.alignItems` · `layout.flexWrap` · `layout.gapRow` · `layout.gapColumn` · `layout.width` · `layout.height` · `layout.overflow` · `layout.overflowX` · `layout.overflowY` · `layout.scrollSnapType` · `layout.containerType` · `layout.containerName` · `layout.aspectRatio` · `gridChild.*` · `spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `effects.*` · `animation.*` · `decoration.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `align` | `string` | `"stretch"` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `gap` | `string` | `"md"` |
+| `justify` | `string` | `"start"` |
+| `orientation` | `string` | `"vertical"` |
+| `tag` | `string` | `"div"` |
+| `uniqueId` | `string` | — |
+| `wrap` | `boolean` | `false` |
+
+## Help
+
+## Description
+
+Stack arranges child blocks in one direction. Use it for vertical content groups, horizontal action rows, navigation groups, and simple card internals where items need predictable spacing.
+
+## Controls
+
+### orientation
+
+Sets the main axis. `Vertical` stacks children top to bottom; `Horizontal` places children in a row.
+
+### tag
+
+Chooses the wrapper element. Use `div` for generic layout, `section` for meaningful groups, `nav` for navigation, and `ul` when the children form a list.
+
+### gap
+
+Sets the spacing between children using Blicks spacing tokens.
+
+### align
+
+Controls cross-axis alignment. In a vertical stack it affects horizontal child alignment; in a horizontal stack it affects vertical alignment.
+
+### justify
+
+Controls main-axis distribution. Use it when the stack has extra space and children need to group, spread, or center.
+
+### wrap
+
+Allows horizontal stacks to wrap onto multiple lines when space gets tight.
+
+## Tips
+
+- Use Stack inside cards, heroes, headers, and form-like groups.
+- Use horizontal Stack for buttons and compact metadata rows.
+- Use Grid instead when children need columns, rows, or equal-width tracks.

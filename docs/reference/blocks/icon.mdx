@@ -1,0 +1,73 @@
+---
+title: "Icon"
+description: "An inline SVG icon that inherits current text color."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/icon/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/icon` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`gridChild.*` · `colors.text` · `spacing.*` · `effects.*` · `border.*` · `layout.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `blicks` | `object` | `&#123;&#125;` |
+| `icon` | `string` | `"star"` |
+| `label` | `string` | `""` |
+| `size` | `string` | `"1.5rem"` |
+| `strokeWidth` | `number` | `2` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+Icon renders a small inline SVG from the Blicks icon registry. Use it for visual emphasis, feature markers, compact labels, and UI affordances.
+
+## Controls
+
+### icon
+
+Chooses the icon glyph.
+
+### size
+
+Sets the icon size.
+
+### strokeWidth
+
+Controls the line weight for stroke-based icons.
+
+### label
+
+Adds an accessible label. Leave it empty when the icon is decorative.
+
+## Tips
+
+- Pair decorative icons with nearby text instead of relying on the icon alone.
+- Add a label when the icon communicates meaning by itself.
+- Use text color controls to make icons follow the design system.

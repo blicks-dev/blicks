@@ -1,0 +1,60 @@
+name: Docs
+
+# Mintlify's GitHub integration builds the site straight from `/docs` on `main`, and it does NOT
+# run build scripts. The generated block reference is therefore committed to the repo, which means
+# a stale commit ships silently — the site would describe blocks the plugin no longer has. This
+# job regenerates it from `resources/blocks` and fails when the committed copy differs.
+#
+# `docs/` installs separately from the plugin: the Mintlify CLI is heavy and nothing else needs it,
+# so the build, test and release jobs never install it.
+on:
+  push:
+    branches: [main]
+    paths: &docs_paths
+      - 'docs/**'
+      - 'resources/blocks/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths: *docs_paths
+  workflow_dispatch:
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  docs:
+    name: Reference is current and links resolve
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate the block reference
+        run: pnpm generate
+
+      - name: Fail if the committed reference is stale
+        run: |
+          if ! git diff --quiet -- .; then
+            echo '::error::The committed block reference is out of date. Run `pnpm generate` in docs/ and commit the result.'
+            git diff --stat -- .
+            git diff -- .
+            exit 1
+          fi
+          echo 'The committed block reference matches the plugin block metadata.'
+
+      - name: Check for broken links
+        run: pnpm exec mintlify broken-links

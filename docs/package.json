@@ -1,0 +1,15 @@
+{
+	"name": "@blicks/docs",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"generate": "node scripts/generate-block-docs.mjs",
+		"dev": "pnpm generate && mintlify dev",
+		"check": "pnpm generate && mintlify broken-links"
+	},
+	"devDependencies": {
+		"mintlify": "^4.2.0"
+	},
+	"description": "The Blicks documentation site. Isolated from the plugin package: it is the only thing that needs the Mintlify CLI, so the plugin build and its CI never install it."
+}

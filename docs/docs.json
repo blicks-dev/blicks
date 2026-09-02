@@ -1,0 +1,130 @@
+{
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "Blicks",
+	"description": "Atomic Gutenberg blocks, theme.json-native tokens, and generated block references.",
+	"colors": {
+		"primary": "#002bff",
+		"light": "#8fb0ff",
+		"dark": "#0022cc"
+	},
+	"favicon": "/favicon.svg",
+	"logo": {
+		"light": "/logo/light.svg",
+		"dark": "/logo/dark.svg",
+		"href": "/"
+	},
+	"fonts": {
+		"heading": {
+			"family": "Inter",
+			"weight": 650
+		},
+		"body": {
+			"family": "Inter",
+			"weight": 500
+		}
+	},
+	"appearance": {
+		"default": "light",
+		"strict": false
+	},
+	"styling": {
+		"eyebrows": "section",
+		"codeblocks": "dark"
+	},
+	"navbar": {
+		"primary": {
+			"type": "button",
+			"label": "Get Blicks",
+			"href": "https://wordpress.org/plugins/blicks/"
+		},
+		"links": [
+			{
+				"label": "GitHub",
+				"href": "https://github.com/blicks-dev/blicks"
+			}
+		]
+	},
+	"footer": {
+		"socials": {
+			"website": "https://blicks.dev",
+			"github": "https://github.com/blicks-dev/blicks"
+		}
+	},
+	"banner": {
+		"content": "Blicks is free and GPL-2.0, and developed in the open. Every block reference on this site is generated from the plugin's own block metadata.",
+		"dismissible": true
+	},
+	"navigation": {
+		"tabs": [
+			{
+				"tab": "Documentation",
+				"groups": [
+					{
+						"group": "Get started",
+						"pages": [
+							"index",
+							"getting-started"
+						]
+					},
+					{
+						"group": "Guides",
+						"pages": [
+							"guides/index",
+							"guides/build-a-landing-page",
+							"guides/responsive-patterns",
+							"guides/states-and-interactions",
+							"guides/customize-design-system",
+							"guides/scoped-custom-css"
+						]
+					},
+					{
+						"group": "Help",
+						"pages": [
+							"faqs",
+							"changelog"
+						]
+					}
+				]
+			},
+			{
+				"tab": "Reference",
+				"groups": [
+					{
+						"group": "Design System",
+						"pages": [
+							"reference/design-system/global-tokens",
+							"reference/design-system/type-roles"
+						]
+					},
+					{
+						"group": "Blocks",
+						"pages": [
+							"reference/blocks/index",
+							"reference/blocks/box",
+							"reference/blocks/button",
+							"reference/blocks/buttons",
+							"reference/blocks/divider",
+							"reference/blocks/grid",
+							"reference/blocks/heading",
+							"reference/blocks/icon",
+							"reference/blocks/image",
+							"reference/blocks/section",
+							"reference/blocks/spacer",
+							"reference/blocks/stack",
+							"reference/blocks/text"
+						]
+					}
+				]
+			}
+		]
+	},
+	"contextual": {
+		"options": [
+			"copy",
+			"view",
+			"chatgpt",
+			"claude"
+		]
+	}
+}

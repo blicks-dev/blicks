@@ -1,0 +1,95 @@
+---
+title: "Image"
+description: "A responsive media block with optional link and caption."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/image/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/image` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`gridChild.*` · `border.*` · `spacing.*` · `effects.*` · `layout.*` · `position.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `alt` | `string` | `""` |
+| `aspectRatio` | `string` | `"auto"` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `caption` | `string` | `""` |
+| `duotone` | `object` | — |
+| `href` | `string` | `""` |
+| `id` | `number` | — |
+| `linkTo` | `string` | `"none"` |
+| `objectFit` | `string` | `"cover"` |
+| `sizeSlug` | `string` | `"full"` |
+| `uniqueId` | `string` | — |
+| `url` | `string` | `""` |
+
+## Help
+
+## Description
+
+Image renders a responsive figure with optional link and caption. Use it for visual content that belongs to the page structure, not for decorative backgrounds.
+
+## Controls
+
+### id
+
+Stores the selected WordPress media ID when an image is chosen from the media library.
+
+### url
+
+The image source URL.
+
+### alt
+
+Alternative text for accessibility.
+
+### aspectRatio
+
+Controls the displayed image ratio. Use `auto` to preserve the natural image dimensions.
+
+### objectFit
+
+Controls how the image fits inside the chosen aspect ratio.
+
+### linkTo
+
+Chooses whether the image links nowhere, to the media file, or to a custom URL.
+
+### href
+
+The custom destination when `linkTo` is set to custom.
+
+### caption
+
+Optional figure caption.
+
+## Tips
+
+- Write alt text for meaningful images; leave it empty only when the image is decorative.
+- Use aspect ratio for consistent card and grid layouts.
+- Use Background controls on Section or Box for decorative imagery.

@@ -1,0 +1,65 @@
+---
+title: "Box"
+description: "A generic styled wrapper for cards, panels, and manual layouts."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/box/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/box` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `true` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`layout.*` · `gridChild.*` · `columns.*` · `spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `typography.*` · `effects.*` · `animation.*` · `decoration.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `blicks` | `object` | `&#123;&#125;` |
+| `href` | `string` | `""` |
+| `linkLabel` | `string` | `""` |
+| `linkTarget` | `string` | `""` |
+| `rel` | `string` | `""` |
+| `tag` | `string` | `"div"` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+Box is the generic styled wrapper for cards, panels, and manual layouts. Use it when Section, Stack, and Grid are too opinionated and you need one element with the full Blicks styling system.
+
+## Controls
+
+### blicks
+
+Stores the full Blicks style tree for layout, spacing, border, position, color, background, typography, and effects controls.
+
+### tag
+
+Chooses the HTML element for the wrapper. Use `div` for generic layout, `article` for repeatable cards, `aside` for supporting content, and `figure` for media groups.
+
+## Tips
+
+- Use Box inside Grid for pricing cards, feature cards, and other repeated panels.
+- Use Section for page bands; use Box for the smaller wrappers inside those bands.

@@ -1,0 +1,95 @@
+---
+title: "Responsive Patterns"
+description: "The three devices, how their values cascade, and what to reach for before you set a breakpoint."
+---
+
+Blicks is **desktop-first**. You style the desktop view, then override only what has to change
+further down. Most of a page needs no breakpoint work at all.
+
+## The three devices
+
+| Device | Applies at | Media query |
+|---|---|---|
+| **Desktop** (`base`) | every width | none — this is the value everything else overrides |
+| **Tablet** | 782px and below | `max-width: 782px` |
+| **Mobile** | 600px and below | `max-width: 600px` |
+
+782px and 600px are WordPress's own editor breakpoints, so what you preview in the editor's device
+switcher matches what the front end does.
+
+The device trio sits at the top of every styling facet in the inspector. Pick a device, change a
+control, and that value is stored for that device only.
+
+## How the cascade works
+
+A value set on Desktop applies everywhere. Tablet overrides it at 782px and below. Mobile overrides
+both at 600px and below. Because the queries nest, a tablet value keeps working on mobile until you
+give mobile its own — you override the exception, not the whole ladder.
+
+So a heading set to `48px` on Desktop and `32px` on Mobile renders 48px down to 601px, then 32px.
+There is no tablet value to write.
+
+<Note>
+Each control stores its values independently, per state and per device. Changing padding on Mobile
+does not copy the rest of that block's desktop styling into a mobile slot — nothing is duplicated,
+and clearing a device value falls back to the one above it.
+</Note>
+
+## Reach for these before breakpoints
+
+Three controls solve most of what people reach for breakpoints to fix, and they respond to the
+actual space available rather than to the viewport:
+
+<CardGroup cols={1}>
+	<Card title="Grid auto-fit" icon="layout-grid">
+		Set **auto-fit** with a **min column width**, and the Grid fits as many columns as it can — three, then two, then one — with no breakpoint values at all. Use a fixed column count only when the count is part of the design.
+	</Card>
+	<Card title="Stack wrap" icon="wrap-text">
+		A horizontal Stack with **wrap** on breaks onto a new line when its children stop fitting, rather than overflowing or being forced vertical at an arbitrary width.
+	</Card>
+	<Card title="Section content max width" icon="between-horizontal-start">
+		The inner wrapper is already capped at your theme's content width and shrinks with the viewport. Constrain a band further with **content max width**, not with per-device widths.
+	</Card>
+</CardGroup>
+
+Then use breakpoints for the things that genuinely differ by screen: type scale, section padding,
+and the direction a Stack runs.
+
+## The patterns worth knowing
+
+### Tighten spacing on small screens
+
+Set Section padding on Desktop, then override it on Mobile. This is the most common override on any
+site and usually the only one a simple page needs.
+
+### Turn a row into a column
+
+A horizontal Stack on Desktop, switched to vertical on Mobile. Set **orientation** with the Mobile
+device selected — the desktop value is untouched.
+
+### Scale the type
+
+Set the heading size on Desktop and again on Mobile. If your design system uses type roles with
+fluid sizing, this is often unnecessary — the role already scales with the viewport, and a
+per-device override would fight it.
+
+## Hiding a block on one device
+
+Every block has **Advanced ▸ Hide on Desktop / Tablet / Mobile**. Ticking one adds a class that
+hides the block within that device's range: mobile is 600px and below, tablet is 601–782px, and
+desktop is 783px and up — non-overlapping, so hiding on tablet does not also hide on mobile.
+
+In the editor, a hidden block is not removed. It is dimmed with a dashed outline so it stays
+visible and selectable while you work — only the front end hides it.
+
+<Warning>
+Hiding still ships the block: it is in the HTML, images still load, and screen readers on a
+matching device skip it because the block is `display: none`. Hide for layout reasons, not to
+serve genuinely different content to different devices.
+</Warning>
+
+## Checking your work
+
+The editor's device switcher previews all three, but resize a real browser window before you ship.
+Intrinsic behaviour — auto-fit columns, wrapping stacks — reflows at whatever width the content
+runs out of room, which is usually not exactly 782px or 600px.

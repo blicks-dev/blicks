@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" aria-hidden="true" focusable="false">
+	<g fill="#0d1117">
+		<rect x="6" y="14" width="44" height="18"/>
+		<rect x="6" y="36" width="36" height="18"/>
+		<rect x="6" y="58" width="48" height="18"/>
+	</g>
+	<rect x="58" y="58" width="10" height="18" fill="#002bff"/>
+	<text x="86" y="56" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace" font-weight="800" font-size="40" letter-spacing="-0.02em" fill="#0d1117">blicks</text>
+	<text x="246" y="56" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace" font-weight="600" font-size="14" letter-spacing="0.14em" fill="#8a93a1">DOCS</text>
+</svg>

@@ -1,0 +1,679 @@
+/*
+ * Blicks design system overrides for Mintlify.
+ *
+ * The palette is the same one the plugin admin ships
+ * (packages/blicks/resources/admin/styles/_shell.scss) and the same one the
+ * logo and favicon already draw with — one system, not a lookalike. Keep them
+ * in step: if the accent moves here it moves there.
+ *
+ * House rules carried over from that system:
+ *   - sharp corners, hairline borders, no shadows;
+ *   - the accent is reserved for the primary CTA, the active nav item and
+ *     links. Components signal hover with their border, not an accent flood;
+ *   - mono, uppercase, wide-tracked for eyebrows and column headers.
+ */
+
+:root {
+	--bl-accent: #002bff;
+	--bl-accent-strong: #0022cc;
+	--bl-accent-soft: rgb(0 43 255 / 5%);
+	--bl-canvas: #f6f7f9;
+	--bl-paper: #fff;
+	--bl-surface-alt: #fafbfc;
+	--bl-surface-sunk: #f1f5f9;
+	--bl-ink: #0d1117;
+	--bl-muted: #5b6472;
+	--bl-faint: #8a93a1;
+	--bl-line: #e4e8ee;
+	--bl-line-strong: #cbd2dc;
+	--bl-success: #0a8f3c;
+	--bl-warn: #f2a007;
+	--bl-danger: #e31957;
+	--bl-mono: "SFMono-Regular", ui-monospace, "JetBrains Mono", menlo, monospace;
+	--bl-sans: Inter, -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+}
+
+/*
+ * #002bff is too dark to read on a near-black canvas, so dark mode lifts the
+ * accent to the blue this system already uses on dark surfaces (the admin's
+ * generated-output pane) rather than switching hue.
+ */
+:root.dark,
+.dark {
+	--bl-accent: #8fb0ff;
+	--bl-accent-strong: #b3d5ff;
+	--bl-accent-soft: rgb(143 176 255 / 10%);
+	--bl-canvas: #09090b;
+	--bl-paper: #0f1014;
+	--bl-surface-alt: #15161b;
+	--bl-surface-sunk: #1b1d23;
+	--bl-ink: #f8fafc;
+	--bl-muted: #cbd5e1;
+	--bl-faint: #94a3b8;
+	--bl-line: #272a33;
+	--bl-line-strong: #3f4452;
+}
+
+/* ── Global page chrome ──────────────────────────────────────────── */
+
+html {
+	-webkit-font-smoothing: antialiased;
+	background: var(--bl-canvas);
+}
+
+body {
+	background: var(--bl-canvas);
+	color: var(--bl-ink);
+	font-family: var(--bl-sans);
+	font-feature-settings: "cv11", "ss01", "ss03", "tnum";
+}
+
+main,
+article,
+section {
+	background: transparent;
+}
+
+h1, h2, h3 {
+	color: var(--bl-ink);
+	font-family: var(--bl-sans);
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+/*
+ * Reference pages carry an h1 on every screen, so this is a page title, not a
+ * marketing hero — the previous 4.15rem cap belonged to a landing page.
+ */
+h1 {
+	font-size: clamp(2rem, 3.4vw, 2.6rem);
+	line-height: 1.06;
+	letter-spacing: -0.03em;
+}
+
+h2 {
+	font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+	letter-spacing: -0.025em;
+}
+
+p, li {
+	color: var(--bl-muted);
+	text-wrap: pretty;
+}
+
+/*
+ * Scoped to prose on purpose. As a bare `a { color: accent }` this also caught
+ * the table of contents and the breadcrumb, so a reference page rendered a
+ * dozen navigation items in brand blue — the accent stops meaning "link you
+ * want" when everything wears it.
+ */
+#content a,
+.prose a {
+	color: var(--bl-accent);
+	text-decoration: none;
+	text-underline-offset: 4px;
+	transition: color 0.15s;
+}
+
+#content a:hover,
+.prose a:hover {
+	color: var(--bl-accent-strong);
+	text-decoration: underline;
+}
+
+/* Table of contents: quiet by default, accent only on the section you're in. */
+#table-of-contents a {
+	color: var(--bl-muted);
+	transition: color 0.15s;
+}
+
+#table-of-contents a:hover {
+	color: var(--bl-ink);
+}
+
+#table-of-contents a[class*="text-primary"] {
+	color: var(--bl-accent);
+}
+
+hr {
+	border: none;
+	border-top: 1px solid var(--bl-line);
+}
+
+::selection {
+	background: var(--bl-accent-soft);
+	color: var(--bl-ink);
+}
+
+/* ── Sharp corners, no shadows ──────────────────────────────────── */
+
+/*
+ * Tailwind's sized rounding utilities, which is what Mintlify actually ships
+ * (the CTA fill is a bare `<span class="rounded-xl">`, so an element-only list
+ * misses it). `rounded-full` is deliberately spared: circles — avatars, status
+ * dots, the assistant button — are meant to be round. The old blanket
+ * `[class*="rounded"]` caught those too and flattened them.
+ */
+[class*="rounded-sm"],
+[class*="rounded-md"],
+[class*="rounded-lg"],
+[class*="rounded-xl"],
+[class*="rounded-2xl"],
+[class*="rounded-3xl"],
+[class~="rounded"],
+button,
+input,
+select,
+textarea,
+.btn,
+.card,
+.callout,
+.tab,
+.code-block,
+pre,
+code,
+figure,
+.frame,
+nav,
+header,
+footer,
+aside,
+[class*="Card"],
+[class*="callout"],
+[class*="Callout"],
+[class*="accordion"],
+[class*="Accordion"],
+[class*="banner"],
+[class*="Banner"] {
+	border-radius: 0 !important;
+}
+
+[class*="shadow"],
+.shadow,
+.shadow-sm,
+.shadow-md,
+.shadow-lg,
+.shadow-xl {
+	box-shadow: none !important;
+}
+
+/* ── Inline code + code blocks ──────────────────────────────────── */
+
+code {
+	background: var(--bl-surface-alt);
+	border: 1px solid var(--bl-line);
+	color: var(--bl-ink);
+	font-family: var(--bl-mono);
+	font-size: 0.85em;
+	font-variant-numeric: tabular-nums;
+	padding: 1px 5px;
+}
+
+/*
+ * Mintlify's `pre` is transparent — the surface is painted by a wrapper div,
+ * and the block already has its own padding. Giving `pre` a background, border
+ * and padding here drew a second box inside every code block, so this only
+ * sets type.
+ */
+pre {
+	background: transparent;
+	border: 0;
+	font-family: var(--bl-mono);
+	font-size: 12.5px;
+	line-height: 1.65;
+}
+
+pre code {
+	background: transparent;
+	border: none;
+	color: inherit;
+	padding: 0;
+}
+
+/* Same ink as the admin's generated-output pane, so a snippet reads the same
+   in the docs as it does in the plugin. */
+.code-block [class*="bg-codeblock"] {
+	background: #0d1117 !important;
+}
+
+/* ── Tables: hairline grid ──────────────────────────────────────── */
+
+/*
+ * Scoped to `#content`/`.prose` on purpose. Tailwind Typography styles cells
+ * as `.prose :where(td)` — specificity (0,1,0) — which silently outranks a
+ * bare `th, td` selector, so the padding set here never applied and rows kept
+ * prose's own tight 8px. Only `border` landed, because prose doesn't set one.
+ */
+#content table,
+.prose table {
+	background: var(--bl-paper);
+	border: 1px solid var(--bl-line);
+	border-collapse: collapse;
+	border-spacing: 0;
+	width: 100%;
+}
+
+/*
+ * Reference tables are dense — attribute rows, token values, and cells that
+ * hold a bordered `code` chip of their own. At prose's default the chip sat
+ * almost on the cell edge, so rows read as one solid block.
+ */
+#content th,
+#content td,
+.prose th,
+.prose td {
+	border: 1px solid var(--bl-line);
+	padding: 13px 16px;
+	vertical-align: top;
+}
+
+/* `--bl-faint` is ~2.9:1 on this surface, which fails AA for 10.5px label
+   text. One step darker keeps the mono/uppercase treatment and clears 4.5:1.
+   The header is 10.5px mono, so it needs less height than the body rows. */
+#content th,
+.prose th {
+	background: var(--bl-surface-alt);
+	color: var(--bl-muted);
+	font-family: var(--bl-mono);
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	padding-block: 10px;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+/* Reference tables are mostly token values and defaults — they line up. */
+#content td,
+.prose td {
+	color: var(--bl-muted);
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.6;
+}
+
+/* A chip inside a cell shouldn't crowd the row it sits in. */
+#content td code,
+.prose td code {
+	padding: 2px 6px;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────── */
+
+[class*="Card"],
+.card,
+a[class*="card"] {
+	background: var(--bl-paper) !important;
+	border: 1px solid var(--bl-line) !important;
+	box-shadow: none !important;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+/*
+ * Hover moves the border and the title only. Flooding the whole card with
+ * accent and forcing every child to white read as a selected state, and on a
+ * grid of link cards it made the page flash between two colour schemes.
+ */
+[class*="Card"]:hover,
+.card:hover,
+a[class*="card"]:hover {
+	border-color: var(--bl-line-strong) !important;
+	background: var(--bl-surface-alt) !important;
+}
+
+[class*="Card"]:hover h2,
+[class*="Card"]:hover h3,
+[class*="Card"]:hover h4,
+.card:hover h2,
+.card:hover h3,
+.card:hover h4,
+a[class*="card"]:hover h2,
+a[class*="card"]:hover h3,
+a[class*="card"]:hover h4 {
+	color: var(--bl-accent) !important;
+}
+
+/* ── Sidebar + nav ──────────────────────────────────────────────── */
+
+aside,
+nav[class*="sidebar"],
+[class*="Sidebar"] {
+	background: var(--bl-paper);
+	border-right: 1px solid var(--bl-line);
+}
+
+#sidebar a {
+	border-left: 2px solid transparent;
+	border-radius: 0 !important;
+	color: var(--bl-muted);
+	font-size: 13px;
+	font-weight: 560;
+	padding-left: 14px;
+	transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+#sidebar a:hover {
+	background: var(--bl-surface-alt);
+	color: var(--bl-ink);
+	text-decoration: none;
+}
+
+/*
+ * Mintlify marks the current page with `bg-primary/10 text-primary` rather than
+ * aria-current, so match that. A 2px accent edge, like the plugin's token rail —
+ * the default is a fully rounded filled pill.
+ */
+#sidebar a[class*="bg-primary"] {
+	background: var(--bl-accent-soft) !important;
+	border-left-color: var(--bl-accent);
+	color: var(--bl-accent) !important;
+	font-weight: 620;
+	text-shadow: none !important;
+}
+
+/* ── Group / section eyebrows in sidebar ────────────────────────── */
+
+/*
+ * `.sidebar-group-header` only — NOT `[class*="group"]`. Tailwind puts a bare
+ * `group` class on every sidebar link for its group-hover variants, so the
+ * looser selector matched all of them and rendered the whole nav as mono
+ * uppercase eyebrows.
+ */
+.sidebar-group-header,
+.sidebar-group-header h5 {
+	color: var(--bl-muted) !important;
+	font-family: var(--bl-mono);
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+/* ── Top nav ────────────────────────────────────────────────────── */
+
+header,
+header[class*="navbar"],
+[class*="Navbar"],
+[class*="TopBar"] {
+	background: color-mix(in srgb, var(--bl-canvas) 84%, transparent);
+	backdrop-filter: blur(14px) saturate(150%);
+	border-bottom: 1px solid var(--bl-line);
+}
+
+/* ── Banner ─────────────────────────────────────────────────────── */
+
+[class*="banner"],
+[class*="Banner"] {
+	background: var(--bl-surface-alt);
+	border-bottom: 1px solid var(--bl-line);
+	color: var(--bl-muted);
+	font-size: 13px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+
+button,
+.btn,
+a[class*="button"] {
+	font-family: var(--bl-sans);
+	font-weight: 600;
+	transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+
+button:active,
+.btn:active,
+a[class*="button"]:active {
+	transform: scale(0.96);
+}
+
+[class*="button"][class*="primary"],
+.btn--primary {
+	background: var(--bl-accent) !important;
+	color: #fff !important;
+}
+
+[class*="button"][class*="primary"]:hover,
+.btn--primary:hover {
+	background: var(--bl-accent-strong) !important;
+}
+
+/* ── Callouts ───────────────────────────────────────────────────── */
+
+[class*="callout"],
+[class*="Callout"],
+[class*="Tip"],
+[class*="Note"],
+[class*="Info"],
+[class*="Warning"],
+[class*="Check"] {
+	background: var(--bl-surface-alt) !important;
+	border: 1px solid var(--bl-line) !important;
+	border-left: 3px solid var(--bl-accent) !important;
+	box-shadow: none !important;
+	color: var(--bl-muted) !important;
+}
+
+/* A callout that carries a status should say so on its edge — the one place
+   colour is load-bearing rather than decorative. */
+[class*="Warning"] {
+	border-left-color: var(--bl-warn) !important;
+}
+
+[class*="Check"] {
+	border-left-color: var(--bl-success) !important;
+}
+
+[class*="Danger"],
+[class*="Error"] {
+	border-left-color: var(--bl-danger) !important;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────── */
+
+[class*="tab-list"],
+[role="tablist"] {
+	background: var(--bl-paper);
+	border-bottom: 1px solid var(--bl-line);
+}
+
+[role="tab"] {
+	border-radius: 0 !important;
+	color: var(--bl-muted);
+	font-family: var(--bl-mono);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+[role="tab"][aria-selected="true"] {
+	border-bottom: 2px solid var(--bl-accent);
+	color: var(--bl-accent);
+}
+
+/* ── Accordion / details ────────────────────────────────────────── */
+
+details,
+[class*="accordion"],
+[class*="Accordion"] {
+	background: var(--bl-paper);
+	border-bottom: 1px solid var(--bl-line);
+	box-shadow: none !important;
+}
+
+details summary,
+[class*="accordion"] [class*="trigger"],
+[class*="Accordion"] [class*="trigger"] {
+	color: var(--bl-ink);
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	padding: 22px 0;
+}
+
+details summary:hover,
+details[open] summary {
+	color: var(--bl-accent);
+}
+
+/* ── Steps ──────────────────────────────────────────────────────── */
+
+/* Mintlify draws its own connector per step (`step-line`) and threads it through the number
+   badges. Do NOT add a border to `.steps` or `.step` as well — a `[class*="step"]` selector
+   matches the container, every item, AND the arbitrary variant class
+   `group-has-[[data-component-part="step-content"]:empty]/step:hidden`, which is what produced
+   three stacked vertical lines. Style the real component parts instead. */
+
+[data-component-part="step-line"] {
+	background: var(--bl-line);
+}
+
+[data-component-part="step-number"] > div {
+	background: var(--bl-paper);
+	border: 1px solid var(--bl-line);
+	border-radius: 0;
+	color: var(--bl-accent);
+	font-family: var(--bl-mono);
+	font-weight: 700;
+}
+
+/* ── Search + inputs ────────────────────────────────────────────── */
+
+input[type="search"],
+input[type="text"] {
+	appearance: none;
+	background: var(--bl-paper) !important;
+	border: 1px solid var(--bl-line) !important;
+	border-radius: 0 !important;
+	color: var(--bl-ink);
+	font-family: var(--bl-sans);
+	font-size: 14px;
+}
+
+/* The nav search is a button, not an input, and draws its edge with a Tailwind
+   ring — so it needs the ring cleared, not just a border set. */
+#search-bar-entry {
+	border: 1px solid var(--bl-line) !important;
+	border-radius: 0 !important;
+	background: var(--bl-paper) !important;
+	box-shadow: none !important;
+	--tw-ring-color: transparent;
+	color: var(--bl-faint);
+}
+
+#search-bar-entry:hover {
+	border-color: var(--bl-line-strong) !important;
+}
+
+#search-bar-entry kbd,
+#search-bar-entry [class*="kbd"] {
+	border-radius: 0 !important;
+	font-family: var(--bl-mono);
+}
+
+/* Safari rounds `input[type=search]` on its own — the one curved corner in an
+   otherwise sharp system. */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+	appearance: none;
+}
+
+input:focus {
+	border-color: var(--bl-accent) !important;
+	box-shadow: inset 0 0 0 1px var(--bl-accent) !important;
+	outline: none;
+}
+
+::placeholder {
+	color: var(--bl-faint);
+	opacity: 1;
+}
+
+/* ── Interaction states ─────────────────────────────────────────── */
+
+/* Custom controls carried no visible keyboard focus. One sharp on-brand ring,
+   offset so it stays legible on accent-filled buttons. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+summary:focus-visible {
+	outline: 2px solid var(--bl-accent);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+
+	button:active,
+	.btn:active,
+	a[class*="button"]:active {
+		transform: none !important;
+	}
+}
+
+/* ── Blicks-specific blocks for the home page ──────────────────── */
+
+.bl-eyebrow {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 14px;
+	color: var(--bl-accent);
+	font-family: var(--bl-mono);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.bl-eyebrow::before {
+	display: inline-block;
+	width: 18px;
+	height: 1px;
+	background: var(--bl-accent);
+	content: "";
+}
+
+.bl-atomic-board {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	grid-auto-rows: minmax(58px, 1fr);
+	gap: 1px;
+	min-height: 360px;
+	margin: 22px 0 34px;
+	background: var(--bl-line);
+	border: 1px solid var(--bl-line);
+}
+
+.bl-atomic-board__tile {
+	display: block;
+	min-height: 58px;
+	background: var(--bl-paper);
+}
+
+.bl-atomic-board__tile--violet { background: #a440ce; }
+.bl-atomic-board__tile--green { background: #86af80; }
+.bl-atomic-board__tile--magenta { background: #e31957; }
+.bl-atomic-board__tile--cyan { background: #8bf6ff; }
+.bl-atomic-board__tile--yellow { background: #f4e04d; }
+.bl-atomic-board__tile--steel { background: #738fab; }
+.bl-atomic-board__tile--ink { background: #0a0a0a; }
+.bl-atomic-board__tile--brand { background: #002bff; }
+
+.dark .bl-atomic-board__tile--ink { background: #f8fafc; }
+
+@media (width <= 720px) {
+	.bl-atomic-board {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		min-height: 240px;
+	}
+}

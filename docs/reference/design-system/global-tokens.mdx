@@ -1,0 +1,156 @@
+---
+title: "Global Tokens"
+description: "How Blicks design tokens bridge theme.json, Global Styles, and block styles."
+---
+
+Blicks blocks reference a single set of **global design tokens** instead of hardcoding colors,
+spacing, type, or effects. Tokens are resolved from the active WordPress theme's `theme.json` (and
+user Global Styles), projected into `--blicks-*` CSS custom properties, and can be overridden from
+the Blicks admin page or the editor **Theme Settings** sidebar.
+
+## Why tokens?
+
+- **Theme-native by default.** Blicks adopts the active theme's palette, spacing, and typography automatically.
+- **Live updates.** Changing a token value updates every block that references it — no re-save required.
+- **Consistent overrides.** Override a token once and it applies site-wide, in the editor and on the front end.
+- **FSE compatible.** Values read from — and, when sync is enabled, write back to — `theme.json` / Global Styles.
+
+## Token categories
+
+| Category | Slugs | Source in `theme.json` | Blicks CSS var |
+|---|---|---|---|
+| `color` | `background`, `foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`, `card`, `card-foreground`, `popover`, `popover-foreground` | `settings.color.palette` | `--blicks-color-<slug>` |
+| `fontSize` | `xs`, `sm`, `base`, `lg`, `xl`, `2xl`, `3xl`, `4xl` | `settings.typography.fontSizes` | `--blicks-fontSize-<slug>` |
+| `fontFamily` | `sans`, `serif`, `mono` | `settings.typography.fontFamilies` | `--blicks-fontFamily-<slug>` |
+| `spacing` | `0`, `px`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl` | `settings.spacing.spacingSizes` | `--blicks-spacing-<slug>` |
+| `radius` | `none`, `sm`, `md`, `lg`, `xl`, `full` | `settings.border.radiusSizes` | `--blicks-radius-<slug>` |
+| `shadow` | `none`, `sm`, `md`, `lg`, `xl` | `settings.shadow.presets` | `--blicks-shadow-<slug>` |
+| `gradient` | `brand`, `paper`, `atomic` | `settings.color.gradients` | `--blicks-gradient-<slug>` |
+| `transition` | `fast`, `base`, `slow` | `settings.custom.blicks.transition` | `--blicks-transition-<slug>` |
+| `transform` | `lift`, `press`, `zoom` | `settings.custom.blicks.transform` | `--blicks-transform-<slug>` |
+| `filter` | `blur`, `dim`, `grayscale` | `settings.custom.blicks.filter` | `--blicks-filter-<slug>` |
+| `zIndex` | `base`, `sticky`, `drawer`, `popover`, `drag`, `toast` | `settings.custom.blicks.zIndex` | `--blicks-zIndex-<slug>` |
+| `opacity` | `disabled`, `muted`, `scrim`, `hover` | `settings.custom.blicks.opacity` | `--blicks-opacity-<slug>` |
+| `borderWidth` | `hair`, `strong`, `heavy` | `settings.custom.blicks.borderWidth` | `--blicks-borderWidth-<slug>` |
+| `borderStyle` | `solid`, `dashed`, `dotted` | `settings.custom.blicks.borderStyle` | `--blicks-borderStyle-<slug>` |
+| `ring` | `brand`, `subtle`, `danger` | `settings.custom.blicks.ring` | `--blicks-ring-<slug>` |
+| `width` | `prose`, `content`, `wide`, `full` | `settings.custom.blicks.width` | `--blicks-width-<slug>` |
+| `aspect` | `square`, `wide`, `portrait` | `settings.custom.blicks.aspect` | `--blicks-aspect-<slug>` |
+| `leading` | `tight`, `snug`, `body`, `loose` | `settings.custom.blicks.leading` | `--blicks-leading-<slug>` |
+| `content` | `size` | `settings.layout.contentSize` | `--blicks-content-size` |
+| `button` | `radius`, `height`, `padding-x`, `padding-y`, `font-size`, `font-weight`, `border-width` | `settings.custom.blicks.button` | `--blicks-button-<slug>` |
+| `breakpoints` | `tablet`, `mobile` | `settings.custom.blicks.breakpoints` | used for responsive media queries |
+
+The canonical slug list lives in the plugin at `resources/design-system/tokens.json` (plus the
+synthetic `breakpoints.json`). PHP reads the same catalogue via `Blicks\Style\Tokens`, so the server
+and client agree on which slugs exist. Site owners can add their own slugs to any category; custom
+slugs are stored in the `blicks_design_custom_slugs` option.
+
+Semantic typography is layered on top of `fontSize` as **type roles** — see
+[Type Roles](/reference/design-system/type-roles).
+
+## Three-tier model
+
+Tokens resolve through three layers:
+
+```css
+:root {
+  /* Tier 1 — WordPress preset / layout var (theme or user Global Styles) */
+  --wp--preset--color--primary: #0f172a;
+  --wp--style--global--content-size: 800px;
+
+  /* Tier 2 — Blicks-only custom tokens when no native slot exists */
+  --wp--custom--blicks--transition--base: 200ms ease;
+
+  /* Tier 3 — Blicks semantic alias that blocks actually reference */
+  --blicks-color-primary: var(--wp--preset--color--primary);
+  --blicks-content-size: var(--wp--style--global--content-size);
+  --blicks-transition-base: var(--wp--custom--blicks--transition--base);
+}
+```
+
+Blocks always use Tier 3 (`--blicks-*`). If the underlying WordPress value changes, the alias follows
+and the block updates instantly.
+
+## Projection and overrides
+
+`Blicks\DesignSystem\ThemeProjection` reads `wp_get_global_settings()` and maps native presets to
+Blicks slugs using `TokenMap`. When a theme does not define a Blicks role (for example `muted` or
+`ring`), a fallback value is supplied from the Blicks catalogue.
+
+User overrides are stored in the `blicks_design_system` option and applied on top of the projected
+values. The same option also stores custom breakpoint max-widths (`tablet`, `mobile`).
+
+When **Global Styles sync** is enabled in **Blicks → Settings**, changed tokens are also written to
+the user Global Styles entity / `theme.json`, and the override migrates forward so WordPress owns
+the value natively.
+
+## Editing tokens
+
+Two surfaces consume the same REST contract:
+
+- **Blicks → Design System** admin page — full management surface with source labels, named themes, type roles, and a keyframe animation library.
+- **Editor → Theme Settings sidebar** — quick overrides with live draft preview pinned to `:root` until saved.
+
+Both read the same snapshot shape:
+
+```ts
+{
+  mode: 'readOnly';
+  source: { theme: string; themeJson: boolean; globalStyles: boolean };
+  tokens: Record<TokenCategory, readonly string[]>;
+  baseValues: TokenValues;      // projected theme value for each slug
+  values: TokenValues;          // effective value after overrides
+  typeRoles: TypeRoleSnapshot;  // roles, props, slots, base + effective values
+  fontLibrary: FontFamily[];
+  overrides: { tokens: TokenOverrides; breakpoints: Record<string, number>; typeRoles: TypeRoleValues };
+  breakpoints: Breakpoint[];
+  counts: { colors: number; typography: number; spacing: number; radius: number; shadow: number; breakpoints: number; typeRoles: number };
+}
+```
+
+## REST endpoints
+
+All routes live under the `blicks/v1` namespace and require `manage_options`.
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `design-system` | Read the snapshot above. |
+| `PATCH` | `design-system` | Update `tokens`, `breakpoints`, `typeRoles`, `customSlugs`, or `reset` a list of slugs. |
+| `GET` / `POST` | `design-system/themes` | List or create a named design theme. |
+| `PATCH` / `DELETE` | `design-system/themes/{id}` | Rename/update or delete a theme. |
+| `POST` | `design-system/themes/{id}/apply` | Apply a saved theme's token set. |
+| `POST` | `design-system/themes/{id}/reset` | Reset a theme back to projected values. |
+| `GET` / `POST` | `design-system/animations` | List or create a custom keyframe animation. |
+| `PATCH` / `DELETE` | `design-system/animations/{slug}` | Update or remove an animation. |
+| `GET` / `PATCH` | `settings` | Read or update plugin settings. |
+| `GET` | `dashboard` | Overview summary for the admin home screen. |
+| `GET` | `diagnostics` | Environment and design-system diagnostics. |
+
+Every argument carries a sanitize callback, and structured payloads are narrowed again by the
+allowlist validator that owns each shape.
+
+## How blocks consume tokens
+
+In block controls, token slugs are selected from color swatches, spacing steps, radius steps, shadow
+presets, font families, and motion libraries. The style engine converts the selected slug into a CSS
+value that references the Tier 3 alias, usually with a fallback:
+
+```css
+background: var(--blicks-color-primary, #0f172a);
+```
+
+Literal values (typed hex codes, custom `px` sizes, custom CSS) are emitted as a scoped variable plus
+a static consumer class, and do not track theme changes.
+
+## Token map
+
+The mapping between Blicks categories and `theme.json` paths is centralised in
+`src/DesignSystem/TokenMap.php`. It drives both **read** (`ThemeProjection`) and **write**
+(`GlobalStylesWriter`), which keeps round-trip parity structural rather than coincidental.
+
+## Breakpoints
+
+Breakpoints are not emitted as CSS variables. They configure the responsive media-query thresholds
+used by the style engine and the inspector's device switcher. Defaults are `tablet: 782px` and
+`mobile: 600px`; overrides live in `settings.custom.blicks.breakpoints` when write-back is enabled.

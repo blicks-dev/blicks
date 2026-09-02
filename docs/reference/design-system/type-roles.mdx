@@ -1,0 +1,84 @@
+---
+title: "Type Roles"
+description: "Semantic typography roles that sit on top of the flat font-size scale, and how they map to theme.json."
+---
+
+A **type role** bundles a complete typographic look — not a single scalar. Where the `fontSize`
+token category gives you one value, a role carries size, weight, line height, letter spacing,
+family, and text transform together, so "what an `h2` looks like" is one decision instead of six.
+
+## The roles
+
+`display` · `h1` · `h2` · `h3` · `h4` · `h5` · `h6` · `body` · `lead` · `small` · `caption` ·
+`code` · `mono`
+
+## The properties
+
+Each role carries the same six `theme.json` typography keys, 1:1:
+
+`fontSize` · `fontWeight` · `lineHeight` · `letterSpacing` · `fontFamily` · `textTransform`
+
+`fontSize` and `fontFamily` resolve through the matching token presets
+(`--wp--preset--font-size--<slug>`, `--wp--preset--font-family--<slug>`), so a role stays tied to the
+theme's scale rather than freezing a literal value.
+
+## Native vs custom roles
+
+Unlike the token categories — which all live under `theme.json` `settings.*` — roles target the
+`styles.*` tree. Roles split into two kinds:
+
+| Kind | Roles | Where the value lives |
+|---|---|---|
+| **Native** | `h1`, `h2`, `h3`, `h4`, `h5`, `h6` | `styles.elements.h{n}.typography` |
+| **Native** | `body` | `styles.typography` (the root) |
+| **Native** | `caption` | `styles.elements.caption.typography` |
+| **Custom** | `display`, `lead`, `small`, `code`, `mono` | `settings.custom.blicks.typeRoles.{role}` |
+
+**Native roles** map onto a real `theme.json` element slot that WordPress already emits CSS for.
+Blicks only reads them to populate the editor and writes edits back — no extra CSS variable is
+needed, because the theme's own output already carries the value.
+
+**Custom roles** have no native element slot, so they are stored under
+`settings.custom.blicks.typeRoles` and emit `--blicks-type-{role}-{prop}` aliases that the relevant
+block CSS consumes.
+
+```css
+:root {
+  /* custom role — Blicks emits the alias */
+  --blicks-type-lead-fontSize: var(--wp--custom--blicks--type-roles--lead--font-size);
+
+  /* native role — no alias needed; WordPress already styles h2 */
+}
+```
+
+## Editing roles
+
+Roles are edited in **Blicks → Design System ▸ Typography**, alongside the font-size scale. Each
+role shows Size, Weight, Line height, Tracking, Transform, and Family, with a live specimen.
+
+Reads are handled by `TypeRoleProjection`, writes by `GlobalStylesWriter`. Both walk the same
+descriptor table (`TypeRoles::SLOTS`), which keeps round-trip parity structural rather than
+coincidental.
+
+## How blocks consume roles
+
+Text-bearing blocks reference a role rather than a hardcoded size. Change the role once and every
+block using it follows — including headings that inherit the theme's native element styles, because
+native roles write to the slot WordPress itself renders.
+
+<Info>
+Because native roles round-trip through `theme.json`, editing `h1`–`h6`, `body`, or `caption` with
+**Global Styles sync** enabled changes typography for the whole site, not only Blicks blocks. That
+is intentional: the theme stays the source of truth.
+</Info>
+
+## Next steps
+
+<CardGroup cols={2}>
+	<Card title="Global tokens" icon="palette" href="/reference/design-system/global-tokens">
+		The token categories and CSS variable tiers.
+	</Card>
+	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
+		Where to edit roles, tokens, themes, and animations.
+	</Card>
+</CardGroup>

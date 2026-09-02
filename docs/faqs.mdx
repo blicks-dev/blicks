@@ -1,0 +1,83 @@
+---
+title: "FAQs"
+description: "Frequently asked questions about Blicks — requirements, output, data, and licensing."
+---
+
+<AccordionGroup>
+	<Accordion title="What are the plugin requirements?">
+		- WordPress 6.5 or newer (tested up to 7.1)
+		- PHP 8.1 or newer
+		- A block theme is recommended — Blicks is designed for full site editing
+
+		Blicks also runs on classic themes, but falls back to its own default token values because
+		there is no `theme.json` to read.
+	</Accordion>
+
+	<Accordion title="Does Blicks work with my theme?">
+		Yes. Blicks does not ship a competing palette or type scale. It reads the active theme's
+		`theme.json` and user Global Styles and projects those values into `--blicks-*` custom
+		properties, so block controls offer the values your theme already defines. Where a theme does
+		not define a role Blicks needs, a documented fallback is supplied.
+	</Accordion>
+
+	<Accordion title="Does Blicks make outbound requests?">
+		No. Blicks does not call any external service. Scripts, styles, and the icon registry are all
+		served from the plugin package — nothing is fetched on activation, on admin page loads, or
+		from scheduled tasks.
+	</Accordion>
+
+	<Accordion title="Does Blicks load remote JavaScript?">
+		No. All plugin scripts and styles are served from the plugin package. No executable code is
+		loaded from a remote server.
+	</Accordion>
+
+	<Accordion title="Will it slow my site down?">
+		Token values become shared utility classes rather than per-block CSS, so repeated styles
+		collapse into one cached stylesheet. Every block renders as static HTML and CSS — no
+		front-end JavaScript at all, no jQuery, and no bundled framework.
+	</Accordion>
+
+	<Accordion title="What happens to my data if I delete the plugin?">
+		By default, nothing is removed — your tokens, themes, animations, and settings survive a
+		delete and reinstall. If you want Blicks to clean up after itself, set **On uninstall** to
+		**Remove everything** in **Blicks → Settings** before deleting the plugin.
+	</Accordion>
+
+	<Accordion title="What happens if I just deactivate it?">
+		Blicks blocks stop rendering their styles, like any block plugin. Your content stays in the
+		post as saved markup, and no stored data is touched.
+	</Accordion>
+
+	<Accordion title="Is the custom CSS field safe?">
+		The **Advanced ▸ Custom CSS** field is scoped to the block it belongs to — the `selector`
+		keyword is replaced with that block's wrapper class. Before output, the sanitizer strips HTML
+		tag openings, remote imports, `@charset` / `@namespace` rules, legacy CSS expressions, script
+		and data URL schemes, `url()` references, and legacy binding properties. See
+		[Scoped custom CSS](/guides/scoped-custom-css).
+	</Accordion>
+
+	<Accordion title="Does Blicks lock my content in?">
+		No shortcodes and no proprietary wrapper — blocks save standard HTML with classes. Static
+		blocks keep their markup in the post; dynamic blocks re-render through the same CSS pipeline.
+	</Accordion>
+
+	<Accordion title="How do I update the design system?">
+		Use **Blicks → Design System** in the WordPress admin, or the **Theme Settings** sidebar
+		inside the block editor. Values are kept as Blicks overrides, and can also be written to
+		WordPress Global Styles / `theme.json` when **Global Styles sync** is enabled in
+		**Blicks → Settings**. See [Customize the Design System](/guides/customize-design-system).
+	</Accordion>
+
+	<Accordion title="How is Blicks licensed?">
+		GPL-2.0-or-later. The bundled icon registry is generated from **Lucide** (ISC); some Lucide
+		icons derive from **Feather** (MIT). Full notices ship in `licenses.txt` and in the generated
+		icon registry metadata.
+	</Accordion>
+
+	<Accordion title="Where is the human-readable source code?">
+		All PHP ships as plain, unobfuscated source inside the plugin package. The front-end assets
+		are compiled from TypeScript and SCSS with Vite; those uncompiled sources and the build
+		configuration are available on request under the plugin's GPL-2.0-or-later license — contact
+		us through [blicks.dev](https://blicks.dev).
+	</Accordion>
+</AccordionGroup>

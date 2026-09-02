@@ -81,6 +81,28 @@ git config user.email "prakhadkash@gmail.com"
 
 All three are bypassable with `--no-verify` when you need it.
 
+## Documentation
+
+The public documentation site lives in [`docs/`](docs/) and is built with Mintlify. Mintlify's
+GitHub integration watches that directory on `main` and rebuilds on every push, so there is no
+deploy step.
+
+```bash
+cd docs && pnpm install    # docs carry their own dependencies
+pnpm generate              # rebuild the block reference from resources/blocks
+pnpm dev                   # preview the site locally
+pnpm check                 # generate, then check for broken links
+```
+
+`docs/` installs separately from the plugin. The Mintlify CLI is heavy and nothing else needs it,
+so the build, test and release jobs never install it — the same isolation `tests/integration/`
+uses for its Composer project.
+
+Mintlify does **not** run build scripts, so the generated block reference under
+`docs/reference/blocks/` is committed. Run `pnpm generate` and commit the result whenever a
+`block.json` or a per-block `readme.md` changes; CI fails the build if the committed copy has
+drifted. Nothing under `docs/` reaches the release zip — `scripts/bundle.js` ships an allowlist.
+
 ## Continuous integration
 
 | Workflow | Trigger | What it does |
@@ -89,6 +111,7 @@ All three are bypassable with `--no-verify` when you need it.
 | `ci.yml` | push to `main`, every PR | Runs `checks.yml` |
 | `plugin-check.yml` | every PR | Bundles the release zip and runs the official WordPress.org Plugin Check against it |
 | `release.yml` | `v*` tag | `checks.yml` → version guard → bundle → Plugin Check → GitHub Release → WordPress.org SVN deploy |
+| `docs.yml` | `docs/**` or `resources/blocks/**` | Regenerates the block reference and fails if the committed copy has drifted, then checks the docs for broken links |
 | `wporg-assets.yml` | `.wordpress-org/**` on `main`, or run by hand | Pushes the listing artwork (banners, icons, screenshots) to SVN without cutting a release. `readme.txt` is excluded on purpose — it carries `Stable tag:`, so the release deploy publishes it together with the tag it names |
 
 > **Directory artwork is outstanding.** `.wordpress-org/` holds no icon, banner or screenshots, so

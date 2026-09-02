@@ -1,0 +1,73 @@
+---
+title: "Buttons"
+description: "A row or column of Button blocks with shared alignment, spacing, and wrapping."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/buttons/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/buttons` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`layout.justifyContent` · `layout.alignItems` · `layout.flexWrap` · `layout.gapRow` · `layout.gapColumn` · `layout.width` · `layout.height` · `gridChild.*` · `spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `effects.*` · `animation.*` · `decoration.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `blicks` | `object` | `&#123;&#125;` |
+| `gap` | `string` | `"sm"` |
+| `justify` | `string` | `"flex-start"` |
+| `orientation` | `string` | `"horizontal"` |
+| `uniqueId` | `string` | — |
+| `wrap` | `boolean` | `true` |
+
+## Help
+
+## Description
+
+Buttons is a container that lays out one or more Button blocks in a row or column with shared alignment, spacing, and wrapping. Only Button blocks can be placed inside it.
+
+## Controls
+
+### orientation
+
+Arranges the buttons horizontally (a row) or vertically (a column).
+
+### gap
+
+Sets the space between buttons using the spacing scale (XS–LG).
+
+### justify
+
+Distributes the buttons along the main axis: start, center, end, or space-between.
+
+### wrap
+
+Allows buttons to wrap onto multiple lines when they run out of room, or keeps them on a single line.
+
+## Tips
+
+- Use a horizontal row with a Start or Center distribution for a typical primary/secondary action pair.
+- Switch to vertical orientation for stacked calls-to-action on narrow layouts.
+- Pair one default (primary) Button with an outline or ghost Button for a clear visual hierarchy.

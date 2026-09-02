@@ -1,0 +1,81 @@
+---
+title: "Blicks Documentation"
+description: "Atomic Gutenberg blocks, theme.json-native tokens, and generated block references."
+---
+
+<div className="bl-eyebrow">Git-backed reference</div>
+
+# The atomic WordPress builder, documented from source.
+
+Blicks is a free, GPL-licensed WordPress plugin: **12 composable Gutenberg blocks** on a single
+design system that reads your theme's `theme.json` instead of replacing it. These docs are generated
+from the monorepo, block metadata, and package Markdown, so the reference stays aligned with the
+code that actually ships.
+
+<div className="bl-atomic-board" aria-label="Blicks block system preview">
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--violet" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--green" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--magenta" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--cyan" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--yellow" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--steel" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--ink" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--brand" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--violet" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--cyan" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--yellow" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--brand" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--magenta" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--steel" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--ink" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--green" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--brand" />
+	<span className="bl-atomic-board__tile" />
+	<span className="bl-atomic-board__tile bl-atomic-board__tile--violet" />
+</div>
+
+<CardGroup cols={2}>
+	<Card title="Get started" icon="rocket" href="/getting-started">
+		Install Blicks, insert your first block, and find your way around the admin.
+	</Card>
+	<Card title="Block reference" icon="cube" href="/reference/blocks/index">
+		All 12 blocks, generated from block metadata and per-block readmes.
+	</Card>
+	<Card title="Build a landing page" icon="layout-panel-top" href="/guides/build-a-landing-page">
+		Compose a hero, a feature grid, and a call to action from the layout primitives.
+	</Card>
+	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
+		Override tokens and type roles, save named themes, and sync with `theme.json`.
+	</Card>
+	<Card title="Global tokens" icon="palette" href="/reference/design-system/global-tokens">
+		How Blicks tokens bridge `theme.json`, Global Styles, and block styles.
+	</Card>
+	<Card title="Type roles" icon="text-size" href="/reference/design-system/type-roles">
+		Semantic typography roles layered on top of the font-size scale.
+	</Card>
+	<Card title="Responsive patterns" icon="smartphone" href="/guides/responsive-patterns">
+		The three devices, how their values cascade, and what to reach for first.
+	</Card>
+	<Card title="Scoped custom CSS" icon="code" href="/guides/scoped-custom-css">
+		Per-block rules with the `selector` keyword, and what gets sanitized.
+	</Card>
+</CardGroup>
+
+## Update flow
+
+<Steps>
+	<Step title="Edit source">
+		Update Markdown, block metadata, or per-block readme files in Git.
+	</Step>
+	<Step title="Generate">
+		Run `pnpm docs:generate` and commit the result. Mintlify does not run build scripts, so the block reference is committed to the repo.
+	</Step>
+	<Step title="Publish">
+		Mintlify rebuilds the site from this directory on every push.
+	</Step>
+</Steps>

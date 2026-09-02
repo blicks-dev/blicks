@@ -1,0 +1,107 @@
+---
+title: "Build a Landing Page"
+description: "Compose a hero, a feature grid, and a call to action from the Blicks layout primitives."
+---
+
+Blicks has no page-builder canvas and no section templates. It has twelve primitives that compose,
+and one rule that makes them predictable: **Section owns the band, Stack and Grid own the
+arrangement, everything else is content.** This guide builds a three-band landing page with them.
+
+## The mental model
+
+<CardGroup cols={3}>
+	<Card title="Section" icon="layout-panel-top">
+		The full-bleed band. An outer `<section>` you style, and an inner wrapper that constrains the content width.
+	</Card>
+	<Card title="Stack / Grid" icon="columns-3">
+		Arrangement. Stack lays children along one axis; Grid lays them in columns.
+	</Card>
+	<Card title="Box" icon="square">
+		The styleable container. Use it for cards, and when a whole group needs to be a link.
+	</Card>
+</CardGroup>
+
+Heading, Text, Buttons, Image, Icon, Spacer and Divider are the leaves you put inside.
+
+Only one block has a fixed parent: **Button must live inside Buttons.** Everything else nests
+freely, so the structure is yours to choose rather than something the plugin enforces.
+
+## Band 1 — the hero
+
+<Steps>
+	<Step title="Insert a Section">
+		This is the band. It spans the viewport; its inner wrapper is what holds your content in.
+	</Step>
+	<Step title="Set the band's height">
+		In the Section settings, set **Section height** to something like `80vh`. It is a minimum height, so a tall hero on a narrow screen still grows instead of clipping.
+	</Step>
+	<Step title="Add a Stack inside">
+		Set orientation to **Vertical** and pick a gap from the spacing tokens. The Stack is what spaces the hero's contents — do not reach for Spacer blocks between every item.
+	</Step>
+	<Step title="Fill it">
+		Heading, then Text, then Buttons with two Button children inside it.
+	</Step>
+	<Step title="Center it">
+		On the Stack, set **align** to center. In a vertical stack, align controls the *cross* axis — horizontal alignment. Use **justify** for vertical distribution.
+	</Step>
+</Steps>
+
+<Note>
+Section's inner content width defaults to
+`var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))`, so it lines up with
+your theme's own content width without you configuring anything. Override **Content max width**
+only when this band should be wider or narrower than the rest of the page.
+</Note>
+
+## Band 2 — the feature grid
+
+<Steps>
+	<Step title="A second Section">
+		Give it a **surface** — `muted` for a soft band that separates it from the hero, or `card` when it should read as an elevated panel.
+	</Step>
+	<Step title="Add a Grid">
+		Turn on **auto-fit** and set **min column width** to about `280px`.
+	</Step>
+	<Step title="Build one card">
+		Inside the Grid, add a Box; inside the Box, a Stack with an Icon, a Heading and a Text.
+	</Step>
+	<Step title="Duplicate it">
+		Duplicate the Box for each feature. The Grid places them; you never set a column count per screen size.
+	</Step>
+</Steps>
+
+Auto-fit is the part worth internalising. With it on, the Grid fits as many columns as the
+available width allows and reflows on its own — three across on a desktop, two on a tablet, one on
+a phone, with no breakpoint work. Turn it off and set **columns** only when the count is part of the
+design and must not change.
+
+<Tip>
+Need the band to run edge to edge? Wrap the Grid in a Section. Do not change the Grid's tag to
+achieve it — the tag is for semantics (`ul`/`ol` when the children are genuinely a list).
+</Tip>
+
+## Band 3 — the call to action
+
+A CTA is the hero pattern again, shorter: Section → Stack (vertical, centered) → Heading, Text,
+Buttons.
+
+To make an entire card clickable rather than just its button, use **Box** as the wrapper — it takes
+an `href`, a link target, a `rel` and an accessible link label, so the whole group becomes one link
+without nesting interactive elements inside each other.
+
+## Where to go next
+
+<CardGroup cols={2}>
+	<Card title="Responsive patterns" icon="smartphone" href="/guides/responsive-patterns">
+		What to reach for before breakpoints, and how the three devices cascade.
+	</Card>
+	<Card title="States and interactions" icon="pointer" href="/guides/states-and-interactions">
+		Hover, focus and active values, and the animation library.
+	</Card>
+	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
+		Change the tokens these blocks draw from.
+	</Card>
+	<Card title="Block reference" icon="cube" href="/reference/blocks/index">
+		Every control on every block, generated from the plugin.
+	</Card>
+</CardGroup>

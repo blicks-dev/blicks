@@ -1,0 +1,83 @@
+---
+title: "Grid"
+description: "A two-dimensional layout block for equal-width or auto-fit child columns."
+---
+
+<Info>
+Generated from `packages/blicks/resources/blocks/grid/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/grid` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active` |
+
+## Blicks controls
+
+`layout.gridColumns` · `layout.gridRows` · `layout.gapRow` · `layout.gapColumn` · `layout.justifyItems` · `layout.gridAreas` · `layout.gridAutoFlow` · `layout.width` · `layout.height` · `layout.overflow` · `layout.overflowX` · `layout.overflowY` · `layout.scrollSnapType` · `layout.containerType` · `layout.containerName` · `layout.aspectRatio` · `gridChild.*` · `spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `effects.*` · `animation.*` · `decoration.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `autoFit` | `boolean` | `false` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `columns` | `number` | `3` |
+| `dense` | `boolean` | `false` |
+| `gap` | `string` | `"md"` |
+| `minColumnWidth` | `string` | `"16rem"` |
+| `tag` | `string` | `"div"` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+Grid arranges child blocks in columns. Use it for feature cards, pricing cards, galleries, comparison panels, and any layout where multiple items should align in a repeated structure.
+
+## Controls
+
+### columns
+
+Sets the number of equal-width columns when auto-fit is off.
+
+### autoFit
+
+Lets the grid create as many columns as fit the available width. This is useful for responsive card collections.
+
+### minColumnWidth
+
+Sets the minimum column width used by auto-fit grids.
+
+### gap
+
+Sets row and column spacing between grid children using Blicks spacing tokens (XS–XL).
+
+### dense
+
+Allows the browser to pack grid items into earlier empty spaces when possible.
+
+### tag
+
+Chooses the grid wrapper element. Use `div` for generic layout and `ul`/`ol` when the children form a list. For a full-width band, wrap the Grid in a Section block instead of changing the tag.
+
+## Tips
+
+- Use Grid for repeated sibling items, then use Stack inside each item for card content.
+- Use two columns for pricing and comparison sections.
+- Use auto-fit for collections that should adapt without manual breakpoint changes.

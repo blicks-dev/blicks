@@ -1,0 +1,128 @@
+---
+title: "Getting Started"
+description: "Install Blicks, insert your first block, and learn where the design system and settings live."
+---
+
+Blicks is a free WordPress plugin that adds **12 composable Gutenberg blocks** built on a
+theme-native design system. This guide covers installation, your first block, and where everything
+lives in the admin.
+
+## Requirements
+
+- WordPress **6.5** or newer (tested up to 7.1)
+- PHP **8.1** or newer
+- A **block theme** is recommended — Blicks is designed for full site editing
+
+<Note>
+Blicks also runs on classic themes, but falls back to its own default token values because there is
+no `theme.json` to read.
+</Note>
+
+## Installation
+
+<Steps>
+	<Step title="Download">
+		Grab `blicks.zip` from the [latest release](https://github.com/blicks-dev/blicks/releases) on GitHub.
+	</Step>
+	<Step title="Install">
+		In WordPress, go to **Plugins → Add New → Upload Plugin**, choose the zip, and install it. You can also unzip it into `/wp-content/plugins/blicks/` yourself.
+	</Step>
+	<Step title="Activate">
+		Activate **Blicks** from the Plugins screen.
+	</Step>
+	<Step title="Open the editor">
+		Open any post or page in the block editor and insert blocks from the **Blicks** category.
+	</Step>
+</Steps>
+
+<Note>
+No build step is required — the plugin ships with compiled scripts and styles.
+</Note>
+
+<Info>
+Blicks is under review for the WordPress.org plugin directory. Once it is listed you will be able to
+install it from **Plugins → Add New** by searching for it, and updates will arrive through WordPress
+like any other plugin.
+</Info>
+
+## Insert your first block
+
+<Steps>
+	<Step title="Open the inserter">
+		In the block editor, open the inserter (`+`).
+	</Step>
+	<Step title="Choose the Blicks category">
+		Pick the **Blicks** block category.
+	</Step>
+	<Step title="Build a hero">
+		Insert a **Section**, then a **Stack**, then a **Heading** and **Buttons** inside it.
+	</Step>
+	<Step title="Style it">
+		Select each block and use the inspector to adjust layout, spacing, typography, color, borders, and effects.
+	</Step>
+</Steps>
+
+Blicks blocks use native WordPress controls where possible and add their own styling features for
+spacing, colors, typography, borders, effects, dimensions, position, grid-child behavior, animation,
+visibility, and pseudo-element decoration.
+
+## How the design system works
+
+Blicks does not ship a hardcoded look. It reads the active theme's `theme.json` and user Global
+Styles, then projects them into `--blicks-*` CSS custom properties. Blocks reference those
+variables, so changing the theme palette, type scale, or spacing updates every Blicks block.
+
+Token values are selected as **slugs** in block controls, which emit shared utility classes. Typing
+a literal value instead (a hex code, a custom `px` size) emits a scoped CSS variable plus a static
+consumer class — never a wall of inline styles.
+
+Read the full model in [Global Tokens](/reference/design-system/global-tokens) and
+[Type Roles](/reference/design-system/type-roles).
+
+## Where things live in the admin
+
+The plugin registers a top-level **Blicks** menu with three screens:
+
+<CardGroup cols={2}>
+	<Card title="Blicks" icon="gauge">
+		Overview — install state, design-system snapshot, and quick links.
+	</Card>
+	<Card title="Design System" icon="palette">
+		Edit tokens, type roles, named themes, keyframe animations, and breakpoints.
+	</Card>
+	<Card title="Settings" icon="sliders">
+		Editor preferences, Global Styles sync, and uninstall behavior.
+	</Card>
+</CardGroup>
+
+Tokens can also be edited from the **Theme Settings** sidebar inside the block editor, which
+previews draft values live on the canvas before you save. Both surfaces use the same
+`blicks/v1/design-system` REST contract.
+
+## Settings worth knowing
+
+| Setting | What it does |
+|---|---|
+| **Default inspector panel** | Which panel opens when a Blicks block is selected — Styles, Settings, or Advanced. |
+| **Per-block help** | Surfaces each block's readme metadata inside the inspector. |
+| **Global Styles sync** | Writes newly saved design tokens back to `theme.json` Global Styles. Disabled if the active theme has no `theme.json` support. |
+| **On uninstall** | **Keep my data** (default) or **Remove everything**. Applies on delete, not deactivate. |
+
+<Info>
+By default, deleting the plugin removes nothing. Your tokens, themes, animations, and settings
+survive a delete and reinstall unless you opt into cleanup first.
+</Info>
+
+## Next steps
+
+<CardGroup cols={2}>
+	<Card title="Block reference" icon="cube" href="/reference/blocks/index">
+		All 12 blocks, generated from block metadata.
+	</Card>
+	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
+		Override tokens, type roles, themes, and breakpoints.
+	</Card>
+	<Card title="Scoped custom CSS" icon="code" href="/guides/scoped-custom-css">
+		Write per-block CSS with the `selector` keyword.
+	</Card>
+</CardGroup>
