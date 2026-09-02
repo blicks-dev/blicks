@@ -16,11 +16,18 @@ export default tseslint.config(
 	{
 		ignores: [
 			'build/**',
-			'vendor/**',
-			'node_modules/**',
+			'**/vendor/**',
+			// Both recursive: docs/, tests/e2e/ and tests/integration/ install their own
+			// dependencies, and a bare `vendor/**` or `node_modules/**` only matches the root.
+			'**/node_modules/**',
 			'languages/**',
 			'**/*.gen.ts',
 			'**/*.d.ts',
+			// Both install and lint separately: they are their own packages with their own
+			// toolchains (Mintlify, Playwright), and their code targets Node and the browser
+			// rather than the editor bundle this config is written for.
+			'docs/**',
+			'tests/e2e/**',
 		],
 	},
 	js.configs.recommended,
