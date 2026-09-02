@@ -1,0 +1,13 @@
+{
+    "name": "blicks/integration-tests",
+    "description": "WordPress integration suite. Isolated from the root composer.json because the WordPress test library calls PHPUnit APIs removed in PHPUnit 10, so it needs PHPUnit 9 while the unit suite runs on 13.",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^4.0"
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

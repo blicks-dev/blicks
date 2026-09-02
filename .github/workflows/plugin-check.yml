@@ -1,0 +1,48 @@
+name: Plugin Check
+
+# The WordPress.org Plugin Directory runs these same checks on submission and on
+# every update. Running them here means a rejection shows up on the pull request
+# rather than after a tag has been pushed.
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: plugin-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plugin-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer, wp-cli
+          coverage: none
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      # Checks the zip the user actually installs, not the repo: `pnpm bundle`
+      # builds, generates translations, installs production Composer deps and
+      # assembles from an explicit allowlist.
+      - name: Bundle
+        run: pnpm bundle
+
+      - name: Unpack
+        run: unzip -q dist/blicks.zip -d plugin-check-build
+
+      - name: Plugin Check
+        uses: WordPress/plugin-check-action@v1
+        with:
+          build-dir: plugin-check-build/blicks

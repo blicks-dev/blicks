@@ -1,0 +1,2072 @@
+# Copyright (C) 2026 Blicks
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Blicks 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/blicks\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-02T16:02:20+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: blicks\n"
+
+#. Plugin Name of the plugin
+#. Author of the plugin
+#: blicks.php
+#: src/Providers/AdminServiceProvider.php:55
+#: src/Providers/AdminServiceProvider.php:56
+msgid "Blicks"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: blicks.php
+msgid "https://blicks.dev"
+msgstr ""
+
+#. Description of the plugin
+#: blicks.php
+msgid "Composable Gutenberg blocks with a theme-native design system."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:113
+msgid "Spin"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:114
+msgid "Rotates one full turn."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:123
+msgid "Float"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:124
+msgid "Gentle up/down bobbing."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:134
+msgid "Ping"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:135
+msgid "Expanding pulse — opacity fades while scaling up."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:144
+msgid "Rise"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:145
+msgid "Fades in from below — good for view-driven reveals."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:155
+msgid "Pan"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:156
+msgid "Slides the background-position horizontally."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:166
+msgid "Marquee"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:167
+msgid "Translates the element by -50% — pair with a duplicated track for a seamless loop."
+msgstr ""
+
+#: src/DesignSystem/Animations.php:176
+msgid "Fill"
+msgstr ""
+
+#: src/DesignSystem/Animations.php:177
+msgid "Animates --bl-p from 0 to --bl-p-target — drives progress dials and bars."
+msgstr ""
+
+#: src/DesignSystem/DesignThemes.php:143
+msgid "My theme"
+msgstr ""
+
+#: src/Http/Controllers/AnimationsController.php:48
+msgid "That animation no longer exists."
+msgstr ""
+
+#: src/Http/Controllers/AnimationsController.php:95
+msgid "An animation with that name already exists."
+msgstr ""
+
+#: src/Http/Controllers/AnimationsController.php:96
+msgid "The animation library is full."
+msgstr ""
+
+#: src/Http/Controllers/AnimationsController.php:97
+msgid "That animation needs a name and at least one step with a supported property."
+msgstr ""
+
+#: src/Http/Controllers/DashboardController.php:52
+msgid "Design tokens saved"
+msgstr ""
+
+#: src/Http/Controllers/DashboardController.php:62
+msgid "Plugin settings saved"
+msgstr ""
+
+#: src/Http/Controllers/DashboardController.php:63
+msgid "Blicks → Settings"
+msgstr ""
+
+#: src/Http/Controllers/DashboardController.php:93
+#: src/Http/Controllers/DashboardController.php:100
+msgid "Active design theme"
+msgstr ""
+
+#: src/Http/Controllers/DesignSystemController.php:42
+msgid "A JSON object is required."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:68
+msgid "Build assets"
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:70
+msgid "Editor, front-end, and block bundles are present."
+msgstr ""
+
+#. translators: %s: comma-separated list of missing build paths.
+#: src/Http/Controllers/DiagnosticsController.php:73
+msgid "Missing: %s. Run the plugin build."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:88
+#: src/Http/Controllers/DiagnosticsController.php:96
+msgid "Block registration"
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:89
+msgid "No built blocks found in build/blocks."
+msgstr ""
+
+#. translators: 1: registered block count, 2: built block count.
+#: src/Http/Controllers/DiagnosticsController.php:99
+msgid "%1$d of %2$d built blocks are registered."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:116
+msgid "The active theme has no theme.json — Blicks falls back to its own token defaults."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:125
+msgid "Block theme with theme.json — tokens project from the theme."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:126
+msgid "theme.json found in a classic theme — tokens project, site editing does not."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:137
+#: src/Http/Controllers/DiagnosticsController.php:147
+#: src/Http/Controllers/DiagnosticsController.php:157
+msgid "Global Styles"
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:138
+msgid "This WordPress version exposes no user Global Styles record."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:148
+msgid "No user Global Styles record yet — one is created on the first token save."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:159
+msgid "User Global Styles record is present and writable."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:160
+msgid "User Global Styles record is present but this account cannot edit it."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:171
+msgid "Interactivity API"
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:173
+msgid "Available — interactive blocks can run."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:174
+msgid "Unavailable — the interactive blocks will render but not respond."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:185
+msgid "PHP version"
+msgstr ""
+
+#. translators: 1: running PHP version, 2: minimum required PHP version.
+#. translators: 1: running WordPress version, 2: minimum required version.
+#: src/Http/Controllers/DiagnosticsController.php:188
+#: src/Http/Controllers/DiagnosticsController.php:206
+msgid "Running %1$s (minimum %2$s)."
+msgstr ""
+
+#: src/Http/Controllers/DiagnosticsController.php:203
+msgid "WordPress version"
+msgstr ""
+
+#: src/Http/Controllers/ThemesController.php:73
+#: src/Http/Controllers/ThemesController.php:96
+msgid "Theme not found."
+msgstr ""
+
+#. translators: 1: minimum required PHP version, 2: PHP version currently running.
+#: src/Plugin.php:153
+msgid "Blicks requires PHP %1$s or higher. You are running PHP %2$s."
+msgstr ""
+
+#. translators: 1: minimum required WordPress version, 2: WordPress version currently running.
+#: src/Plugin.php:167
+msgid "Blicks requires WordPress %1$s or higher. You are running WordPress %2$s."
+msgstr ""
+
+#. translators: %s: name of the required plugin.
+#: src/Plugin.php:185
+msgid "Blicks requires %s to be installed and active."
+msgstr ""
+
+#: src/Providers/AdminServiceProvider.php:67
+msgid "Overview"
+msgstr ""
+
+#: src/Providers/AdminServiceProvider.php:68
+msgid "Design System"
+msgstr ""
+
+#: src/Providers/AdminServiceProvider.php:69
+#: src/Providers/AdminServiceProvider.php:100
+msgid "Settings"
+msgstr ""
+
+#. translators: %s: admin view name, e.g. "Design System".
+#: src/Providers/AdminServiceProvider.php:77
+msgid "Blicks — %s"
+msgstr ""
+
+#: resources/blocks/box/block.json
+msgctxt "block title"
+msgid "Box"
+msgstr ""
+
+#: resources/blocks/box/block.json
+msgctxt "block description"
+msgid "A generic styled wrapper for cards, panels, and manual layouts."
+msgstr ""
+
+#: resources/blocks/button/block.json
+msgctxt "block title"
+msgid "Button"
+msgstr ""
+
+#: resources/blocks/button/block.json
+msgctxt "block description"
+msgid "A shadcn-style action button with variants, sizes, links, and optional icons."
+msgstr ""
+
+#: resources/blocks/buttons/block.json
+msgctxt "block title"
+msgid "Buttons"
+msgstr ""
+
+#: resources/blocks/buttons/block.json
+msgctxt "block description"
+msgid "A row or column of Button blocks with shared alignment, spacing, and wrapping."
+msgstr ""
+
+#: resources/blocks/divider/block.json
+msgctxt "block title"
+msgid "Divider"
+msgstr ""
+
+#: resources/blocks/divider/block.json
+msgctxt "block description"
+msgid "A semantic divider for separating content groups."
+msgstr ""
+
+#: resources/blocks/grid/block.json
+msgctxt "block title"
+msgid "Grid"
+msgstr ""
+
+#: resources/blocks/grid/block.json
+msgctxt "block description"
+msgid "A two-dimensional layout block for equal-width or auto-fit child columns."
+msgstr ""
+
+#: resources/blocks/heading/block.json
+msgctxt "block title"
+msgid "Heading"
+msgstr ""
+
+#: resources/blocks/heading/block.json
+msgctxt "block description"
+msgid "A semantic h1-h6 heading that inherits the active theme by default."
+msgstr ""
+
+#: resources/blocks/icon/block.json
+msgctxt "block title"
+msgid "Icon"
+msgstr ""
+
+#: resources/blocks/icon/block.json
+msgctxt "block description"
+msgid "An inline SVG icon that inherits current text color."
+msgstr ""
+
+#: resources/blocks/image/block.json
+msgctxt "block title"
+msgid "Image"
+msgstr ""
+
+#: resources/blocks/image/block.json
+msgctxt "block description"
+msgid "A responsive media block with optional link and caption."
+msgstr ""
+
+#: resources/blocks/section/block.json
+msgctxt "block title"
+msgid "Section"
+msgstr ""
+
+#: resources/blocks/section/block.json
+msgctxt "block description"
+msgid "A full-bleed page band with outer section sizing and independent content sizing controls."
+msgstr ""
+
+#: resources/blocks/spacer/block.json
+msgctxt "block title"
+msgid "Spacer"
+msgstr ""
+
+#: resources/blocks/spacer/block.json
+msgctxt "block description"
+msgid "A responsive empty space block for vertical or horizontal rhythm."
+msgstr ""
+
+#: resources/blocks/stack/block.json
+msgctxt "block title"
+msgid "Stack"
+msgstr ""
+
+#: resources/blocks/stack/block.json
+msgctxt "block description"
+msgid "A one-dimensional flex layout for arranging child blocks vertically or horizontally."
+msgstr ""
+
+#: resources/blocks/text/block.json
+msgctxt "block title"
+msgid "Text"
+msgstr ""
+
+#: resources/blocks/text/block.json
+msgctxt "block description"
+msgid "A rich paragraph block for body copy."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Themes"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Color"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Typography"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Spacing"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Radius"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Shadow"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Gradient"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Motion"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Animation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Z-index"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Opacity"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Border"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Focus ring"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Sizing"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Line-height"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Breakpoints"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Output"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Desktop"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Tablet"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Mobile"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Display"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 1"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 2"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 3"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 4"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 5"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Heading 6"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Body"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Lead"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Small"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Caption"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Code"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Eyebrow / mono"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Search views and tokens (%s)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Search views and tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Docs"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Create with Blicks"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blicks sections"
+msgstr ""
+
+#: build/admin.js:1
+msgid "v%s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "just now"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Global Styles sync on"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Native WordPress presets"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Saving into WordPress Global Styles"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Changed tokens graduate into theme.json so core controls and Blicks read the same values."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Projected from native settings"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Changed tokens migrate forward"
+msgstr ""
+
+#: build/admin.js:1
+msgid "theme.json connected"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blicks option"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Sync disabled"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Sync is currently disabled"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blicks still projects the active theme, but new edits stay in the plugin override layer until sync is enabled."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Projected from active theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edits stay local to Blicks"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fallback theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "No theme.json support"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Classic theme fallback"
+msgstr ""
+
+#: build/admin.js:1
+msgid "This theme does not expose Global Styles, so Blicks keeps design-system edits in its own option."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fallback"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Default Blicks tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Go to view"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Views"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Design system section"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Design system"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s token"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Search Blicks"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Search views and tokens…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "No matches."
+msgstr ""
+
+#: build/admin.js:1
+msgid "navigate"
+msgstr ""
+
+#: build/admin.js:1
+msgid "open"
+msgstr ""
+
+#: build/admin.js:1
+msgid "close"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Type roles"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Body text renders at the size, weight, and leading your theme sets."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Palette"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$d of %2$d colors · theme-native"
+msgstr ""
+
+#: build/admin.js:1
+msgid "On"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Off"
+msgstr ""
+
+#: build/admin.js:1
+msgid " — done"
+msgstr ""
+
+#: build/admin.js:1
+msgid " — not done yet"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Theme tokens detected"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Theme tokens loading"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$d colors · %2$d type tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reading the active theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Design system made yours"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Colors, type and spacing still match the theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blicks blocks in use"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Drop a Blicks block into any page"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Editor"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Connected"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Loading"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Foundation ready"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Setup in progress"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Your site foundation is ready."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Setup %1$d of %2$d complete."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Customize design system"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Getting started"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$d / %2$d"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Next — %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "You are set up"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Every step done — build something"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Registered blocks"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Available in editor"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Design tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "theme-native"
+msgstr ""
+
+#: build/admin.js:1
+msgid "theme.json · in sync"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fallback values"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Per-block help"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Shown"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Hidden"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Inspector setting"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Quick actions"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Common workflows, one click away."
+msgstr ""
+
+#: build/admin.js:1
+msgid "All actions"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Colors, type, spacing, radius."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Open the editor"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Start a new page with Blicks blocks."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Adjust settings"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Inspector defaults and help."
+msgstr ""
+
+#: build/admin.js:1
+msgid "System health"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$d of %2$d checks passed."
+msgstr ""
+
+#: build/admin.js:1
+msgid "All checks passing."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Using fallback data."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Running…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Run diagnostics"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Pass"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Warning"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fail"
+msgstr ""
+
+#: build/admin.js:1
+msgid "REST API"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Design-system endpoints"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Dashboard API"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Block summary"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Source of truth"
+msgstr ""
+
+#: build/admin.js:1
+msgid "In sync"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Last check · %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Current tokens"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Type roles & palette in use right now."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit in design system"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Recent activity"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Latest changes to this workspace."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Loading activity…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Nothing recorded yet. Saving tokens or settings will show up here."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Tip"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Use tokens first."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Token values become reusable classes; custom values stay inside instance variables, so Blicks pages stay fast and easy to maintain."
+msgstr ""
+
+#: build/admin.js:1
+msgid "See generated output"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Define reusable keyframe animations. Each one becomes a preset in every block’s Motion control, and is emitted as CSS on the front end."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Predefined"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Built in"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Your animations"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Loading animations…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "None yet. Add one and it joins the list above in every block’s Motion control."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blocks using it lose their motion."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Delete"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Cancel"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Add animation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit animation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "New animation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Pulse glow"
+msgstr ""
+
+#: build/admin.js:1
+msgid "CSS name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Duration"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Easing"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Iterations"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Direction"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Steps"
+msgstr ""
+
+#: build/admin.js:1
+msgid "At"
+msgstr ""
+
+#: build/admin.js:1
+msgid "— property —"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Remove the %d%% step"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Add step"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Saving…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Save animation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Could not load the animation library."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Could not save that animation."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Could not delete that animation."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset to theme value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "normal"
+msgstr ""
+
+#: build/admin.js:1
+msgid "This font family is not defined by the active theme — the specimen falls back to the inherited font."
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$s:1 · %2$s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "not measurable"
+msgstr ""
+
+#: build/admin.js:1
+msgid "after %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Play the %s transition"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$spx line on %2$spx"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Type is set in lines, and the space between them is the thing being decided here."
+msgstr ""
+
+#: build/admin.js:1
+msgid "fixed — will not scale"
+msgstr ""
+
+#: build/admin.js:1
+msgid "landscape"
+msgstr ""
+
+#: build/admin.js:1
+msgid "portrait"
+msgstr ""
+
+#: build/admin.js:1
+msgid "square"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Aa"
+msgstr ""
+
+#: build/admin.js:1
+msgid "same layer as %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "layer %1$d of %2$d"
+msgstr ""
+
+#: build/admin.js:1
+msgid "not valid CSS"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Focus"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Pick %s color"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Aa · The atomic builder"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Surface"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fluid — grows with the viewport between these bounds"
+msgstr ""
+
+#: build/admin.js:1
+msgid "pill"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Fixed: this token's value is its meaning — blocks ask for it by name."
+msgstr ""
+
+#: build/admin.js:1
+msgid "fixed"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$s %2$s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "y %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "blur %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "spread %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "no shadow"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit %s parts"
+msgstr ""
+
+#: build/admin.js:1
+msgid "X"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Y"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Blur"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Spread"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s color"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Inset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s inset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "More than one layer, or an order these fields cannot rebuild exactly — edit the value as text above."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Kind"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Linear"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Radial"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Conic"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Repeating"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s repeating"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Angle or direction"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Shape and position"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Gradient geometry"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Color stops"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Colour hint — moves the midpoint of the blend"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Stop %d color"
+msgstr ""
+
+#: build/admin.js:1
+msgid "hint"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Stop %d color value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "auto"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Stop %d position"
+msgstr ""
+
+#: build/admin.js:1
+msgid "end"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Second position — paints a hard band between the two"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Stop %d end position"
+msgstr ""
+
+#: build/admin.js:1
+msgid "A gradient needs two colour stops"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Remove"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Remove stop %d"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Add stop"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Not a single gradient these fields can rebuild exactly — edit the value as text above."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Property"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Delay"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Several transitions at once, or an order these fields cannot rebuild exactly — edit the value as text above."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Thickness"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Offset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Softness"
+msgstr ""
+
+#: build/admin.js:1
+msgid "0 — a ring, not a glow"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Gap color"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Set an offset first"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Not a ring these fields can rebuild exactly — inset, shifted, or more than two layers. Edit the value as text above."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Width"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s width"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Style"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s style"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Not a border these three fields can rebuild exactly — edit the value as text above."
+msgstr ""
+
+#: build/admin.js:1
+msgid "computed"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Changed from the theme value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "The atomic builder"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Size"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Weight"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Line height"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Tracking"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Transform"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Family"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Add token"
+msgstr ""
+
+#: build/admin.js:1
+msgid "token-name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Token name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Token value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Add"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Name the token to generate its slug."
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s already exists."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset group"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Not a palette preset in the active theme — this colour exists only inside Blicks, so the Site Editor will not show it."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Configure the token set."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit the colors, type, and spacing your theme exposes. Token values compile to reusable classes; custom values stay per-instance."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Custom"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset defaults"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Token groups"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Unsaved changes"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Source"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Filter tokens by name…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Filter tokens by name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Named token presets — apply one to repaint the set"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Apply the %s theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Customized"
+msgstr ""
+
+#: build/admin.js:1
+msgid "preset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "custom"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Delete?"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Confirm delete"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Delete theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Delete the %s theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset?"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Confirm reset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset to preset"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset overrides"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset this theme to its preset values"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Reset this theme’s overrides"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Apply"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Keep editing"
+msgstr ""
+
+#: build/admin.js:1
+msgid "New theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Snapshot the current token values"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Name this theme"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Theme name"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Surfaces, text, brand and status"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Pairs · a surface and its text"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Other"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Accent"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Type scale, weight, and leading roles"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Live preview · reflects the roles below"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Compose pages, not markup. Every block reads from these type roles, so one edit here restyles the whole site."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Mono family"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Sans family"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s family"
+msgstr ""
+
+#: build/admin.js:1
+msgid "The scale every block draws from"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Bars drawn at %d%% — the largest step does not fit at true size here."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Corner rounding · Blicks ships sharp"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Elevation for popovers, drawers and drag states"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Low-contrast gradients for hero wells and accents"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Transition, transform and filter values"
+msgstr ""
+
+#: build/admin.js:1
+msgid "The custom keyframe library"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Stacking order for layered UI"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Alpha steps for disabled, ghosted and scrim states"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Hairline widths and edge styles"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Keyboard-focus outlines"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Container widths and media ratios"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Bars drawn at %d%% — the widest container does not fit here at full size."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Leading ratios across the type scale"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Responsive layout thresholds"
+msgstr ""
+
+#: build/admin.js:1
+msgid "overlaps %s"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%dpx and up"
+msgstr ""
+
+#: build/admin.js:1
+msgid "up to %dpx"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%1$d–%2$dpx"
+msgstr ""
+
+#: build/admin.js:1
+msgid "now"
+msgstr ""
+
+#: build/admin.js:1
+msgid "The widest step: everything above the one below it."
+msgstr ""
+
+#: build/admin.js:1
+msgid "base"
+msgstr ""
+
+#: build/admin.js:1
+msgid "%s breakpoint value"
+msgstr ""
+
+#: build/admin.js:1
+msgid "theme.json output"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Where these tokens come from, and where the next save goes"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Read from"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edited in"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Nothing pending"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Saved to"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Global Styles sync"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Managed in Settings"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Live preview"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Section · live"
+msgstr ""
+
+#: build/admin.js:1
+msgid "The atomic builder."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Clean code."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Edit a token on the left — this preview repaints with the new value."
+msgstr ""
+
+#: build/admin.js:1
+msgid "Create page"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Preview"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Pending output"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Generated output"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Discard"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Save changes"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Keep Blicks comfortable for authors."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Tune the editor experience while preserving clean output and theme-native behavior."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Reset to defaults"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Editor experience"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Controls for authors working in Gutenberg."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Default inspector panel"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Opens when a Blicks block is selected."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Styles"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Advanced"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Uses block readme metadata inside the inspector."
+msgstr ""
+
+#: build/admin.js:2
+msgid "On uninstall"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Applies when the plugin is deleted, not deactivated. Deleting removes saved tokens, themes, animations, and settings."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Keep my data"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Remove everything"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Output & performance"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Production defaults for front-end CSS and rendering."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Recommended"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Writes newly saved design tokens to theme.json Global Styles."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Your active theme does not support theme.json Global Styles."
+msgstr ""
+
+#: build/admin.js:2
+msgid "CSS strategy"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Class-first with instance variables."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Class-first"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Runtime CSS"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Load shared block styles on the front end."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Scoped custom CSS"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Per-block advanced rules."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Sanitized"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Reduced motion"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Respect visitor prefers-reduced-motion."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Developer references"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Implementation, schema, and block authoring."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Block reference"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Attributes and supported controls."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Tokens, type roles, and the theme.json bridge."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Style engine"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Class tiers and scoped CSS rules."
+msgstr ""
+
+#: build/admin.js:2
+msgid "CSS"
+msgstr ""
+
+#: build/admin.js:2
+msgid "unsaved"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Save settings"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not load saved themes."
+msgstr ""
+
+#: build/admin.js:2
+msgid "%s will return to the active theme value."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Overrides cleared in draft."
+msgstr ""
+
+#: build/admin.js:2
+msgid "%s breakpoint will return to the default value."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Breakpoint overrides cleared in draft."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Saved to %s."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Saved to Global Styles. Synced tokens now read from theme.json."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Saved design-system overrides."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not save design-system overrides."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Theme applied to the token set."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not apply the theme."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Theme saved from the current token values."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not save the theme."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not delete the theme."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Theme reset to its preset values."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not reset the theme."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Group reset to the active theme values."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not reset the group."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not load settings. Showing defaults."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Settings saved."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Could not save settings."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Settings reset in draft."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Diagnostics returned an unreadable response."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Diagnostics could not run."
+msgstr ""
+
+#: build/admin.js:2
+msgid "theme.json in sync"
+msgstr ""
+
+#: build/admin.js:2
+msgid "theme.json fallback"
+msgstr ""
+
+#: build/admin.js:2
+msgid "All systems live"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Checking systems"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Running on fallback data"
+msgstr ""

@@ -1,0 +1,2376 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Design System — port of mockups/admin-design/design-system.html
+
+   The mockup shows seven illustrative token groups with plain text/range
+   inputs. The real catalog has sixteen and several richer control kinds
+   (color swatches, meters, CSS-string demos, per-role type fields, the
+   theme rail, the animation editor). They all sit on the mockup's `.trow`
+   three-column rhythm — name+code · control · value — so the extra kinds
+   read as the same table rather than as separate widgets.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── page-header actions ───────────────────────────────────────────────── */
+.blicks-admin .v-design .ph-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: none;
+}
+
+.blicks-admin .v-design .theme-sel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border: var(--hair);
+	background: var(--surface);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .theme-sel:hover {
+	border-color: var(--fg);
+}
+
+.blicks-admin .v-design .theme-sel .sw {
+	display: flex;
+	gap: 3px;
+}
+
+.blicks-admin .v-design .theme-sel .sw i {
+	display: block;
+	width: 11px;
+	height: 11px;
+	background: var(--c, var(--border));
+}
+
+.blicks-admin .v-design .theme-sel b {
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 560;
+}
+
+.blicks-admin .v-design .theme-sel svg {
+	width: 13px;
+	height: 13px;
+	margin-left: 2px;
+	stroke: var(--faint);
+	stroke-width: 1.8;
+	fill: none;
+}
+
+/* ── 3-col token editor ────────────────────────────────────────────────── */
+.blicks-admin .v-design .ds {
+	display: grid;
+	grid-template-columns: 210px minmax(0, 1fr) 340px;
+	gap: 1px;
+	background: var(--border);
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .ds > * {
+	background: var(--surface);
+	min-width: 0;
+}
+
+/* ── left rail ─────────────────────────────────────────────────────────── */
+.blicks-admin .v-design .rail {
+	padding: 20px 0;
+}
+
+.blicks-admin .v-design .rail .sticky,
+.blicks-admin .v-design .prev .sticky {
+	position: sticky;
+	top: 48px;
+}
+
+.blicks-admin .v-design .rail .lbl {
+	padding: 0 18px 10px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .navlink {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 18px;
+	border: 0;
+	border-left: 2px solid transparent;
+	background: none;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-md);
+	font-weight: 500;
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .navlink:hover {
+	color: var(--fg);
+	background: var(--surface-alt);
+}
+
+.blicks-admin .v-design .navlink.active {
+	color: var(--fg);
+	border-color: var(--accent);
+	font-weight: 560;
+}
+
+.blicks-admin .v-design .navlink .c {
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--faint);
+}
+
+/* Unsaved work in a collapsed section would otherwise be invisible. */
+.blicks-admin .v-design .navlink .d {
+	width: 6px;
+	height: 6px;
+	flex: none;
+	margin-left: auto;
+	border-radius: 999px;
+	background: var(--accent-ink);
+}
+
+.blicks-admin .v-design .navlink .d + .c {
+	margin-left: 8px;
+}
+
+.blicks-admin .v-design .rail .foot {
+	padding: 16px 18px 0;
+	margin-top: 12px;
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-design .rail .foot .eyebrow {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.blicks-admin .v-design .rail .foot p {
+	font-size: var(--bl-ui-text-sm);
+	color: var(--muted);
+	line-height: 1.5;
+}
+
+/* ── centre column ─────────────────────────────────────────────────────── */
+.blicks-admin .v-design .main {
+	min-width: 0;
+
+	/* Toolbar height, republished by DesignSystemPanel's ResizeObserver — the value here is
+	   only the pre-measure fallback. Section headers stack directly under the toolbar. */
+	--ds-stick: 67px;
+	--ds-stuck: calc(32px + var(--ds-stick));
+}
+
+.blicks-admin .v-design .main .toolbar {
+	position: sticky;
+	top: 32px;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 26px;
+	border-bottom: var(--hair);
+	background: var(--surface);
+}
+
+.blicks-admin .v-design .tfilter {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border: var(--hair);
+	color: var(--faint);
+	font-size: var(--bl-ui-text-md);
+}
+
+.blicks-admin .v-design .tfilter svg {
+	width: 14px;
+	height: 14px;
+	stroke: var(--faint);
+	stroke-width: 1.7;
+	fill: none;
+	flex: none;
+}
+
+/* Same Safari search-input rounding guard as the pattern filter. */
+.blicks-admin .v-design .tfilter input {
+	appearance: none;
+	flex: 1;
+	min-width: 0;
+	border: 0;
+	border-radius: 0;
+	outline: 0;
+	background: none;
+	font: inherit;
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .tcount {
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	color: var(--faint);
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+}
+
+/* ── sections ──────────────────────────────────────────────────────────── */
+.blicks-admin .v-design .sec {
+	border-bottom: var(--hair);
+	scroll-margin-top: var(--ds-stuck);
+}
+
+.blicks-admin .v-design .sec:last-child {
+	border-bottom: 0;
+}
+
+.blicks-admin .v-design .sec-h {
+	position: sticky;
+	top: var(--ds-stuck);
+	z-index: 4; /* under the toolbar's 5, so it tucks away rather than over it */
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 18px 26px;
+	border: 0;
+	background: var(--surface);
+	text-align: left;
+	cursor: pointer;
+	user-select: none;
+}
+
+/* An open section scrolls its rows *under* its own header, so the header needs an edge.
+   A collapsed one already has `.sec`'s bottom hairline right beneath it. */
+.blicks-admin .v-design .sec-h[aria-expanded='true'] {
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .sec-h .chev {
+	width: 14px;
+	height: 14px;
+	flex: none;
+	stroke: var(--faint);
+	stroke-width: 2;
+	fill: none;
+	transition: transform 150ms;
+}
+
+.blicks-admin .v-design .sec.collapsed .chev {
+	transform: rotate(-90deg);
+}
+
+.blicks-admin .v-design .sec-h h3 {
+	flex: none;
+	font-size: var(--bl-ui-text-lg);
+}
+
+.blicks-admin .v-design .sec-h .desc {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--bl-ui-text-sm);
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .v-design .sec-h .n {
+	flex: none;
+	padding: 4px 8px;
+	border: var(--hair);
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--faint);
+	letter-spacing: 0.1em;
+}
+
+.blicks-admin .v-design .sec-h .rst {
+	flex: none;
+}
+
+.blicks-admin .v-design .sec-body {
+	padding: 4px 26px 22px;
+}
+
+.blicks-admin .v-design .sec.collapsed .sec-body {
+	display: none;
+}
+
+/* one shared type preview per typography section */
+.blicks-admin .v-design .tpv {
+	padding: 22px 24px;
+	margin: 6px 0 18px;
+	border: var(--hair);
+	background: var(--surface-alt);
+}
+
+.blicks-admin .v-design .tpv .eyebrow {
+	display: block;
+	margin-bottom: 14px;
+}
+
+.blicks-admin .v-design .tpv .h {
+	margin-bottom: 12px;
+	font-weight: 660;
+	letter-spacing: -0.03em;
+	line-height: 1.05;
+}
+
+.blicks-admin .v-design .tpv p {
+	color: var(--muted);
+	max-width: 52ch;
+}
+
+/* ── token rows — aligned columns ──────────────────────────────────────── */
+.blicks-admin .v-design .trow {
+	display: grid;
+
+	/* The name only ever holds a short label + its var, so it takes the slack; the two
+	   right-hand tracks are sized to their real contents instead — 200px so the swatch,
+	   value and reset fit without the value clipping, 190px so the longest group label
+	   ("Brand · border · status") sits on one line. Fixed, so every row lines up. */
+	grid-template-columns: minmax(0, 1fr) 200px 190px;
+	gap: 18px;
+	align-items: center;
+	padding: 10px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .trow:last-child {
+	border-bottom: 0;
+}
+
+/* ── colour tiles ──────────────────────────────────────────────────────────
+   Colour does not belong in the row grid: as rows the swatch ended up a column
+   away from its own name, and the section ran 1300px deep. Tiles put the colour
+   first and pack the same 26 tokens into a quarter of the height. */
+.blicks-admin .v-design .cgrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 10px;
+	padding-bottom: 4px;
+}
+
+.blicks-admin .v-design .ctile {
+	display: grid;
+	grid-template-columns: 30px minmax(0, 1fr);
+	grid-template-rows: auto auto;
+	align-items: center;
+	gap: 0 8px;
+	padding: 6px 8px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .ctile:hover {
+	border-color: var(--muted);
+}
+
+.blicks-admin .v-design .ctile__sw {
+	position: relative;
+	grid-row: span 2;
+	align-self: stretch;
+	min-height: 30px;
+	border: var(--hair);
+	cursor: pointer;
+
+	/* The token paints over a checkerboard, so a translucent value reads as translucent
+	   instead of as a slightly-off solid. Opaque colours cover it completely. */
+	background:
+		linear-gradient(var(--c, transparent), var(--c, transparent)),
+		repeating-conic-gradient(var(--border) 0% 25%, var(--surface) 0% 50%) 0 0 / 10px 10px;
+}
+
+.blicks-admin .v-design .ctile__sw input[type="color"] {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .ctile__sw:focus-within {
+	box-shadow: 0 0 0 3px var(--brand-tint);
+}
+
+.blicks-admin .v-design .ctile__nm {
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 550;
+	line-height: 1.35;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .v-design .ctile__val {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+}
+
+/* The value reads as text at rest and only becomes a visible field on hover or focus —
+   26 permanently-bordered inputs were the bulk of the noise. */
+.blicks-admin .v-design .ctile__val .hex {
+	min-height: 0; /* wp-admin's forms.css puts 40px on every input — it doubled the tile */
+	padding: 2px 3px;
+	border-color: transparent;
+	font-size: var(--bl-ui-label-size);
+	color: var(--muted);
+	letter-spacing: var(--bl-ui-label-tracking);
+	text-transform: uppercase;
+
+	/* A `color-mix(…)` or `var(…)` value is longer than any tile: truncate it at rest
+	   rather than shearing it mid-character. Focus scrolls the field back to full. */
+	text-overflow: ellipsis;
+}
+
+.blicks-admin .v-design .ctile:hover .ctile__val .hex,
+.blicks-admin .v-design .ctile__val .hex:focus {
+	border-color: var(--border);
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .ctile__val .hex:focus {
+	border-color: var(--accent);
+}
+
+/* Subhead banding a run of rows inside a section (Surfaces, Text, Accent…). */
+
+/* ── spacing scale ────────────────────────────────────────────────────────
+   A scale is judged by its ramp, so each step is drawn at its own size against
+   the largest step in the set. The slider this replaced topped out at 96px —
+   below three of the theme's own steps, which quietly fell back to text fields. */
+.blicks-admin .v-design .srow {
+	display: grid;
+
+	/* Three columns, all able to give: the value field holds whole `clamp()` expressions,
+	   so it gets the width the old metric column was taking. */
+	grid-template-columns: minmax(84px, 142px) minmax(96px, 1fr) minmax(132px, 216px);
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .srow:last-of-type {
+	border-bottom: 0;
+}
+
+.blicks-admin .v-design .srow__n {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+/* The longest value in the set is `clamp(70px, 10vw, 140px)` — it fits whole here. */
+.blicks-admin .v-design .srow .ctl .txt {
+	padding-right: 8px;
+	padding-left: 8px;
+	font-size: var(--bl-ui-text-xs);
+}
+
+.blicks-admin .v-design .srow__n b {
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 550;
+}
+
+.blicks-admin .v-design .srow__n code {
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--faint);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Drawn 1:1: the largest step in the set is 140px and the track is wider, so the
+   steps are shown at their true size rather than as a share of a bar. */
+.blicks-admin .v-design .srow__track {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	height: 20px;
+	min-width: 0;
+
+	/* Room for the label parked at the right end, published from the measurement that
+	   also scales the bars — so a bar can never run underneath it. */
+	padding-right: var(--m-reserve, 64px);
+	overflow: hidden;
+}
+
+/* Said out loud whenever the bars stop being true size, so they are never quietly wrong. */
+.blicks-admin .v-design .srow__note {
+	padding: 0 0 8px;
+	font: var(--bl-ui-text-2xs)/1.4 var(--mono);
+	color: var(--warn);
+}
+
+/* The two things the gap is between. */
+.blicks-admin .v-design .srow__wall {
+	flex: none;
+	width: 4px;
+	background: var(--muted);
+}
+
+.blicks-admin .v-design .srow__gap {
+	min-width: 0;
+	background: color-mix(in srgb, var(--accent) 16%, transparent);
+	border-top: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+/* What a fluid step can grow into, between its two bounds. */
+.blicks-admin .v-design .srow__ext {
+	min-width: 0;
+	background: repeating-linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--accent) 26%, transparent) 0 2px,
+		transparent 2px 5px
+	);
+}
+
+.blicks-admin .v-design .srow__track .srow__m {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	transform: translateY(-50%);
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+/* ── shadow rows ──────────────────────────────────────────────────────────
+   Same three columns as the spacing and radius rows so the sections line up,
+   plus the disclosure that opens the parts. */
+.blicks-admin .v-design .prow {
+	display: grid;
+	grid-template-columns: minmax(84px, 142px) minmax(96px, 1fr) minmax(132px, 216px);
+	align-items: center;
+	gap: 12px;
+	padding: 12px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .prow:last-of-type {
+	border-bottom: 0;
+}
+
+/* The reset sits ahead of the framed field, not inside it — in a slot that is held
+   open whether or not the field is modified, so the field never changes width. */
+.blicks-admin .v-design .rstslot {
+	flex: none;
+	width: 24px;
+}
+
+
+.blicks-admin .v-design .prow .ctl {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+}
+
+.blicks-admin .v-design .prow .combo {
+	flex: 1;
+}
+
+/* One control, not two: the field and the caret that opens its parts share a frame,
+   and the frame takes on the field's own focus, invalid and modified states. */
+.blicks-admin .v-design .combo {
+	display: flex;
+	align-items: stretch;
+	min-width: 0;
+	border: var(--hair);
+	background: var(--surface);
+}
+
+.blicks-admin .v-design .combo input.txt {
+	flex: 1;
+	border: 0;
+}
+
+/* `:focus-within`, not `:has(input:focus)` — the caret is part of this control, so
+   reaching it by keyboard should light the frame too. */
+.blicks-admin .v-design .combo:focus-within {
+	border-color: var(--accent);
+}
+
+.blicks-admin .v-design .combo:has(input.is-invalid) {
+	border-color: var(--danger);
+}
+
+.blicks-admin .v-design .combo:has(input.is-modified) {
+	border-left: 2px solid var(--accent);
+}
+
+.blicks-admin .v-design .combo__more {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	padding: 0;
+	border: 0;
+	border-left: var(--hair);
+	background: none;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .combo__more .chev {
+	width: 14px;
+	height: 14px;
+	stroke: var(--faint);
+	stroke-width: 2;
+	fill: none;
+	transition: transform 150ms;
+}
+
+.blicks-admin .v-design .combo__more:hover .chev {
+	stroke: var(--fg);
+}
+
+.blicks-admin .v-design .prow.open .combo__more .chev {
+	transform: rotate(180deg);
+}
+
+.blicks-admin .v-design .srow__pv .srow__m.bad {
+	color: var(--danger);
+}
+
+/* A gradient reads as a band, not a chip — the whole preview cell. */
+.blicks-admin .v-design .grad {
+	width: 100%;
+	height: 30px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .parts .cf.wide {
+	grid-column: 1 / -1;
+}
+
+.blicks-admin .v-design .stops {
+	grid-column: 1 / -1;
+	display: grid;
+	gap: 6px;
+	padding-top: 4px;
+}
+
+.blicks-admin .v-design .stop {
+	display: grid;
+	grid-template-columns: 26px minmax(0, 1fr) 76px 76px 24px;
+	align-items: center;
+	gap: 6px;
+}
+
+/* A hint carries no colour, so it gets a mark instead of a swatch. */
+.blicks-admin .v-design .stop__hint {
+	display: grid;
+	place-items: center;
+	height: 26px;
+	border: 1px dashed var(--border-strong);
+	font-size: var(--bl-ui-text-xs);
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .stop .txt:disabled {
+	background: var(--bg);
+}
+
+/* Same swatch-over-checkerboard as the colour tiles: a stop can be translucent. */
+.blicks-admin .v-design .stop__sw {
+	position: relative;
+	height: 26px;
+	border: var(--hair);
+	cursor: pointer;
+	background:
+		linear-gradient(var(--c, transparent), var(--c, transparent)),
+		repeating-conic-gradient(var(--border) 0% 25%, var(--surface) 0% 50%) 0 0 / 8px 8px;
+}
+
+.blicks-admin .v-design .stop__sw input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .stop .txt {
+	min-height: 0;
+	padding: 4px 6px;
+	font-size: var(--bl-ui-text-xs);
+}
+
+.blicks-admin .v-design .stop__x {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--faint);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .stop__x:hover:not(:disabled) {
+	color: var(--danger);
+}
+
+.blicks-admin .v-design .stop__x:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.blicks-admin .v-design .addtok.sm {
+	justify-self: start;
+	padding: 4px 8px;
+	font-size: var(--bl-ui-text-xs);
+}
+
+/* The tile needs room around it or the shadow is cropped by its own row. */
+.blicks-admin .v-design .shad {
+	flex: none;
+	width: 44px;
+	height: 32px;
+	margin: 6px 4px;
+	border: var(--hair);
+	background: var(--surface);
+}
+
+/* Deliberate columns, not `auto-fit`: with fields of different natural widths that
+   placed them wherever they happened to land, so the same editor looked different
+   from row to row. Each editor states its own shape instead. */
+.blicks-admin .v-design .parts {
+	grid-column: 1 / -1;
+	display: grid;
+	gap: 12px 10px;
+	padding: 12px 0 4px;
+	border-top: 1px dashed var(--border);
+}
+
+/* X · Y · Blur · Spread on one row; colour takes the rest, inset sits beside it. */
+.blicks-admin .v-design .parts--shadow {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.blicks-admin .v-design .parts--shadow .cf.span3 {
+	grid-column: span 3;
+}
+
+/* What · how long · on what curve · after what wait, in the order the string writes them. */
+.blicks-admin .v-design .parts--transition {
+	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+/* Width and style are short; the colour takes the rest of the line. */
+.blicks-admin .v-design .parts--border {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Thickness · offset · softness, then the two colours side by side. */
+.blicks-admin .v-design .parts--ring {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.blicks-admin .v-design .parts .cf.span2 {
+	grid-column: span 2;
+}
+
+/* Kind and repeat are small and paired; geometry and the stop list take the width. */
+.blicks-admin .v-design .parts--gradient {
+	grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+}
+
+@media (width <= 1200px) {
+	.blicks-admin .v-design .parts--shadow,
+	.blicks-admin .v-design .parts--transition,
+	.blicks-admin .v-design .parts--ring,
+	.blicks-admin .v-design .parts--border {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.blicks-admin .v-design .parts--shadow .cf.span3 {
+		grid-column: span 2;
+	}
+}
+
+.blicks-admin .v-design .parts__no {
+	grid-column: 1 / -1;
+	margin: 0;
+	font: var(--bl-ui-text-xs)/1.5 var(--mono);
+	color: var(--warn);
+}
+
+.blicks-admin .v-design .shcol {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Shadow colours are nearly always translucent — shown over a checkerboard so that reads. */
+.blicks-admin .v-design .shcol__sw {
+	flex: none;
+	width: 22px;
+	height: 22px;
+	border: var(--hair);
+	background:
+		linear-gradient(var(--c, transparent), var(--c, transparent)),
+		repeating-conic-gradient(var(--border) 0% 25%, var(--surface) 0% 50%) 0 0 / 8px 8px;
+}
+
+/* A toggle is shorter than a field; line it up with the fields beside it. */
+.blicks-admin .v-design .parts .tog-wrap {
+	min-height: 34px;
+}
+
+/* An anchor token reads as a value, not as a field you could have typed in. */
+.blicks-admin .v-design .fixedv {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .fixedv i {
+	padding: 3px 4px;
+	border: 1px dashed var(--border-strong);
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	font-style: normal;
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+/* Radius reuses the spacing row so both scales line up down the page. */
+.blicks-admin .v-design .srow__pv {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+/* Drawn at the token's own radius, on a tile the size of a small control. */
+.blicks-admin .v-design .rad {
+	flex: none;
+	width: 44px;
+	height: 44px;
+	border: 1px solid var(--border-strong);
+	background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.blicks-admin .v-design .srow__pv .srow__m {
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+/* ── colour pairs ──────────────────────────────────────────────────────────
+   A surface and its text judged together: the pair rendered as it will be used,
+   the ratio it produces, and both swatches beneath. Global Styles edits colours
+   as a flat list of slugs and cannot say these two belong to each other. */
+.blicks-admin .v-design .pgrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+	gap: 12px;
+	padding-bottom: 4px;
+}
+
+.blicks-admin .v-design .cpair {
+	display: grid;
+	gap: 4px;
+	padding: 8px 8px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .cpair__nm {
+	font-size: var(--bl-ui-text-xs);
+	font-weight: 550;
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .cpair__demo {
+	display: grid;
+	place-items: center;
+	min-height: 54px;
+	padding: 8px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .cpair__t {
+	font-size: var(--bl-ui-text-lg);
+	text-align: center;
+}
+
+.blicks-admin .v-design .cpair__r {
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .cpair__r.warn {
+	color: var(--warn);
+}
+
+/* Below 4.5:1 the pair fails AA for body text — the one verdict worth shouting. */
+.blicks-admin .v-design .cpair__r.bad {
+	color: var(--danger);
+}
+
+.blicks-admin .v-design .cpair__f {
+	display: grid;
+	gap: 2px;
+}
+
+/* The two halves are already framed by the tile they sit in. */
+.blicks-admin .v-design .cpair__f .ctile {
+	padding: 3px 0;
+	border: 0;
+}
+
+/* A slug the theme's palette does not carry: real for blocks, invisible in the Site Editor. */
+.blicks-admin .v-design .ctile__nm.off,
+.blicks-admin .v-design .cpair__nm.off {
+	text-decoration: underline dotted var(--faint);
+	text-underline-offset: 2px;
+}
+
+.blicks-admin .v-design .grp {
+	padding: 20px 0 8px;
+}
+
+.blicks-admin .v-design .grp:first-child {
+	padding-top: 2px;
+}
+
+.blicks-admin .v-design .trow .tn {
+	min-width: 0;
+}
+
+.blicks-admin .v-design .trow .tn b {
+	display: block;
+	font-size: var(--bl-ui-text-md);
+	font-weight: 550;
+}
+
+.blicks-admin .v-design .trow .tn code {
+	font: var(--bl-ui-text-2xs)/1.4 var(--mono);
+	color: var(--faint);
+	letter-spacing: 0.02em;
+	overflow-wrap: anywhere;
+}
+
+.blicks-admin .v-design .ctl {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.blicks-admin .v-design input.txt,
+.blicks-admin .v-design .hex {
+	width: 100%;
+	min-width: 0;
+	padding: 8px 10px;
+	border: var(--hair);
+	border-radius: 0;
+	background: var(--surface);
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	outline: 0;
+}
+
+.blicks-admin .v-design .hex {
+	text-transform: uppercase;
+}
+
+.blicks-admin .v-design input.txt:focus,
+.blicks-admin .v-design .hex:focus {
+	border-color: var(--accent);
+}
+
+/* A changed field keeps a brand left edge; an invalid one turns red. */
+.blicks-admin .v-design input.is-modified {
+	border-left: 2px solid var(--accent);
+}
+
+.blicks-admin .v-design input.is-invalid {
+	border-color: var(--danger);
+}
+
+.blicks-admin .v-design .fld-rst {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--faint);
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .fld-rst:hover {
+	color: var(--accent);
+}
+
+.blicks-admin .v-design input[type="range"] {
+	appearance: none;
+	width: 100%;
+	height: 2px;
+	background: var(--border-strong);
+	outline: 0;
+}
+
+.blicks-admin .v-design input[type="range"]::-webkit-slider-thumb {
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	border: 0;
+	background: var(--fg);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .val {
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	text-align: right;
+	letter-spacing: 0.02em;
+}
+
+/* The third column is a plain label on most rows but an editable readout on the scale rows,
+   so only the label form is truncated — clipping a field would hide half the value. Without
+   `nowrap` the ellipsis never fired and the label wrapped to three lines instead. */
+.blicks-admin .v-design .val:not(:has(input)) {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* The scale rows put an editable readout in this column instead of a label. The input is
+   full-width, so in normal flow the unit (and the reset) were pushed onto a second line and
+   the row grew to 52px — laid out as a row they sit beside the field. */
+.blicks-admin .v-design .val:has(input) {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+}
+
+.blicks-admin .v-design .val input.txt {
+	flex: 1;
+	min-width: 0;
+	text-align: right;
+}
+
+.blicks-admin .v-design .val .u {
+	color: var(--faint);
+	margin-left: 3px;
+}
+
+/* A CSS value that is better judged by eye than read — shadow, gradient,
+   filter, ring, aspect. Sits in the value column at row height. */
+.blicks-admin .v-design .demo {
+	width: 100%;
+	height: 26px;
+	border: var(--hair);
+	background: var(--surface);
+}
+
+.blicks-admin .v-design .demo.fill {
+	background: var(--accent);
+	border-color: var(--accent);
+}
+
+.blicks-admin .v-design .addtok {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 14px;
+	border: 0;
+	background: none;
+	font: var(--bl-ui-label-size)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking);
+	text-transform: uppercase;
+	color: var(--muted);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .addtok:hover {
+	color: var(--accent-ink);
+}
+
+.blicks-admin .v-design .addtok svg {
+	width: 13px;
+	height: 13px;
+	stroke: currentcolor;
+	stroke-width: 1.9;
+	fill: none;
+}
+
+.blicks-admin .v-design .rst {
+	border: 0;
+	background: none;
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	letter-spacing: 0.06em;
+	color: var(--faint);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .rst:hover {
+	color: var(--accent);
+}
+
+/* ── type-role rows: the specimen IS the row ───────────────────────────────
+   Type is judged by looking, so the shut row carries nothing but the role
+   rendered at its own settings and the figures the browser resolved for it —
+   the 13 roles then read as a scale down the page. All six fields open on
+   demand; six under each of 13 roles ran the section 3298px deep and repeated
+   the same six labels 78 times. */
+.blicks-admin .v-design .rrow {
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .rrow:last-child {
+	border-bottom: 0;
+}
+
+.blicks-admin .v-design .rrow__hd {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 26px;
+	align-items: center;
+	gap: 4px 8px;
+	width: 100%;
+	padding: 12px 0;
+	border: 0;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .rrow__nm {
+	grid-column: 1;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .rrow__hd:hover .rrow__nm,
+.blicks-admin .v-design .rrow.open .rrow__nm {
+	color: var(--muted);
+}
+
+/* A role edited then collapsed would otherwise look untouched. */
+.blicks-admin .v-design .rrow__nm .d {
+	width: 5px;
+	height: 5px;
+	border-radius: 999px;
+	background: var(--accent-ink);
+}
+
+/* No weight or tracking of its own: anything set here would be reported back
+   by the measurement below as if the role carried it. */
+.blicks-admin .v-design .rrow__s {
+	grid-column: 1;
+	display: block;
+	color: var(--fg);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Resolved, not stored: a preset reference says nothing about the size it is. */
+.blicks-admin .v-design .rrow__m {
+	grid-column: 1;
+	font: var(--bl-ui-text-2xs)/1.4 var(--mono);
+	color: var(--faint);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Named but undefined by the theme: the specimen is not rendering in it. */
+.blicks-admin .v-design .rrow__m .is-unset {
+	color: var(--warn);
+	text-decoration: underline dotted;
+	text-underline-offset: 2px;
+}
+
+.blicks-admin .v-design .rrow__hd .chev {
+	grid-column: 2;
+	grid-row: 1 / -1;
+	justify-self: center;
+	width: 14px;
+	height: 14px;
+	stroke: var(--faint);
+	stroke-width: 2;
+	fill: none;
+	transition: transform 150ms;
+}
+
+.blicks-admin .v-design .rrow__hd:hover .chev {
+	stroke: var(--fg);
+}
+
+.blicks-admin .v-design .rrow.open .chev {
+	transform: rotate(180deg);
+}
+
+.blicks-admin .v-design .role__ctl {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+	gap: 12px 10px;
+	padding: 12px 0 16px;
+	border-top: 1px dashed var(--border);
+}
+
+.blicks-admin .v-design .cf {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.blicks-admin .v-design .cf > span {
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+/* The 26px of right padding was always reserving room for a caret nothing drew,
+   so every select read as a text field you could type into. */
+.blicks-admin .v-design select.txt {
+	appearance: none;
+	width: 100%;
+	padding: 8px 26px 8px 10px;
+	border: var(--hair);
+	border-radius: 0;
+	background: var(--surface)
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a1' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+		no-repeat right 9px center / 10px;
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	cursor: pointer;
+	outline: 0;
+}
+
+.blicks-admin .v-design select.txt:focus {
+	border-color: var(--accent);
+}
+
+/* ── inline "add custom token" composer ────────────────────────────────── */
+.blicks-admin .v-design .addnew {
+	padding: 12px 0 4px;
+}
+
+.blicks-admin .v-design .addnew__row {
+	display: flex;
+	align-items: stretch;
+	gap: 8px;
+}
+
+.blicks-admin .v-design .addnew__sw {
+	width: 30px;
+	flex: none;
+	border: var(--hair);
+	background: var(--c, transparent);
+}
+
+.blicks-admin .v-design .addnew__name,
+.blicks-admin .v-design .addnew__val {
+	padding: 8px 10px;
+	border: var(--hair);
+	background: var(--surface);
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	min-width: 0;
+	outline: 0;
+}
+
+.blicks-admin .v-design .addnew__name {
+	width: 168px;
+	flex: none;
+}
+
+.blicks-admin .v-design .addnew__val {
+	flex: 1;
+}
+
+.blicks-admin .v-design .addnew__name:focus,
+.blicks-admin .v-design .addnew__val:focus {
+	border-color: var(--accent);
+}
+
+.blicks-admin .v-design .addnew__val.is-invalid {
+	border-color: var(--danger);
+}
+
+.blicks-admin .v-design .addnew__x {
+	flex: none;
+	width: 34px;
+	border: var(--hair);
+	background: var(--surface);
+	color: var(--muted);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .addnew__x:hover {
+	color: var(--danger);
+	border-color: var(--danger);
+}
+
+.blicks-admin .v-design .addnew__hint {
+	margin-top: 8px;
+	font: var(--bl-ui-text-xs)/1.4 var(--mono);
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .addnew__hint code {
+	color: var(--accent-ink);
+}
+
+/* ── theme rail ────────────────────────────────────────────────────────── */
+.blicks-admin .v-design .themerail {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+	gap: 12px;
+	padding: 6px 0 4px;
+}
+
+.blicks-admin .v-design .tcard {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: var(--hair);
+	background: var(--surface);
+	transition: 140ms;
+}
+
+/* The card frames three actions; this is the one that fills it. */
+.blicks-admin .v-design .tcard__apply {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 12px;
+	min-width: 0;
+	padding: 14px;
+	border: 0;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .tcard:hover {
+	border-color: var(--border-strong);
+}
+
+.blicks-admin .v-design .tcard.on {
+	border-color: var(--accent);
+	box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.blicks-admin .v-design .tcard__sw {
+	display: flex;
+	height: 30px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .tcard__sw i {
+	flex: 1;
+	display: block;
+	background: var(--c, transparent);
+}
+
+.blicks-admin .v-design .tcard__ft {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.blicks-admin .v-design .tcard__nm {
+	min-width: 0;
+	font: 600 var(--bl-ui-text-md)/1.2 var(--sans);
+	color: var(--fg);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .v-design .tcard__nm small {
+	display: block;
+	margin-top: 4px;
+	font: 400 var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .tcard__dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-left: 6px;
+	border-radius: 50%;
+	background: var(--accent);
+	vertical-align: middle;
+}
+
+.blicks-admin .v-design .tcard__ck {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	color: var(--accent);
+	opacity: 0;
+}
+
+.blicks-admin .v-design .tcard.on .tcard__ck {
+	opacity: 1;
+}
+
+.blicks-admin .v-design .tcard__del,
+.blicks-admin .v-design .tcard__reset {
+	position: absolute;
+	top: 6px;
+	display: grid;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	border: 0;
+	background: transparent;
+	color: var(--faint);
+	font-size: var(--bl-ui-text-md);
+	line-height: 1;
+	cursor: pointer;
+	opacity: 0;
+}
+
+.blicks-admin .v-design .tcard__del { right: 6px; }
+.blicks-admin .v-design .tcard__reset { left: 6px; }
+
+.blicks-admin .v-design .tcard:hover .tcard__del,
+.blicks-admin .v-design .tcard:hover .tcard__reset,
+.blicks-admin .v-design .tcard.on .tcard__reset {
+	opacity: 1;
+}
+
+.blicks-admin .v-design .tcard__del:hover { color: var(--danger); }
+.blicks-admin .v-design .tcard__reset:hover { color: var(--accent); }
+
+.blicks-admin .v-design .tcard__confirm {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 4px 3px 8px;
+	background: var(--surface);
+	border: 1px solid var(--border-strong);
+	font: 600 var(--bl-ui-text-2xs)/1 var(--mono);
+	letter-spacing: 0.04em;
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .tcard__confirm.reset {
+	right: auto;
+	left: 6px;
+}
+
+.blicks-admin .v-design .tcard__confirm i {
+	display: grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	border: var(--hair);
+	font-style: normal;
+	font-size: var(--bl-ui-text-sm);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .tcard__yes { color: var(--danger); }
+
+.blicks-admin .v-design .tcard__yes:hover {
+	background: var(--danger);
+	border-color: var(--danger);
+	color: #fff;
+}
+
+.blicks-admin .v-design .tcard__no:hover { background: var(--surface-alt); }
+
+.blicks-admin .v-design .tcard.new {
+	padding: 14px;
+	cursor: pointer;
+	align-items: flex-start;
+	justify-content: center;
+	border-style: dashed;
+	color: var(--accent);
+}
+
+.blicks-admin .v-design .tcard.new b {
+	font: 600 var(--bl-ui-text-md)/1.2 var(--sans);
+}
+
+.blicks-admin .v-design .tcard.new span {
+	margin-top: 8px;
+	font: 400 var(--bl-ui-text-xs)/1.3 var(--mono);
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .tcard__newin {
+	width: 100%;
+	padding: 8px 10px;
+	border: var(--hair);
+	background: var(--surface);
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	outline: 0;
+}
+
+.blicks-admin .v-design .tcard__newin:focus {
+	border-color: var(--accent);
+}
+
+.blicks-admin .v-design .tcard__newact {
+	display: flex;
+	gap: 8px;
+}
+
+.blicks-admin .v-design .tcard__newact .btn {
+	flex: 1;
+}
+
+.blicks-admin .v-design .tcard__newx {
+	flex: none;
+	width: 34px;
+	border: var(--hair);
+	background: var(--surface);
+	color: var(--muted);
+	cursor: pointer;
+}
+
+/* ── right rail — live preview + output ────────────────────────────────── */
+.blicks-admin .v-design .prev {
+	padding: 22px;
+}
+
+.blicks-admin .v-design .prev .eyebrow {
+	display: block;
+	margin-bottom: 14px;
+}
+
+.blicks-admin .v-design .pv-card {
+	padding: 22px;
+	margin-bottom: 16px;
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .pv-card .kick {
+	margin-bottom: 14px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--accent-ink);
+}
+
+.blicks-admin .v-design .pv-card h2 {
+	margin-bottom: 8px;
+	font-size: var(--bl-ui-display-sm);
+	letter-spacing: -0.03em;
+}
+
+.blicks-admin .v-design .pv-card p {
+	margin-bottom: 16px;
+	font-size: var(--bl-ui-text-md);
+	color: var(--muted);
+	line-height: 1.5;
+}
+
+.blicks-admin .v-design .pv-card .row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 0;
+}
+
+.blicks-admin .v-design .pv-btn {
+	padding: 8px 12px;
+	font: var(--bl-ui-text-sm)/1 var(--sans);
+	font-weight: 560;
+}
+
+.blicks-admin .v-design .pv-btn.p {
+	background: var(--accent);
+	color: #fff;
+}
+
+.blicks-admin .v-design .pv-btn.s {
+	border: var(--hair);
+}
+
+.blicks-admin .v-design .pv-swatches {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	gap: 4px;
+	margin-top: 16px;
+}
+
+.blicks-admin .v-design .pv-swatches i {
+	aspect-ratio: 1;
+	border: var(--hair);
+	background: var(--c, transparent);
+}
+
+.blicks-admin .v-design .out {
+	padding: 16px 18px;
+	background: var(--bl-ui-code-bg);
+}
+
+.blicks-admin .v-design .out .k {
+	display: block;
+	margin-bottom: 12px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--bl-ui-code-label);
+}
+
+.blicks-admin .v-design .out pre {
+	margin: 0;
+	font: var(--bl-ui-text-xs)/1.7 var(--mono);
+	color: var(--bl-ui-code-fg);
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.blicks-admin .v-design .out .p { color: var(--bl-ui-code-prop); }
+.blicks-admin .v-design .out .v { color: var(--bl-ui-code-val); }
+
+.blicks-admin .v-design .dirty {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 12px;
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	letter-spacing: 0.06em;
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .dirty .d {
+	width: 7px;
+	height: 7px;
+	flex: none;
+	background: var(--accent-ink);
+}
+
+.blicks-admin .v-design .prev .save {
+	display: flex;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.blicks-admin .v-design .prev .save .btn {
+	flex: 1;
+	justify-content: center;
+}
+
+/* ── animation library (docs/plans/custom-animations.md) ───────────────── */
+.blicks-admin .v-design .anim__lead {
+	margin-bottom: 12px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+	max-width: 60ch;
+}
+
+.blicks-admin .v-design .anim__sub {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 20px 0 10px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .anim__sub::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: var(--border);
+}
+
+.blicks-admin .v-design .anim__list {
+	display: flex;
+	flex-direction: column;
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-design .anim__row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 10px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-design .anim__demo {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 40px;
+	flex: none;
+	border: var(--hair);
+	background: var(--surface-alt);
+	overflow: hidden;
+}
+
+.blicks-admin .v-design .anim__demo span {
+	width: 14px;
+	height: 14px;
+	background: var(--accent);
+}
+
+.blicks-admin .v-design .anim__meta {
+	flex: 1 1 160px;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.blicks-admin .v-design .anim__meta b {
+	font: 500 var(--bl-ui-text-md)/1.2 var(--sans);
+}
+
+.blicks-admin .v-design .anim__meta span {
+	font: 500 var(--bl-ui-text-2xs)/1.3 var(--mono);
+	color: var(--faint);
+	overflow-wrap: anywhere;
+}
+
+.blicks-admin .v-design .anim__facts {
+	flex: 0 0 auto;
+	font: 500 var(--bl-ui-label-size-sm)/1 var(--mono);
+	color: var(--muted);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.blicks-admin .v-design .anim__row.is-builtin .anim__facts {
+	flex: 1 1 200px;
+	font-family: var(--sans);
+	font-size: var(--bl-ui-text-sm);
+	letter-spacing: 0;
+	text-transform: none;
+	white-space: normal;
+}
+
+.blicks-admin .v-design .anim__act {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.blicks-admin .v-design .anim__act button {
+	padding: 6px 10px;
+	border: var(--hair);
+	background: var(--surface);
+	font: 500 var(--bl-ui-text-xs)/1 var(--sans);
+	color: var(--muted);
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .anim__act button:hover:not(:disabled) {
+	border-color: var(--fg);
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .anim__danger {
+	border-color: var(--danger) !important;
+	color: var(--danger) !important;
+}
+
+.blicks-admin .v-design .anim__warn {
+	font-size: var(--bl-ui-text-xs);
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .anim__tag {
+	padding: 4px 8px;
+	border: var(--hair);
+	font: 500 var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .anim__empty,
+.blicks-admin .v-design .anim__count {
+	padding: 12px 0;
+	margin: 0;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-design .anim__error {
+	margin: 0 0 12px;
+	padding: 10px 14px;
+	border-left: 3px solid var(--danger);
+	background: var(--surface-alt);
+	color: var(--fg);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-design .animed {
+	margin-top: 12px;
+	padding: 16px;
+	border: 1px solid var(--border-strong);
+	background: var(--surface);
+}
+
+.blicks-admin .v-design .animed__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 14px;
+}
+
+.blicks-admin .v-design .animed__head b {
+	font-size: var(--bl-ui-text-md);
+	font-weight: 600;
+}
+
+.blicks-admin .v-design .animed__preview {
+	display: grid;
+	place-items: center;
+	width: 88px;
+	height: 44px;
+	border: var(--hair);
+	background: var(--surface-alt);
+	overflow: hidden;
+}
+
+.blicks-admin .v-design .animed__preview span {
+	width: 16px;
+	height: 16px;
+	background: var(--accent);
+}
+
+.blicks-admin .v-design .animed__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+	gap: 12px 10px;
+	margin-bottom: 6px;
+}
+
+/* The animation editor's fields reuse the token rows' `.cf` label + `.ctl` shell,
+   so its inputs pick up the same border, focus ring and mono type. */
+.blicks-admin .v-design .animed .ctl input,
+.blicks-admin .v-design .animst .ctl input,
+.blicks-admin .v-design .animed .ctl select,
+.blicks-admin .v-design .animst .ctl select {
+	width: 100%;
+	min-width: 0;
+	padding: 8px 10px;
+	border: var(--hair);
+	border-radius: 0;
+	background: var(--surface);
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	color: var(--fg);
+	outline: 0;
+}
+
+.blicks-admin .v-design .animed .ctl input:focus,
+.blicks-admin .v-design .animst .ctl input:focus,
+.blicks-admin .v-design .animed .ctl select:focus,
+.blicks-admin .v-design .animst .ctl select:focus {
+	border-color: var(--accent);
+}
+
+.blicks-admin .v-design .animst .ctl {
+	position: relative;
+}
+
+.blicks-admin .v-design .animst__off .ctl .u {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--faint);
+	pointer-events: none;
+}
+
+.blicks-admin .v-design .animed__steps {
+	margin-top: 8px;
+}
+
+.blicks-admin .v-design .animst {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px 0;
+	border-top: 1px dashed var(--border);
+}
+
+.blicks-admin .v-design .animst__off {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex: 0 0 96px;
+}
+
+.blicks-admin .v-design .animst__off > span {
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .animst__decls {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.blicks-admin .v-design .animst__d {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+	gap: 8px;
+}
+
+.blicks-admin .v-design .animst__rm {
+	flex: 0 0 auto;
+	width: 26px;
+	height: 26px;
+	margin-top: 20px;
+	border: var(--hair);
+	background: var(--surface);
+	color: var(--muted);
+	font-size: var(--bl-ui-text-lg);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.blicks-admin .v-design .animst__rm:hover {
+	border-color: var(--danger);
+	color: var(--danger);
+}
+
+.blicks-admin .v-design .animed__act {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: var(--hair);
+}
+
+@media (width <= 1080px) {
+	.blicks-admin .v-design .ds {
+		grid-template-columns: 1fr;
+	}
+
+	.blicks-admin .v-design .rail,
+	.blicks-admin .v-design .prev {
+		display: none;
+	}
+}
+
+@media (width <= 640px) {
+	.blicks-admin .v-design .trow {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.blicks-admin .v-design .val {
+		text-align: left;
+	}
+}
+
+/* ── motion previews ───────────────────────────────────────────────────────
+   Each of the three motion categories previewed as a plain box before, which is
+   the one shape none of them show on: a transition needs something to change, a
+   transform needs where it started, and a filter needs texture to act on. */
+.blicks-admin .v-design .mdemo {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+/* The track is the button: clicking or tabbing to it runs the transition, so the
+   value can be judged without a mouse. */
+.blicks-admin .v-design .mtrack {
+	position: relative;
+	flex: 1;
+	min-width: 84px;
+	max-width: 168px;
+	height: 22px;
+	padding: 0;
+	border: var(--hair);
+	background: var(--surface);
+	cursor: pointer;
+}
+
+/* Four things change at once — place, size, opacity, colour — so the token's own
+   `transition-property` is what decides which of them animate and which snap. */
+.blicks-admin .v-design .mdot {
+	position: absolute;
+	inset-block-start: 5px;
+	inset-inline-start: 4px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	opacity: 0.45;
+	background: var(--faint);
+	transform: scale(0.75);
+}
+
+.blicks-admin .v-design .mdot.is-on {
+	inset-inline-start: calc(100% - 16px);
+	opacity: 1;
+	background: var(--accent);
+	transform: scale(1);
+}
+
+/* The ghost is where the box would have been; the live one is where it is. */
+.blicks-admin .v-design .xbox {
+	position: relative;
+	flex: none;
+	width: 44px;
+	height: 34px;
+}
+
+.blicks-admin .v-design .xbox__ghost,
+.blicks-admin .v-design .xbox__live {
+	position: absolute;
+	inset: 4px 8px;
+}
+
+.blicks-admin .v-design .xbox__ghost {
+	border: 1px dashed var(--border-strong);
+}
+
+.blicks-admin .v-design .xbox__live {
+	border: 1px solid var(--accent);
+	background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* A filter is only legible against what it was applied to, so the sample is shown twice. */
+.blicks-admin .v-design .fpair {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 6px;
+}
+
+.blicks-admin .v-design .fsample {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 26px;
+	border: var(--hair);
+	background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 25%, #ffd166));
+	font: 600 var(--bl-ui-text-sm)/1 var(--mono);
+	font-style: normal;
+	color: #fff;
+}
+
+.blicks-admin .v-design .farrow {
+	font: var(--bl-ui-text-sm)/1 var(--mono);
+	font-style: normal;
+	color: var(--faint);
+}
+
+/* A ring is judged around a control, not on a swatch: card surface, a border and the
+   rounding a real control carries, so the ring bends the way it will in the editor. */
+.blicks-admin .v-design .ringpv {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 66px;
+	height: 28px;
+	margin: 6px 4px;
+	border: var(--hair);
+	border-radius: 6px;
+	background: var(--surface);
+	font-size: var(--bl-ui-text-xs);
+	color: var(--muted);
+}
+
+/* A width is a line, drawn at that width across the column — the only preview of a
+   hairline that can be compared with the one above it. */
+.blicks-admin .v-design .bwline {
+	flex: 1;
+	min-width: 60px;
+	max-width: 190px;
+	border-top-style: solid;
+	border-top-color: var(--border-strong);
+}
+
+/* Dashes and dots only read at length and around a corner, so the sample is a corner. */
+.blicks-admin .v-design .bdtile {
+	flex: none;
+	width: 52px;
+	height: 30px;
+	background: var(--surface);
+}
+
+/* Opacity, over a checkerboard: a transparent value must look transparent, not like a
+   lighter shade of the panel. The ink carries text and colour, since what an alpha step
+   is for is deciding whether something can still be read through it. */
+.blicks-admin .v-design .opv {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 8px;
+}
+
+.blicks-admin .v-design .opv__cell {
+	flex: none;
+	width: 40px;
+	height: 28px;
+	background: conic-gradient(from 90deg, var(--bl-ui-checker) 25%, #fff 0 50%, var(--bl-ui-checker) 0 75%, #fff 0);
+	background-size: 8px 8px;
+}
+
+.blicks-admin .v-design .opv__ink {
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+	background: var(--accent);
+	font: 600 var(--bl-ui-text-xs)/1 var(--mono);
+	font-style: normal;
+	color: #fff;
+}
+
+.blicks-admin .v-design .oprange {
+	flex: 1;
+	min-width: 70px;
+	max-width: 150px;
+}
+
+/* The stack, drawn as the stack: one slab per token, the row's own lit. Ordering and
+   collisions are the only two things a z-index scale can be wrong about. */
+.blicks-admin .v-design .zstack {
+	display: flex;
+	flex: none;
+	align-items: flex-end;
+	gap: 3px;
+	height: 26px;
+}
+
+.blicks-admin .v-design .zslab {
+	width: 9px;
+	height: 8px;
+	background: color-mix(in srgb, var(--faint) 28%, transparent);
+}
+
+.blicks-admin .v-design .zslab.is-on {
+	height: 26px;
+	background: var(--accent);
+}
+
+/* A container width is a bar from the left of the track — the ramp between the widths is
+   the only thing about them that can be judged by eye, so they share one scale. */
+.blicks-admin .v-design .wbar {
+	height: 10px;
+	min-width: 2px;
+	background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.blicks-admin .v-design .wbar--ext {
+	background: repeating-linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--accent) 30%, transparent) 0 4px,
+		transparent 4px 8px
+	);
+}
+
+/* Ratios drawn at one height, so the shapes compare instead of the areas. */
+.blicks-admin .v-design .aspv {
+	flex: none;
+	height: 34px;
+	max-width: 160px;
+	border: 1px solid var(--border-strong);
+	background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* Leading only exists between lines, so the sample is a paragraph that wraps to several. */
+.blicks-admin .v-design .ldv {
+	display: -webkit-box;
+	flex: 1;
+	min-width: 110px;
+	max-width: 210px;
+
+	/* Three lines exactly, in a cell the loosest of them fits: the rows stay level while the
+	   gaps between the lines — the whole of what leading is — still differ row to row. */
+	height: 54px;
+	margin: 0;
+	overflow: hidden;
+	font-size: var(--bl-ui-text-xs);
+	line-clamp: 3;
+	color: var(--muted);
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+
+/* The breakpoint ruler: one 320–2400px scale, every band drawn on it, and a marker where
+   this window sits — a threshold means nothing except next to its neighbours. */
+.blicks-admin .v-design .bptrack {
+	position: relative;
+}
+
+.blicks-admin .v-design .bpr {
+	position: relative;
+	display: block;
+	flex: 1;
+	height: 14px;
+	margin-inline-end: var(--m-reserve, 96px);
+	border-bottom: 1px solid var(--border);
+}
+
+.blicks-admin .v-design .bpr__band {
+	position: absolute;
+	inset-block: 2px 3px;
+	background: color-mix(in srgb, var(--faint) 30%, transparent);
+}
+
+.blicks-admin .v-design .bpr__band.is-on {
+	background: var(--accent);
+}
+
+/* The widest step runs off the end of the ruler, because that is what "and up" means. */
+.blicks-admin .v-design .bpr__band.is-open {
+	mask-image: linear-gradient(to right, #000 70%, transparent);
+}
+
+.blicks-admin .v-design .bpr__now {
+	position: absolute;
+	inset-block: 0;
+	width: 1px;
+	background: var(--fg);
+}
+
+.blicks-admin .v-design .bpr__now::after {
+	position: absolute;
+	inset-block-start: -1px;
+	inset-inline-start: -2px;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--fg);
+	content: "";
+}
+
+/* Applying a theme saves at once and adopts what comes back, so unsaved work goes with it.
+   The card says what will happen, over the card it will happen to. */
+.blicks-admin .v-design .tcard__ask {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	display: grid;
+	align-content: center;
+	gap: 10px;
+	padding: 12px;
+	background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.blicks-admin .v-design .tcard__ask p {
+	margin: 0;
+	font: 600 var(--bl-ui-text-sm)/1.35 var(--sans);
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .tcard__askact {
+	display: flex;
+	gap: 6px;
+}
+
+/* Where the values come from, where they are being edited, where the next save puts them —
+   one line, because the two rows this replaces each held half of it and disagreed. */
+.blicks-admin .v-design .flow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 8px;
+	padding: 4px 0 10px;
+}
+
+.blicks-admin .v-design .flow__step {
+	display: grid;
+	flex: 1;
+	min-width: 132px;
+	align-content: start;
+	gap: 3px;
+	padding: 8px 10px;
+	border: var(--hair);
+	background: var(--surface);
+}
+
+.blicks-admin .v-design .flow__step.warn {
+	border-color: var(--warn);
+}
+
+.blicks-admin .v-design .flow__k {
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-design .flow__step b {
+	font: 600 var(--bl-ui-text-md)/1.2 var(--sans);
+	color: var(--fg);
+}
+
+.blicks-admin .v-design .flow__note {
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1.35;
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .flow__arrow {
+	align-self: center;
+	width: 15px;
+	height: 15px;
+	stroke: var(--faint);
+	stroke-width: 2;
+	fill: none;
+}
+
+.blicks-admin .v-design .flow__body {
+	margin: 0 0 12px;
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1.5;
+	color: var(--muted);
+}
+
+.blicks-admin .v-design .trow--stated .val {
+	grid-column: 3;
+}

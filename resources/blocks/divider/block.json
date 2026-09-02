@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/divider",
+	"title": "Divider",
+	"category": "blicks",
+	"description": "A semantic divider for separating content groups.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "spacing.*" ],
+			"states": [ "default" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"orientation": { "type": "string", "default": "horizontal" },
+		"thickness":   { "type": "string", "default": "1px" },
+		"lineStyle":   { "type": "string", "default": "solid" },
+		"color":       { "type": "string", "default": "" },
+		"length":      { "type": "string", "default": "" },
+		"align":       { "type": "string", "default": "start" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

@@ -1,0 +1,586 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Pinecone system — the block shared by all four admin mockups
+   (mockups/admin-design/*.html, the identical `:root` + chrome block each
+   one duplicates). Ported once here; per-page partials follow.
+
+   Scoped to `.blicks-admin` because this runs inside wp-admin, where the
+   mockups' bare `body`/`*` selectors would leak into WordPress' own chrome.
+   ════════════════════════════════════════════════════════════════════════ */
+
+@use "../../framework/ui-tokens";
+
+.blicks-admin-root {
+	margin-left: -20px;
+	background: #f6f7f9;
+}
+
+body.toplevel_page_blicks,
+body.admin_page_blicks,
+body.toplevel_page_blicks #wpwrap,
+body.admin_page_blicks #wpwrap,
+body.toplevel_page_blicks #wpcontent,
+body.admin_page_blicks #wpcontent,
+body.toplevel_page_blicks #wpbody,
+body.admin_page_blicks #wpbody,
+body.toplevel_page_blicks #wpbody-content,
+body.admin_page_blicks #wpbody-content {
+	background: #f6f7f9;
+}
+
+body.toplevel_page_blicks #wpbody-content,
+body.admin_page_blicks #wpbody-content {
+	padding-bottom: 0;
+}
+
+.blicks-admin {
+	/* The shared chrome palette — see `resources/framework/_ui-tokens.scss`. The
+	   inspector includes the same mixin, so the two surfaces cannot drift again.
+	   Everything below is a LOCAL ALIAS onto it: the short names this partial and
+	   its siblings already reference, re-pointed rather than redefined. Add a value
+	   here only if it is genuinely admin-only (`--content`, `--gutter`). */
+	@include ui-tokens.palette;
+
+	--bg: var(--bl-ui-canvas);
+	--surface: var(--bl-ui-paper);
+	--fg: var(--bl-ui-fg);
+	--muted: var(--bl-ui-fg-muted);
+
+	/* `--faint` paints TEXT in ~30 rules (eyebrows, meta, counts) at 9–11px, so it
+	   maps to the ramp's AA step, not to `--bl-ui-fg-faint`. It was #8a93a1 —
+	   2.9:1 on this screen's own background, a fail at any size. */
+	--faint: var(--bl-ui-fg-subtle);
+	--border: var(--bl-ui-border);
+	--border-strong: var(--bl-ui-border-strong);
+	--accent: var(--bl-ui-brand);
+	--accent-ink: var(--bl-ui-brand-bold);
+	--success: var(--bl-ui-success);
+	--warn: var(--bl-ui-warn);
+	--danger: var(--bl-ui-danger);
+	--hair: 1px solid var(--border);
+	--mono: var(--bl-ui-font-mono);
+	--sans: var(--bl-ui-font-sans);
+
+	/* Content width: the mockups disagree (1200 on Overview/Settings, 1320 on
+	   Patterns/Design System). One value on purpose — all four admin screens
+	   sharing a single container width is a previously-fixed bug, not a new choice. */
+	--content: 1320px;
+	--gutter: 32px;
+
+	/* Aliases for the older `--paper`/`--fg-2`/… names still referenced by the
+	   design-system partial's own scope. Same values, no second palette.
+	   (`--fg-faint` used to be declared here as #d1d5db — 1.4:1, the exact value the
+	   inspector had already removed as "a control nobody could see". It was
+	   referenced nowhere, so it is gone rather than remapped.) */
+	--paper: var(--surface);
+	--fg-2: var(--bl-ui-fg-2);
+	--fg-muted: var(--muted);
+	--fg-subtle: var(--faint);
+	--surface-alt: var(--bl-ui-surface-alt);
+	--surface-sunk: var(--bl-ui-surface-sunk);
+	--brand: var(--accent);
+	--brand-bold: var(--accent-ink);
+	--brand-soft: var(--bl-ui-brand-soft);
+	--brand-tint: var(--bl-ui-brand-tint);
+	--frost-blue: var(--bl-ui-frost-blue);
+	--acc-magenta: var(--bl-ui-acc-magenta);
+	--acc-violet: var(--bl-ui-acc-violet);
+	--acc-yellow: var(--warn);
+
+	background: var(--bg);
+	color: var(--fg);
+	font: var(--bl-ui-text-lg)/1.55 var(--sans);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.blicks-admin *,
+.blicks-admin *::before,
+.blicks-admin *::after {
+	box-sizing: border-box;
+}
+
+.blicks-admin button,
+.blicks-admin input,
+.blicks-admin select {
+	font: inherit;
+}
+
+.blicks-admin button {
+	cursor: pointer;
+}
+
+.blicks-admin button:disabled,
+.blicks-admin input:disabled,
+.blicks-admin select:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.blicks-admin .wrap {
+	max-width: var(--content);
+	margin: 0 auto;
+	padding: 8px var(--gutter) 64px;
+}
+
+.blicks-admin h1,
+.blicks-admin h2,
+.blicks-admin h3 {
+	margin: 0;
+	color: var(--fg);
+	font-weight: 640;
+	line-height: 1.06;
+	letter-spacing: -0.02em;
+}
+
+.blicks-admin p {
+	margin: 0;
+}
+
+.blicks-admin .num {
+	font-variant-numeric: tabular-nums;
+}
+
+.blicks-admin .eyebrow {
+	font: var(--bl-ui-label-size)/1 var(--mono);
+	color: var(--faint);
+	letter-spacing: var(--bl-ui-label-tracking);
+	text-transform: uppercase;
+}
+
+.blicks-admin .eyebrow.accent {
+	color: var(--accent-ink);
+}
+
+/* Links: ink underline in mono — accent is reserved for the CTA + active tab. */
+.blicks-admin .lnk {
+	color: var(--fg);
+	font: var(--bl-ui-label-size)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking);
+	text-transform: uppercase;
+	text-decoration: none;
+	white-space: nowrap;
+	border: 0;
+	border-bottom: 1px solid var(--border-strong);
+	padding: 0 0 2px;
+	background: none;
+	cursor: pointer;
+	transition: border-color 120ms;
+}
+
+.blicks-admin .lnk:hover {
+	border-color: var(--fg);
+}
+
+.blicks-admin .lnk::after {
+	content: " →";
+	color: var(--faint);
+}
+
+.blicks-admin .btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font: var(--bl-ui-text-md)/1 var(--sans);
+	font-weight: 560;
+	letter-spacing: 0.01em;
+	padding: 10px 16px;
+	border: 1px solid var(--border-strong);
+	border-radius: 0;
+	background: var(--surface);
+	color: var(--fg);
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: 120ms;
+}
+
+.blicks-admin .btn:hover:not(:disabled) {
+	border-color: var(--fg);
+}
+
+.blicks-admin .btn.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+
+.blicks-admin .btn.primary:hover:not(:disabled) {
+	background: var(--accent-ink);
+	border-color: var(--accent-ink);
+}
+
+.blicks-admin .btn.sm {
+	padding: 8px 12px;
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .btn svg {
+	width: 15px;
+	height: 15px;
+	stroke: currentcolor;
+	stroke-width: 1.7;
+	fill: none;
+}
+
+/* ── top bar ───────────────────────────────────────────────────────────── */
+.blicks-admin .topbar {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 18px 0;
+}
+
+.blicks-admin .brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+/* The plugin's own mark. It carries its own geometry and the blue accent block, so it
+   only needs sizing here — the mockup's three CSS bars were a stand-in for this file. */
+.blicks-admin .brand .mark {
+	display: block;
+	width: 22px;
+	height: 22px;
+	flex: none;
+	color: var(--fg);
+}
+
+.blicks-admin .brand b {
+	font-size: var(--bl-ui-text-xl);
+	font-weight: 680;
+	letter-spacing: -0.01em;
+}
+
+.blicks-admin .brand span {
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	color: var(--faint);
+	text-transform: uppercase;
+}
+
+.blicks-admin .topbar .spacer {
+	flex: 1;
+}
+
+.blicks-admin .search {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 300px;
+	padding: 10px 12px;
+	border: var(--hair);
+	background: var(--surface);
+	color: var(--faint);
+	font-size: var(--bl-ui-text-md);
+	text-align: left;
+}
+
+.blicks-admin .search:hover {
+	border-color: var(--border-strong);
+}
+
+.blicks-admin .search svg {
+	width: 14px;
+	height: 14px;
+	stroke: var(--faint);
+	stroke-width: 1.7;
+	fill: none;
+	flex: none;
+}
+
+.blicks-admin .search span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .search kbd {
+	margin-left: auto;
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+	color: var(--faint);
+	border: var(--hair);
+	padding: 3px 4px;
+}
+
+/* ── tabs ──────────────────────────────────────────────────────────────── */
+.blicks-admin .tabs {
+	display: flex;
+	align-items: center;
+	gap: 30px;
+	border-bottom: var(--hair);
+	margin-bottom: 28px;
+}
+
+.blicks-admin .tab {
+	appearance: none;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 0 12px;
+	margin-bottom: -1px;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: none;
+	font: inherit;
+	font-size: var(--bl-ui-text-md);
+	font-weight: 520;
+	color: var(--muted);
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.blicks-admin .tab svg {
+	width: 15px;
+	height: 15px;
+	stroke: currentcolor;
+	stroke-width: 1.6;
+	fill: none;
+}
+
+.blicks-admin .tab[aria-selected="true"] {
+	color: var(--fg);
+	border-color: var(--accent);
+}
+
+.blicks-admin .tab:hover {
+	color: var(--fg);
+}
+
+.blicks-admin .tabs .right {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding-bottom: 12px;
+}
+
+.blicks-admin .ver {
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	color: var(--faint);
+	letter-spacing: 0.1em;
+}
+
+.blicks-admin .live {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	color: var(--success);
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.blicks-admin .live.is-warn {
+	color: var(--warn);
+}
+
+.blicks-admin .dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--success);
+}
+
+.blicks-admin .live.is-warn .dot {
+	background: var(--warn);
+}
+
+/* ── page header (Patterns / Settings / Design System) ─────────────────── */
+.blicks-admin .ph {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 20px;
+	margin-bottom: 22px;
+}
+
+/* Flex items default to `min-width: auto`, so a long title block refuses to
+   shrink below its own content width and pushes the row past the viewport. */
+.blicks-admin .ph > div:first-child {
+	min-width: 0;
+}
+
+.blicks-admin .ph h1 {
+	font-size: var(--bl-ui-display-md);
+	letter-spacing: -0.025em;
+}
+
+.blicks-admin .ph .sub {
+	margin-top: 8px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-lg);
+	max-width: 60ch;
+}
+
+.blicks-admin .ph .meta {
+	margin-top: 12px;
+	font: var(--bl-ui-label-size)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking);
+	color: var(--faint);
+	text-transform: uppercase;
+}
+
+.blicks-admin .panel {
+	background: var(--surface);
+	border: var(--hair);
+}
+
+/* ── notices ───────────────────────────────────────────────────────────── */
+.blicks-admin .notice-card {
+	margin-bottom: 16px;
+	padding: 12px 16px;
+	border: var(--hair);
+	border-left: 2px solid var(--accent);
+	background: var(--surface);
+	color: var(--fg);
+	font-size: var(--bl-ui-text-md);
+}
+
+.blicks-admin .notice-card.is-error {
+	border-left-color: var(--danger);
+	color: var(--danger);
+}
+
+/* ── command palette (⌘K) — the search box's real destination ──────────── */
+.blicks-admin .cmdk {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	justify-content: center;
+	padding: 12vh 16px 16px;
+	background: rgb(13 17 23 / 32%);
+}
+
+.blicks-admin .cmdk__panel {
+	display: flex;
+	flex-direction: column;
+	width: min(620px, 100%);
+	max-height: 70vh;
+	overflow: hidden;
+	background: var(--surface);
+	border: 1px solid var(--border-strong);
+	box-shadow: 0 24px 60px rgb(13 17 23 / 28%);
+}
+
+.blicks-admin .cmdk__input {
+	width: 100%;
+	padding: 16px 18px;
+	border: 0;
+	border-bottom: var(--hair);
+	background: transparent;
+	color: var(--fg);
+	font: var(--bl-ui-text-lg)/1.3 var(--sans);
+}
+
+.blicks-admin .cmdk__input:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.blicks-admin .cmdk__list {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding-bottom: 6px;
+}
+
+.blicks-admin .cmdk__group {
+	padding: 12px 18px 6px;
+	color: var(--faint);
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.blicks-admin .cmdk__item {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	width: 100%;
+	padding: 8px 18px;
+	border: 0;
+	background: transparent;
+	color: var(--fg);
+	font: var(--bl-ui-text-md)/1.3 var(--sans);
+	text-align: left;
+}
+
+.blicks-admin .cmdk__item.is-active {
+	background: var(--brand-soft);
+	color: var(--accent-ink);
+}
+
+.blicks-admin .cmdk__title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .cmdk__hint {
+	flex: 0 0 auto;
+	color: var(--faint);
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.blicks-admin .cmdk__empty {
+	margin: 0;
+	padding: 22px 18px;
+	color: var(--faint);
+	font-size: var(--bl-ui-text-md);
+}
+
+.blicks-admin .cmdk__foot {
+	display: flex;
+	gap: 18px;
+	padding: 10px 18px;
+	border-top: var(--hair);
+	background: var(--surface-alt);
+	color: var(--faint);
+	font-size: var(--bl-ui-text-xs);
+}
+
+.blicks-admin .cmdk__foot b {
+	margin-right: 4px;
+	font: var(--bl-ui-text-2xs)/1 var(--mono);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.blicks-admin .cmdk__panel {
+		animation: blicks-cmdk-in 120ms ease-out;
+	}
+}
+
+@keyframes blicks-cmdk-in {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+
+@media (width <= 900px) {
+	.blicks-admin .search,
+	.blicks-admin .tabs .right {
+		display: none;
+	}
+
+	.blicks-admin .topbar {
+		flex-wrap: wrap;
+	}
+
+	.blicks-admin .tabs {
+		gap: 20px;
+		overflow-x: auto;
+	}
+
+	.blicks-admin .wrap {
+		padding-inline: 16px;
+	}
+}

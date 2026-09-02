@@ -1,0 +1,30 @@
+name: WordPress.org assets
+
+# The Directory listing — banners, icons, screenshots — is served from SVN, not from
+# the plugin zip. Without this, replacing a banner would mean cutting a whole release.
+#
+# readme.txt is deliberately NOT synced on push. It carries `Stable tag:`, so a version
+# bump merged to main would publish "the stable version is X" to trunk before tags/X
+# exists. The release deploy pushes readme.txt to trunk and the tag together instead.
+# For a copy-only readme fix, run this workflow by hand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.wordpress-org/**'
+  workflow_dispatch:
+
+jobs:
+  assets:
+    name: Sync listing assets to SVN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update the Directory listing
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: blicks
+          ASSETS_DIR: .wordpress-org

@@ -1,0 +1,1494 @@
+@use "inspector-foundation";
+
+
+
+:where(
+	.bl-state,
+	.bl-device,
+	.bl-layout,
+	.bl-border-control,
+	.bl-position-control,
+	.bl-color-control,
+	.bl-typography-control,
+	.bl-settings-card
+) {
+	-webkit-font-smoothing: antialiased;
+}
+
+:where(
+	.bl-seg__btn,
+	.iconseg button,
+	.link-btn,
+	.unit-chip,
+	.swatch,
+	.lib-btn,
+	.token,
+	.preview,
+	.typo-field,
+	.pop-tab,
+	.bl-option-card,
+	.bl-segmented-setting button,
+	.bl-icon-picker button
+) {
+	position: relative;
+	transition-property: background-color, border-color, box-shadow, color, transform;
+	transition-duration: 120ms;
+	transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:where(
+	.bl-seg__btn,
+	.iconseg button,
+	.link-btn,
+	.unit-chip,
+	.swatch,
+	.lib-btn,
+	.token,
+	.preview,
+	.typo-field,
+	.pop-tab,
+	.bl-option-card,
+	.bl-segmented-setting button,
+	.bl-icon-picker button
+):active {
+	transform: scale(0.96);
+}
+
+.field-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.field-head > label {
+	flex: 1;
+	margin-bottom: 0 !important;
+	font-size: var(--bl-ui-text-xs);
+	color: #757575;
+}
+
+.reset-btn {
+	border: 0;
+	background: transparent;
+	border-radius: var(--bl-editor-radius, 2px);
+	color: var(--brand);
+	cursor: pointer;
+	font: inherit;
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1;
+	padding: 4px 6px;
+	transition-property: background-color, color, transform;
+	transition-duration: 120ms;
+	transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.reset-btn:hover {
+	background: #eef1fb;
+	color: #1f3fd1;
+}
+
+.reset-btn:active {
+	transform: scale(0.96);
+}
+
+/* ── Shared form-control base ──────────────────────────────────────────────
+   The Wave B–F controls introduced bare <select>, <textarea>, and standalone
+   .dim__inner inputs. They had no styling, so they fell back to the WP-admin
+   element defaults and looked nothing like the polished controls' bordered
+   fields. Style them once, scoped to every control root (real class specificity,
+   so they beat wp-admin's element-level select/textarea rules). The richer
+   controls keep their own popovers/segments untouched — this only reaches the
+   plain elements they never styled. */
+.bl-animation,
+.bl-border-control,
+.bl-columns,
+.bl-decoration,
+.bl-deco-panel,
+.bl-grid-child,
+.bl-layout,
+.bl-position-control,
+.bl-boxmodel,
+.bl-typography-control,
+.bl-floating-popover {
+	select,
+	textarea,
+	.dim__inner {
+		box-sizing: border-box;
+		width: 100%;
+		border: 1px solid #e0e0e0;
+		border-radius: var(--bl-editor-radius, 2px);
+		background: #fff;
+		padding: 6px 8px;
+		margin: 0;
+		font: inherit;
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.4;
+		color: var(--fg);
+		outline: 0;
+		box-shadow: none;
+		transition: border-color 120ms, box-shadow 120ms;
+	}
+
+	select {
+		height: var(--bl-ui-field-h);
+		min-height: var(--bl-ui-field-h);
+		cursor: pointer;
+		appearance: none;
+		padding-right: 26px;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23757575' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 9px center;
+		background-size: 10px 6px;
+	}
+
+	textarea {
+		min-height: 64px;
+		resize: vertical;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: var(--bl-ui-text-xs);
+	}
+
+	select:hover,
+	textarea:hover,
+	.dim__inner:hover {
+		border-color: #c5c5c5;
+	}
+
+	select:focus,
+	textarea:focus,
+	.dim__inner:focus {
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px rgb(56 88 233 / 12%);
+	}
+}
+
+/* Field rhythm for the lighter-weight controls that don't define their own. */
+.bl-animation,
+.bl-columns,
+.bl-decoration,
+.bl-grid-child {
+	font-size: var(--bl-ui-text-md);
+
+	.field {
+		margin-bottom: 12px;
+	}
+
+	.field:last-child {
+		margin-bottom: 0;
+	}
+
+	.field > label {
+		display: block;
+		font-size: var(--bl-ui-text-xs);
+		color: #757575;
+		margin-bottom: 6px;
+	}
+}
+
+:where(
+	.bl-seg__btn,
+	.iconseg button,
+	.link-btn,
+	.unit-chip,
+	.swatch,
+	.lib-btn,
+	.token,
+	.preview,
+	.typo-field,
+	.pop-tab,
+	.bl-option-card,
+	.bl-segmented-setting button,
+	.bl-icon-picker button,
+	.fin
+):focus-visible {
+	outline: 0;
+	box-shadow: 0 0 0 2px rgb(56 88 233 / 16%);
+}
+
+:where(input, .fin, .dim, .color-val, .typo-field .val) {
+	font-variant-numeric: tabular-nums;
+}
+
+:where(.iconseg button) {
+	min-height: var(--bl-ui-field-h-sm);
+}
+
+/* A 7px invisible hit-area halo for *small* icon buttons (20–26px). It overhangs on every side, so
+   a button that already meets the 38px field height should opt out (`&::before { content: none }`)
+   rather than reach over its neighbours. */
+:where(.swatch, .lib-btn, .token, .preview, .bl-seg__btn--icon)::before {
+	content: "";
+	position: absolute;
+	inset: -7px;
+}
+
+.bl-settings-card {
+	padding: 14px 16px 16px;
+	border-bottom: 1px solid #e0e0e0;
+	background: #fff;
+}
+
+.bl-settings-card__title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 12px;
+	color: var(--fg);
+	font-size: var(--bl-ui-label-size);
+	font-weight: 600;
+	letter-spacing: var(--bl-ui-label-tracking);
+	line-height: 1.2;
+	text-transform: uppercase;
+}
+
+.bl-settings-card__title > span {
+	min-width: 0;
+}
+
+.bl-setting + .bl-setting,
+.bl-field-row + .bl-field-row {
+	margin-top: 14px;
+}
+
+.bl-setting__label,
+.bl-field-row__label {
+	margin-bottom: 6px;
+	color: #757575;
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1.25;
+}
+
+.bl-setting__label {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.bl-setting__label > span {
+	min-width: 0;
+}
+
+.bl-field-row__label {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.bl-field-row__label > span {
+	min-width: 0;
+}
+
+.bl-help-tip {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.bl-help-tip .components-button.bl-help-tip__button {
+	width: 20px;
+	min-width: 20px;
+	height: 20px;
+	padding: 0;
+	border-radius: 999px;
+	color: var(--bl-editor-muted, #646970);
+}
+
+.bl-help-tip .components-button.bl-help-tip__button:hover,
+.bl-help-tip .components-button.bl-help-tip__button[aria-expanded="true"] {
+	background: #f0f0f1;
+	color: var(--fg);
+}
+
+.bl-help-tip__button svg {
+	width: 15px;
+	height: 15px;
+	fill: none;
+	stroke: currentcolor;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 1.8;
+}
+
+.bl-help-tip__popover .components-popover__content {
+	width: min(260px, calc(100vw - 32px));
+	padding: 10px 12px;
+	border-radius: var(--bl-editor-radius, 2px);
+	color: var(--fg);
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.45;
+}
+
+.bl-help-tip__popover p {
+	margin: 0;
+}
+
+.bl-option-cards {
+	display: grid;
+	gap: 8px;
+}
+
+.bl-option-cards--2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bl-option-cards--3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bl-option-card {
+	min-height: 58px;
+	padding: 8px 10px;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	color: var(--fg);
+	cursor: pointer;
+	font: inherit;
+	text-align: left;
+}
+
+.bl-option-card:hover {
+	border-color: #c7c7c7;
+	background: #fafafa;
+}
+
+.bl-option-card.is-active {
+	border-color: var(--brand);
+	background: #f5f7ff;
+	box-shadow: inset 0 0 0 1px rgb(56 88 233 / 8%);
+	color: #1f3fd1;
+}
+
+.bl-option-card__label,
+.bl-option-card__hint {
+	display: block;
+}
+
+.bl-option-card__label {
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.bl-option-card__hint {
+	margin-top: 4px;
+	color: #757575;
+	font-size: var(--bl-ui-text-2xs);
+	line-height: 1.25;
+}
+
+.bl-option-card.is-active .bl-option-card__hint {
+	color: var(--brand);
+}
+
+.bl-segmented-setting {
+	display: flex;
+	padding: 2px;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #f0f0f1;
+}
+
+.bl-segmented-setting button {
+	min-height: calc(var(--bl-ui-field-h) - 4px);
+	flex: 1;
+	padding: 4px 8px;
+	border: 0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: transparent;
+	color: #757575;
+	cursor: pointer;
+	font: inherit;
+	font-size: var(--bl-ui-text-sm);
+}
+
+.bl-segmented-setting button.is-active {
+	background: #fff;
+	box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+	color: var(--fg);
+	font-weight: 600;
+}
+
+.bl-field-row {
+	display: block;
+}
+
+.bl-field-row input,
+.bl-field-row select {
+	width: 100%;
+	min-height: var(--bl-ui-field-h);
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	color: var(--fg);
+	font: inherit;
+	font-size: var(--bl-ui-text-sm);
+	padding: 6px 8px;
+}
+
+.bl-field-row input:focus,
+.bl-field-row select:focus {
+	border-color: var(--brand);
+	box-shadow: 0 0 0 1px rgb(56 88 233 / 18%);
+	outline: 0;
+}
+
+.bl-combobox {
+	position: relative;
+}
+
+.bl-combobox__field {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.bl-combobox__input {
+	width: 100%;
+	min-height: var(--bl-combobox-h, 36px);
+	border: 1px solid var(--border-strong, #e0e0e0);
+	border-radius: var(--bl-editor-radius, 2px);
+	background: var(--paper, #fff);
+	color: var(--fg);
+	font: inherit;
+	font-size: var(--bl-combobox-fs);
+	padding: 6px 8px;
+}
+
+.bl-combobox__input:focus {
+	border-color: var(--brand);
+	box-shadow: 0 0 0 1px rgb(56 88 233 / 18%);
+	outline: 0;
+}
+
+/* rendered inside a portaled `<Popover>` — spacious and free of the input's own width, not an
+   inline dropdown pinned to the field (that read as a native `<select>`). The frame lives on the
+   panel and the scrolling on the `<ul>` inside it, so a half-scrolled option clips against the
+   panel's padding instead of hard against its border. */
+.bl-combobox__panel {
+	width: 240px;
+	padding: 4px;
+	/* no frame here — `.bl-floating-popover` (the popover root) already draws the
+	   border/background/shadow every floating Blicks panel shares. */
+}
+
+.bl-combobox__list {
+	max-height: 264px;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	list-style: none;
+}
+
+.bl-combobox__list li {
+	margin: 0;
+}
+
+.bl-combobox__option {
+	display: grid;
+	/* the hint track shrinks (and ellipsizes) before the label does — a token's name matters more
+	   than the `var()` it resolves to. */
+	grid-template-columns: 14px minmax(0, 1fr) minmax(0, auto);
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	padding: 4px 6px;
+	border: 0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: transparent;
+	color: var(--fg);
+	cursor: pointer;
+	font: inherit;
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.4;
+	text-align: start;
+}
+
+.bl-combobox__option.is-highlighted {
+	background: var(--surface-sunk, #f0f0f1);
+}
+
+.bl-combobox__option.is-active {
+	color: var(--brand);
+	font-weight: 600;
+}
+
+.bl-combobox__check {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	color: var(--brand);
+}
+
+.bl-combobox__check svg {
+	width: 12px;
+	height: 12px;
+}
+
+.bl-combobox__option-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.bl-combobox__option-hint {
+	overflow: hidden;
+	color: var(--fg-subtle, #757575);
+	font-size: var(--bl-ui-text-2xs);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-combobox__option.is-active .bl-combobox__option-hint {
+	color: var(--brand, #6b7bd6);
+}
+
+/* ---- compact variant (style facets) ----
+   The frame moves off the input and onto the field wrapper, so the input, the `▾` trigger and the
+   accent ring all read as one control at the compact field height. Mono type throughout: these are CSS values, and
+   `flow-root` vs `flow root` is a difference worth being able to see. */
+.bl-combobox--compact .bl-combobox__field {
+	gap: 4px;
+	height: var(--bl-ui-field-h-sm);
+	padding: 0 8px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--bl-editor-radius);
+	background: var(--paper);
+	box-sizing: border-box;
+}
+
+.bl-combobox--compact:focus-within .bl-combobox__field {
+	border-color: var(--brand);
+	box-shadow: 0 0 0 1px var(--brand-soft);
+}
+
+.bl-combobox--compact .bl-combobox__input {
+	flex: 1;
+	width: 100%;
+	min-width: 0;
+	min-height: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	font-family: var(--font-mono);
+	font-size: var(--bl-ui-text-xs);
+}
+
+.bl-combobox--compact .bl-combobox__input:focus {
+	border: 0;
+	box-shadow: none;
+}
+
+.bl-combobox--compact .bl-combobox__toggle {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 14px;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--fg-subtle);
+	cursor: pointer;
+}
+
+.bl-combobox--compact .bl-combobox__toggle:hover {
+	color: var(--brand);
+}
+
+.bl-combobox--compact .bl-combobox__toggle svg {
+	width: 11px;
+	height: 11px;
+}
+
+.bl-combobox--compact.is-invalid .bl-combobox__field {
+	border-color: var(--danger);
+}
+
+/* The panel is portaled, so the variant's list styling hangs off the title/rows themselves rather
+   than off `.bl-combobox--compact`. */
+.bl-combobox__list-title {
+	padding: 6px 8px 3px;
+	/* A list heading has to survive being the smallest mono text in the panel. The old 8.5px at
+	   weight 400 with 0.14em tracking was three things fighting legibility at once; weight and size
+	   carry the "this is a heading" job, so the tracking is dropped rather than piled on. */
+	font: 700 var(--bl-ui-text-2xs)/1 var(--font-mono);
+	color: var(--fg-subtle);
+}
+
+/* Plain rows: no tick track — the current value is tinted instead, which is one less column of
+   dead space in a 108px panel. */
+.bl-combobox__panel:has(.bl-combobox__list-title) {
+	width: auto;
+	min-width: 108px;
+	padding: 0 0 3px;
+
+	.bl-combobox__option {
+		grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+		padding: 8px;
+		border-radius: 0;
+		font-family: var(--font-mono);
+		font-size: var(--bl-ui-text-2xs);
+		line-height: 1;
+	}
+
+	.bl-combobox__check {
+		display: none;
+	}
+
+	.bl-combobox__option.is-highlighted {
+		background: var(--surface-sunk);
+	}
+
+	.bl-combobox__option.is-active {
+		background: var(--brand-soft);
+		color: var(--brand);
+		font-weight: 400;
+	}
+}
+
+.bl-combobox.is-invalid .bl-combobox__input {
+	border-color: #cc1818;
+}
+
+.bl-combobox.is-invalid .bl-combobox__input:focus {
+	box-shadow: 0 0 0 1px rgb(204 24 24 / 25%);
+}
+
+.bl-combobox__error {
+	margin: 4px 0 0;
+	color: #cc1818;
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1.4;
+}
+
+.bl-settings-note {
+	border: 1px solid #dfe3fb;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #f6f7ff;
+	color: #4a4a4a;
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.45;
+	padding: 10px 10px;
+	text-wrap: pretty;
+}
+
+.bl-media-summary {
+	display: grid;
+	grid-template-columns: 56px minmax(0, 1fr);
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+}
+
+.bl-media-summary__thumb {
+	width: 56px;
+	aspect-ratio: 1;
+	border: 1px dashed #cfcfcf;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fafafa;
+	background-position: center;
+	background-size: cover;
+	outline: 1px solid rgb(0 0 0 / 10%);
+}
+
+.bl-media-summary.has-image .bl-media-summary__thumb {
+	border-style: solid;
+	border-color: transparent;
+}
+
+.bl-media-summary__title {
+	margin-bottom: 2px;
+	color: var(--fg);
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.bl-media-summary__body .components-button {
+	min-height: 26px;
+	padding: 0 6px 0 0;
+	font-size: var(--bl-ui-text-sm);
+}
+
+/* --- Icon picker control (trigger row in the inspector) ---------------- */
+
+.bl-icon-picker-control {
+	display: flex;
+	gap: 6px;
+	align-items: stretch;
+}
+
+.bl-icon-picker-control__trigger {
+	display: flex;
+	flex: 1;
+	gap: 8px;
+	align-items: center;
+	min-height: 28px;
+	padding: 4px 8px;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	color: var(--fg);
+	font-size: var(--bl-ui-text-sm);
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-icon-picker-control__trigger:hover {
+	border-color: #c7c7c7;
+	background: #fafafa;
+}
+
+.bl-icon-picker-control__trigger[aria-expanded="true"] {
+	border-color: var(--brand);
+	box-shadow: 0 0 0 1px rgb(56 88 233 / 12%);
+}
+
+.bl-icon-picker-control__preview {
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	color: #555;
+}
+
+.bl-icon-picker-control__preview svg {
+	width: 18px;
+	height: 18px;
+}
+
+.bl-icon-picker-control__label {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-icon-picker-control__clear {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	color: #555;
+	font-size: var(--bl-ui-text-xl);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.bl-icon-picker-control__clear:hover {
+	border-color: #c7c7c7;
+	background: #fafafa;
+	color: var(--fg);
+}
+
+/* --- Icon picker popover ---------------------------------------------- */
+
+.bl-icon-picker-popover {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 320px;
+	max-height: 420px;
+	padding: 10px;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	box-shadow: 0 12px 32px rgb(0 0 0 / 12%);
+}
+
+.bl-icon-picker-popover__search {
+	width: 100%;
+	height: 30px;
+	padding: 0 10px;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.bl-icon-picker-popover__search:focus {
+	border-color: var(--brand);
+	outline: none;
+	box-shadow: 0 0 0 1px rgb(56 88 233 / 25%);
+}
+
+.bl-icon-picker-popover__body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	overflow-y: auto;
+}
+
+.bl-icon-picker-popover__section {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+/* Fallback for the icon-picker popover when WP portals it outside `.bl-ins`: the
+   scoped field-label rule further down cannot reach it there. Kept in sync with that
+   rule deliberately — when they drifted, the heading changed typeface, weight and
+   colour the moment the popover was re-parented. */
+.bl-icon-picker-popover__heading {
+	margin: 4px 0 2px;
+	color: var(--bl-editor-muted, #5a5a5a);
+	font-family: var(--bl-editor-mono);
+	font-size: var(--bl-ui-label-size-sm);
+	font-weight: 700;
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.bl-icon-picker-popover__grid {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	gap: 4px;
+}
+
+.bl-icon-picker-popover__tile {
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	border: 1px solid transparent;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: transparent;
+	color: #555;
+	cursor: pointer;
+}
+
+.bl-icon-picker-popover .bl-icon-picker-popover__tile:hover {
+	border-color: #e0e0e0;
+	background: #fafafa;
+	color: var(--fg);
+}
+
+.bl-icon-picker-popover .bl-icon-picker-popover__tile.is-active {
+	border-color: var(--brand);
+	background: #f5f7ff;
+	color: #1f3fd1;
+}
+
+.bl-icon-picker-popover__tile.is-none {
+	color: #999;
+	font-size: var(--bl-ui-text-lg);
+}
+
+.bl-icon-picker-popover__tile svg {
+	width: 16px;
+	height: 16px;
+}
+
+.bl-icon-picker-popover__empty {
+	padding: 16px 8px;
+	color: #757575;
+	font-size: var(--bl-ui-text-sm);
+	text-align: center;
+}
+
+/* Advanced ▸ Custom attributes rows */
+.bl-attr-row {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	margin-bottom: 6px;
+
+	input {
+		min-width: 0;
+		min-height: 34px;
+		padding: 6px 8px;
+		border: 1px solid #e0e0e0;
+		border-radius: var(--bl-editor-radius, 2px);
+		background: #fff;
+		color: var(--fg);
+		font: inherit;
+		font-size: var(--bl-ui-text-sm);
+
+		&:focus {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 1px rgb(56 88 233 / 18%);
+			outline: 0;
+		}
+
+		&::placeholder {
+			color: #767b85;
+		}
+	}
+
+	&__name {
+		flex: 0 0 42%;
+		font-family: ui-monospace, sfmono-regular, menlo, monospace;
+
+		&.is-invalid,
+		&.is-invalid:focus {
+			border-color: #cc1818;
+			box-shadow: 0 0 0 1px rgb(204 24 24 / 35%);
+		}
+	}
+
+	&__value {
+		flex: 1 1 auto;
+	}
+
+	&__remove {
+		flex: 0 0 auto;
+		color: #757575;
+
+		&:hover:not(:disabled) {
+			color: #cc1818;
+		}
+	}
+}
+
+/* Token-aware color field for Settings-tab block attributes (Divider, …). */
+.bl-color-field {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border: 1px solid #e0e0e0;
+	border-radius: var(--bl-editor-radius, 2px);
+	padding: 4px 8px;
+	background: #fff;
+
+	&__swatch {
+		width: 24px;
+		height: 24px;
+		flex: 0 0 auto;
+		border: 1px solid rgb(0 0 0 / 12%);
+		border-radius: var(--bl-editor-radius, 2px);
+		cursor: pointer;
+		padding: 0;
+
+		&.is-empty {
+			background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 10px 10px;
+		}
+	}
+
+	&__name {
+		flex: 1;
+		min-width: 0;
+		font-size: var(--bl-ui-text-sm);
+		color: #757575;
+		cursor: pointer;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	&__reset {
+		flex: 0 0 auto;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		font-size: var(--bl-ui-text-xs);
+		color: var(--brand);
+		cursor: pointer;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+/* Image block — duotone quick-pick presets (rendered in the Settings sidebar). */
+.bl-duotone-presets {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+	gap: 6px;
+	margin-bottom: 10px;
+
+	&__item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		padding: 6px 4px;
+		border: 1px solid #e0e0e0;
+		border-radius: var(--bl-editor-radius, 2px);
+		background: #fff;
+		cursor: pointer;
+
+		&:hover {
+			border-color: #cfcfcf;
+		}
+
+		&.is-active {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 1px var(--brand);
+		}
+	}
+
+	&__swatch {
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		border: 1px solid rgb(0 0 0 / 12%);
+		background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 10px 10px;
+	}
+
+	&__label {
+		font-size: var(--bl-ui-text-2xs);
+		color: #757575;
+		line-height: 1.2;
+	}
+}
+
+/* Blicks editor design-system pass -----------------------------------------
+   Re-pointed from `.bl-inspector` to `.bl-ins`: styles the settings-ui surfaces
+   (cards, option-cards, segmented settings, attr rows, color field, help tips)
+   in the mockup palette via the `--bl-editor-*` aliases declared on `.bl-ins`.
+   Rules targeting removed classes (.bl-context-bar/.bl-seg/.bl-simple/.field-head)
+   are inert. */
+.bl-ins {
+	:where(
+		.bl-context-bar,
+		.bl-simple__group,
+		.bl-settings-card,
+		.components-panel__body,
+		.bl-layout,
+		.bl-border-control,
+		.bl-position-control,
+		.bl-color-control,
+		.bl-typography-control,
+		.bl-effects-control,
+		.bl-animation,
+		.bl-columns,
+		.bl-decoration,
+		.bl-grid-child
+	) {
+		box-shadow: none;
+	}
+
+	.bl-context-bar {
+		top: 45px;
+		gap: 6px;
+		padding: 8px 16px;
+		border-bottom: 1px solid var(--bl-editor-line);
+		background: color-mix(in srgb, var(--bl-editor-paper) 94%, transparent);
+		box-shadow: none;
+		backdrop-filter: blur(8px);
+	}
+
+	.bl-seg,
+	.bl-segmented-setting {
+		gap: 0;
+		padding: 0;
+		border: 1px solid var(--bl-editor-line);
+		border-radius: var(--bl-editor-radius);
+		background: var(--bl-editor-paper);
+		box-shadow: none;
+		overflow: hidden;
+	}
+
+	.bl-seg__btn,
+	.bl-segmented-setting button {
+		border-radius: 0;
+		color: var(--bl-editor-muted);
+		background: transparent;
+		box-shadow: none;
+		font-family: var(--bl-editor-mono);
+		font-size: var(--bl-ui-text-2xs);
+		font-weight: 700;
+		letter-spacing: 0;
+	}
+
+	.bl-seg__btn + .bl-seg__btn,
+	.bl-segmented-setting button + button {
+		border-left: 1px solid var(--bl-editor-line);
+	}
+
+	.bl-seg__btn:hover,
+	.bl-segmented-setting button:hover {
+		color: var(--bl-editor-ink);
+		background: var(--bl-editor-canvas);
+	}
+
+	.bl-seg__btn.is-active,
+	.bl-segmented-setting button.is-active {
+		color: #fff;
+		background: var(--bl-editor-accent);
+		box-shadow: none;
+	}
+
+	.bl-mode-toggle {
+		margin-left: auto;
+		border: 1px solid var(--bl-editor-line);
+		color: var(--bl-editor-muted);
+		background: var(--bl-editor-paper);
+	}
+
+	.bl-mode-toggle.is-active,
+	.bl-context-bar .bl-mode-toggle.is-active {
+		border-color: var(--bl-editor-accent);
+		color: #fff;
+		background: var(--bl-editor-accent);
+	}
+
+	.bl-simple {
+		background: var(--bl-editor-canvas);
+	}
+
+	.bl-simple__group,
+	.bl-settings-card {
+		padding: 0;
+		border: 0;
+		background: transparent;
+	}
+
+	/* group separator — flat hairline divider instead of a boxed card */
+	.bl-settings-card + .bl-settings-card {
+		margin-top: 18px;
+		padding-top: 14px;
+		border-top: 1px solid var(--bl-editor-line);
+	}
+
+	.bl-simple__title,
+	.bl-settings-card__title,
+	.field-head > label,
+	.bl-setting__label,
+	.bl-field-row__label,
+	.bl-animation .field > label,
+	.bl-columns .field > label,
+	.bl-decoration .field > label,
+	.bl-grid-child .field > label,
+	.bl-icon-picker-popover__heading {
+		color: var(--bl-editor-muted);
+		font-family: var(--bl-editor-mono);
+		font-size: var(--bl-ui-label-size-sm);
+		font-weight: 700;
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+	}
+
+	.field-head {
+		margin-bottom: 6px;
+	}
+
+	.reset-btn,
+	.bl-color-field__reset,
+	.link-btn,
+	.lib-btn {
+		border-radius: var(--bl-editor-radius);
+		color: var(--bl-editor-accent);
+		font-family: var(--bl-editor-mono);
+		font-size: var(--bl-ui-text-2xs);
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.reset-btn:hover,
+	.bl-color-field__reset:hover,
+	.link-btn:hover,
+	.lib-btn:hover {
+		background: var(--bl-editor-accent-soft);
+		color: var(--bl-editor-accent-hover);
+		text-decoration: none;
+	}
+
+	:where(
+		.bl-field-row input,
+		.bl-field-row select,
+		.bl-attr-row input,
+		.bl-icon-picker-control__trigger,
+		.bl-icon-picker-control__clear,
+		.bl-color-field
+	) {
+		min-height: 32px;
+		border: 1px solid var(--bl-editor-line);
+		border-radius: var(--bl-editor-radius);
+		background-color: var(--bl-editor-paper);
+		box-shadow: none;
+		color: var(--bl-editor-ink);
+		font-size: var(--bl-ui-text-sm);
+	}
+
+	:where(
+		.bl-field-row input,
+		.bl-field-row select,
+		.bl-attr-row input,
+		.bl-icon-picker-control__trigger,
+		.bl-icon-picker-control__clear,
+		.bl-color-field
+	):hover {
+		border-color: var(--bl-editor-line-strong);
+		background-color: var(--bl-editor-paper);
+	}
+
+	:where(
+		.bl-field-row input,
+		.bl-field-row select,
+		.bl-attr-row input,
+		.bl-icon-picker-control__trigger,
+		.bl-icon-picker-control__clear,
+		.bl-color-field
+	):focus,
+	.bl-icon-picker-control__trigger[aria-expanded="true"] {
+		border-color: var(--bl-editor-accent);
+		box-shadow: 0 0 0 1px var(--bl-editor-accent);
+		outline: 0;
+	}
+
+	textarea {
+		font-family: var(--bl-editor-mono);
+	}
+
+	.bl-option-cards {
+		gap: 1px;
+		border: 1px solid var(--bl-editor-line);
+		background: var(--bl-editor-line);
+	}
+
+	.bl-option-card {
+		min-height: 56px;
+		border: 0;
+		border-radius: 0;
+		background: var(--bl-editor-paper);
+		box-shadow: none;
+		color: var(--bl-editor-ink);
+	}
+
+	.bl-option-card:hover {
+		background: var(--bl-editor-canvas);
+		color: var(--bl-editor-ink);
+	}
+
+	.bl-option-card.is-active {
+		background: var(--bl-editor-accent);
+		box-shadow: none;
+		color: #fff;
+	}
+
+	.bl-option-card__label {
+		font-family: var(--bl-editor-mono);
+		font-size: var(--bl-ui-text-xs);
+		font-weight: 700;
+		letter-spacing: 0.02em;
+	}
+
+	.bl-option-card__hint,
+	.bl-option-card.is-active .bl-option-card__hint {
+		color: currentcolor;
+		opacity: 0.72;
+	}
+
+	.bl-settings-note,
+	.bl-soon {
+		border-radius: var(--bl-editor-radius);
+		color: var(--bl-editor-muted);
+		background: var(--bl-editor-canvas);
+	}
+
+	.bl-settings-note {
+		border-color: var(--bl-editor-line);
+	}
+
+	.bl-help-tip .components-button.bl-help-tip__button {
+		border-radius: var(--bl-editor-radius);
+		color: var(--bl-editor-faint);
+	}
+
+	.bl-help-tip .components-button.bl-help-tip__button:hover,
+	.bl-help-tip .components-button.bl-help-tip__button[aria-expanded="true"] {
+		background: var(--bl-editor-accent-soft);
+		color: var(--bl-editor-accent);
+	}
+
+	.bl-media-summary__thumb,
+	.bl-icon-picker-control__preview,
+	.bl-color-field__swatch,
+	.bl-duotone-presets__item,
+	.bl-duotone-presets__swatch,
+	.swatch,
+	.token,
+	.preview {
+		border-radius: var(--bl-editor-radius);
+	}
+
+	.bl-duotone-presets {
+		gap: 1px;
+		border: 1px solid var(--bl-editor-line);
+		background: var(--bl-editor-line);
+	}
+
+	.bl-duotone-presets__item {
+		border: 0;
+		background: var(--bl-editor-paper);
+	}
+
+	.bl-duotone-presets__item:hover {
+		background: var(--bl-editor-canvas);
+	}
+
+	.bl-duotone-presets__item.is-active {
+		background: var(--bl-editor-accent-soft);
+		box-shadow: inset 0 0 0 1px var(--bl-editor-accent);
+	}
+
+	.bl-attr-row {
+		gap: 4px;
+	}
+
+	.bl-attr-row__name.is-invalid,
+	.bl-attr-row__name.is-invalid:focus {
+		border-color: var(--bl-editor-danger);
+		box-shadow: 0 0 0 1px var(--bl-editor-danger);
+	}
+}
+
+.bl-help-tip__popover .components-popover__content,
+.bl-icon-picker-popover,
+.bl-floating-popover,
+.bl-color-popover,
+.bl-token-library,
+.bl-typography-modal,
+.bl-effects-popover {
+	border: 1px solid #dcdcde;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	box-shadow: 0 12px 28px rgb(0 0 0 / 12%);
+}
+
+.bl-icon-picker-popover__search,
+.bl-token-library input,
+.bl-floating-popover input,
+.bl-floating-popover select,
+.bl-color-popover input,
+.bl-color-popover select,
+.bl-effects-popover input,
+.bl-effects-popover select,
+.bl-effects-popover textarea {
+	border: 1px solid #dcdcde;
+	border-radius: var(--bl-editor-radius, 2px);
+	box-shadow: none;
+}
+
+.bl-icon-picker-popover__search:focus,
+.bl-token-library input:focus,
+.bl-floating-popover input:focus,
+.bl-floating-popover select:focus,
+.bl-color-popover input:focus,
+.bl-color-popover select:focus,
+.bl-effects-popover input:focus,
+.bl-effects-popover select:focus,
+.bl-effects-popover textarea:focus {
+	border-color: var(--brand);
+	box-shadow: 0 0 0 1px var(--brand);
+	outline: 0;
+}
+
+.bl-icon-picker-popover__tile,
+.bl-token-library button,
+.bl-floating-popover button,
+.bl-color-popover button,
+.bl-effects-popover button {
+	border-radius: var(--bl-editor-radius, 2px);
+}
+
+.bl-icon-picker-popover__tile:hover {
+	border-color: #dcdcde;
+	background: #fbfbfc;
+}
+
+.bl-icon-picker-popover__tile.is-active {
+	border-color: var(--brand);
+	background: var(--brand);
+	color: #fff;
+}
+
+/* Decoration preset gallery (DecorationControl) — one-click ::before starters. */
+.bl-deco-presets__grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 4px;
+	margin-top: 6px;
+}
+
+.bl-deco-presets__btn {
+	appearance: none;
+	cursor: pointer;
+	border: 1px solid var(--border, #e2e8f0);
+	background: var(--paper, #fff);
+	color: var(--fg, #111827);
+	font: inherit;
+	font-size: var(--bl-ui-text-xs);
+	padding: 6px 8px;
+	text-align: left;
+}
+
+.bl-deco-presets__btn:hover {
+	border-color: var(--brand, #002bff);
+	color: var(--brand, #002bff);
+}
+
+/* Advanced-tab discoverability hint — a quiet hairline note (no side stripe). */
+.bl-adv-hint {
+	margin: 0 0 10px;
+	padding: 8px 10px;
+	border: 1px solid var(--bl-editor-line, #dcdcde);
+	border-radius: var(--bl-editor-radius, 2px);
+	background: var(--bl-editor-canvas);
+	color: var(--bl-editor-ink);
+	font-size: var(--bl-ui-text-xs);
+	line-height: 1.4;
+	text-wrap: pretty;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   Collapse transitions/animations across every Blicks inspector surface and
+   its detached popovers, and neutralize the :active press-scale. Positional
+   transforms (knob/handle placement) are deliberately left intact. */
+@media (prefers-reduced-motion: reduce) {
+	.bl-ins *,
+	.bl-animation *,
+	.bl-border-control *,
+	.bl-color-control *,
+	.bl-columns *,
+	.bl-decoration *,
+	.bl-deco-panel *,
+	.bl-effects-control *,
+	.bl-grid-child *,
+	.bl-layout *,
+	.bl-position-control *,
+	.bl-boxmodel *,
+	.bl-typography-control *,
+	.bl-floating-popover *,
+	.bl-color-popover *,
+	.bl-effects-popover *,
+	.bl-token-library *,
+	.bl-icon-picker-popover *,
+	.bl-typography-modal *,
+	.bl-help-tip__popover * {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+
+	:where(
+		.bl-seg__btn,
+		.iconseg button,
+		.link-btn,
+		.unit-chip,
+		.swatch,
+		.lib-btn,
+		.token,
+		.preview,
+		.typo-field,
+		.pop-tab,
+		.bl-option-card,
+		.bl-segmented-setting button,
+		.bl-icon-picker button
+	):active,
+	.reset-btn:active {
+		transform: none !important;
+	}
+}
+

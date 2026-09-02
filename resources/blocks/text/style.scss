@@ -1,0 +1,25 @@
+@layer blicks.base {
+	.bl-text {
+		box-sizing: border-box;
+	}
+
+	/* Lead variant: a larger intro paragraph driven by the design-system "lead" type role.
+	   Falls back to the fontSize scale when the role tokens aren't emitted. */
+	.bl-text--lead {
+		font-family: var(--blicks-type-lead-font-family, inherit);
+		font-size: var(--blicks-type-lead-font-size, var(--blicks-fontSize-xl, 1.25rem));
+		font-weight: var(--blicks-type-lead-font-weight, 400);
+		line-height: var(--blicks-type-lead-line-height, 1.6);
+		letter-spacing: var(--blicks-type-lead-letter-spacing, 0);
+		text-transform: var(--blicks-type-lead-text-transform, none);
+	}
+
+	/* Drop cap: enlarge and float the first letter of the paragraph. */
+	.bl-text--dropcap::first-letter {
+		float: left;
+		margin: 0.05em 0.1em 0 0;
+		font-size: 3.4em;
+		font-weight: 700;
+		line-height: 0.68;
+	}
+}

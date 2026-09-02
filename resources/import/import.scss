@@ -1,0 +1,45 @@
+.bl-import {
+	max-width: 900px;
+}
+
+.bl-import__actions {
+	display: flex;
+	gap: 8px;
+	margin: 8px 0 12px;
+}
+
+.bl-import__error {
+	color: var( --blicks-color-danger, #dc2626 );
+	font-size: 13px;
+}
+
+.bl-import__report {
+	border: 1px solid var( --border, #e2e8f0 );
+	background: var( --surface-alt, #f8fafc );
+	padding: 10px 12px;
+	margin-bottom: 12px;
+}
+
+.bl-import__stats {
+	display: flex;
+	gap: 16px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var( --fg, #111827 );
+}
+
+.bl-import__fallback {
+	margin: 8px 0 0;
+	font-size: 11px;
+	color: var( --fg-muted, #72788d );
+}
+
+.bl-import__fallback code {
+	font-size: 11px;
+}
+
+.bl-import__preview {
+	border: 1px solid var( --border, #e2e8f0 );
+	max-height: 50vh;
+	overflow: auto;
+}

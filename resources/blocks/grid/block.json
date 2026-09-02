@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/grid",
+	"title": "Grid",
+	"category": "blicks",
+	"description": "A two-dimensional layout block for equal-width or auto-fit child columns.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"layout.gridColumns", "layout.gridRows", "layout.gapRow", "layout.gapColumn",
+				"layout.justifyItems", "layout.gridAreas", "layout.gridAutoFlow",
+				"layout.width", "layout.height",
+				"layout.overflow", "layout.overflowX", "layout.overflowY", "layout.scrollSnapType",
+				"layout.containerType", "layout.containerName",
+				"layout.aspectRatio",
+				"gridChild.*",
+				"spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*"
+			],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":       { "type": "string" },
+		"blicks":         { "type": "object", "default": {} },
+		"columns":        { "type": "number", "default": 3 },
+		"autoFit":        { "type": "boolean", "default": false },
+		"minColumnWidth": { "type": "string", "default": "16rem" },
+		"gap":            { "type": "string", "default": "md" },
+		"dense":          { "type": "boolean", "default": false },
+		"tag":            { "type": "string", "default": "div" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

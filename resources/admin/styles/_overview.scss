@@ -1,0 +1,576 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Overview — port of mockups/admin-design/index.html
+   ════════════════════════════════════════════════════════════════════════ */
+
+.blicks-admin .v-overview .row {
+	display: grid;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.blicks-admin .v-overview .head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.blicks-admin .v-overview .head h2 {
+	font-size: var(--bl-ui-text-xl);
+}
+
+.blicks-admin .v-overview .head .sub {
+	margin-top: 3px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-md);
+}
+
+/* ── hero ──────────────────────────────────────────────────────────────── */
+/* `align-items: start` so the side panel is sized by ITS OWN content, not by the hero
+   beside it. As a stretched grid item it inherited the hero's height (374px against 231px
+   of content) and the "Next" footer, pinned to the bottom with `margin-top: auto`, left a
+   161px hole in the middle of a bordered card. Sized to content the leftover space falls
+   outside the panel, where it reads as page breathing room instead of a gap. The card
+   still grows on its own if the checklist ever gains items. */
+.blicks-admin .v-overview .row.hero {
+	grid-template-columns: 1.5fr 1fr;
+	align-items: start;
+}
+
+.blicks-admin .v-overview .hero-main {
+	display: flex;
+	flex-direction: column;
+	padding: 44px 44px 40px;
+}
+
+.blicks-admin .v-overview .hero-main .kick {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 24px;
+}
+
+.blicks-admin .v-overview .hero-main .kick::before {
+	content: "";
+	width: 24px;
+	height: 1px;
+	background: var(--accent-ink);
+}
+
+.blicks-admin .v-overview .hero-main h1 {
+	font-size: var(--bl-ui-display-xl);
+	letter-spacing: -0.03em;
+	max-width: 12ch;
+	margin-bottom: auto;
+	text-wrap: balance;
+}
+
+.blicks-admin .v-overview .hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 40px;
+}
+
+.blicks-admin .v-overview .hero-side {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	padding: 26px 28px;
+}
+
+.blicks-admin .v-overview .hs-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.blicks-admin .v-overview .progress {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	color: var(--muted);
+}
+
+.blicks-admin .v-overview .progress .bar {
+	width: 56px;
+	height: 4px;
+	background: var(--border);
+}
+
+.blicks-admin .v-overview .progress .bar i {
+	display: block;
+	height: 100%;
+	width: var(--gs-progress, 0%);
+	background: var(--success);
+}
+
+.blicks-admin .v-overview .si {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 0;
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-overview .check {
+	display: grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	flex: none;
+	margin-top: 1px;
+	background: var(--success);
+}
+
+.blicks-admin .v-overview .check svg {
+	width: 11px;
+	height: 11px;
+	stroke: #fff;
+	stroke-width: 2.6;
+	fill: none;
+}
+
+/* An incomplete step is an empty outline, not a filled tick. */
+.blicks-admin .v-overview .check.pending {
+	background: transparent;
+	border: 1.5px dashed var(--border-strong);
+}
+
+.blicks-admin .v-overview .check.pending svg {
+	display: none;
+}
+
+/* The label column takes the slack so an outstanding step's action lands hard right, in the
+   same column as the footer's link — the eye follows one edge down the card, not two. */
+.blicks-admin .v-overview .si .t {
+	flex: 1;
+	min-width: 0;
+}
+
+/* The action sits on the row's first line, beside the title rather than beside the middle
+   of a two-line step. */
+.blicks-admin .v-overview .si > .lnk {
+	flex: none;
+	margin-top: 1px;
+}
+
+.blicks-admin .v-overview .si .t b {
+	display: block;
+	font-size: var(--bl-ui-text-md);
+	font-weight: 560;
+}
+
+.blicks-admin .v-overview .si .t small {
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-overview .si-next {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding-top: 16px;
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-overview .si-next b {
+	font-size: var(--bl-ui-text-md);
+	font-weight: 580;
+}
+
+.blicks-admin .v-overview .si-next small {
+	display: block;
+	margin-top: 2px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+/* ── stat strip: one panel, vertical dividers (no nested boxes) ────────── */
+.blicks-admin .v-overview .stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+}
+
+.blicks-admin .v-overview .stat {
+	padding: 26px 28px;
+	min-width: 0;
+}
+
+.blicks-admin .v-overview .stat + .stat {
+	border-left: var(--hair);
+}
+
+.blicks-admin .v-overview .stat .eyebrow {
+	display: block;
+	margin-bottom: 16px;
+}
+
+.blicks-admin .v-overview .stat .v {
+	font-size: var(--bl-ui-display-lg);
+	font-weight: 660;
+	letter-spacing: -0.035em;
+	line-height: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blicks-admin .v-overview .stat .v .u {
+	font-size: var(--bl-ui-text-lg);
+	color: var(--muted);
+	font-weight: 500;
+	letter-spacing: 0;
+	margin-left: 8px;
+}
+
+.blicks-admin .v-overview .stat .foot {
+	margin-top: 12px;
+	font: var(--bl-ui-label-size)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking);
+	color: var(--faint);
+	text-transform: uppercase;
+}
+
+.blicks-admin .v-overview .stat .foot.is-warn {
+	color: var(--danger);
+}
+
+/* ── two-col rows ──────────────────────────────────────────────────────── */
+.blicks-admin .v-overview .row.two {
+	grid-template-columns: 1fr 1fr;
+}
+
+.blicks-admin .v-overview .card {
+	display: flex;
+	flex-direction: column;
+	padding: 28px 30px;
+}
+
+.blicks-admin .v-overview .card .grow {
+	flex: 1;
+	min-height: 20px;
+}
+
+/* quick actions — clean list, hairline rows, no nested boxes */
+.blicks-admin .v-overview .qa {
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-overview .qa button,
+.blicks-admin .v-overview .qa a {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+	padding: 16px 0;
+	border: 0;
+	border-bottom: var(--hair);
+	background: none;
+	text-align: left;
+	text-decoration: none;
+	color: inherit;
+	transition: padding 120ms;
+}
+
+.blicks-admin .v-overview .qa button:hover,
+.blicks-admin .v-overview .qa a:hover {
+	padding-left: 6px;
+}
+
+.blicks-admin .v-overview .qa .ic {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	flex: none;
+	border: var(--hair);
+}
+
+.blicks-admin .v-overview .qa .ic svg {
+	width: 16px;
+	height: 16px;
+	stroke: var(--fg);
+	stroke-width: 1.55;
+	fill: none;
+}
+
+.blicks-admin .v-overview .qa .t {
+	flex: 1;
+	min-width: 0;
+}
+
+.blicks-admin .v-overview .qa .t b {
+	font-size: var(--bl-ui-text-lg);
+	font-weight: 570;
+}
+
+.blicks-admin .v-overview .qa .t small {
+	display: block;
+	margin-top: 1px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-overview .qa .meta {
+	flex: none;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-overview .qa button:hover .meta,
+.blicks-admin .v-overview .qa a:hover .meta {
+	color: var(--accent-ink);
+}
+
+/* system health rows */
+.blicks-admin .v-overview .health {
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-overview .hrow {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 16px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-overview .hrow .t {
+	flex: 1;
+	min-width: 0;
+}
+
+.blicks-admin .v-overview .hrow .t b {
+	display: block;
+	font-size: var(--bl-ui-text-md);
+	font-weight: 550;
+}
+
+.blicks-admin .v-overview .hrow .t small {
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-overview .pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	padding: 6px 10px;
+	border: 1px solid color-mix(in srgb, var(--success) 26%, var(--border));
+	color: var(--success);
+	white-space: nowrap;
+}
+
+.blicks-admin .v-overview .pill .dot {
+	background: currentcolor;
+}
+
+.blicks-admin .v-overview .pill.is-warn {
+	border-color: color-mix(in srgb, var(--warn) 32%, var(--border));
+	color: var(--warn);
+}
+
+.blicks-admin .v-overview .pill.is-fail {
+	border-color: color-mix(in srgb, var(--danger) 32%, var(--border));
+	color: var(--danger);
+}
+
+.blicks-admin .v-overview .panel__error {
+	margin: 12px 0 0;
+	color: var(--danger);
+	font-size: var(--bl-ui-text-md);
+}
+
+/* current tokens */
+.blicks-admin .v-overview .tok {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	border: var(--hair);
+}
+
+.blicks-admin .v-overview .tok .c {
+	padding: 22px;
+	min-width: 0;
+}
+
+.blicks-admin .v-overview .tok .c + .c {
+	border-left: var(--hair);
+}
+
+.blicks-admin .v-overview .tok .eyebrow {
+	display: block;
+	margin-bottom: 18px;
+}
+
+.blicks-admin .v-overview .ts b {
+	display: block;
+	font-size: var(--bl-ui-display-sm);
+	font-weight: 640;
+	letter-spacing: -0.02em;
+	margin-bottom: 8px;
+	overflow-wrap: anywhere;
+}
+
+.blicks-admin .v-overview .ts p {
+	font-size: var(--bl-ui-text-sm);
+	color: var(--muted);
+	line-height: 1.5;
+}
+
+.blicks-admin .v-overview .ts .role {
+	margin-top: 14px;
+	font: var(--bl-ui-label-size-sm)/1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
+.blicks-admin .v-overview .sw {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+}
+
+.blicks-admin .v-overview .sw span {
+	aspect-ratio: 1.4;
+	border: var(--hair);
+	background: var(--c, transparent);
+}
+
+.blicks-admin .v-overview .cap {
+	margin-top: 14px;
+	font: var(--bl-ui-text-xs)/1 var(--mono);
+	letter-spacing: 0.05em;
+	color: var(--faint);
+}
+
+/* recent activity */
+.blicks-admin .v-overview .act {
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-overview .ar {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-overview .ar .mk {
+	width: 7px;
+	height: 7px;
+	margin-top: 6px;
+	flex: none;
+	background: var(--accent-ink);
+}
+
+.blicks-admin .v-overview .ar.q .mk {
+	background: var(--border-strong);
+}
+
+.blicks-admin .v-overview .ar .t b {
+	font-size: var(--bl-ui-text-md);
+	font-weight: 550;
+}
+
+.blicks-admin .v-overview .ar .t small {
+	display: block;
+	margin-top: 4px;
+	color: var(--faint);
+	font: var(--bl-ui-label-size-sm)/1.3 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.blicks-admin .v-overview .act__empty {
+	padding: 14px 0;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-md);
+}
+
+/* full-width tip strip — light, closes the bottom evenly */
+.blicks-admin .v-overview .tip {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+	padding: 22px 30px;
+}
+
+.blicks-admin .v-overview .tip .eyebrow {
+	flex: none;
+}
+
+.blicks-admin .v-overview .tip .body {
+	flex: 1;
+	display: flex;
+	align-items: baseline;
+	gap: 14px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.blicks-admin .v-overview .tip .body b {
+	font-size: var(--bl-ui-text-lg);
+	font-weight: 600;
+}
+
+.blicks-admin .v-overview .tip .body p {
+	font-size: var(--bl-ui-text-md);
+	color: var(--muted);
+	line-height: 1.5;
+	max-width: 64ch;
+}
+
+@media (width <= 1080px) {
+	.blicks-admin .v-overview .stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.blicks-admin .v-overview .stat:nth-child(3) {
+		border-left: 0;
+	}
+
+	.blicks-admin .v-overview .stat:nth-child(n + 3) {
+		border-top: var(--hair);
+	}
+}
+
+@media (width <= 920px) {
+	.blicks-admin .v-overview .row.hero,
+	.blicks-admin .v-overview .row.two,
+	.blicks-admin .v-overview .stats,
+	.blicks-admin .v-overview .tok,
+	.blicks-admin .v-overview .sw {
+		grid-template-columns: 1fr;
+	}
+
+	.blicks-admin .v-overview .stat + .stat {
+		border-left: 0;
+		border-top: var(--hair);
+	}
+
+	.blicks-admin .v-overview .tok .c + .c {
+		border-left: 0;
+		border-top: var(--hair);
+	}
+
+	.blicks-admin .v-overview .hero-main h1 {
+		font-size: var(--bl-ui-display-xl-narrow);
+	}
+
+	.blicks-admin .v-overview .tip {
+		flex-wrap: wrap;
+		gap: 14px;
+	}
+}

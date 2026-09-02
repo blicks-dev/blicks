@@ -1,0 +1,21 @@
+@use '../shared/placeholder';
+
+@layer blicks.base {
+	.bl-stack {
+		--bl-fd: column;
+		--bl-ai: stretch;
+		--bl-jc: flex-start;
+		--bl-fw: nowrap;
+		--bl-gap-r: var(--blicks-spacing-md, 1rem);
+		--bl-gap-c: var(--blicks-spacing-md, 1rem);
+
+		display: flex;
+		flex-direction: var(--bl-fd);
+		align-items: var(--bl-ai);
+		justify-content: var(--bl-jc);
+		flex-wrap: var(--bl-fw);
+		row-gap: var(--bl-gap-r);
+		column-gap: var(--bl-gap-c);
+		box-sizing: border-box;
+	}
+}

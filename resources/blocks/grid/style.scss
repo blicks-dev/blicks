@@ -1,0 +1,20 @@
+@use '../shared/placeholder';
+
+@layer blicks.base {
+	.bl-grid {
+		--bl-cols: repeat(3, minmax(0, 1fr));
+		--bl-grid-min: 16rem;
+		--bl-gap-r: var(--blicks-spacing-md, 1rem);
+		--bl-gap-c: var(--blicks-spacing-md, 1rem);
+
+		display: grid;
+		grid-template-columns: var(--bl-cols);
+		row-gap: var(--bl-gap-r);
+		column-gap: var(--bl-gap-c);
+		box-sizing: border-box;
+
+		&--dense {
+			grid-auto-flow: dense;
+		}
+	}
+}

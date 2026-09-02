@@ -1,0 +1,130 @@
+@layer blicks.base {
+	.bl-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--blicks-spacing-xs, 0.5rem);
+		// Component tokens (theme.json custom.blicks.button.*) → global button look,
+		// each falling back to a primitive token so defaults stay system-driven.
+		border: var(--blicks-button-border-width, 1px) solid transparent;
+		border-radius: var(--blicks-button-radius, var(--blicks-radius-md, 0.5rem));
+		font-weight: var(--blicks-button-font-weight, 500);
+		line-height: 1;
+		text-decoration: none;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+		box-sizing: border-box;
+
+		svg {
+			width: 1em;
+			height: 1em;
+			flex: 0 0 auto;
+		}
+
+		&--default {
+			background: var(--blicks-color-primary, #18181b);
+			color: var(--blicks-color-primary-foreground, #fafafa);
+		}
+
+		&--secondary {
+			background: var(--blicks-color-secondary, #f4f4f5);
+			color: var(--blicks-color-secondary-foreground, #18181b);
+		}
+
+		&--destructive {
+			background: var(--blicks-color-destructive, #ef4444);
+			color: var(--blicks-color-destructive-foreground, #fafafa);
+		}
+
+		&--outline {
+			background: transparent;
+			color: var(--blicks-color-foreground, #09090b);
+			border-color: var(--blicks-color-input, #e4e4e7);
+		}
+
+		&--ghost,
+		&--link {
+			background: transparent;
+			color: var(--blicks-color-foreground, #09090b);
+		}
+
+		&--link {
+			height: auto;
+			padding: 0;
+			color: var(--blicks-color-primary, #2563eb);
+			text-decoration: underline;
+			text-underline-offset: 0.25em;
+		}
+
+		&--sm {
+			min-height: 2rem;
+			padding: 0 0.75rem;
+			font-size: 0.8125rem;
+		}
+
+		&--default-size {
+			min-height: var(--blicks-button-height, 2.5rem);
+			padding: var(--blicks-button-padding-y, 0) var(--blicks-button-padding-x, 1rem);
+			font-size: var(--blicks-button-font-size, 0.875rem);
+		}
+
+		&--lg {
+			min-height: 3rem;
+			padding: 0 1.5rem;
+			font-size: 0.9375rem;
+		}
+
+		&--icon {
+			width: 2.5rem;
+			min-height: 2.5rem;
+			padding: 0;
+		}
+	}
+}
+
+// WordPress global styles emit unlayered link rules such as
+// `a:where(:not(.wp-element-button)) { color: currentColor; }`.
+// Keep Button foreground colors unlayered too so link-style buttons retain contrast.
+// We use `.bl-button.bl-button--*` instead of adding `wp-element-button` to saved
+// markup, because changing the saved class list would invalidate existing blocks.
+.bl-button.bl-button--default {
+	color: var(--blicks-color-primary-foreground, #fafafa);
+}
+
+.bl-button.bl-button--secondary {
+	color: var(--blicks-color-secondary-foreground, #18181b);
+}
+
+.bl-button.bl-button--destructive {
+	color: var(--blicks-color-destructive-foreground, #fafafa);
+}
+
+.bl-button.bl-button--outline,
+.bl-button.bl-button--ghost {
+	color: var(--blicks-color-foreground, #09090b);
+}
+
+.bl-button.bl-button--link {
+	color: var(--blicks-color-primary, #2563eb);
+}
+
+// Box-model padding emitted UNLAYERED so a host theme's `* { padding: 0 }` reset can't strip a
+// button's inner spacing (layered @layer rules always lose to an unlayered universal selector).
+// Mirrors the unlayered color rules above. default-size honours the button component token.
+.bl-button.bl-button--default-size {
+	padding: var(--blicks-button-padding-y, 0) var(--blicks-button-padding-x, 1rem);
+}
+
+.bl-button.bl-button--sm {
+	padding: 0 0.75rem;
+}
+
+.bl-button.bl-button--lg {
+	padding: 0 1.5rem;
+}
+
+.bl-button.bl-button--icon,
+.bl-button.bl-button--link {
+	padding: 0;
+}

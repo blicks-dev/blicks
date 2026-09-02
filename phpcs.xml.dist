@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<ruleset name="Blicks">
+	<description>
+		The WordPress coding standard, minus the rules that contradict this codebase's
+		architecture. Layout, spacing, indentation, control structures, Yoda conditions and every
+		behavioural sniff are enforced in full. What is excluded is listed rule by rule below,
+		each with its reason.
+	</description>
+
+	<file>blicks.php</file>
+	<file>src</file>
+	<file>resources/blocks</file>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/build/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<!-- No <arg name="parallel"> on purpose: parallel runs under-report on some PHP builds,
+	     scanning only one batch and exiting 0 while the rest of the tree is never linted. -->
+
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<rule ref="WordPress">
+		<!-- Naming. The plugin is PSR-4 with PascalCase files, namespaced classes and camelCase
+		     methods and variables. These sniffs demand snake_case and hyphenated `class-*.php`
+		     filenames, which would mean renaming every file and method in the plugin. -->
+		<exclude name="WordPress.NamingConventions.ValidVariableName"/>
+		<exclude name="WordPress.NamingConventions.ValidFunctionName"/>
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames"/>
+
+		<!-- Array syntax. Short arrays are the norm in PHP 8.1 code and are used throughout. -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+
+		<!-- Column alignment. Padding to align `=>` and `=` means renaming one key re-flows every
+		     neighbouring line, so unrelated lines appear in each diff. -->
+		<exclude name="WordPress.Arrays.MultipleStatementAlignment"/>
+		<exclude name="Generic.Formatting.MultipleStatementAlignment"/>
+
+		<!-- Per-function docblocks. Parameters and returns carry native PHP 8.1 types, so @param
+		     and @return tags would restate the signature. File and class comments are still
+		     required, see below. -->
+		<exclude name="Squiz.Commenting.FunctionComment"/>
+		<exclude name="Squiz.Commenting.FunctionCommentThrowTag"/>
+		<exclude name="Squiz.Commenting.VariableComment"/>
+
+		<!-- Requires a prose summary above every docblock. Every occurrence in this codebase is a
+		     generic-type annotation for static analysis — `@var list<array{...}>`,
+		     `@param array<string, mixed>` — expressing types PHP 8.1 cannot declare natively.
+		     A summary line on those adds nothing. -->
+		<exclude name="Generic.Commenting.DocComment.MissingShort"/>
+	</rule>
+
+	<!-- Text domain for the i18n sniffs. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="blicks"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Everything the plugin puts in the global namespace must carry its prefix. The sniff does
+	     nothing at all unless the prefixes are declared here. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="blicks"/>
+				<element value="Blicks"/>
+				<element value="BLICKS"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Runtime compatibility with the declared PHP floor. -->
+	<rule ref="PHPCompatibilityWP"/>
+</ruleset>

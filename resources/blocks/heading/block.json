@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/heading",
+	"title": "Heading",
+	"category": "blicks",
+	"description": "A semantic h1-h6 heading that inherits the active theme by default.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"anchor": true,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "spacing.*", "border.*", "effects.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks":   { "type": "object", "default": {} },
+		"level":    { "type": "number", "default": 2 },
+		"content":  { "type": "string", "default": "" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

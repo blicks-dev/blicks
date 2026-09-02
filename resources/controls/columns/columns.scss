@@ -1,0 +1,13 @@
+/* Multi-column facet. Every control in it is a shared field now, so this file carries only the
+ * section rhythm. Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-columns-group + .bl-columns-group {
+	margin-top: 18px;
+}
+
+/* Same as the spacing groups: the caption's rule means "new section", and the first one in a
+   facet already has the facet header above it. */
+.bl-ins .bl-columns-group:first-of-type .bl-spacing-head {
+	padding-top: 0;
+	border-top: 0;
+}

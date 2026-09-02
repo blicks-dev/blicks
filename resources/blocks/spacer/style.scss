@@ -1,0 +1,23 @@
+@layer blicks.base {
+	.bl-spacer {
+		--bl-spacer-size: 64px;
+
+		display: block;
+		box-sizing: border-box;
+
+		&--vertical {
+			height: var(--bl-spacer-size);
+		}
+
+		&--horizontal {
+			width: var(--bl-spacer-size);
+			min-height: 1px;
+			flex: 0 0 auto;
+		}
+	}
+
+	.editor-styles-wrapper .bl-spacer {
+		background: repeating-linear-gradient(45deg, #eef1ff, #eef1ff 6px, #f7f8ff 6px, #f7f8ff 12px);
+		border-radius: 4px;
+	}
+}

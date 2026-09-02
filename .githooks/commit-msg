@@ -1,0 +1,55 @@
+#!/bin/sh
+# commit-msg: enforce this repo's commit contract.
+#
+#   * Conventional Commits subject, 72 characters or fewer, no trailing period.
+#   * Author and committer are Prakash Khadka <prakhadkash@gmail.com>.
+#   * No Claude or Anthropic attribution anywhere in the message.
+#
+# Bypass with `git commit --no-verify` when you know better.
+
+set -e
+
+AUTHOR_NAME="Prakash Khadka"
+AUTHOR_EMAIL="prakhadkash@gmail.com"
+
+msg_file="$1"
+# Strip comments and the diff `git commit -v` appends.
+body=$(sed -e '/^#/d' -e '/^diff --git /,$d' "$msg_file")
+subject=$(printf '%s\n' "$body" | sed -e '/^[[:space:]]*$/d' -e 'q')
+
+fail() {
+	echo "commit-msg: $1" >&2
+	exit 1
+}
+
+[ -n "$subject" ] || fail "the commit message is empty."
+
+case "$subject" in
+	fixup!*|squash!*|Revert\ *|Merge\ *) exit 0 ;;
+esac
+
+echo "$subject" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: .+' \
+	|| fail "the subject is not a Conventional Commit.
+  Got:    $subject
+  Expect: type(scope): summary
+  Types:  feat fix docs style refactor perf test build ci chore revert"
+
+[ "${#subject}" -le 72 ] || fail "the subject is ${#subject} characters; keep it to 72 or fewer.
+  $subject"
+
+case "$subject" in
+	*.) fail "the subject ends with a period; drop it.
+  $subject" ;;
+esac
+
+if printf '%s\n' "$body" | grep -qiE 'co-authored-by:.*(claude|anthropic)|generated with .*claude|noreply@anthropic\.com'; then
+	fail "the message carries Claude attribution. This repo ships no Claude co-author or generator trailer."
+fi
+
+name=$(git config user.name)
+email=$(git config user.email)
+if [ "$name" != "$AUTHOR_NAME" ] || [ "$email" != "$AUTHOR_EMAIL" ]; then
+	fail "the commit identity is \"${name:-unset} <${email:-unset}>\", not \"$AUTHOR_NAME <$AUTHOR_EMAIL>\".
+  git config user.name \"$AUTHOR_NAME\"
+  git config user.email \"$AUTHOR_EMAIL\""
+fi

@@ -1,0 +1,232 @@
+/* Typography facet. Every property is a shared field now — what is left here is the group
+   rhythm, the text glyphs the icon rows use, the two picker rows (type role, colour) and the
+   type-role popover. Scoped to `.bl-ins`. */
+.bl-ins {
+	.bl-typo-group + .bl-typo-group {
+		margin-top: 18px;
+	}
+
+	/* Same as the spacing groups: the caption's rule means "new section", and the first one in a
+	   facet already has the facet header above it. */
+	.bl-typo-group:first-of-type .bl-spacing-head {
+		padding-top: 0;
+		border-top: 0;
+	}
+
+	/* Text as the icon — `AA`, `Aa`, an italic `I`. Sized against the 15px svg glyphs beside them
+	   so a row mixing the two (there is none today, but Decoration is one field away from it)
+	   would still line up. */
+	.bl-typoglyph {
+		font: 600 var(--bl-ui-text-xs)/1 var(--font-mono);
+		letter-spacing: 0.02em;
+		text-underline-offset: 2px;
+	}
+
+	/* A row whose value is chosen elsewhere — the type-role preset. Same frame as a field, but
+	   the middle is a trigger rather than an input, so it needs the input's own filling and
+	   truncation behaviour spelled out. */
+	.bl-valuefield--picker .bl-valuefield__pick {
+		flex: 1;
+		min-width: 0;
+		height: 100%;
+		border: 0;
+		background: transparent;
+		padding: 0 6px;
+		text-align: left;
+		font: inherit;
+		color: var(--fg);
+		cursor: pointer;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.bl-valuefield--picker:not(.is-set) .bl-valuefield__pick {
+		color: var(--fg-subtle);
+	}
+
+	/* An in-frame trigger (manage fonts, open the preset picker). The shared hit-area halo is
+	   dropped: inside a 24px frame it overhangs the field's own border. */
+	.bl-valuefield .lib-btn {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--fg-subtle);
+		cursor: pointer;
+
+		&::before {
+			content: none;
+		}
+
+		svg {
+			width: 13px;
+			height: 13px;
+		}
+
+		&:hover,
+		&.is-open {
+			color: var(--brand);
+		}
+	}
+
+	/* A Font Library family is stored as its `var(--wp--preset--font-family--…)`, which is longer
+	   than the field is wide. Truncate rather than scroll: the name is in the option list, and a
+	   half-scrolled var reads as neither. */
+	.bl-valuefield--family .bl-combobox__input {
+		text-overflow: ellipsis;
+	}
+
+	.bl-typography-control {
+		font-size: var(--bl-ui-text-md);
+
+		/* text-color row (base look from foundation `.color-row`) */
+		.color-field {
+			position: relative;
+		}
+
+		.color-row.is-empty .color-val {
+			color: var(--fg-subtle);
+		}
+
+		.swatch {
+			cursor: pointer;
+			padding: 0;
+
+			&.is-transparent {
+				background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+			}
+		}
+
+		.color-val {
+			flex: 1;
+			min-width: 0;
+			font-size: var(--bl-ui-text-md);
+			color: var(--fg);
+			cursor: pointer;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.color-field .lib-btn {
+			flex: 0 0 auto;
+			width: 26px;
+			height: 26px;
+			display: grid;
+			place-items: center;
+			border: 0;
+			background: transparent;
+			color: var(--brand);
+			cursor: pointer;
+			padding: 0;
+
+			svg {
+				width: 15px;
+				height: 15px;
+			}
+
+			&:hover {
+				background: var(--brand-tint);
+			}
+		}
+	}
+
+	/* ── editor popover (portaled, carries `bl-ins`) ───────────────────────── */
+
+	/* Type-role preset picker popover (portaled; root carries `bl-ins`). */
+	.typo-role-popup {
+		width: 248px;
+		max-width: calc(100vw - 32px);
+		padding: 8px;
+		max-height: min(68vh, 520px);
+		overflow-y: auto;
+
+		.typo-role-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			padding: 2px 6px 8px;
+
+			.typo-role-title {
+				font: 600 var(--bl-ui-label-size)/1 var(--font-mono);
+				letter-spacing: var(--bl-ui-label-tracking);
+				text-transform: uppercase;
+				color: var(--fg-muted);
+			}
+
+			.reset-btn {
+				border: 0;
+				background: transparent;
+				padding: 3px 4px;
+				font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				color: var(--brand);
+				cursor: pointer;
+
+				&:hover { background: var(--brand-soft); }
+			}
+		}
+
+		.typo-role-group {
+			padding-top: 4px;
+
+			.typo-role-grouplabel {
+				display: block;
+				padding: 4px 8px 2px;
+				font: 600 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+				letter-spacing: var(--bl-ui-label-tracking-sm);
+				text-transform: uppercase;
+				color: var(--fg-subtle);
+			}
+		}
+
+		.typo-role-opt {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			width: 100%;
+			padding: 6px 8px;
+			border: 0;
+			border-radius: var(--bl-editor-radius, 2px);
+			background: transparent;
+			text-align: left;
+			cursor: pointer;
+
+			.typo-role-name {
+				flex: 1;
+				min-width: 0;
+				font-size: var(--bl-ui-text-md);
+				color: var(--fg);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+
+				/* Cap the preview so a big role (Display/H1) doesn't blow out the row height. */
+				max-height: 1.5em;
+				line-height: 1.5em;
+			}
+
+			.typo-role-check {
+				width: 15px;
+				height: 15px;
+				flex: 0 0 auto;
+				color: var(--brand);
+			}
+
+			&:hover { background: var(--brand-soft); }
+
+			&.is-active {
+				background: var(--brand-soft);
+
+				.typo-role-name { color: var(--brand); }
+			}
+		}
+	}
+}

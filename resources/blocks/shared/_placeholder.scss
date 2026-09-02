@@ -1,0 +1,182 @@
+/* Editor-only empty-state placeholder for InnerBlocks containers (rendered by the factory via
+   renderAppender). Never present in saved markup or on the front end. It renders as block content
+   inside the editor canvas IFRAME, so its CSS must ship in each block's `style` (index.css) — the
+   sidebar editor.css does not reach the canvas. `@use` this partial from a block's style.scss.
+   Unlayered so it isn't affected by the block base layer. */
+.bl-placeholder {
+	/* The canvas doesn't apply a border-box reset to this unlayered subtree, so `width:100%`
+	   plus padding + border would overflow the Section content rail (`.bl-section__inner`). */
+	&,
+	& * {
+		box-sizing: border-box;
+	}
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	width: 100%;
+	padding: 14px 16px;
+	text-align: center;
+	color: var(--wp-admin-theme-color, #3858e9);
+	border: 1px dashed currentcolor;
+	border-radius: 8px;
+	background: color-mix(in srgb, currentcolor 6%, transparent);
+
+	&__icon {
+		display: inline-flex;
+		opacity: 0.85;
+
+		svg {
+			width: 20px;
+			height: 20px;
+		}
+	}
+
+	&__title {
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 1.2;
+	}
+
+	&__hint {
+		max-width: 34ch;
+		margin: 0;
+		font-size: 11px;
+		line-height: 1.4;
+		color: #757575;
+	}
+
+	&__presets {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		justify-content: center;
+		margin-top: 4px;
+	}
+
+	/* Quick-start gallery: clickable cards, each a compact skeleton wireframe (preferred) or a
+	   scaled live BlockPreview fallback. */
+	&__gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+		gap: 8px;
+		width: 100%;
+		max-width: 440px;
+		margin-top: 6px;
+	}
+
+	&__card {
+		display: flex;
+		flex-direction: column;
+		padding: 0;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 6px;
+		overflow: hidden;
+		cursor: pointer;
+		transition: border-color 0.1s ease, box-shadow 0.1s ease;
+
+		&:hover,
+		&:focus-visible {
+			border-color: var(--wp-admin-theme-color, #3858e9);
+			box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
+		}
+	}
+
+	/* Skeleton thumbnail — gray bars standing in for the layout shape. */
+	&__skel {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+		height: 56px;
+		padding: 10px 12px;
+		background: #fff;
+		border-bottom: 1px solid #f0f0f0;
+
+		&.is-start {
+			align-items: stretch;
+		}
+
+		&.is-center {
+			align-items: center;
+		}
+	}
+
+	.bl-skel-row {
+		flex: none;
+		background: #e4e4e7;
+		border-radius: 2px;
+	}
+
+	.bl-skel-row--title {
+		width: 58%;
+		height: 6px;
+		background: #c7c7cc;
+	}
+
+	.bl-skel-row--text {
+		width: 100%;
+		height: 4px;
+	}
+
+	.bl-skel-row--text-sm {
+		width: 68%;
+		height: 4px;
+	}
+
+	.bl-skel-row--box {
+		width: 100%;
+		height: 30px;
+		background: transparent;
+		border: 1px dashed #d4d4d8;
+		border-radius: 3px;
+	}
+
+	.bl-skel-row--image {
+		width: 100%;
+		height: 30px;
+	}
+
+	.bl-skel-row--buttons {
+		display: flex;
+		gap: 5px;
+		background: transparent;
+	}
+
+	.bl-skel-pill {
+		width: 30px;
+		height: 9px;
+		background: #d4d4d8;
+		border-radius: 3px;
+	}
+
+	/* Live BlockPreview fallback (presets without a skeleton) — its container sizes to the scaled
+	   content height and would pin to the top, so center it in the box. */
+	&__preview {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 72px;
+		overflow: hidden;
+		background: #fff;
+		border-bottom: 1px solid #f0f0f0;
+		pointer-events: none;
+	}
+
+	&__label {
+		padding: 6px 8px;
+		font-size: 11px;
+		font-weight: 600;
+		line-height: 1.2;
+		color: #1e1e1e;
+		text-align: center;
+	}
+
+	&__add {
+		margin-top: 4px;
+	}
+}

@@ -1,0 +1,183 @@
+name: Checks
+
+# Reusable: called by ci.yml on every push/PR and by release.yml before it tags
+# anything, so a release can never ship a commit that would have failed CI.
+on:
+  workflow_call:
+
+jobs:
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from the `packageManager` field in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile is not optional here. Several deps are pinned to dodge
+      # upstream drift (see the pnpm.overrides block); a loose install silently
+      # resolves past those pins and breaks the icon golden files and private-apis.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Must be the full three-pass build. A bare `vite build` wipes build/ and
+      # never emits block-library.js.
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      # `pnpm lint:css` is not gated: stylelint reports 38 auto-fixable errors.
+      # Add it here once `pnpm lint:css --fix` has been run and the diff reviewed.
+
+      # Parses committed golden markup against today's save() — the block
+      # validation-drift guard.
+      - name: Test
+        run: pnpm test
+
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # PHPCS itself runs on a modern PHP; the ruleset's PHPCompatibilityWP sniff
+      # with testVersion 8.1- is what actually enforces the 8.1 floor, statically.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer, cs2pr
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-publish
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-8.4-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-8.4-
+
+      - name: Install
+        run: composer install --no-interaction --prefer-dist
+
+      # cs2pr turns the checkstyle report into inline PR annotations. Calling the
+      # binary directly with -q keeps stdout to pure XML — `composer lint` would
+      # prepend its own notice and phpcs's progress dots, which cs2pr cannot parse.
+      - name: PHPCS
+        run: ./vendor/bin/phpcs --report=checkstyle -q | cs2pr
+
+  php-test:
+    name: php-${{ matrix.php }}-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # PHPUnit 13 requires PHP >= 8.4.1, so the test matrix starts there. The
+        # 8.1 floor the plugin ships against is covered by php-min-compat below.
+        php: ['8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      - name: Install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHPUnit
+        run: composer test
+
+  php-min-compat:
+    name: php-${{ matrix.php }}-prod
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The plugin header says "Requires PHP: 8.1". These jobs prove the set of
+        # dependencies that actually ships in the zip installs and satisfies its
+        # platform requirements down there — the dev toolchain (PHPUnit 13, 8.4+)
+        # is excluded, exactly as it is in the release bundle.
+        php: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Check platform requirements
+        run: composer check-platform-reqs --no-dev
+
+      # Catches parse errors that only a real PHP of this version would reject.
+      - name: Lint every shipped PHP file
+        run: find blicks.php src -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
+  integration:
+    name: wp-${{ matrix.wp }}-integration
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The two versions readme.txt commits to: the "Requires at least" floor and current.
+        wp: [ '6.5', 'latest' ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      # The blocks are registered from build/blocks/*/block.json, so an unbuilt tree would
+      # report every block as missing.
+      - name: Build
+        run: pnpm build
+
+      # PHPUnit 9, isolated from the root PHPUnit 13: the WordPress test library calls
+      # PHPUnit APIs that were removed in PHPUnit 10.
+      - name: Install the integration suite
+        run: composer install --no-interaction --prefer-dist --working-dir=tests/integration
+
+      # uupcode/utilities is a runtime dependency, so the plugin cannot boot without it.
+      - name: Install plugin dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist
+
+      - name: Start WordPress
+        env:
+          WP_ENV_CORE: ${{ matrix.wp == 'latest' && 'WordPress/WordPress' || format('WordPress/WordPress#{0}', matrix.wp) }}
+        run: npx wp-env start
+
+      - name: Integration tests
+        run: npx wp-env run tests-cli --env-cwd=wp-content/plugins/blicks/tests/integration vendor/bin/phpunit
+
+      - name: Stop WordPress
+        if: always()
+        run: npx wp-env stop

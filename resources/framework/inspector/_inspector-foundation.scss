@@ -1,0 +1,2307 @@
+/* ============================================================
+   Blicks Inspector — visual foundation (ported from
+   mockups/block-editor-inspector.html, the "simpler" revamp).
+
+   This is a STYLE-ONLY layer. No component renders `.bl-ins` yet —
+   it stays inert until the inspector markup is restructured onto the
+   mockup vocabulary. Generic primitive names (.sec/.field/.inp/.lbl…)
+   are scoped under `.bl-ins` so they can't leak into the editor.
+
+   Mapping when wiring:
+     mockup `.inspector`  → `.bl-ins`  (the inspector root)
+     detached popovers (`.pop`, `.cpick`, `.tools-menu`, `.toast`) are
+     portaled by WP — put `className="bl-ins"` on the popover content
+     wrapper so these rules still apply.
+
+   Bound to DESIGN.md: off-white paper, single electric-blue accent,
+   SHARP corners everywhere (no radii), hairline borders, no shadows,
+   Inter + JetBrains Mono, mono tiny-caps eyebrows.
+
+   Webfonts (Inter / JetBrains Mono) are referenced via var() with
+   system fallbacks; enqueue the faces when wiring — do NOT @import
+   Google Fonts here (editor perf + privacy).
+   ============================================================ */
+
+@use "../ui-tokens";
+
+.bl-ins {
+	/* The shared chrome palette — see `resources/framework/_ui-tokens.scss`. The admin
+	   SPA includes the same mixin, so the two surfaces cannot drift apart again; the
+	   contrast rationale that used to live here now lives there, next to the values.
+	   Everything below is a LOCAL ALIAS onto it — the short names this file's ~2000
+	   lines already reference, re-pointed rather than redefined. */
+	@include ui-tokens.palette;
+
+	/* surfaces */
+	--bg: var(--bl-ui-canvas);
+	--paper: var(--bl-ui-paper);
+	--surface-alt: var(--bl-ui-surface-alt);
+	--surface-sunk: var(--bl-ui-surface-sunk);
+
+	/* text — the five-step ramp. `--fg-subtle` paints the field captions (FONT, SIZE,
+	   ALIGN…), every chevron and every placeholder; `--fg-faint` is non-text UI only
+	   (the field-group chevron, the state dots). Neither may be lightened — the
+	   thresholds they hold are documented at the token definitions. */
+	--fg: var(--bl-ui-fg);
+	--fg-2: var(--bl-ui-fg-2);
+	--fg-muted: var(--bl-ui-fg-muted);
+	--fg-subtle: var(--bl-ui-fg-subtle);
+	--fg-faint: var(--bl-ui-fg-faint);
+
+	/* borders */
+	--border: var(--bl-ui-border);
+	--border-strong: var(--bl-ui-border-strong);
+	--divider: var(--bl-ui-divider);
+
+	/* brand — follows the admin colour scheme so the inspector reads as part of
+	   WordPress rather than as a plugin that brought its own blue. */
+	--brand: var(--bl-ui-brand);
+	--brand-bold: var(--bl-ui-brand-bold);
+	--brand-soft: var(--bl-ui-brand-soft);
+	--brand-tint: var(--bl-ui-brand-tint);
+	--frost-blue: var(--bl-ui-frost-blue);
+	--navy: var(--bl-ui-navy);
+	--acc-magenta: var(--bl-ui-acc-magenta);
+	--acc-violet: var(--bl-ui-acc-violet);
+
+	/* status — one step of one ramp, all three text-safe. */
+	--success: var(--bl-ui-success);
+	--warn: var(--bl-ui-warn);
+	--danger: var(--bl-ui-danger);
+	--danger-soft: var(--bl-ui-danger-soft);
+
+	/* type */
+	--font-sans: var(--bl-ui-font-sans);
+	--font-mono: var(--bl-ui-font-mono);
+	--ease: var(--bl-ui-ease);
+	--inspector-w: 280px;
+
+	/* sharp corners everywhere — no radii — and match the `.dim`/`.inp-num` field
+	   metrics so a `<Combobox>` dropped into a facet looks native, not borrowed. */
+	--bl-editor-radius: var(--bl-ui-radius);
+	--bl-combobox-h: var(--bl-ui-field-h);
+	--bl-combobox-fs: var(--bl-ui-text-md);
+
+	/* Aliases so the existing settings-ui design-system rules (cards, option-cards,
+	   segmented settings, attr rows, color field, help tips) — re-pointed from the old
+	   `.bl-inspector` root to `.bl-ins` — render in the mockup palette unchanged. */
+	--bl-editor-accent: var(--brand);
+	--bl-editor-accent-hover: var(--brand-bold);
+	--bl-editor-accent-soft: var(--brand-soft);
+	--bl-editor-ink: var(--fg);
+	--bl-editor-muted: var(--fg-muted);
+	--bl-editor-faint: var(--fg-subtle);
+	--bl-editor-paper: var(--paper);
+	--bl-editor-canvas: var(--surface-alt);
+	--bl-editor-line: var(--border);
+	--bl-editor-line-strong: var(--border-strong);
+	--bl-editor-danger: var(--danger);
+	--bl-editor-radius: 0;
+	--bl-editor-font: var(--font-sans);
+	--bl-editor-mono: var(--font-mono);
+
+	/* root identity — shell sizing/scroll is owned by the WP InspectorControls
+	   slot (the sidebar scrolls natively); only the visual identity lives here. */
+	background: var(--paper);
+	color: var(--fg);
+	font-family: var(--font-sans);
+	font-size: var(--bl-ui-text-lg);
+	line-height: 1.55;
+	font-feature-settings: "cv11", "ss01", "ss03", "tnum";
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizelegibility;
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	button {
+		font-family: inherit;
+		cursor: pointer;
+		border: none;
+		background: none;
+		color: inherit;
+	}
+
+	input,
+	select {
+		font-family: inherit;
+	}
+
+	svg {
+		display: block;
+	}
+
+	.ico {
+		width: 18px;
+		height: 18px;
+		stroke: currentcolor;
+		stroke-width: 1.7;
+		fill: none;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.ico-sm {
+		width: 15px;
+		height: 15px;
+	}
+
+	/* focus = brand, sharp ring (no blur) */
+	:focus-visible {
+		outline: 2px solid var(--brand);
+		outline-offset: 1px;
+	}
+
+	/* ---------- top tab row: Post / Block + close ---------- */
+	.ins-top {
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid var(--border);
+		padding: 0 6px;
+		flex: 0 0 auto;
+	}
+
+	.ins-toptabs {
+		display: flex;
+		flex: 1;
+	}
+
+	.ins-toptab {
+		position: relative;
+		padding: 12px 14px 12px;
+		font-size: var(--bl-ui-text-md);
+		font-weight: 500;
+		color: var(--fg-muted);
+	}
+
+	.ins-toptab:hover {
+		color: var(--fg);
+	}
+
+	.ins-toptab[aria-selected="true"] {
+		color: var(--fg);
+		font-weight: 600;
+	}
+
+	.ins-toptab[aria-selected="true"]::after {
+		content: "";
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		bottom: -1px;
+		height: 2px;
+		background: var(--brand);
+	}
+
+	.ins-close {
+		width: 34px;
+		height: 34px;
+		display: grid;
+		place-items: center;
+		color: var(--fg-muted);
+	}
+
+	.ins-close:hover {
+		background: var(--surface-sunk);
+		color: var(--fg);
+	}
+
+	/* ---------- block identity ---------- */
+	.ins-id {
+		display: flex;
+		gap: 10px;
+		padding: 16px 16px 14px;
+		border-bottom: 1px solid var(--divider);
+	}
+
+	.ins-id-ico {
+		flex: 0 0 auto;
+		width: 36px;
+		height: 36px;
+		border: 1px solid var(--border-strong);
+		display: grid;
+		place-items: center;
+		color: var(--fg);
+		background: var(--surface-alt);
+	}
+
+	.ins-id-ico svg {
+		width: 20px;
+		height: 20px;
+	}
+
+	.ins-id h2 {
+		margin: 0 0 3px;
+		font-size: var(--bl-ui-text-lg);
+		font-weight: 600;
+		letter-spacing: -0.015em;
+	}
+
+	.ins-id p {
+		margin: 0;
+		font-size: var(--bl-ui-text-sm);
+		color: var(--fg-2);
+		line-height: 1.45;
+	}
+
+	/* ---------- SETTINGS / STYLES / ADVANCED sub-tabs (b.on = fg fill) ---------- */
+	.ins-tab {
+		display: flex;
+		border-bottom: 1px solid var(--border);
+		flex: 0 0 auto;
+	}
+
+	.ins-tab b {
+		flex: 1;
+		text-align: center;
+		padding: 12px 4px;
+		font: 500 var(--bl-ui-label-size)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking);
+		text-transform: uppercase;
+		color: var(--fg-muted);
+		cursor: pointer;
+		border-right: 1px solid var(--border);
+		transition: color 0.12s var(--ease), background 0.12s var(--ease);
+	}
+
+	.ins-tab b:last-child {
+		border-right: 0;
+	}
+
+	.ins-tab b:hover {
+		color: var(--fg-2);
+	}
+
+	.ins-tab b.on {
+		background: var(--fg);
+		color: #fff;
+	}
+
+	/* ---------- device / state toolbar ---------- */
+	.ins-toolbar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 12px;
+		border-bottom: 1px solid var(--divider);
+		background: var(--surface-alt);
+		flex: 0 0 auto;
+	}
+
+	.seg-icons {
+		display: flex;
+		background: var(--paper);
+		border: 1px solid var(--border-strong);
+		padding: 2px;
+		gap: 1px;
+	}
+
+	.seg-icons button {
+		width: 30px;
+		height: calc(var(--bl-ui-field-h-sm) - 6px);
+		display: grid;
+		place-items: center;
+		color: var(--fg-muted);
+		transition: all 0.1s var(--ease);
+	}
+
+	.seg-icons button:hover {
+		color: var(--fg);
+		background: var(--surface-sunk);
+	}
+
+	.seg-icons button.on {
+		background: var(--brand);
+		color: #fff;
+	}
+
+	.ins-toolbar .grow {
+		flex: 1;
+	}
+
+	/* content region — no inner scroll; the WP sidebar scrolls natively */
+	.panel {
+		display: none;
+	}
+
+	.panel.on {
+		display: block;
+	}
+
+	/* ---------- accordion section ---------- */
+	.sec {
+		border-bottom: 1px solid var(--divider);
+	}
+
+	.sec-head {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 14px 16px;
+		text-align: left;
+	}
+
+	.sec-head h3 {
+		margin: 0;
+		font: 600 var(--bl-ui-label-size)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking);
+		text-transform: uppercase;
+		color: var(--fg);
+	}
+
+	.sec-head .chev {
+		color: var(--fg-subtle);
+		transition: transform 0.2s var(--ease);
+	}
+
+	.sec-head:hover .chev {
+		color: var(--fg-2);
+	}
+
+	.sec.collapsed .chev {
+		transform: rotate(-90deg);
+	}
+
+	.sec-body {
+		padding: 0 16px 20px;
+	}
+
+	.sec.collapsed .sec-body {
+		display: none;
+	}
+
+	.sec-head[role="button"] {
+		cursor: pointer;
+	}
+
+	/* ---------- reveal (conditional/nested settings) — flat, no wrapping box ---------- */
+	.reveal {
+		margin-top: 14px;
+	}
+
+	.reveal-tag {
+		display: block;
+		margin-bottom: 10px;
+		font: 500 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--brand);
+	}
+
+	/* ---------- group caption ----------
+	   ONE definition for every group heading in a facet body, whether it collapses
+	   (`.bl-more__toggle`) or not (`.bl-spacing-head`). They used to differ in weight, size and
+	   colour, which made two identical-looking levels read as different things. */
+	@mixin group-caption {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 12px 0 8px;
+		border: 0;
+		/* The one horizontal rule in the facet, and it means exactly one thing: a new top-level
+		   section starts here. `--border`, not `--divider` — at the lighter weight the sections
+		   ran together. */
+		border-top: 1px solid var(--border);
+		background: transparent;
+		font: 600 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--fg);
+	}
+
+	/* ---------- "more options" disclosure (essentials vs advanced) — flat divider ---------- */
+	.bl-more {
+		margin-top: 16px;
+	}
+
+	/* "3 set inside" — so a collapsed section still says whether it is carrying anything. Pushed
+	   hard against the label (the auto margin lives here) rather than floated to the chevron,
+	   where it would read as a separate control. */
+	.bl-more__badge {
+		margin-right: auto;
+		padding: 1px 4px;
+		background: var(--brand-soft);
+		color: var(--brand);
+		font: 700 var(--bl-ui-text-2xs)/1.4 var(--font-mono);
+	}
+
+	.bl-more__toggle {
+		@include group-caption;
+
+		width: 100%;
+		cursor: pointer;
+
+		&:hover {
+			color: var(--fg);
+		}
+	}
+
+	.bl-more__chev {
+		flex: 0 0 auto;
+		color: var(--fg-subtle);
+		transition: transform 0.2s var(--ease);
+	}
+
+	.bl-more.is-open .bl-more__chev {
+		transform: rotate(180deg);
+	}
+
+	/* A grid, so the body spaces its own children on the same 8px rhythm a `.bl-fields` stack uses.
+	   It was a plain block, which meant every child had to bring its own margin — and the moment one
+	   of them stopped, the rows below it butted against each other. */
+	.bl-more__body {
+		display: grid;
+		gap: 8px;
+		margin-top: 8px;
+	}
+
+	/* ---------- second level ----------
+	   A disclosure inside a disclosure (Min/Max within Size) used to be drawn exactly like its
+	   parent, so two levels read as two peers. The nesting is now carried by the caption weight
+	   and by a rule down the left, not by another full-width divider: a horizontal line means
+	   "new top-level section", and using it again one level down was the thing making the
+	   hierarchy unreadable. */
+	.bl-more__body .bl-more {
+		/* On top of the body's own 8px gap, so a nested disclosure still stands off its siblings by
+		   the 10 above and 16 below it had before the body started spacing them. */
+		margin-top: 2px;
+		/* A nested block closes as well as opens: without this the row after it starts flush
+		   against the last nested field and the two levels merge again. */
+		margin-bottom: 8px;
+		padding-left: 8px;
+		padding-bottom: 2px;
+		border-left: 1px solid var(--divider);
+	}
+
+	.bl-more__body .bl-more:last-child {
+		margin-bottom: 0;
+	}
+
+	.bl-more__body .bl-more > .bl-more__toggle {
+		border-top: 0;
+		padding: 3px 0;
+		font-size: var(--bl-ui-text-2xs);
+		letter-spacing: 0.1em;
+		color: var(--fg-subtle);
+	}
+
+	.bl-more__body .bl-more > .bl-more__body {
+		margin-top: 6px;
+	}
+
+	/* ---------- shared PopoverField trigger (common.tsx <PopoverField>) ----------
+	   The summary chip that opens a portaled editor. Lives in the foundation so any control
+	   using <PopoverField> (Effects, Border, …) gets it — not just `.bl-effects-control`. */
+	.fx-field {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		margin-top: 6px;
+		height: 34px;
+		border: 1px solid var(--border-strong);
+		padding: 0 10px;
+		background: var(--paper);
+		cursor: pointer;
+		font: inherit;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		text-align: left;
+
+		&:hover {
+			border-color: #aab4c2;
+		}
+
+		&.is-none .fx-field__val {
+			color: var(--fg-subtle);
+		}
+
+		&.is-open {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+
+		.fx-field__val {
+			flex: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.fx-field__chevron {
+			font-size: var(--bl-ui-text-2xs);
+			color: var(--fg-subtle);
+			margin-left: 6px;
+			flex-shrink: 0;
+		}
+	}
+
+	.sec-head-right {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	.sec-tools {
+		width: 26px;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		color: var(--fg-subtle);
+		transition: all 0.1s var(--ease);
+	}
+
+	.sec-tools:hover {
+		background: var(--surface-sunk);
+		color: var(--fg-2);
+	}
+
+	.sec-tools svg {
+		width: 15px;
+		height: 15px;
+	}
+
+	/* per-section "show / hide settings" menu (absolute within .sec) */
+	.tools-menu {
+		position: absolute;
+		top: 48px;
+		right: 12px;
+		z-index: 40;
+		width: 206px;
+		background: var(--paper);
+		border: 1px solid var(--border-strong);
+		box-shadow: -6px 10px 28px -12px rgb(15 23 42 / 25%);
+		padding: 6px;
+	}
+
+	.tools-menu[hidden] {
+		display: none;
+	}
+
+	.tools-menu .tm-head {
+		font: 500 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--fg-muted);
+		padding: 6px 8px 8px;
+	}
+
+	.tools-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 8px;
+		cursor: pointer;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg-2);
+	}
+
+	.tools-row:hover {
+		background: var(--surface-sunk);
+		color: var(--fg);
+	}
+
+	.tools-row input {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.tools-row .box {
+		flex: 0 0 auto;
+		width: 16px;
+		height: 16px;
+		border: 1.5px solid var(--border-strong);
+		display: grid;
+		place-items: center;
+		color: #fff;
+		transition: all 0.12s var(--ease);
+	}
+
+	.tools-row .box svg {
+		width: 11px;
+		height: 11px;
+		opacity: 0;
+		stroke-width: 2.5;
+	}
+
+	.tools-row input:checked + .box {
+		background: var(--brand);
+		border-color: var(--brand);
+	}
+
+	.tools-row input:checked + .box svg {
+		opacity: 1;
+	}
+
+	.tools-row input:focus-visible + .box {
+		outline: 2px solid var(--brand);
+		outline-offset: 2px;
+	}
+
+	.tools-row .tn {
+		flex: 1;
+	}
+
+	.field-off {
+		display: none;
+	}
+
+	/* ---------- field primitives ---------- */
+	.field {
+		margin-top: 16px;
+	}
+
+	/* `:first-of-type`, NOT `:first-child` — controls emit their <datalist>s first, and those are
+	   real DOM nodes, so a `:first-child` rule here never matches. `datalist` is a different
+	   element type, so `:first-of-type` picks the first div as intended. */
+	.field:first-of-type {
+		margin-top: 0;
+	}
+
+	/* Field label — one level BELOW a group caption, so it must not borrow the caption's
+	   uppercase-mono treatment: "Display" and "Width" are fields, "SIZE" and "MARGIN" are the
+	   groups that contain them. Matches `.sub` (the label inside a 2-up field row) exactly. */
+	.lbl {
+		display: block;
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.3;
+		color: var(--fg-2);
+		margin-bottom: 6px;
+	}
+
+	.lbl-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 8px;
+	}
+
+	.lbl-row .lbl {
+		margin: 0;
+	}
+
+	.lbl-tools {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	.seg-val {
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		letter-spacing: 0.02em;
+		color: var(--fg);
+		background: var(--surface-sunk);
+		border: 1px solid var(--border);
+		padding: 3px 6px;
+		text-transform: none;
+	}
+
+	.mini {
+		width: 26px;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		color: var(--fg-subtle);
+		transition: all 0.1s var(--ease);
+	}
+
+	.mini:hover {
+		background: var(--surface-sunk);
+		color: var(--fg-2);
+	}
+
+	.mini.on {
+		background: var(--brand-tint);
+		color: var(--brand);
+	}
+
+	.reset {
+		display: grid;
+		place-items: center;
+		flex: 0 0 auto;
+		width: 22px;
+		height: 22px;
+		padding: 0;
+		color: var(--brand);
+	}
+
+	.reset svg {
+		width: 13px;
+		height: 13px;
+	}
+
+	.reset:hover {
+		background: var(--brand-soft);
+	}
+
+	/* Nothing to reset: the button keeps its box so the header does not reflow, but is invisible
+	   and inert. `visibility`, not `opacity`, so it cannot be hovered or read out. */
+	.reset.is-idle {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.grid2 {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 10px;
+	}
+
+	/* let the columns shrink — inputs default to an intrinsic min-width that
+	   otherwise pushes the 2-up grid past the sidebar edge */
+	.grid2 > * {
+		min-width: 0;
+	}
+
+	.sub {
+		display: block;
+		font-size: var(--bl-ui-text-sm);
+		color: var(--fg-2);
+		margin-bottom: 6px;
+	}
+
+	/* text/number input */
+	/* The text inset matches `.sel select` below (padding + the shared 1px border). A
+	   field and a select stacked in one column start their text on the same x — they
+	   were 2px apart, which is the kind of thing you feel as "untidy" without being
+	   able to name it. */
+	.inp {
+		width: 100%;
+		height: var(--bl-ui-field-h);
+		padding: 0 10px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		transition: border-color 0.12s var(--ease), box-shadow 0.12s var(--ease);
+	}
+
+	.inp::placeholder {
+		color: var(--fg-subtle);
+	}
+
+	.inp:hover {
+		border-color: #aab4c2;
+	}
+
+	.inp:focus {
+		outline: none;
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px var(--brand);
+	}
+
+	.inp.center {
+		text-align: left;
+	}
+
+	.inp.err {
+		border-color: var(--danger);
+	}
+
+	.inp.err:focus {
+		box-shadow: 0 0 0 2px var(--danger);
+	}
+
+	.field-err {
+		display: none;
+		align-items: center;
+		gap: 4px;
+		margin-top: 6px;
+		font-size: var(--bl-ui-text-sm);
+		color: var(--danger);
+	}
+
+	.field-err.show {
+		display: flex;
+	}
+
+	.field-err svg {
+		width: 13px;
+		height: 13px;
+		flex: 0 0 auto;
+	}
+
+	/* input with unit / stepper */
+	.inp-num {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.inp-num .inp {
+		padding-right: 54px;
+		text-align: left;
+	}
+
+	.inp-num .unit {
+		position: absolute;
+		right: 30px;
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		color: var(--fg-2);
+		background: var(--surface-sunk);
+		padding: 3px 4px;
+		pointer-events: none;
+	}
+
+	.inp-num .inp:focus ~ .unit {
+		display: none;
+	}
+
+	.inp-num .unit.hide {
+		display: none;
+	}
+
+	.inp-num.bare .inp {
+		padding: 0 10px;
+	}
+
+	.inp-num .steps {
+		position: absolute;
+		right: 1px;
+		top: 1px;
+		bottom: 1px;
+		display: flex;
+		flex-direction: column;
+		width: 26px;
+		border-left: 1px solid var(--border);
+	}
+
+	.inp-num .steps button {
+		flex: 1;
+		display: grid;
+		place-items: center;
+		color: var(--fg-subtle);
+	}
+
+	.inp-num .steps button:hover {
+		background: var(--surface-sunk);
+		color: var(--fg);
+	}
+
+	.inp-num .steps svg {
+		width: 11px;
+		height: 11px;
+	}
+
+	/* select */
+	.sel {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.sel select {
+		appearance: none;
+		width: 100%;
+		height: var(--bl-ui-field-h);
+		padding: 0 34px 0 10px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		cursor: pointer;
+	}
+
+	.sel select:hover {
+		border-color: #aab4c2;
+	}
+
+	.sel select:focus {
+		outline: none;
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px var(--brand);
+	}
+
+	.sel svg {
+		position: absolute;
+		right: 11px;
+		width: 14px;
+		height: 14px;
+		color: var(--fg-subtle);
+		pointer-events: none;
+	}
+
+	/* segmented (text) — i.on = brand fill */
+	.seg {
+		display: flex;
+		background: var(--surface-sunk);
+		border: 1px solid var(--border-strong);
+		padding: 3px;
+		gap: 2px;
+	}
+
+	.seg button {
+		flex: 1;
+		height: calc(var(--bl-ui-field-h) - 8px);
+		padding: 0 8px;
+		font-size: var(--bl-ui-text-sm);
+		font-weight: 500;
+		color: var(--fg-2);
+		white-space: nowrap;
+		transition: all 0.1s var(--ease);
+	}
+
+	.seg button:hover {
+		color: var(--fg);
+		background: #fff;
+	}
+
+	.seg button.on {
+		background: var(--brand);
+		color: #fff;
+		font-weight: 500;
+	}
+
+	.seg.wrap {
+		flex-wrap: wrap;
+	}
+
+	.seg.wrap button {
+		flex: 0 1 auto;
+		min-width: auto;
+	}
+
+	/* icon segmented (display, overflow, position, align…) */
+	.seg-row {
+		display: flex;
+		background: var(--surface-sunk);
+		border: 1px solid var(--border-strong);
+		padding: 3px;
+		gap: 2px;
+	}
+
+	.seg-row button {
+		flex: 1;
+		height: calc(var(--bl-ui-field-h) - 8px);
+		display: grid;
+		place-items: center;
+		justify-content: center;
+		color: var(--fg-2);
+		transition: all 0.1s var(--ease);
+	}
+
+	.seg-row button:hover {
+		color: var(--fg);
+		background: #fff;
+	}
+
+	.seg-row button.on {
+		background: var(--brand);
+		color: #fff;
+	}
+
+	.seg-row button.on svg {
+		stroke-width: 2;
+	}
+
+	/* segmented buttons hold `.ico-sm` icons in the mockup; size bare inline svgs too */
+	.seg-row button > svg,
+	.seg button > svg {
+		width: 15px;
+		height: 15px;
+	}
+
+	/* border-style preview segmented */
+	.bstyle button .line {
+		display: block;
+		width: 26px;
+		height: 0;
+		border-top: 2px solid currentcolor;
+	}
+
+	.bstyle button:nth-child(2) .line {
+		border-top-style: solid;
+		border-top-width: 3px;
+	}
+
+	.bstyle button:nth-child(3) .line {
+		border-top-style: dashed;
+	}
+
+	.bstyle button:nth-child(4) .line {
+		border-top-style: dotted;
+	}
+
+	/* color row */
+	.color-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		border: 1px solid var(--border-strong);
+		padding: 6px 10px;
+		background: var(--paper);
+	}
+
+	.color-row:hover {
+		border-color: #aab4c2;
+	}
+
+	.swatch {
+		width: 26px;
+		height: 26px;
+		border: 1px solid rgb(15 23 42 / 14%);
+		flex: 0 0 auto;
+		background: conic-gradient(#fff 0 25%, var(--bl-ui-checker) 0 50%, #fff 0 75%, var(--bl-ui-checker) 0) 0 0 / 12px 12px;
+	}
+
+	.swatch.set {
+		background: var(--brand);
+	}
+
+	.color-row .ctxt {
+		flex: 1;
+		font-size: var(--bl-ui-text-md);
+	}
+
+	.color-row .ctxt em {
+		font-style: normal;
+		color: var(--fg-subtle);
+	}
+
+	.color-row .ctxt b {
+		font-weight: 500;
+	}
+
+	.color-row .cres {
+		color: var(--brand);
+	}
+
+	.color-row .ctxt-lbl {
+		font-weight: 500;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		flex: 0 0 auto;
+	}
+
+	.color-row .cval-inp {
+		flex: 1;
+		min-width: 0;
+		border: none;
+		background: transparent;
+		font: inherit;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		padding: 0;
+	}
+
+	.color-row .cval-inp:focus {
+		outline: none;
+	}
+
+	.color-row .cval-inp::placeholder {
+		color: var(--fg-subtle);
+	}
+
+	/* typography summary card */
+	.type-card {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border: 1px solid var(--brand);
+		padding: 10px 12px;
+		background: var(--paper);
+		width: 100%;
+		text-align: left;
+	}
+
+	.type-card .aa {
+		font-size: var(--bl-ui-text-2xl);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+	}
+
+	.type-card .tname-inp {
+		flex: 1;
+		min-width: 0;
+		border: none;
+		background: transparent;
+		font: inherit;
+		font-size: var(--bl-ui-text-lg);
+		color: var(--fg);
+		padding: 0;
+	}
+
+	.type-card .tname-inp:focus {
+		outline: none;
+	}
+
+	.type-card .tname-inp::placeholder {
+		color: var(--fg-2);
+	}
+
+	.type-card .ed {
+		color: var(--fg-subtle);
+	}
+
+	.type-card:hover .ed {
+		color: var(--brand);
+	}
+
+	.type-card-row {
+		display: flex;
+		gap: 8px;
+		align-items: stretch;
+	}
+
+	.type-card-row .type-card {
+		flex: 1;
+	}
+
+	.type-lib {
+		flex: 0 0 auto;
+		width: 42px;
+		display: grid;
+		place-items: center;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		color: var(--fg-2);
+		transition: all 0.12s var(--ease);
+	}
+
+	.type-lib:hover {
+		border-color: var(--brand);
+		color: var(--brand);
+		background: var(--brand-soft);
+	}
+
+	.type-lib svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	.lib-ctrl {
+		display: flex;
+		gap: 8px;
+		align-items: stretch;
+	}
+
+	.lib-ctrl > .color-row {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.liblist {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.liblist .lib-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 10px;
+		border: 1px solid transparent;
+		text-align: left;
+		width: 100%;
+		background: transparent;
+		transition: all 0.1s var(--ease);
+	}
+
+	.liblist .lib-row:hover {
+		background: var(--surface-sunk);
+		border-color: var(--border-strong);
+	}
+
+	.liblist .lib-sw {
+		width: 26px;
+		height: 26px;
+		flex: 0 0 auto;
+		border: 1px solid rgb(15 23 42 / 14%);
+	}
+
+	.liblist .lib-name {
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		flex: 1;
+	}
+
+	.liblist .lib-hex {
+		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+		letter-spacing: 0.04em;
+		color: var(--fg-muted);
+	}
+
+	.typelib {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.typelib-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 8px 10px;
+		border: 1px solid transparent;
+		text-align: left;
+		width: 100%;
+		background: transparent;
+		transition: all 0.1s var(--ease);
+	}
+
+	.typelib-row:hover {
+		background: var(--surface-sunk);
+		border-color: var(--border-strong);
+	}
+
+	.typelib-row .tl-aa {
+		width: 34px;
+		flex: 0 0 auto;
+		text-align: center;
+		color: var(--fg);
+	}
+
+	.typelib-row .tl-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		min-width: 0;
+	}
+
+	.typelib-row .tl-meta b {
+		font-weight: 600;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+	}
+
+	.typelib-row .tl-meta em {
+		font-style: normal;
+		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+		letter-spacing: 0.06em;
+		color: var(--fg-muted);
+	}
+
+	.type-expand {
+		margin-top: 14px;
+		display: none;
+	}
+
+	.type-expand.show {
+		display: block;
+	}
+
+	/* checkbox — square, sharp */
+	.chk {
+		display: flex;
+		align-items: flex-start;
+		gap: 10px;
+		cursor: pointer;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg-2);
+		line-height: 1.45;
+	}
+
+	.chk input {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.chk .box {
+		flex: 0 0 auto;
+		width: 18px;
+		height: 18px;
+		border: 1.5px solid var(--border-strong);
+		margin-top: 1px;
+		display: grid;
+		place-items: center;
+		color: #fff;
+		transition: all 0.12s var(--ease);
+	}
+
+	.chk .box svg {
+		width: 12px;
+		height: 12px;
+		opacity: 0;
+		stroke-width: 2.5;
+	}
+
+	.chk input:checked + .box {
+		background: var(--brand);
+		border-color: var(--brand);
+	}
+
+	.chk input:checked + .box svg {
+		opacity: 1;
+	}
+
+	.chk input:focus-visible + .box {
+		outline: 2px solid var(--brand);
+		outline-offset: 2px;
+	}
+
+	.chk:hover .box {
+		border-color: #aab4c2;
+	}
+
+	/* spacing + position inset — shared cross widget (`.box4`): T/L/R/B inputs
+	   ring a dashed center marker. Used by SpacingControl (margin + padding
+	   groups) and PositionControl (inset). */
+	.box4 {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-rows: repeat(3, 34px);
+		gap: 4px;
+	}
+
+	.ofs {
+		width: 100%;
+		height: 34px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		text-align: center;
+		font: 500 var(--bl-ui-text-sm)/1 var(--font-mono);
+		color: var(--fg);
+
+		&::placeholder {
+			color: var(--fg-subtle);
+		}
+
+		&:hover {
+			border-color: #aab4c2;
+		}
+
+		&:focus {
+			outline: none;
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+			z-index: 2;
+		}
+
+		&.err {
+			border-color: var(--danger);
+		}
+	}
+
+	.b-top {
+		grid-area: 1 / 2;
+	}
+
+	.b-left {
+		grid-area: 2 / 1;
+	}
+
+	.b-right {
+		grid-area: 2 / 3;
+	}
+
+	.b-bottom {
+		grid-area: 3 / 2;
+	}
+
+	.b-core {
+		grid-area: 2 / 2;
+		display: grid;
+		place-items: center;
+		border: 1px dashed var(--border-strong);
+		color: var(--fg-subtle);
+
+		svg {
+			width: 15px;
+			height: 15px;
+		}
+	}
+
+	/* spacing facet — two cross groups (margin, padding), each a `.box4` */
+	.bl-spacing-group + .bl-spacing-group {
+		margin-top: 18px;
+	}
+
+	.bl-spacing-head {
+		@include group-caption;
+
+		margin-bottom: 6px;
+	}
+
+	/* see `.field:first-of-type` — leading <datalist>s break `:first-child` here too, which is what
+	   left a stray divider directly under the facet title. */
+	.bl-spacing-group:first-of-type .bl-spacing-head {
+		padding-top: 0;
+		border-top: 0;
+	}
+
+	.bl-spacing-actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-left: auto;
+	}
+
+	/* "this section holds a value" marker, beside a group caption */
+	.bl-mod-dot {
+		width: 5px;
+		height: 5px;
+		flex: 0 0 auto;
+		margin-left: 4px;
+		border-radius: 50%;
+		background: var(--brand);
+	}
+
+	.bl-spacing-link {
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 22px;
+		color: var(--fg-subtle);
+		background: transparent;
+		border: 1px solid transparent;
+		cursor: pointer;
+		transition: all 0.1s var(--ease);
+
+		svg {
+			width: 13px;
+			height: 13px;
+		}
+
+		&:hover {
+			color: var(--fg-2);
+			background: var(--paper);
+			border-color: var(--border-strong);
+		}
+
+		&.on {
+			color: var(--brand);
+			background: var(--brand-tint);
+		}
+	}
+
+	/* gradient bar */
+	.grad-bar {
+		position: relative;
+		height: 30px;
+		margin-bottom: 14px;
+		background: linear-gradient(90deg, var(--brand), var(--acc-magenta));
+		border: 1px solid rgb(15 23 42 / 12%);
+	}
+
+	.grad-stop {
+		position: absolute;
+		top: 50%;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: #fff;
+		border: 3px solid var(--brand);
+		transform: translate(-50%, -50%);
+		cursor: grab;
+	}
+
+	.grad-stop:nth-of-type(2) {
+		border-color: var(--acc-magenta);
+	}
+
+	.grad-stop:active {
+		cursor: grabbing;
+	}
+
+	/* image dropzone */
+	.dropzone {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		border: 1px solid var(--border-strong);
+		padding: 12px;
+		background: var(--paper);
+	}
+
+	.dz-thumb {
+		width: 60px;
+		height: 50px;
+		flex: 0 0 auto;
+		background: conic-gradient(var(--bl-ui-checker) 0 25%, #fff 0 50%, var(--bl-ui-checker) 0 75%, #fff 0) 0 0 / 16px 16px;
+		border: 1px solid var(--border);
+	}
+
+	.dz-thumb.loading {
+		background: linear-gradient(100deg, #eef1f5 30%, #f8fafc 50%, #eef1f5 70%);
+		background-size: 200% 100%;
+		animation: bl-ins-shimmer 1.1s linear infinite;
+	}
+
+	.dz-txt b {
+		display: block;
+		font-size: var(--bl-ui-text-md);
+		font-weight: 500;
+	}
+
+	.dz-txt .choose {
+		font-size: var(--bl-ui-text-md);
+		color: var(--brand);
+		font-weight: 500;
+		padding: 2px 0;
+		display: inline-block;
+	}
+
+	.dz-txt .choose:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.pos-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 3px;
+		width: 96px;
+	}
+
+	.pos-grid button {
+		aspect-ratio: 1;
+		border: 1px solid var(--border-strong);
+		background: var(--surface-alt);
+	}
+
+	.pos-grid button:hover {
+		border-color: var(--fg-subtle);
+	}
+
+	.pos-grid button.on {
+		background: var(--brand);
+		border-color: var(--brand);
+	}
+
+	/* advanced / settings light panels */
+	.note {
+		font-size: var(--bl-ui-text-sm);
+		color: var(--fg-2);
+		line-height: 1.5;
+	}
+
+	.kv {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		color: var(--fg-muted);
+		margin-top: 4px;
+	}
+
+	/* footer status */
+	.ins-foot {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 14px;
+		border-top: 1px solid var(--border);
+		background: var(--surface-alt);
+		font: 500 var(--bl-ui-label-size-sm)/1.4 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--fg-muted);
+	}
+
+	.ins-foot .dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--brand);
+	}
+
+	.ins-foot code {
+		font-family: var(--font-mono);
+		font-size: var(--bl-ui-text-2xs);
+		text-transform: none;
+		letter-spacing: 0;
+		color: var(--fg-2);
+	}
+
+	.ins-foot .grow {
+		flex: 1;
+	}
+
+	/* ---------- detached surfaces (portaled — wrapper carries .bl-ins) ---------- */
+
+	/* left-anchored popover — controls with extra settings */
+	.pop {
+		position: fixed;
+		z-index: 80;
+		width: 272px;
+		background: var(--paper);
+		border: 1px solid var(--border-strong);
+		box-shadow: -10px 14px 40px -16px rgb(15 23 42 / 28%);
+	}
+
+	.pop[hidden] {
+		display: none;
+	}
+
+	.pop::after {
+		content: "";
+		position: absolute;
+		right: -7px;
+		top: var(--caret, 22px);
+		width: 12px;
+		height: 12px;
+		background: var(--paper);
+		border-right: 1px solid var(--border-strong);
+		border-top: 1px solid var(--border-strong);
+		transform: rotate(45deg);
+	}
+
+	.pop.flush::after {
+		display: none;
+	}
+
+	.pop-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 10px 8px 10px 14px;
+		border-bottom: 1px solid var(--border);
+		background: var(--surface-alt);
+	}
+
+	.pop-title {
+		font: 600 var(--bl-ui-label-size)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking);
+		text-transform: uppercase;
+		color: var(--fg);
+	}
+
+	.pop-close {
+		width: 26px;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		color: var(--fg-muted);
+	}
+
+	.pop-close:hover {
+		background: var(--surface-sunk);
+		color: var(--fg);
+	}
+
+	.pop-close svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	.pop-body {
+		padding: 14px;
+		max-height: min(68vh, 520px);
+		overflow-y: auto;
+	}
+
+	.pop-body .type-expand {
+		display: block;
+		margin-top: 0;
+	}
+
+	.pop-body .field:first-child {
+		margin-top: 0;
+	}
+
+	/* background editor (inline summary opens it in the popover) */
+	.bg-settings {
+		display: none;
+	}
+
+	.pop-body .bg-settings {
+		display: block;
+	}
+
+	.bg-trigger {
+		cursor: pointer;
+	}
+
+	.bg-pane {
+		display: none;
+	}
+
+	.bg-pane.on {
+		display: block;
+	}
+
+	/* color picker (swatch grid + hex) */
+	.cpick .swatches {
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
+		gap: 6px;
+	}
+
+	.cpick .swatches button {
+		aspect-ratio: 1;
+		border: 1px solid rgb(15 23 42 / 14%);
+		transition: transform 0.08s var(--ease);
+	}
+
+	.cpick .swatches button:hover {
+		transform: scale(1.08);
+		z-index: 1;
+	}
+
+	.cpick .swatches button.sel {
+		outline: 2px solid var(--brand);
+		outline-offset: 1px;
+		z-index: 2;
+	}
+
+	.cpick .swatches .none {
+		background: conic-gradient(#fff 0 25%, var(--bl-ui-checker) 0 50%, #fff 0 75%, var(--bl-ui-checker) 0) 0 0 / 10px 10px;
+	}
+
+	.cpick .hexrow {
+		display: flex;
+		gap: 8px;
+		margin-top: 12px;
+	}
+
+	.cpick .hex {
+		flex: 1;
+		min-width: 0;
+		height: 38px;
+		padding: 0 10px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		font: 500 var(--bl-ui-text-md)/1 var(--font-mono);
+		color: var(--fg);
+		text-transform: uppercase;
+	}
+
+	.cpick .hex:focus {
+		outline: none;
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px var(--brand);
+	}
+
+	.cpick .clear {
+		height: 38px;
+		padding: 0 12px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		font-size: var(--bl-ui-text-sm);
+		color: var(--fg-2);
+	}
+
+	.cpick .clear:hover {
+		border-color: var(--fg);
+		color: var(--fg);
+	}
+
+	/* toast */
+	.toast {
+		position: fixed;
+		left: 50%;
+		bottom: 26px;
+		transform: translateX(-50%) translateY(20px);
+		background: var(--fg);
+		color: #fff;
+		font-size: var(--bl-ui-text-md);
+		font-weight: 500;
+		padding: 10px 18px;
+		border: 1px solid var(--fg);
+		opacity: 0;
+		pointer-events: none;
+		transition: all 0.25s var(--ease);
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		z-index: 60;
+	}
+
+	.toast.show {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+
+	.toast svg {
+		width: 16px;
+		height: 16px;
+		color: var(--frost-blue);
+	}
+}
+
+@keyframes bl-ins-shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bl-ins *,
+	.bl-ins *::before,
+	.bl-ins *::after {
+		animation-duration: 0.001ms !important;
+		transition-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
+
+/* ============================================================
+   Facet rail shell — rail + pane. Replaces the .ins-tab strip
+   and per-tab .panel split. One facet fills the pane at a time.
+   ============================================================ */
+.bl-ins {
+	.ins-body {
+		display: flex;
+		/* stretch, not flex-start — the rail column then runs the pane's full height instead of
+		   shrink-wrapping its buttons and leaving a bare step below the last facet. */
+		align-items: stretch;
+		min-height: 0;
+		/* The expanding rail pushes the pane past the right edge; clip the overhang rather than let
+		   the sidebar grow a horizontal scrollbar. `clip`, not `hidden`: `hidden` would make this a
+		   scroll container and the sticky ContextBar inside the pane would anchor to it (a box that
+		   never scrolls) instead of the sidebar. `clip` also leaves the vertical axis truly
+		   visible, so a tall rail is never cut off. */
+		overflow-x: clip;
+	}
+
+	/* ---------- the rail (Style tab sub-nav) ---------- */
+	/* The rail widens in flow and slides the pane right, rather than floating over it. The pane
+	   keeps a fixed width throughout (see `.ins-pane`), so nothing inside it reflows or resizes as
+	   the rail opens — it only moves, and the overhang is clipped by `.ins-body`.
+	   The rail is a normal flex item, NOT an absolute overlay: an overlay took its height from the
+	   pane, so a facet with little content cut the bottom of the rail off. In flow it is as tall as
+	   its own buttons and the row stretches to match. */
+	.ins-rail {
+		display: flex;
+		width: 44px;
+		flex: 0 0 44px;
+		align-self: stretch;
+		z-index: 6;
+		transition: width 0.16s var(--ease), flex-basis 0.16s var(--ease);
+		/* Collapse the moment the pointer leaves — the delay below is intent, not decoration, and
+		   waiting to close would be the annoying half. */
+		transition-delay: 0s;
+	}
+
+	.ins-rail__inner {
+		flex: 1;
+		width: 152px;
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		padding: 4px 0 8px;
+		/* Clips the labels while collapsed — the list is laid out at full width the whole time so
+		   the buttons never re-wrap mid-transition. */
+		overflow: hidden;
+		background: var(--surface-alt);
+		border-right: 1px solid var(--border);
+	}
+
+	/* Expand on pointer AND on keyboard focus — the labels must be reachable without a mouse.
+	   Keyboard focus specifically (`:has(:focus-visible)`), not `:focus-within`: clicking a facet
+	   leaves that button focused, and `:focus-within` would then hold the rail open long after the
+	   pointer had left. A mouse click sets focus but not `:focus-visible`, so the rail closes on
+	   mouse-out as it should, while Tab and the arrow keys still hold it open. */
+	.ins-rail:hover,
+	.ins-rail:has(:focus-visible) {
+		width: 152px;
+		flex-basis: 152px;
+	}
+
+	/* Hover intent: the pointer has to stay on the rail before it opens, so crossing it on the way
+	   to the pane no longer shoves the panel sideways. Leaving before the delay elapses drops the
+	   hover state and the transition never starts, so a quick pass costs nothing. */
+	.ins-rail:hover {
+		transition-delay: 0.4s;
+	}
+
+	/* Keyboard focus is deliberate by definition — open at once. Listed after the hover rule so it
+	   wins at equal specificity when a focused rail is also under the pointer. */
+	.ins-rail:has(:focus-visible) {
+		transition-delay: 0s;
+	}
+
+	.ins-rail__btn {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 152px;
+		height: 32px;
+		flex: 0 0 auto;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--fg-muted);
+		cursor: pointer;
+		text-align: left;
+		transition: color 0.15s var(--ease), background 0.15s var(--ease), box-shadow 0.15s var(--ease);
+	}
+
+	.ins-rail__ico {
+		position: relative;
+		width: 44px;
+		flex: 0 0 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		.ico {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	/* Labels stay in the DOM at every width (opacity/width transition, never display:none) so
+	   assistive tech always reads a real name rather than a bare icon. */
+	.ins-rail__lbl {
+		font: 600 var(--bl-ui-text-xs)/1 var(--font-sans);
+		letter-spacing: 0.01em;
+		white-space: nowrap;
+		opacity: 0;
+		transition: opacity 0.14s var(--ease);
+		transition-delay: 0s;
+	}
+
+	.ins-rail:hover .ins-rail__lbl,
+	.ins-rail:has(:focus-visible) .ins-rail__lbl {
+		opacity: 1;
+	}
+
+	/* Same intent delay as the rail itself, or the labels fade up while the rail is still 44px. */
+	.ins-rail:hover .ins-rail__lbl {
+		transition-delay: 0.4s;
+	}
+
+	.ins-rail:has(:focus-visible) .ins-rail__lbl {
+		transition-delay: 0s;
+	}
+
+	.ins-rail__btn:hover:not(.on) {
+		color: var(--fg);
+		background: rgb(15 23 42 / 4%);
+	}
+
+	.ins-rail__btn.on {
+		color: var(--brand);
+		background: var(--brand-soft);
+		box-shadow: inset 2px 0 0 var(--brand);
+	}
+
+	.ins-rail__badge,
+	.ins-rail__dot {
+		position: absolute;
+		top: 4px;
+		right: 8px;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		border: 1.5px solid var(--surface-alt);
+	}
+
+	.ins-rail__badge {
+		background: var(--brand);
+	}
+
+	.ins-rail__dot {
+		background: var(--fg-faint);
+	}
+
+	.ins-rail__btn.on .ins-rail__dot {
+		background: var(--brand);
+		border-color: var(--brand-soft);
+	}
+
+	/* ---------- the pane ---------- */
+	/* Width is pinned to "sidebar minus the collapsed rail" and never negotiated, so opening the
+	   rail slides the pane right instead of squeezing it — at a 280px sidebar a shrinking pane
+	   would re-wrap every field the moment the pointer touched the rail. */
+	.ins-pane {
+		/* Fixed at the sidebar minus the collapsed rail, so nothing inside reflows as the rail
+		   expands — the pane only moves, and `.ins-body` clips the overhang. */
+		flex: 0 0 calc(100% - 44px);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		/* lets facet content react to the *pane* width (sidebar − rail), not the viewport */
+		container: ins-pane / inline-size;
+	}
+
+	/* Settings, Advanced and CSS have no rail beside them. Holding the reserved 44px there left
+	   every one of them a rail's width short of the sidebar for no reason. */
+	.ins-pane.is-full {
+		flex-basis: 100%;
+	}
+
+	.ins-toolbar {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 6px 8px;
+		padding: 8px 10px;
+	}
+
+	.ins-facet {
+		padding: 4px 10px 24px;
+		animation: bl-ins-facet-in 0.2s var(--ease);
+	}
+
+	/* The title owns the gap beneath it, so every facet opens the same way regardless of what its
+	   control happens to render first (a field, a group caption, a composite trigger). */
+	.ins-facet__title {
+		/* An <h3> — reset the UA heading metrics the flex row would otherwise inherit. */
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 0 12px;
+		font: 600 var(--bl-ui-label-size)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking);
+		text-transform: uppercase;
+		color: var(--fg);
+	}
+
+	/* …and nothing a control renders first may add to (or eat) that gap: no leading top margin, and no group divider butting straight up against the title. */ .ins-facet > :not(.ins-facet__title) > div:first-of-type { margin-top: 0;
+
+		&.bl-more > .bl-more__toggle {
+			padding-top: 0;
+			border-top: 0;
+		}
+	}
+
+	.ins-facet__ico {
+		display: inline-flex;
+		color: var(--brand);
+
+		.ico {
+			width: 14px;
+			height: 14px;
+		}
+	}
+
+	.ins-facet__reset {
+		margin-left: auto;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		font: 500 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--brand);
+	}
+
+	.ins-facet__reset:hover {
+		color: var(--brand-bold);
+	}
+
+	.bl-ins-note {
+		margin: 18px 0 0;
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.5;
+		color: var(--fg-muted);
+	}
+
+	@keyframes bl-ins-facet-in {
+		from {
+			opacity: 0;
+			transform: translateX(6px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	/* ---------- compact context bar (state select + device trio) ---------- */
+	/* Compact state <select>; the dot tints on any non-default state so an active override is
+	   visible without opening the menu. */
+	.stsel {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		min-width: 0;
+		height: 26px;
+		padding: 0 6px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+
+		select {
+			border: 0;
+			background: none;
+			padding: 0;
+			min-width: 0;
+			font: 600 var(--bl-ui-text-xs)/1 var(--font-sans);
+			color: var(--fg);
+			cursor: pointer;
+
+			/* wp-admin ships `.wp-core-ui select { min-height: 40px }`. This bar is 26px, and
+			   the select inherited that floor — a 40px control in a 26px frame, overhanging
+			   7px above and below with `overflow: visible`, so it silently took clicks from
+			   whatever sat next to it. Reset the floor, then fill the bar. */
+			height: 100%;
+			min-height: 0;
+		}
+	}
+
+	.stsel__dot {
+		width: 6px;
+		height: 6px;
+		flex: 0 0 auto;
+		border-radius: 50%;
+		background: var(--fg-faint);
+	}
+
+	.stsel.on {
+		border-color: var(--brand);
+		background: var(--brand-soft);
+
+		select {
+			color: var(--brand);
+		}
+	}
+
+	.stsel.on .stsel__dot {
+		background: var(--brand);
+	}
+
+	/* device — compact icon segments */
+	.dev {
+		display: flex;
+		gap: 1px;
+		flex: 0 0 auto;
+		border: 1px solid var(--border-strong);
+		background: var(--border);
+	}
+
+	.dev {
+		margin-left: auto;
+	}
+
+	.dev button {
+		width: 26px;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		border: 0;
+		background: var(--paper);
+		color: var(--fg-muted);
+		cursor: pointer;
+		transition: all 0.12s var(--ease);
+
+		.ico {
+			width: 14px;
+			height: 14px;
+		}
+	}
+
+	.dev button:hover:not(.on) {
+		color: var(--fg);
+		background: var(--surface-sunk);
+	}
+
+	.dev button.on {
+		background: var(--brand);
+		color: #fff;
+	}
+
+	/* ---------- tab strip (top-level nav) ---------- */
+	.ins-tabs {
+		display: flex;
+		align-items: stretch;
+		border-bottom: 1px solid var(--border);
+		background: var(--surface-alt);
+	}
+
+	.ins-tabs__btn {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		height: 34px;
+		padding: 0 2px;
+		border: 0;
+		background: none;
+		color: var(--fg-muted);
+		cursor: pointer;
+		font: 600 var(--bl-ui-text-2xs)/1 var(--font-sans);
+		white-space: nowrap;
+		transition: color 0.15s var(--ease), background 0.15s var(--ease), box-shadow 0.15s var(--ease);
+
+		.ico {
+			width: 14px;
+			height: 14px;
+			flex: 0 0 auto;
+		}
+	}
+
+	.ins-tabs__btn:hover:not(.on) {
+		color: var(--fg);
+	}
+
+	.ins-tabs__btn.on {
+		color: var(--brand);
+		background: var(--paper);
+		box-shadow: inset 0 -2px 0 var(--brand);
+	}
+
+	/* ---------- property search ---------- */
+	.ins-search {
+		position: relative;
+		display: flex;
+		align-items: center;
+		margin: 0 10px 4px;
+	}
+
+	.ins-search__ico {
+		position: absolute;
+		left: 7px;
+		width: 11px;
+		height: 11px;
+		color: var(--fg-subtle);
+		pointer-events: none;
+	}
+
+	.ins-search__input {
+		width: 100%;
+		height: 24px;
+		box-sizing: border-box;
+		border: 1px solid var(--border);
+		background: var(--surface-sunk);
+		padding: 0 22px 0 22px;
+		font-size: var(--bl-ui-text-xs);
+		color: var(--fg);
+
+		&::-webkit-search-cancel-button {
+			appearance: none;
+		}
+	}
+
+	.ins-search__clear {
+		position: absolute;
+		right: 5px;
+		border: 0;
+		padding: 0;
+		background: none;
+		color: var(--fg-subtle);
+		cursor: pointer;
+		font-size: var(--bl-ui-text-md);
+		line-height: 1;
+
+		&:hover {
+			color: var(--fg);
+		}
+	}
+
+	/* ---------- footer cascade hint ---------- */
+	.ins-footer {
+		margin-top: auto;
+		padding: 6px 10px;
+		border-top: 1px solid var(--border);
+		font-size: var(--bl-ui-text-2xs);
+		color: var(--fg-subtle);
+	}
+
+	/* Accessibility rows: a fixed label instead of an editable attribute-name input. */
+	.bl-attr-row--named {
+		grid-template-columns: 68px minmax(0, 1fr);
+	}
+
+	.bl-attr-row__label {
+		font-size: var(--bl-ui-text-xs);
+		color: var(--fg-muted);
+		align-self: center;
+	}
+}

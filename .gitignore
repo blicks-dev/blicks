@@ -1,0 +1,19 @@
+# dependencies & build artifacts
+vendor/
+node_modules/
+build/
+dist/
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+/.idea/
+.omc/
+
+# phpunit
+.phpunit.result.cache
+.phpunit.cache/
+
+# design mockups (scratch)
+mockups/

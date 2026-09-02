@@ -1,0 +1,25 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/spacer",
+	"title": "Spacer",
+	"category": "blicks",
+	"description": "A responsive empty space block for vertical or horizontal rhythm.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*" ],
+			"states": [ "default" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"size":        { "type": "string", "default": "64px" },
+		"orientation": { "type": "string", "default": "vertical" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

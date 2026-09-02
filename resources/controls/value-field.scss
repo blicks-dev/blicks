@@ -1,0 +1,486 @@
+/* ValueField — an affix and a value field sharing ONE frame.
+ *
+ * The frame lives on the wrapper, never on either half: two adjacent boxes read as two settings,
+ * and these are two ways into the same one. The combobox inside gives up its own border, padding
+ * and focus ring.
+ *
+ * The wrapper is padded, so a selected icon reads as a chip sitting inside the field rather than
+ * a block welded to its edge.
+ *
+ * Colours, type and metrics come from the inspector's design-system layer. No literals.
+ * Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-valuefield {
+	display: flex;
+	align-items: stretch;
+	gap: 3px;
+	/* 32 = 3px padding + a 24px row + 3px padding, plus the hairline top and bottom. */
+	height: 32px;
+	padding: 3px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--bl-editor-radius);
+	background: var(--paper);
+	box-sizing: border-box;
+
+	/* One ring around the whole control — every part of it focuses as one thing. */
+	&:focus-within {
+		border-color: var(--brand);
+		box-shadow: 0 0 0 1px var(--brand-soft);
+	}
+
+	/* Holds a value: the frame states it, so a grid of these can be read at a glance without
+	   comparing the text in each one. */
+	&.is-set {
+		border-color: var(--brand);
+	}
+}
+
+/* A stack of value fields, one per row.
+ *
+ * NOT a two-up grid. The sidebar is 280px and the rail takes 44 of it, so a half-width cell is
+ * ~102px — after the caption, the reset and the `▾` that leaves about 16px of input, which clips
+ * `content-box` down to `cor`. A captioned field needs the full column; the caption is what buys
+ * the vertical space back, since it replaces the label row that would otherwise sit above.
+ */
+.bl-ins .bl-fields {
+	display: grid;
+	/* `minmax(0, 1fr)`, not the implicit `auto`: an auto column sizes to its widest content, so one
+	   field with an intrinsic width — a range input carries ~129px of its own — pushed the whole
+	   stack past the pane instead of shrinking inside it. */
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.bl-ins .bl-fields:last-child {
+	margin-bottom: 0;
+}
+
+/* Two-up. Only for pairs whose values are short and read as one setting — row and column gap,
+   where the caption is three letters and the value rarely passes `16px`. A captioned field with a
+   long value still needs the full column; see the note above. */
+.bl-ins .bl-fields--2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px;
+}
+
+/* ---- a field with its own nested fields (Width → min/max) ---- */
+.bl-ins .bl-fieldgroup__toggle {
+	position: relative;
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 18px;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--fg-faint);
+	cursor: pointer;
+}
+
+.bl-ins .bl-fieldgroup__toggle:hover {
+	color: var(--brand);
+}
+
+/* Plus when closed, minus when open — the glyph itself carries the state, so nothing rotates. */
+.bl-ins .bl-fieldgroup__toggle svg {
+	width: 11px;
+	height: 11px;
+}
+
+.bl-ins .bl-fieldgroup.is-open .bl-fieldgroup__toggle {
+	color: var(--brand);
+}
+
+/* Bounded but collapsed — otherwise a min-width you set last week is invisible. */
+.bl-ins .bl-fieldgroup__dot {
+	position: absolute;
+	top: 3px;
+	right: 1px;
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: var(--brand);
+}
+
+.bl-ins .bl-fieldgroup.is-open .bl-fieldgroup__dot {
+	display: none;
+}
+
+/* Indented under its parent field, with the same left rule the nested disclosures use, so one
+   nesting device means one thing throughout the inspector. */
+/* A stack nested in another stack — a two-up pair sitting as one row of a longer column, or the
+   body of a field group — is a row of its parent, not a section: the section's trailing margin
+   would put a 13px hole where the parent's own gap already is.
+   
+   Every selector here names a parent that IS a grid with a gap of its own. That is the whole
+   condition: zeroing the margin under a parent that is not took away the only thing separating
+   consecutive stacks, and butted every row of the Shadow editor against the next. */
+.bl-ins .bl-fields .bl-fields,
+.bl-ins .bl-fieldgroup__body .bl-fields,
+.bl-ins .bl-more__body > .bl-fields {
+	margin-bottom: 0;
+}
+
+.bl-ins .bl-fieldgroup__body {
+	display: grid;
+	gap: 6px;
+	margin: 6px 0 2px 8px;
+	padding-left: 10px;
+	border-left: 1px solid var(--divider);
+}
+
+/* ---- lettered affix (W, H, MIN W …) ---- */
+.bl-ins .bl-valuefield__cap {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	padding: 0 4px;
+	font: 700 var(--bl-ui-text-2xs)/1 var(--font-mono);
+	letter-spacing: 0.08em;
+	color: var(--fg-subtle);
+	white-space: nowrap;
+}
+
+.bl-ins .bl-valuefield.is-set .bl-valuefield__cap {
+	color: var(--brand);
+}
+
+/* ---- icon affix ---- */
+.bl-ins .bl-valuefield__icons {
+	flex: 0 0 auto;
+	display: flex;
+	/* Capped so the value never loses to the icons: four 30px targets took 127px of a 215px frame
+	   and left `visible` with 51px to render in. The buttons give ground before the text does. */
+	max-width: 46%;
+	padding-right: 3px;
+	border-right: 1px solid var(--divider);
+
+	.seg-row {
+		height: 100%;
+		border: 0;
+		padding: 0;
+		gap: 1px;
+		background: transparent;
+	}
+
+	.seg-row {
+		max-width: 100%;
+	}
+
+	.seg-row button {
+		flex: 1 1 auto;
+		min-width: 24px;
+		max-width: 30px;
+		height: 100%;
+		border-radius: var(--bl-editor-radius);
+	}
+
+	.seg-row button > svg {
+		width: 15px;
+		height: 15px;
+	}
+
+	/* The design system's segmented selected state, unchanged: solid brand fill, white glyph.
+	   Inset by the wrapper's padding it reads as a chip, not a slab against the border. */
+	.seg-row button.on {
+		background: var(--brand);
+		color: #fff;
+	}
+
+	.seg-row button:hover:not(.on) {
+		background: var(--surface-sunk);
+		color: var(--fg);
+	}
+}
+
+/* A frame carrying BOTH a caption and icons has two fixed costs before the value gets any width.
+   The icons give ground first — they stay legible at 20px, and a value clipped to `stre` does not. */
+.bl-ins .bl-valuefield:not(.bl-valuefield--icons):has(.bl-valuefield__cap) .bl-valuefield__icons {
+	/* 40% of a 215px pane is 86px — exactly what four 20px targets and their gaps need. Below
+	   that the buttons stop shrinking (they have a floor) and the last one lands under the
+	   divider instead. */
+	max-width: 40%;
+
+	.seg-row button {
+		min-width: 20px;
+		max-width: 26px;
+	}
+}
+
+/* Icons-only: no field to give the leftover width to, so the segmented row takes it and the
+   buttons spread evenly — a closed value set reads better as a full-width choice row than as a
+   huddle of icons with dead space after them. */
+.bl-ins .bl-valuefield--icons .bl-valuefield__icons {
+	flex: 1 1 auto;
+	max-width: none;
+	padding-right: 0;
+	border-right: 0;
+}
+
+.bl-ins .bl-valuefield--icons .seg-row {
+	width: 100%;
+	gap: 2px;
+}
+
+.bl-ins .bl-valuefield--icons .seg-row button {
+	flex: 1 1 auto;
+	max-width: none;
+}
+
+.bl-ins .bl-valuefield--icons > .reset {
+	flex: 0 0 auto;
+	width: 18px;
+	height: 100%;
+}
+
+.bl-ins .bl-valuefield--icons > .reset svg {
+	width: 11px;
+	height: 11px;
+}
+
+/* ---- the field itself ----
+   The combobox is a direct child of the frame, so the chain that has to stretch is one level
+   deep: frame → combobox → field → input. Every link needs to grow explicitly; leave one out and
+   the input shrink-wraps to nothing and the `▾` lands in the middle of the frame. */
+.bl-ins .bl-valuefield > .bl-combobox {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.bl-ins .bl-valuefield > .bl-combobox .bl-combobox__field {
+	width: 100%;
+	height: 100%;
+	/* The frame already draws the border, the padding and the focus ring; the compact field would
+	   draw a second set inside it. */
+	padding: 0 4px;
+	border: 0;
+	box-shadow: none;
+}
+
+/* The inline reset sits inside the field, between the value and the `▾`, rather than above it in
+   a label row — at this size a header per field would cost more height than the field. */
+.bl-ins .bl-valuefield .bl-combobox__field > .reset {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 100%;
+}
+
+.bl-ins .bl-valuefield .bl-combobox__field > .reset svg {
+	width: 11px;
+	height: 11px;
+}
+
+/* The box-model cross — four value fields laid out where the side they write actually is.
+ *
+ * Replaces the old `.bl-boxmodel` nested-rectangles diagram AND the bare `.box4` inputs: the
+ * cells are ordinary `ValueField`s now, so a value is picked the same way every other value in the
+ * inspector is. Shared by Spacing (margin, padding) and Position (inset) — which is why it lives
+ * here, with the fields, rather than in either facet's own stylesheet. `.box4` stays in the
+ * foundation for whatever has not moved across yet.
+ *
+ * Colours and metrics come from the inspector's design-system layer. Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-cross {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 4px;
+}
+
+.bl-ins .bl-cross__cell.b-top {
+	grid-area: 1 / 2;
+}
+
+.bl-ins .bl-cross__cell.b-left {
+	grid-area: 2 / 1;
+}
+
+.bl-ins .bl-cross__cell.b-right {
+	grid-area: 2 / 3;
+}
+
+.bl-ins .bl-cross__cell.b-bottom {
+	grid-area: 3 / 2;
+}
+
+/* Names the box the ring of fields is editing. Text rather than a glyph: with margin and padding
+   drawn identically, the centre is the only thing that tells the two crosses apart. */
+.bl-ins .bl-cross__core {
+	grid-area: 2 / 2;
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	border: 1px solid var(--border-strong);
+	background: var(--brand-tint);
+	/* The one size deliberately off the type scale: this is a fixed grid cell with
+	   `overflow: hidden`, and the next step up (10px) clips the word inside it. If this
+	   ever needs to be legible at a normal size, the widget has to give it more room —
+	   growing the type alone would just hide the label. */
+	font: 600 8px/1 var(--font-mono);
+	letter-spacing: 0.08em;
+	color: var(--brand);
+}
+
+/* Corners, not sides: the same figure rotated 45° in spirit — a field at each corner of the box
+   it rounds. Row 2 column 2 still holds the tag, so the two crosses line up when a facet shows
+   both (Border does).*/
+.bl-ins .bl-cross--corners .bl-cross__cell.c-top-left {
+	grid-area: 1 / 1;
+}
+
+.bl-ins .bl-cross--corners .bl-cross__cell.c-top-right {
+	grid-area: 1 / 3;
+}
+
+.bl-ins .bl-cross--corners .bl-cross__cell.c-bottom-left {
+	grid-area: 3 / 1;
+}
+
+.bl-ins .bl-cross--corners .bl-cross__cell.c-bottom-right {
+	grid-area: 3 / 3;
+}
+
+/* The cross owns the row rhythm, so a field inside it drops the stack's trailing margin. */
+.bl-ins .bl-cross .bl-fields {
+	margin-bottom: 0;
+}
+
+/* Values centre in their cell. The cross is a symmetric figure; left-aligned numbers ringing it
+   read as four unrelated fields that happen to be near each other. */
+.bl-ins .bl-cross__cell .bl-combobox__input {
+	text-align: center;
+}
+
+/* ---- slider variant ----
+   A track plus a readout in the same frame the comboboxes use. `accent-color` does the brand fill
+   in both themes without restyling the thumb per engine. */
+.bl-ins .bl-valuefield--slider {
+	gap: 6px;
+	padding-right: 4px;
+}
+
+.bl-ins .bl-valuefield__range {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	accent-color: var(--brand);
+	cursor: pointer;
+}
+
+.bl-ins .bl-valuefield__range:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+/* Fixed width, tabular: the row must not shuffle sideways while the handle is being dragged. */
+.bl-ins .bl-valuefield__readout {
+	flex: 0 0 auto;
+	display: grid;
+	place-items: center;
+	min-width: 34px;
+	font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+	font-variant-numeric: tabular-nums;
+	color: var(--fg-2);
+}
+
+.bl-ins .bl-valuefield--slider.is-set .bl-valuefield__readout {
+	color: var(--brand);
+}
+
+/* Unset shows the inherited value, muted — present enough to orient by, quiet enough not to look
+   like a setting you made. */
+.bl-ins .bl-valuefield--slider:not(.is-set) .bl-valuefield__readout {
+	color: var(--fg-subtle);
+}
+
+/* ---- colour row, sharing the field frame ----
+   The swatch sits where every other row puts its caption, so the gap before it matches the
+   caption's own inset and the rows still line up down the panel. */
+.bl-ins .bl-valuefield--color {
+	gap: 2px;
+	padding-left: 6px;
+}
+
+/* Round, and the one round thing in a panel of square corners — which is the point. It is not a
+   value being displayed in a box like the rest of the row; it is the target you press to reach the
+   colour wheel, and it should not be mistaken for a read-out. */
+.bl-ins .bl-colorrow__swatch {
+	flex: 0 0 auto;
+	width: 18px;
+	height: 18px;
+	align-self: center;
+	padding: 0;
+	border: 1px solid rgb(15 23 42 / 18%);
+	border-radius: 50%;
+	cursor: pointer;
+
+	&::before { content: none; }
+
+	&:hover,
+	&:focus-visible {
+		box-shadow: 0 0 0 2px var(--brand-tint);
+	}
+
+	&.is-transparent {
+		background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 6px 6px;
+	}
+}
+
+/* Same glyph and size as the combobox's own toggle — this opens a list of values, and it should
+   not have to be learned twice. */
+.bl-ins .bl-colorrow__caret {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 16px;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--fg-subtle);
+	cursor: pointer;
+
+	&::before { content: none; }
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover,
+	&.is-open {
+		color: var(--brand);
+	}
+}
+
+.bl-ins .bl-colorrow__name {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 0 0 0 4px;
+	border: 0;
+	background: none;
+	text-align: left;
+	font: 400 var(--bl-ui-text-xs)/1 var(--font-mono);
+	color: var(--fg);
+	cursor: pointer;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.bl-ins .bl-valuefield--color:not(.is-set) .bl-colorrow__name {
+	color: var(--fg-subtle);
+}
+
+/* ---- stroke samples (border style) ----
+   A dash pattern only reads at length. These glyphs are 2:1 instead of square, and the row drops
+   its caption so the samples get the width back. */
+.bl-ins .bl-valuefield--strokes .bl-valuefield__icons .seg-row button > svg {
+	width: 24px;
+	height: 12px;
+}

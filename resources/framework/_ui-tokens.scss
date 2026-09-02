@@ -1,0 +1,213 @@
+/* ============================================================
+   Blicks UI tokens — the ONE source of truth for the plugin's own
+   chrome: the admin SPA (`.blicks-admin`) and the block-editor
+   inspector (`.bl-ins`).
+
+   These are NOT the product design tokens. `resources/design-system/`
+   holds what *blocks* render with (the user's theme, editable in
+   Blicks → Design System). This file is the palette Blicks' own
+   interface is painted in, which the user never edits.
+
+   WHY THIS EXISTS
+   The admin and the inspector each declared their own `--fg`,
+   `--border`, `--danger`… under the same names with different values —
+   two systems wearing one namespace. `--fg-subtle` was `#8a93a1` in one
+   and `#6b6b6b` in the other; `--warn` `#f2a007` vs `#d97706`. Anything
+   read across both screens (and every future surface) drifted apart by
+   construction.
+
+   HOW IT IS CONSUMED
+   Emitted as a mixin, not a `:root` block, because it has to land on two
+   different scoped roots without leaking into wp-admin or the editor
+   canvas. Each root keeps its own short local names (`--fg`, `--faint`,
+   `--accent`…) as *aliases* onto these, so the ~10k lines of rules that
+   reference them need no edit and there is still exactly one value.
+
+     .blicks-admin { @include ui-tokens.palette; --faint: var(--bl-ui-fg-subtle); … }
+
+   CONTRAST
+   Every ink and status value is chosen against the DARKEST surface it can
+   land on, not against white — a token that only passes on paper fails the
+   moment it is used on a sunk row. Ratios in the comments are the measured
+   worst case across all four surfaces below. Re-measure if you touch these.
+   ============================================================ */
+
+@mixin palette {
+	/* ---------- surfaces ----------
+	   The four grounds every ink below is measured against. */
+	--bl-ui-paper: #fff;
+	--bl-ui-canvas: #f6f7f9;
+	--bl-ui-surface-alt: #f8fafc;
+	--bl-ui-surface-sunk: #f1f5f9;
+
+	/* ---------- ink — a five-step neutral ramp ----------
+	   Neutral rather than slate-blue: the admin's ramp was slate (#0d1117 …
+	   #8a93a1) and the inspector's was neutral grey, so the two screens
+	   disagreed on the temperature of their own text. Neutral wins because
+	   #1e1e1e is wp-admin's own ink — it reads as WordPress, not as a plugin
+	   that brought its own greys.
+
+	   Measured worst case, in order: 15.2 · 10.1 · 6.3 · 4.9 · 3.2.
+	   The last two carry the thresholds and MUST NOT be lightened:
+	     `--bl-ui-fg-subtle` is the smallest thing still made of words — field
+	       captions, eyebrows, placeholders, chevrons. It holds the 4.5:1 AA
+	       floor for small text.
+	     `--bl-ui-fg-faint` is for NON-TEXT UI only (state dots, hairline glyphs).
+	       It holds the 3:1 floor and is not legal for a label. */
+	--bl-ui-fg: #1e1e1e;
+	--bl-ui-fg-2: #3c3c3c;
+	--bl-ui-fg-muted: #5a5a5a;
+	--bl-ui-fg-subtle: #6b6b6b;
+	--bl-ui-fg-faint: #8a8a8a;
+
+	/* ---------- lines ---------- */
+	--bl-ui-border: #e2e8f0;
+	--bl-ui-border-strong: #cbd5e1;
+	--bl-ui-divider: #eef1f5;
+
+	/* ---------- brand ----------
+	   Follows the user's chosen admin colour scheme so both surfaces read as
+	   WordPress. The whole family derives from `--bl-ui-brand`, not just the base:
+	   a green scheme sitting on blue tints is worse than either alone.
+
+	   NOTE: because this adapts, its contrast is the scheme's to guarantee, not
+	   ours. Never put small text on `--bl-ui-brand` over a light ground without
+	   checking; use `--bl-ui-fg`/`--bl-ui-fg-muted` for prose and let brand carry
+	   accents, focus rings and fills. */
+	--bl-ui-brand: var(--wp-components-color-accent, var(--wp-admin-theme-color, #002bff));
+	--bl-ui-brand-bold: color-mix(in srgb, var(--bl-ui-brand) 85%, #000);
+	--bl-ui-brand-soft: color-mix(in srgb, var(--bl-ui-brand) 5%, transparent);
+	--bl-ui-brand-tint: color-mix(in srgb, var(--bl-ui-brand) 10%, transparent);
+
+	/* ---------- status ----------
+	   One value each, at the same step of one ramp so the three read as a set.
+	   All three are text-safe (≥4.5:1 worst case), which the old pairs were not:
+	   `--warn #f2a007` measured 2.0:1 and painted label text in six places.
+
+	   Deliberately one token, not a text/graphic pair: every current graphic use
+	   is a dot, a hairline border or a small fill under white text, and all three
+	   get MORE legible at this step, not less. Add a `-bright` variant only when
+	   something genuinely needs a lighter graphic. */
+	--bl-ui-danger: #be123c; /* 5.7 */
+	--bl-ui-warn: #b45309; /* 4.6 */
+	--bl-ui-success: #15803d; /* 4.6 */
+	--bl-ui-danger-soft: rgb(190 18 60 / 7%);
+
+	/* ---------- code surface (inverted) ----------
+	   The generated-CSS output panel is the one place the chrome goes dark, so it
+	   carries its own ink ramp measured against ITS ground, not the light one. It
+	   had been five loose hex literals with no token and a 4.35:1 label at 10px. */
+	--bl-ui-code-bg: #0d1117;
+	--bl-ui-code-fg: #cdd6e4; /* 12.9 */
+	--bl-ui-code-label: #7d8a9c; /* 5.4 — was #6f7a8a, 4.35 */
+	--bl-ui-code-prop: #8fb0ff; /* 8.9 */
+	--bl-ui-code-val: #9fe0b0; /* 12.4 */
+
+	/* ---------- transparency checkerboard ----------
+	   The square painted behind any swatch so a translucent token reads as
+	   translucent. There were four of these in three different greys (#eef1f5,
+	   #f1f5f9, #d9dde5) across the two surfaces — the same signal, drawn
+	   differently depending on which panel you were looking at. The tile SIZE
+	   still varies per swatch, which is correct: a 10px check suits a 26px
+	   swatch and a 16px check suits a full-width preview. */
+	--bl-ui-checker: #eef1f5;
+
+	/* ---------- accents ----------
+	   Decorative only — charts, tags, illustration. Not measured for text. */
+	--bl-ui-frost-blue: #b3d5ff;
+	--bl-ui-navy: #1a194c;
+	--bl-ui-acc-magenta: #e31957;
+	--bl-ui-acc-violet: #a440ce;
+
+	/* ---------- type ----------
+	   Neither webfont is bundled or enqueued, so both stacks resolve to system
+	   fonts today; the names are here so that if the faces are ever enqueued BOTH
+	   surfaces pick them up together. The mono stack's order had been reversed
+	   between the two screens, which is exactly the kind of drift that only shows
+	   up on the day someone adds the font. */
+	--bl-ui-font-sans: "Inter", -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+	--bl-ui-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", sfmono-regular, menlo, monospace;
+
+	/* ---------- type scale ----------
+	   The measured reality before this: 260 px font-size declarations across 22
+	   distinct sizes, in half-pixel steps (8 / 9.5 / 10 / 10.5 / 11 / 11.5 / 12 /
+	   12.5 / 13 / 13.5 / 14 / 15 / 16 / 17), which is drift, not a scale.
+
+	   Seven steps. Off-scale sizes were rounded to the nearest step and ties were
+	   broken DOWNWARD — the inspector is a 280px sidebar, so rounding up risks
+	   reflow and overflow in the one place there is no room for it. */
+	--bl-ui-text-2xs: 10px; /* micro-label / eyebrow, dense contexts */
+	--bl-ui-text-xs: 11px; /* eyebrow default, field captions */
+	--bl-ui-text-sm: 12px; /* secondary UI text */
+	--bl-ui-text-md: 13px; /* control text — the workhorse */
+	--bl-ui-text-lg: 14px; /* base body */
+	--bl-ui-text-xl: 16px; /* section headings */
+	--bl-ui-text-2xl: 18px; /* panel headings */
+
+	/* ---------- display scale ----------
+	   The admin's headline sizes. These are NOT the UI scale — they are four rungs
+	   of a page hierarchy, each used by one component, so they are named rather than
+	   collapsed. The one genuine duplication was a card heading at 26px beside a
+	   near-identical one at 28px; those are now one step. */
+	--bl-ui-display-sm: 28px; /* card / panel heading */
+	--bl-ui-display-md: 30px; /* page title */
+	--bl-ui-display-lg: 44px; /* stat value */
+	--bl-ui-display-xl: 52px; /* hero */
+	--bl-ui-display-xl-narrow: 38px; /* hero, below the wide breakpoint */
+
+	/* ---------- micro-label ----------
+	   One role — the mono uppercase eyebrow — had 22 distinct (size, tracking)
+	   pairs across 50 rules, with tracking moving at random against size. Two
+	   steps, and tracking tightens as size grows, which is the direction it is
+	   supposed to move. */
+	--bl-ui-label-size: 11px;
+	--bl-ui-label-tracking: 0.1em;
+	--bl-ui-label-size-sm: 10px;
+	--bl-ui-label-tracking-sm: 0.12em;
+
+	/* ---------- space: a 2px grid, enforced as a RULE, not as tokens ----------
+	   795 padding/margin/gap declarations used every integer from 1 to 24. The 119
+	   that sat off a 2px grid (5, 7, 9, 11, 13, 15, 17, 23) were snapped onto it,
+	   ties breaking downward — in a 280px sidebar, rounding up is the direction that
+	   overflows.
+
+	   Deliberately NOT a set of `--bl-ui-space-*` tokens. A 2px grid from 2 to 24 is
+	   a dozen steps whose names would only restate their own values (`space-8: 8px`),
+	   so aliasing 593 already-correct literals would be churn that buys no meaning
+	   and hides the number at the point of use. The scale's value here is the
+	   CONSTRAINT — these values and no others — so it lives as this rule:
+
+	     Layout spacing (padding, margin, gap) is an EVEN number of pixels, 2–24.
+
+	   Two deliberate exemptions, both chrome rather than layout rhythm:
+	     1px — hairlines and borders.
+	     3px — control-track padding (`.seg`, `.seg-row`), which is load-bearing in
+	       the `calc()` that derives button height from `--bl-ui-field-h`. Changing
+	       it silently breaks the field height every control was just aligned to.
+	   Spacing above 24px (section gutters, the chevron gutter) is layout structure
+	   rather than rhythm and is left at its measured values. */
+
+	/* ---------- control metrics ----------
+	   A text field, a select and a segmented row sitting in one column must share
+	   an outer height or the panel reads ragged. They measured 36 / 38 / 38 / 42
+	   with a generic `select` at 32 in one file and 38 in another.
+
+	   `--bl-ui-field-h` is the OUTER height of every full-width control — input,
+	   select, segmented row. A control that wraps its buttons in a track subtracts
+	   its own chrome with `calc()` rather than hardcoding the result, because the
+	   tracks disagree on chrome (`.seg` is 3px padding + 1px border = 8; the older
+	   `.bl-segmented-setting` is 2px padding, no border = 4) and only the OUTER
+	   height has to match.
+
+	   `--bl-ui-field-h-sm` is the second tier: icon strips and compact value fields
+	   that deliberately sit below the field height. One second tier, not three —
+	   these measured 26, 28 and 32. */
+	--bl-ui-field-h: 38px;
+	--bl-ui-field-h-sm: 32px;
+
+	/* Sharp corners everywhere. The fallback matters: popovers are portaled by WP
+	   outside the scoped root, and a `var(--x, 2px)` fallback would quietly round
+	   43 rules the moment the wrapper class is forgotten. */
+	--bl-ui-radius: 0;
+	--bl-ui-ease: cubic-bezier(0.2, 0, 0, 1);
+}

@@ -1,0 +1,144 @@
+/* Decoration (::before/::after) control — mockup vocabulary. The preset gallery
+   (`.bl-deco-presets`) is already tokenized in the inspector partial. This file styles
+   the collapsible groups, the labelled field inputs/selects, and the counter inputs.
+   Scoped to `.bl-ins`. */
+.bl-ins .bl-decoration {
+	font-size: var(--bl-ui-text-md);
+
+	.bl-deco-panel > .field {
+		margin-bottom: 10px;
+	}
+
+	.bl-deco-enable {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		font-size: var(--bl-ui-text-sm);
+		color: var(--fg-2);
+	}
+
+	.sub-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 6px;
+
+		.sub {
+			flex: 1;
+			margin: 0;
+		}
+	}
+
+	/* collapsible <details> group */
+	.bl-deco-group {
+		margin-bottom: 6px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+
+		& > summary {
+			padding: 8px 10px;
+			font: 600 var(--bl-ui-text-xs)/1 var(--font-mono);
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--fg);
+			cursor: pointer;
+			list-style: none;
+			user-select: none;
+
+			&::-webkit-details-marker {
+				display: none;
+			}
+
+			&::before {
+				content: "▸";
+				display: inline-block;
+				margin-right: 6px;
+				color: var(--fg-subtle);
+				transition: transform 120ms ease;
+			}
+		}
+
+		&[open] > summary::before {
+			transform: rotate(90deg);
+		}
+	}
+
+	.bl-deco-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		padding: 4px 10px 12px;
+	}
+
+	.bl-deco-field {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+
+		&--wide {
+			grid-column: 1 / -1;
+		}
+
+		& > span {
+			font: 500 var(--bl-ui-label-size-sm)/1.2 var(--font-mono);
+			letter-spacing: var(--bl-ui-label-tracking-sm);
+			text-transform: uppercase;
+			color: var(--fg-muted);
+		}
+
+		& input,
+		& select {
+			box-sizing: border-box;
+			width: 100%;
+			min-width: 0;
+			height: 34px;
+			margin: 0;
+			padding: 0 10px;
+			border: 1px solid var(--border-strong);
+			background: var(--paper);
+			color: var(--fg);
+			font: inherit;
+			font-size: var(--bl-ui-text-md);
+			outline: 0;
+
+			&:hover {
+				border-color: #aab4c2;
+			}
+
+			&:focus {
+				border-color: var(--brand);
+				box-shadow: 0 0 0 2px var(--brand);
+			}
+		}
+
+		& select {
+			cursor: pointer;
+			appearance: none;
+			padding-right: 28px;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-position: right 9px center;
+			background-size: 12px 8px;
+		}
+	}
+
+	/* counter-reset / counter-increment inputs */
+	.dim__inner {
+		box-sizing: border-box;
+		width: 100%;
+		height: 38px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		padding: 0 10px;
+		font: inherit;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		outline: 0;
+
+		&:focus {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+	}
+}

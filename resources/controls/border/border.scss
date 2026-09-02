@@ -1,0 +1,60 @@
+/* Border facet. Width, style, colour and radius are shared fields now; the link toggle comes from
+ * Spacing and the corner cross from the field layer. What is left here is the live preview and the
+ * value dot on the side picker. Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-border-group + .bl-border-group {
+	margin-top: 18px;
+}
+
+/* Same as the spacing groups: the caption's rule means "new section", and the first one in a
+   facet already has the facet header above it. */
+.bl-ins .bl-border-group:first-of-type .bl-spacing-head {
+	padding-top: 0;
+	border-top: 0;
+}
+
+.bl-ins .bl-border-control {
+	/* Live preview — the border as the engine will actually emit it, on a checkered ground so a
+	   light or transparent border still reads. */
+	.bl-border-preview {
+		display: grid;
+		place-items: center;
+		height: 74px;
+		margin-bottom: 10px;
+		background-color: var(--surface-sunken, rgb(0 0 0 / 3%));
+		background-image:
+			linear-gradient(45deg, rgb(0 0 0 / 6%) 25%, transparent 25%),
+			linear-gradient(-45deg, rgb(0 0 0 / 6%) 25%, transparent 25%),
+			linear-gradient(45deg, transparent 75%, rgb(0 0 0 / 6%) 75%),
+			linear-gradient(-45deg, transparent 75%, rgb(0 0 0 / 6%) 75%);
+		background-size: 10px 10px;
+		background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+	}
+
+	.bl-border-preview__box {
+		width: 84px;
+		height: 46px;
+		background: var(--surface, #fff);
+	}
+}
+
+/* A side that already carries a value, marked so switching away from it is never a silent loss.
+   A dot in the corner rather than a tint: the tint is what "selected" means on this row. */
+.bl-ins .bl-valuefield__icons .seg-row button.has-value::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: var(--brand);
+}
+
+.bl-ins .bl-valuefield__icons .seg-row button.has-value {
+	position: relative;
+}
+
+.bl-ins .bl-valuefield__icons .seg-row button.on.has-value::after {
+	background: #fff;
+}

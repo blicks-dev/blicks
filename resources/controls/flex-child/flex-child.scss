@@ -1,0 +1,32 @@
+/* Flex-child control — reuses `.bl-layout` so grid2/sub/sub-row/reset come from the
+   layout + foundation rules. Only the `.dim` input needs styling here (mirrors
+   grid-child.scss). Scoped to `.bl-ins`. */
+.bl-ins .bl-flex-child {
+	font-size: var(--bl-ui-text-md);
+
+	.dim {
+		display: flex;
+		align-items: center;
+		height: 38px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+
+		&:focus-within {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+
+		input {
+			flex: 1;
+			min-width: 0;
+			height: 100%;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			padding: 0 10px;
+			font: inherit;
+			font-size: var(--bl-ui-text-md);
+			color: var(--fg);
+		}
+	}
+}

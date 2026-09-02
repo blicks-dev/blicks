@@ -1,0 +1,382 @@
+/* Fill picker — colour / gradient / image, in both its layouts.
+ *
+ * Everything that can be a shared field IS one, so this file only carries the parts that are
+ * genuinely direct manipulation: the gradient rail, the media row and the nine-cell position grid.
+ * Scoped to `.bl-ins`, and the popover body carries `bl-ins` too so the same rules reach inside it.
+ */
+.bl-ins {
+	.bl-fill-group + .bl-fill-group {
+		margin-top: 18px;
+	}
+
+	.bl-fill-group:first-of-type .bl-spacing-head {
+		padding-top: 0;
+		border-top: 0;
+	}
+
+	/* The source switch is a mode, not a value — no accent frame when "set", because it is always
+	   set. It reads as a row of choices and nothing more. */
+	.bl-fill-source .seg-row {
+		display: flex;
+		width: 100%;
+		gap: 2px;
+
+		button {
+			flex: 1 1 auto;
+			display: grid;
+			place-items: center;
+			height: 100%;
+			min-width: 24px;
+			padding: 0;
+			border: 0;
+			border-radius: var(--bl-editor-radius);
+			background: transparent;
+			color: var(--fg-2);
+			cursor: pointer;
+
+			svg {
+				width: 15px;
+				height: 15px;
+			}
+
+			&:hover {
+				color: var(--fg);
+				background: var(--paper);
+			}
+
+			&.is-active {
+				background: var(--brand);
+				color: #fff;
+			}
+		}
+	}
+
+	/* A caption inside the editor for the parts that are not field rows. Quieter than a section
+	   head — those mean "new section", and the gradient is not one, it is this fill. */
+	.bl-fill-subhead {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-bottom: 6px;
+		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--fg-subtle);
+
+		&__actions {
+			display: flex;
+			align-items: center;
+			gap: 4px;
+			margin-left: auto;
+		}
+
+		.lib-btn {
+			display: grid;
+			place-items: center;
+			width: 18px;
+			height: 18px;
+			padding: 0;
+			border: 0;
+			background: transparent;
+			color: var(--fg-subtle);
+			cursor: pointer;
+
+			&::before { content: none; }
+
+			svg { width: 13px; height: 13px; }
+
+			&:hover,
+			&.is-open { color: var(--brand); }
+		}
+	}
+
+	/* ---- gradient rail ---- */
+	.bl-fill-rail {
+		position: relative;
+		height: 26px;
+		margin-bottom: 8px;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--bl-editor-radius);
+
+		&.is-editable {
+			cursor: copy;
+		}
+	}
+
+	.bl-fill-stop {
+		position: absolute;
+		top: 50%;
+		width: 13px;
+		height: 13px;
+		margin: -7px 0 0 -7px;
+		padding: 0;
+		border: 2px solid #fff;
+		border-radius: 50%;
+		box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+		cursor: grab;
+
+		&:active { cursor: grabbing; }
+
+		&.is-active {
+			box-shadow: 0 0 0 1px var(--brand), 0 0 0 3px var(--brand-tint);
+		}
+	}
+
+	.bl-fill-railtip {
+		position: absolute;
+		top: -22px;
+		transform: translateX(-50%);
+		padding: 2px 4px;
+		border-radius: var(--bl-editor-radius);
+		background: var(--fg);
+		color: #fff;
+		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+		pointer-events: none;
+	}
+
+	/* A text action inside the editor — "Customise", "Replace", "Remove". */
+	.bl-fill-link {
+		padding: 2px 4px;
+		border: 0;
+		background: transparent;
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		color: var(--brand);
+		cursor: pointer;
+
+		&:hover { background: var(--brand-tint); }
+
+		&.is-danger {
+			color: var(--danger, #b32d2e);
+
+			&:hover { background: color-mix(in srgb, var(--danger, #b32d2e) 10%, transparent); }
+		}
+	}
+
+	/* ---- image ---- */
+	.bl-fill-media {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 8px;
+	}
+
+	.bl-fill-thumb {
+		flex: 0 0 auto;
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--bl-editor-radius);
+		background-color: var(--surface-sunk);
+		background-position: center;
+		background-size: cover;
+		cursor: pointer;
+
+		&::before { content: none; }
+
+		.is-empty & {
+			background-image: repeating-conic-gradient(#e2e2e4 0% 25%, #fff 0% 50%);
+			background-size: 10px 10px;
+		}
+	}
+
+	.bl-fill-media__meta {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.bl-fill-media__name {
+		font-size: var(--bl-ui-text-xs);
+		color: var(--fg);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.bl-fill-media__actions {
+		display: flex;
+		gap: 2px;
+		margin-left: -4px;
+	}
+
+	/* ---- position pad ---- */
+	.bl-fill-pad {
+		margin-bottom: 8px;
+	}
+
+	/* Full width and 16:10, because the pad stands in for the box the image sits in — a narrow
+	   strip would misrepresent the shape you are aiming inside. The image itself sits behind it,
+	   so the handle is dragged over the picture rather than over an abstraction of it. */
+	.bl-fill-pad__field {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 10;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--bl-editor-radius);
+		/* Chequerboard stays on the pad itself; the image is a layer above it, so a `contain` or a
+		   part-covering image reads as sitting IN a box rather than as the box. */
+		background: repeating-conic-gradient(#e2e2e4 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
+		cursor: crosshair;
+		touch-action: none;
+
+		/* The cursor states the model: crosshair means "you are placing a point", grab means "you
+		   are moving the picture". They are different actions and should not look alike. */
+		&.is-movable {
+			cursor: grab;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--brand);
+			outline-offset: 1px;
+		}
+
+		&.is-dragging {
+			cursor: grabbing;
+		}
+
+		/* Grabbing the picture must not select it, or a slow drag turns into a text selection. */
+		&.is-dragging * {
+			user-select: none;
+		}
+
+		/* Promoted only for the duration of the drag: a permanent `will-change` keeps a layer alive
+		   for a control most of whose life is spent sitting still. */
+		&.is-dragging .bl-fill-pad__img {
+			will-change: background-position;
+		}
+	}
+
+	/* Carries the image with the block's own size/repeat/position — a live preview, not a stand-in. */
+	.bl-fill-pad__img {
+		position: absolute;
+		inset: 0;
+		/* The clip lives here, not on the pad: a handle parked on `right bottom` sits ON the corner,
+		   and a pad that clipped its own children would show half of it. */
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	/* Thirds keep the nine keyword positions visible as targets on a surface that is otherwise
+	   continuous — they are where the handle snaps. */
+	.bl-fill-pad__thirds {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background-image:
+			linear-gradient(to right, transparent calc(33.333% - 1px), rgb(255 255 255 / 55%) calc(33.333% - 1px) 33.333%, transparent 33.333%),
+			linear-gradient(to right, transparent calc(66.666% - 1px), rgb(255 255 255 / 55%) calc(66.666% - 1px) 66.666%, transparent 66.666%),
+			linear-gradient(to bottom, transparent calc(33.333% - 1px), rgb(255 255 255 / 55%) calc(33.333% - 1px) 33.333%, transparent 33.333%),
+			linear-gradient(to bottom, transparent calc(66.666% - 1px), rgb(255 255 255 / 55%) calc(66.666% - 1px) 66.666%, transparent 66.666%);
+		mix-blend-mode: difference;
+	}
+
+	.bl-fill-pad__handle {
+		position: absolute;
+		width: 14px;
+		height: 14px;
+		margin: -7px 0 0 -7px;
+		border: 2px solid #fff;
+		border-radius: 50%;
+		background: var(--brand);
+		box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+		pointer-events: none;
+	}
+
+	/* With an image to push around, this stops being the handle and becomes a read-out of the
+	   anchor the value names. It says the same thing more quietly, so nothing suggests grabbing it
+	   instead of the picture. */
+	.bl-fill-pad__handle.is-marker {
+		width: 9px;
+		height: 9px;
+		margin: -4.5px 0 0 -4.5px;
+		border-width: 1.5px;
+		background: transparent;
+		box-shadow: 0 0 0 1px rgb(0 0 0 / 45%);
+	}
+
+	.bl-fill-pad__input {
+		margin-top: 6px;
+	}
+
+	/* The pad's field may own a nested group; keep the group's own body spacing rather than
+	   stacking the pad's margin on top of it. */
+	.bl-fill-pad .bl-fieldgroup__body .bl-fields {
+		margin-bottom: 0;
+	}
+
+	/* ---- clip toggle ---- */
+	.bl-fill-check {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		font-size: var(--bl-ui-text-xs);
+		line-height: 1.4;
+		color: var(--fg-2);
+		cursor: pointer;
+
+		input {
+			position: absolute;
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		&__box {
+			flex: 0 0 auto;
+			display: grid;
+			place-items: center;
+			width: 15px;
+			height: 15px;
+			margin-top: 1px;
+			border: 1px solid var(--border-strong);
+			border-radius: var(--bl-editor-radius);
+			background: var(--paper);
+			color: transparent;
+
+			svg { width: 11px; height: 11px; }
+		}
+
+		input:checked + &__box {
+			background: var(--brand);
+			border-color: var(--brand);
+			color: #fff;
+		}
+
+		input:focus-visible + &__box {
+			box-shadow: 0 0 0 2px var(--brand-tint);
+		}
+	}
+
+	/* ---- popover layout ---- */
+	.bl-fill-trigger .bl-fill-swatch {
+		flex: 0 0 auto;
+		width: 16px;
+		height: 16px;
+		margin-left: 2px;
+		padding: 0;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--bl-editor-radius);
+		cursor: pointer;
+
+		&::before { content: none; }
+
+		&.is-transparent {
+			background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 8px 8px;
+		}
+	}
+}
+
+/* The popover body is portaled; its root carries `bl-ins`, so the rules above already reach it.
+   All this needs is the panel's own frame and width. */
+.bl-ins .bl-fill-popover {
+	width: 264px;
+	max-width: calc(100vw - 32px);
+	max-height: min(68vh, 520px);
+	overflow-y: auto;
+	padding: 12px;
+	border: 1px solid var(--border-strong);
+	background: var(--paper);
+	box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+}

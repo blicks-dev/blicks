@@ -1,0 +1,783 @@
+// Blicks runtime stylesheet — the STATIC tier-1/2 consumer classes.
+//
+// This file never changes based on user values. Each block instance carries only tiny
+// inline CSS vars (`--bl-pt: 16px`); the property + media queries live here, shared and
+// cached. See docs/architecture/style-generation.md.
+//
+// Leak-safety (self-contained invariant): every state/breakpoint override is gated by a
+// MARKER CLASS (`.bl-pad--tab`, `.bl-pad--hov`, …). A nested instance that didn't set that
+// override simply lacks the class, so the rule never matches it — the inherited var sits
+// unused and cannot leak. A slot always writes all four side vars, so partial sides can't
+// leak either.
+//
+// Naming MUST stay in sync with resources/framework/css/vars.ts (and the PHP mirror):
+//   class : .bl-{pad|mar}[--{key}]          key = [stateKey, bpKey] (non-empty) joined by '-'
+//   var   : --bl-{p|m}{t|r|b|l}[-{key}]
+//   stateKey: hover→hov  focus→foc  active→act   (default → '')
+//   bpKey  : tablet→tab  mobile→mob              (base → '')
+
+@use 'sass:map';
+
+// The predefined @keyframes live in _keyframes.scss so the admin bundle can reuse the exact
+// same definitions for its previews (see that file).
+@use './keyframes';
+
+$breakpoints: ( 'base': null, 'tab': 782px, 'mob': 600px );
+$states: ( '': '', 'hov': ':hover', 'foc': ':focus', 'act': ':active' );
+
+// ---------- Spacing ----------
+$spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
+
+@each $cls, $cfg in $spacing {
+	$prop: map.get( $cfg, prop );
+	$v: map.get( $cfg, v );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			// slot key = stateKey + bpKey (omit empties); '' → the root consumer class.
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} {
+					#{$prop}: var(--bl-#{$v}t#{$suf}) var(--bl-#{$v}r#{$suf}) var(--bl-#{$v}b#{$suf}) var(--bl-#{$v}l#{$suf});
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} {
+						#{$prop}: var(--bl-#{$v}t#{$suf}) var(--bl-#{$v}r#{$suf}) var(--bl-#{$v}b#{$suf}) var(--bl-#{$v}l#{$suf});
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Layout ----------
+$layout: (
+	'd':    ( prop: display,               default: block ),
+	'fd':   ( prop: flex-direction,        default: row ),
+	'jc':   ( prop: justify-content,       default: normal ),
+	'ai':   ( prop: align-items,           default: normal ),
+	'fw':   ( prop: flex-wrap,             default: nowrap ),
+	'gap-r':( prop: row-gap,               default: 0 ),
+	'gap-c':( prop: column-gap,            default: 0 ),
+	'cols': ( prop: grid-template-columns, default: none ),
+	'rows': ( prop: grid-template-rows,    default: none ),
+	'ji':   ( prop: justify-items,         default: normal ),
+	'w':    ( prop: width,                 default: auto ),
+	'h':    ( prop: height,                default: auto ),
+	'ov':   ( prop: overflow,              default: visible ),
+	/* Wave B — layout extensions*/
+	'ovx':  ( prop: overflow-x,           default: visible ),
+	'ovy':  ( prop: overflow-y,           default: visible ),
+	'sst':  ( prop: scroll-snap-type,     default: none ),
+	'areas':( prop: grid-template-areas,  default: none ),
+	'gaf':  ( prop: grid-auto-flow,       default: row ),
+	'ct':   ( prop: container-type,       default: normal ),
+	'cn':   ( prop: container-name,       default: none ),
+	'ar':   ( prop: aspect-ratio,         default: auto ),
+	'of':   ( prop: object-fit,           default: fill ),
+	/* border-style / border-color are per-side — see the `$multis` block below. */
+	'pos':  ( prop: position,              default: static ),
+	'zi':   ( prop: z-index,               default: auto ),
+	'bg':   ( prop: background-color,      default: transparent ),
+	'tx':   ( prop: color,                 default: inherit ),
+	'bg-img':    ( prop: background-image,      default: none ),
+	'bg-grad':   ( prop: background-image,      default: none ),
+	'bg-size':   ( prop: background-size,       default: auto ),
+	'bg-pos':    ( prop: background-position,   default: 50% 50% ),
+	'bg-repeat': ( prop: background-repeat,     default: repeat ),
+	'bg-attach': ( prop: background-attachment, default: scroll ),
+	/* Wave C — color/background extensions*/
+	'bg-blend':  ( prop: background-blend-mode, default: normal ),
+	'ff':   ( prop: font-family,           default: inherit ),
+	'fs':   ( prop: font-size,             default: inherit ),
+	'lh':   ( prop: line-height,           default: normal ),
+	'fwt':  ( prop: font-weight,           default: 400 ),
+	'fst':  ( prop: font-style,            default: normal ),
+	'ls':   ( prop: letter-spacing,        default: normal ),
+	'ws':   ( prop: word-spacing,          default: normal ),
+	'tt':   ( prop: text-transform,        default: none ),
+	'td':   ( prop: text-decoration,       default: none ),
+	'ta':   ( prop: text-align,            default: left ),
+	/* Wave C — typography extensions*/
+	'wm':   ( prop: writing-mode,          default: horizontal-tb ),
+	'to':   ( prop: text-orientation,      default: mixed ),
+	/* Wave F — counters*/
+	'cnt-r': ( prop: counter-reset,        default: none ),
+	'cnt-i': ( prop: counter-increment,    default: none ),
+	/* Wave G — layout completeness (align-content, grid auto tracks, box sizing, box behavior,
+	   scroll extras, direction) */
+	'ac':   ( prop: align-content,          default: normal ),
+	'gac':  ( prop: grid-auto-columns,      default: auto ),
+	'gar':  ( prop: grid-auto-rows,         default: auto ),
+	'miw':  ( prop: min-width,              default: auto ),
+	'maw':  ( prop: max-width,              default: none ),
+	'mih':  ( prop: min-height,             default: auto ),
+	'mah':  ( prop: max-height,             default: none ),
+	'bxz':  ( prop: box-sizing,             default: content-box ),
+	'vis':  ( prop: visibility,             default: visible ),
+	'flt2': ( prop: float,                  default: none ),
+	'clr':  ( prop: clear,                  default: none ),
+	'iso':  ( prop: isolation,              default: auto ),
+	'rsz':  ( prop: resize,                 default: none ),
+	'sb':   ( prop: scroll-behavior,        default: auto ),
+	'osb':  ( prop: overscroll-behavior,    default: auto ),
+	'sss':  ( prop: scroll-snap-stop,       default: normal ),
+	'dir':  ( prop: direction,              default: ltr ),
+	/* Wave H — containment/perf (high real-world usage). `lc` (line-clamp) is NOT here — it
+	   bundles extra fixed declarations, see the dedicated Line-clamp block below. */
+	'ctn':  ( prop: contain,                default: none ),
+	'cv':   ( prop: content-visibility,     default: visible ),
+	'cis':  ( prop: contain-intrinsic-size, default: none ),
+);
+
+@each $cls, $cfg in $layout {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} {
+					#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} {
+						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Line clamp ----------
+// One control (`layout.lineClamp`) drives FOUR declarations at once — multi-line text
+// truncation needs the `-webkit-box`/`box-orient` display hack alongside `overflow:hidden`,
+// not just the line count. Same one-class-many-props shape as `.bl-type--*` (Typography);
+// kept as its own loop (not part of `$layout` above) since every other entry there is a
+// single dynamic property.
+@each $bpKey, $bpMax in $breakpoints {
+	@each $stKey, $pseudo in $states {
+		$key: $stKey;
+
+		@if $bpKey != 'base' {
+			@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+		}
+
+		$marker: '.bl-lc';
+		$suf: '';
+
+		@if $key != '' {
+			$marker: '.bl-lc--#{$key}';
+			$suf: '-#{$key}';
+		}
+
+		$selector: '#{$marker}#{$pseudo}';
+
+		@if $bpMax == null {
+			#{$selector} {
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+				-webkit-line-clamp: var(--bl-lc#{$suf}, none);
+			}
+		} @else {
+			@media (max-width: $bpMax) {
+				#{$selector} {
+					display: -webkit-box;
+					-webkit-box-orient: vertical;
+					overflow: hidden;
+					-webkit-line-clamp: var(--bl-lc#{$suf}, none);
+				}
+			}
+		}
+	}
+}
+
+// ---------- Grid Child ----------
+$grid-child: (
+	'gcs': ( prop: grid-column,        default: 1,     span: true ),
+	'grs': ( prop: grid-row,           default: 1,     span: true ),
+	'gas': ( prop: align-self,         default: auto,  span: false ),
+	'gjs': ( prop: justify-self,       default: auto,  span: false ),
+	'go':  ( prop: order,              default: 0,     span: false ),
+	// Wave B — grid-child extensions
+	'ga':  ( prop: grid-area,          default: auto,  span: false ),
+	'ssa': ( prop: scroll-snap-align,  default: none,  span: false ),
+);
+
+@each $cls, $cfg in $grid-child {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+	$span: map.get( $cfg, span );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} {
+					@if $span == true {
+						#{$prop}: span var(--bl-#{$cls}#{$suf}, $default);
+					} @else {
+						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+					}
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} {
+						@if $span == true {
+							#{$prop}: span var(--bl-#{$cls}#{$suf}, $default);
+						} @else {
+							#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Columns (CSS multicolumn) ----------
+$columns: (
+	'cc':   ( prop: column-count, default: auto ),
+	'cw':   ( prop: column-width, default: auto ),
+	'cgap': ( prop: column-gap,   default: normal ),
+);
+
+@each $cls, $cfg in $columns {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+				}
+			}
+		}
+	}
+}
+
+// ---------- Flex Child (the flexbox parallel to Grid Child) ----------
+$flex-child: (
+	'fg':  ( prop: flex-grow,   default: 0 ),
+	'fsk': ( prop: flex-shrink, default: 1 ),
+	'fb':  ( prop: flex-basis,  default: auto ),
+	'fas': ( prop: align-self,  default: auto ),
+	'fco': ( prop: order,       default: 0 ),
+);
+
+@each $cls, $cfg in $flex-child {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+				}
+			}
+		}
+	}
+}
+
+// ---------- Effects ----------
+$effects: (
+	'op':  ( prop: opacity,          default: 1 ),
+	'cur': ( prop: cursor,           default: auto ),
+	'bm':  ( prop: mix-blend-mode,   default: normal ),
+	'bsh': ( prop: box-shadow,       default: none ),
+	'tsh': ( prop: text-shadow,      default: none ),
+	'tr':  ( prop: transition,       default: none ),
+	'tfm': ( prop: transform,        default: none ),
+	'flt': ( prop: filter,           default: none ),
+	// Wave D — structured effects (plain single vars; builders compose the value string)
+	'tfo': ( prop: transform-origin, default: 50% 50% ),
+	'tfs': ( prop: transform-style,  default: flat ),
+	'psp': ( prop: perspective,      default: none ),
+);
+
+@each $cls, $cfg in $effects {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} {
+					#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} {
+						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Borders & Radius Multi-values ----------
+// Each is a 4-value shorthand assembled from four vars. Every var carries its property's own
+// initial value as a fallback: one missing var would otherwise make the whole declaration
+// invalid-at-computed-value-time, dropping ALL four sides rather than just the unset one.
+$multis: (
+	'bw': ( prop: border-width,  vars: ('bwt', 'bwr', 'bwb', 'bwl'),     fallback: 0 ),
+	'br': ( prop: border-radius, vars: ('brtl', 'brtr', 'brbr', 'brbl'), fallback: 0 ),
+	'bs': ( prop: border-style,  vars: ('bst', 'bsr', 'bsb', 'bsl'),     fallback: none ),
+	'bc': ( prop: border-color,  vars: ('bct', 'bcr', 'bcb', 'bcl'),     fallback: currentcolor )
+);
+
+@each $cls, $cfg in $multis {
+	$prop: map.get( $cfg, prop );
+	$vars-list: map.get( $cfg, vars );
+	$fallback: map.get( $cfg, fallback );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+			$val-str: '';
+
+			@each $v in $vars-list {
+				$val-str: $val-str + ' var(--bl-#{$v}#{$suf}, #{$fallback})';
+			}
+
+			@if $bpMax == null {
+				#{$selector} {
+					#{$prop}: #{$val-str};
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} {
+						#{$prop}: #{$val-str};
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Position Inset ----------
+@each $bpKey, $bpMax in $breakpoints {
+	@each $stKey, $pseudo in $states {
+		$key: $stKey;
+
+		@if $bpKey != 'base' {
+			@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+		}
+
+		$marker: '.bl-inset';
+		$suf: '';
+
+		@if $key != '' {
+			$marker: '.bl-inset--#{$key}';
+			$suf: '-#{$key}';
+		}
+
+		$selector: '#{$marker}#{$pseudo}';
+
+		@if $bpMax == null {
+			#{$selector} {
+				top: var(--bl-pos-t#{$suf}, auto);
+				right: var(--bl-pos-r#{$suf}, auto);
+				bottom: var(--bl-pos-b#{$suf}, auto);
+				left: var(--bl-pos-l#{$suf}, auto);
+			}
+		} @else {
+			@media (max-width: $bpMax) {
+				#{$selector} {
+					top: var(--bl-pos-t#{$suf}, auto);
+					right: var(--bl-pos-r#{$suf}, auto);
+					bottom: var(--bl-pos-b#{$suf}, auto);
+					left: var(--bl-pos-l#{$suf}, auto);
+				}
+			}
+		}
+	}
+}
+
+// ---------- Wave D — clip-path / backdrop-filter / mask ----------
+// Each rule expands the breakpoint/state matrix to keep the leak-guard rules
+// consistent with other consumer classes, and wraps the property in @supports
+// so unsupported browsers degrade gracefully (no clip, no blur, no mask).
+@each $cls, $cfg in (
+	'clip': ( prop: clip-path,        guard: 'clip-path: polygon(0 0,1px 0,1px 1px)', webkit: true ),
+	'bdf':  ( prop: backdrop-filter,  guard: 'backdrop-filter: blur(1px)',            webkit: true ),
+	'mask': ( prop: mask,             guard: 'mask: linear-gradient(black, black)',   webkit: true ),
+) {
+	$prop: map.get( $cfg, prop );
+	$guard: map.get( $cfg, guard );
+	$webkit: map.get( $cfg, webkit );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+			$varRef: 'var(--bl-#{$cls}#{$suf})';
+
+			@if $bpMax == null {
+				@supports (#{$guard}) {
+					#{$selector} {
+						@if $webkit { -webkit-#{$prop}: #{$varRef}; }
+
+						#{$prop}: #{$varRef};
+					}
+				}
+			} @else {
+				@media (max-width: $bpMax) {
+					@supports (#{$guard}) {
+						#{$selector} {
+							@if $webkit { -webkit-#{$prop}: #{$varRef}; }
+
+							#{$prop}: #{$varRef};
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// ---------- Background-clip:text (Wave C) ----------
+// Three CSS props from a single toggle. The marker class is emitted whenever
+// `colors.clipText` has any value; the runtime applies the trio statically.
+// `@supports` guards browsers that don't support `background-clip: text` —
+// they keep their declared color so text stays readable.
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+	.bl-cliptext {
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+	}
+}
+
+// ---------- Wave E — Motion ----------
+// @property declarations are intentionally outside the reduced-motion block:
+// the property exists; whether it animates is gated below.
+@property --bl-ang {
+	syntax: '<angle>';
+	initial-value: 0deg;
+	inherits: false;
+}
+
+@property --bl-p {
+	syntax: '<number>';
+	initial-value: 0;
+	inherits: false;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	// Consumer class — applies the animation shorthand from inline vars set by the engine.
+	.bl-anim-name {
+		animation-name:             var(--bl-anim-name, none);
+		animation-duration:         var(--bl-anim-dur, 600ms);
+		animation-timing-function:  var(--bl-anim-ease, ease);
+		animation-iteration-count:  var(--bl-anim-iter, 1);
+		animation-direction:        var(--bl-anim-dir, normal);
+		animation-fill-mode:        var(--bl-anim-fill, none);
+		animation-delay:            var(--bl-anim-delay, 0s);
+	}
+
+	// Scroll/view-driven timelines — only when the browser supports it.
+	@supports (animation-timeline: scroll()) {
+		.bl-anim-tl {
+			animation-timeline: var(--bl-anim-tl, auto);
+		}
+
+		.bl-anim-range {
+			animation-range: var(--bl-anim-range, normal);
+		}
+	}
+}
+
+// ---------- Visibility (Advanced ▸ Visibility) ----------
+// Front/saved markup carries `bl-hide-{bp}` → actually hidden within that breakpoint band.
+// The editor carries `bl-eh-{bp}` instead → dimmed + outlined (never removed) so a hidden block
+// stays visible and selectable while editing. Unlayered + !important so hide beats the block's
+// base `display` + any layout utility. Bands from the default registry (keep in sync with
+// design-system/breakpoints.json): mobile ≤600, tablet 601–782, desktop (base) ≥783.
+@media (width <= 600px) {
+	.bl-hide-mobile { display: none !important; }
+	.bl-eh-mobile { opacity: 0.45; outline: 1px dashed var(--wp-admin-theme-color, #3858e9); outline-offset: 2px; }
+}
+
+@media (width >= 601px) and (width <= 782px) {
+	.bl-hide-tablet { display: none !important; }
+	.bl-eh-tablet { opacity: 0.45; outline: 1px dashed var(--wp-admin-theme-color, #3858e9); outline-offset: 2px; }
+}
+
+@media (width >= 783px) {
+	.bl-hide-base { display: none !important; }
+	.bl-eh-base { opacity: 0.45; outline: 1px dashed var(--wp-admin-theme-color, #3858e9); outline-offset: 2px; }
+}
+
+// ---------- Inline code mark (blicks/inline-code format) ----------
+// Saved markup carries `<code class="bl-inline-code">`; styled here so it renders on the front end
+// (the format module's CSS only loads in the editor).
+.bl-inline-code {
+	// Family/weight/spacing track the design-system "code" role; size stays relative (0.9em) so
+	// inline code never balloons to the block-code size within running text.
+	font-family: var(--blicks-type-code-font-family, var(--blicks-font-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace));
+	font-weight: var(--blicks-type-code-font-weight, 400);
+	letter-spacing: var(--blicks-type-code-letter-spacing, normal);
+	font-size: 0.9em;
+	background: var(--blicks-color-muted, rgba(0, 0, 0, 0.06));
+	color: var(--blicks-color-code, inherit);
+	padding: 0.1em 0.35em;
+	border-radius: 0.25em;
+	border: 1px solid var(--blicks-color-border, rgba(0, 0, 0, 0.08));
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+// ---------- Type-role library classes (typography preset picker) ----------
+// A block that picks a type role in its Typography settings carries `.bl-type--{role}`; this
+// re-applies that role's complete look (family/size/weight/line-height/tracking/transform) on ANY
+// tag, decoupled from the semantic element. Values ride `--blicks-type-{role}-{prop}` vars
+// (CssVariables emits them for every role). Unlayered + one-class specificity so it beats the
+// native element CSS (`:where(h2)…`, zero-specificity).
+//
+// Override safety — the preset feeds the SAME per-property instance vars the Typography control
+// writes (`--bl-ff/fs/fwt/lh/ls/tt`), then consumes them. When the author changes one field, the
+// engine emits an INLINE `--bl-fs` (etc.) on the same element; inline vars beat class-set vars, so
+// that one property wins while the rest of the role stays. (Setting the property directly here
+// would instead win by source order and swallow the edit.) The vars inherit but are inert on
+// children — the `.bl-{prop}` consumer rules only read them behind their own marker class.
+// Role list MUST stay in sync with TypeRoles::ROLES (PHP) + resources/design-system/type-roles.ts.
+$type-roles: display, h1, h2, h3, h4, h5, h6, body, lead, small, caption, code, mono;
+
+@each $role in $type-roles {
+	.bl-type--#{$role} {
+		--bl-ff:  var(--blicks-type-#{$role}-font-family);
+		--bl-fs:  var(--blicks-type-#{$role}-font-size);
+		--bl-fwt: var(--blicks-type-#{$role}-font-weight);
+		--bl-lh:  var(--blicks-type-#{$role}-line-height);
+		--bl-ls:  var(--blicks-type-#{$role}-letter-spacing);
+		--bl-tt:  var(--blicks-type-#{$role}-text-transform);
+
+		font-family:    var(--bl-ff, inherit);
+		font-size:      var(--bl-fs, inherit);
+		font-weight:    var(--bl-fwt, inherit);
+		line-height:    var(--bl-lh, inherit);
+		letter-spacing: var(--bl-ls, inherit);
+		text-transform: var(--bl-tt, none);
+	}
+}
+
+// ---------- Inner-block "add" appender (editor-only; never in saved markup) ----------
+// A quiet "ghost next-slot": a hairline dashed tile that sits in normal flow at the END of the
+// group, so it's always clear where the new block lands (no confusing corner "+"). Quiet by
+// default, brand-tinted on hover. Used by both the repeater appender (seeds a child) and the
+// generic appender (opens the inserter) the factory renders.
+
+// WP core absolutely-positions every nested `.block-list-appender`; pull the ones holding our
+// ghost slot or empty-state placeholder back into normal flow. In a flex container the appender is
+// also a flex item, so make it span the full row instead of shrinking to its content. Extra
+// specificity (+ the block class) beats core's rule.
+.block-editor-block-list__block .block-list-appender:has( .bl-appender, .bl-placeholder ) {
+	position: static;
+	flex: 1 0 100%;
+	width: 100%;
+}
+
+// Quiet canvas: hide every ghost slot by default, then reveal ONLY the directly-selected
+// container's own slot. `has-child-selected` cascades to all ancestors (→ a stack of adders), and a
+// descendant combinator reveals every nested slot — both look cluttered. So match the selected
+// block's own appender with a child combinator. Two shapes: the block element is itself the layout
+// (stack/buttons/accordion), or the layout is a wrapperClassName child (e.g. Section's inner rail).
+.block-list-appender:has(.bl-appender) {
+	display: none;
+}
+
+.is-selected > .block-list-appender:has(.bl-appender),
+.is-selected > .block-editor-block-list__layout:not(.block-editor-block-list__block) > .block-list-appender:has(.bl-appender) {
+	display: block;
+}
+
+// …with one exception the quiet rule must carve out: an EMPTY container. With no children it
+// computes to zero height, so a slot hidden until selection leaves nothing to hover, click or
+// select — the block is on the canvas but unreachable. An empty container is also not clutter:
+// there is exactly one slot to show, and it is the only thing the block can offer yet.
+.block-list-appender:has(.bl-appender--empty) {
+	display: block;
+}
+
+// The generic adder's `.bl-appender` is wrapped by `<Inserter>`; let it span full width.
+// Scoped to OUR appender/placeholder only — unscoped, this hit every native
+// `.block-list-appender` in the editor (root doc, Group/Columns inner appenders, …) and broke
+// the native "+" position + click-to-insert.
+.block-list-appender:has(.bl-appender, .bl-placeholder) .block-editor-inserter {
+	display: block;
+	width: 100%;
+}
+
+%bl-ghost-slot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: 100%;
+	min-height: 40px;
+	margin-top: 8px;
+	padding: 8px 12px;
+	border: 1px dashed var(--wp-admin-theme-color, #3858e9);
+	border-radius: 6px;
+	background: transparent;
+	color: var(--wp-admin-theme-color, #3858e9);
+	font: 600 12px/1 inherit;
+	cursor: pointer;
+	opacity: 0.5;
+	transition: opacity 0.12s ease, background-color 0.12s ease;
+
+	&:hover,
+	&:focus-visible {
+		opacity: 1;
+		background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 8%, transparent);
+		outline: none;
+	}
+
+	svg {
+		width: 16px;
+		height: 16px;
+	}
+}
+
+// Repeater ghost (seeds a child on click).
+.bl-appender {
+	@extend %bl-ghost-slot;
+
+	&__label {
+		white-space: nowrap;
+	}
+}
+

@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/text",
+	"title": "Text",
+	"category": "blicks",
+	"description": "A rich paragraph block for body copy.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "columns.*",
+				"spacing.*", "border.*", "effects.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks":   { "type": "object", "default": {} },
+		"content":  { "type": "string", "default": "" },
+		"tag":      { "type": "string", "default": "p" },
+		"variant":  { "type": "string", "default": "default" },
+		"dropCap":  { "type": "boolean", "default": false }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

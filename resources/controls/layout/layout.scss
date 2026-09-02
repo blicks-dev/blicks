@@ -1,0 +1,152 @@
+/* Layout control — only the bits the mockup foundation (`.bl-ins`) doesn't already
+   provide. Fields/segments/inputs use foundation primitives (.field/.lbl/.seg-row/
+   .inp-num/.grid2/.sub); this file styles the leftovers: bare <select>, <textarea>,
+   <hr>, the flex/grid reveal box, and the .sub-row label+reset.
+   Scoped to `.bl-ins` so it can't touch the old inspector. */
+.bl-ins .bl-layout {
+	font-size: var(--bl-ui-text-md);
+
+	/* multi-word segmented labels (wrap / auto-flow / snap / container) fit tighter */
+	.seg-row button {
+		padding: 0 4px;
+		font-size: var(--bl-ui-text-xs);
+	}
+
+	/* bare <select> → mockup `.sel` look (hairline + chevron) */
+	select {
+		appearance: none;
+		width: 100%;
+		height: var(--bl-ui-field-h);
+		padding: 0 30px 0 10px;
+		border: 1px solid var(--border-strong);
+		background-color: var(--paper);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 11px center;
+		background-size: 12px 8px;
+		color: var(--fg);
+		font-size: var(--bl-ui-text-md);
+		cursor: pointer;
+	}
+
+	select:hover {
+		border-color: #aab4c2;
+	}
+
+	select:focus {
+		outline: none;
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px var(--brand);
+	}
+
+	textarea,
+	.bl-textarea {
+		width: 100%;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		color: var(--fg);
+		font: 500 var(--bl-ui-text-sm)/1.5 var(--font-mono);
+		padding: 8px 10px;
+		resize: vertical;
+	}
+
+	textarea:focus,
+	.bl-textarea:focus {
+		outline: none;
+		border-color: var(--brand);
+		box-shadow: 0 0 0 2px var(--brand);
+	}
+
+	hr {
+		border: 0;
+		border-top: 1px solid var(--divider);
+		margin: 16px 0;
+	}
+
+	/* Everything the Display choice brings with it — flex arrangement, gap, the whole grid track
+	   model — hangs off the Display field on a single left rule. Same nesting device the field
+	   groups and the second-level disclosures use, and for the same reason: a rule down the left
+	   says "this belongs to the thing above it", where a horizontal divider says "new section". */
+	.bl-display-nest {
+		display: grid;
+		gap: 8px;
+		margin: 8px 0 16px 2px;
+		padding-left: 10px;
+		border-left: 1px solid var(--divider);
+	}
+
+	/* The disclosures inside are one level down, so they drop the full-width divider their
+	   top-level siblings carry — two devices for one boundary is what made this unreadable
+	   when Flex and Grid were peers of Display rather than children of it. */
+	.bl-display-nest .bl-more {
+		margin-top: 2px;
+	}
+
+	.bl-display-nest .bl-more > .bl-more__toggle {
+		border-top: 0;
+		padding: 3px 0;
+		font-size: var(--bl-ui-text-2xs);
+		letter-spacing: 0.1em;
+		color: var(--fg-subtle);
+	}
+
+	/* The Grid body rendered in place: a plain stack, since the nest already spaces its children
+	   and the facet wrapper would put a second rhythm inside the first. */
+	.bl-display-nest .bl-grid-control {
+		display: grid;
+		gap: 8px;
+	}
+
+	/* flex / grid reveal — flat, no wrapping box. The rule above the tag is the only
+	   thing Layout adds; `.reveal-tag` itself is the foundation's, not redefined here.
+	   It used to be, and the two definitions disagreed on weight, colour and spacing,
+	   so the same label looked one way inside this facet and another way everywhere
+	   else — decided by whichever selector happened to be more specific. */
+	.reveal {
+		margin-top: 14px;
+		padding-top: 12px;
+		border-top: 1px solid var(--divider);
+	}
+
+	/* width/height/select label rows (sentence-case .sub); the reset icon is absolutely
+	   positioned (see `.reset-btn` below) so it never adds width to this row. */
+	.sub-row {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 6px;
+		padding-inline-end: 20px;
+	}
+
+	.sub-row .sub {
+		margin: 0;
+	}
+
+	/* icon-only, absolutely positioned — doesn't affect the row's/grid's structure at any width. */
+	.reset-btn {
+		position: absolute;
+		inset-inline-end: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--brand);
+		cursor: pointer;
+
+		svg {
+			width: 13px;
+			height: 13px;
+		}
+	}
+
+	.reset-btn:hover {
+		background: var(--brand-soft);
+	}
+
+}

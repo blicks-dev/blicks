@@ -1,0 +1,104 @@
+/* States facet — pseudo-class picker + the live overrides list. */
+.bl-ins {
+	.bl-states__grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 3px;
+
+		button {
+			padding: 4px 2px;
+			border: 1px solid var(--border-strong);
+			background: var(--paper);
+			color: var(--fg-muted);
+			cursor: pointer;
+			font: 600 var(--bl-ui-text-2xs)/1.2 var(--font-mono);
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			&:hover:not(.on):not(:disabled) {
+				color: var(--fg);
+				background: var(--surface-sunk);
+			}
+
+			&.on {
+				border-color: var(--brand);
+				background: var(--brand-soft);
+				color: var(--brand);
+			}
+
+			&:disabled {
+				cursor: default;
+				opacity: 0.55;
+			}
+		}
+	}
+
+	.bl-states__hint {
+		margin: 8px 0 0;
+		font-size: var(--bl-ui-text-xs);
+		line-height: 1.5;
+		color: var(--fg-subtle);
+	}
+
+	/* overrides list */
+	.bl-ovr {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 4px 6px;
+			border: 1px solid var(--border);
+			background: var(--paper);
+		}
+	}
+
+	.bl-ovr__prop {
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		color: var(--fg);
+		white-space: nowrap;
+	}
+
+	.bl-ovr__bp {
+		font: 600 var(--bl-ui-label-size-sm)/1 var(--font-mono);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--fg-subtle);
+		border: 1px solid var(--border);
+		padding: 2px 4px;
+	}
+
+	.bl-ovr__val {
+		margin-left: auto;
+		max-width: 45%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		color: var(--brand);
+	}
+
+	.bl-ovr__x {
+		flex: 0 0 auto;
+		border: 0;
+		padding: 0;
+		background: none;
+		color: var(--fg-subtle);
+		cursor: pointer;
+		font-size: var(--bl-ui-text-md);
+		line-height: 1;
+
+		&:hover {
+			color: var(--fg);
+		}
+	}
+}

@@ -1,0 +1,442 @@
+/* Styles for the Fonts manager modal. */
+
+.bl-fonts-manager-modal.components-modal__frame {
+	width: min(1180px, calc(100vw - 48px));
+	height: min(820px, calc(100vh - 48px));
+	max-height: calc(100vh - 48px);
+
+	.components-modal__content {
+		display: flex;
+		flex-direction: column;
+		padding: 0 24px 24px;
+	}
+}
+
+.bl-fonts-manager {
+	--bl-fm-border: #e0e0e0;
+	--bl-fm-muted: #757575;
+	--bl-fm-accent: var(--brand);
+	--bl-fm-danger: #cc1818;
+	--bl-fm-surface: #fff;
+
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-height: 0;
+	font-size: var(--bl-ui-text-md);
+	color: var(--fg);
+}
+
+.bl-fonts-manager.is-modal {
+	flex: 1;
+	overflow: hidden;
+}
+
+.bl-fonts-manager.is-compact {
+	gap: 8px;
+	font-size: var(--bl-ui-text-sm);
+}
+
+.bl-fonts-manager__header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding-bottom: 2px;
+}
+
+.bl-fonts-manager__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.bl-fonts-manager__brand svg {
+	width: 24px;
+	height: 24px;
+	color: var(--fg);
+}
+
+.bl-fonts-manager__brand h2 {
+	margin: 0;
+	font-size: var(--bl-ui-text-2xl);
+	font-weight: 600;
+	letter-spacing: 0;
+}
+
+.bl-fonts-manager__header p {
+	margin: 0;
+	color: var(--bl-fm-muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.bl-fonts-manager__toolbar {
+	display: flex;
+	align-items: stretch;
+	gap: 12px;
+}
+
+.bl-fonts-manager__tabs {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+	padding: 3px;
+	border: 1px solid var(--bl-fm-border);
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #f6f7f7;
+}
+
+.bl-fonts-manager__tab {
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+	min-height: 36px;
+	padding: 0 12px;
+	border: none;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: transparent;
+	color: var(--bl-fm-muted);
+	font-size: inherit;
+	cursor: pointer;
+}
+
+.bl-fonts-manager__tab:hover {
+	color: var(--fg);
+}
+
+.bl-fonts-manager__tab.is-active {
+	background: var(--bl-fm-surface);
+	color: var(--fg);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+}
+
+.bl-fonts-manager__tab .count {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 4px;
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #f0f0f0;
+	color: var(--bl-fm-muted);
+	font-size: var(--bl-ui-text-xs);
+}
+
+.bl-fonts-manager__tab.is-active .count {
+	background: rgb(56 88 233 / 12%);
+	color: var(--bl-fm-accent);
+}
+
+.bl-fonts-manager__searchbar {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	border: 1px solid var(--bl-fm-border);
+	border-radius: var(--bl-editor-radius, 2px);
+	background: var(--bl-fm-surface);
+	overflow: hidden;
+}
+
+.bl-fonts-manager__searchwrap {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+	padding: 0 12px;
+}
+
+.bl-fonts-manager__searchwrap svg {
+	width: 18px;
+	height: 18px;
+	color: var(--bl-fm-muted);
+	flex-shrink: 0;
+}
+
+.bl-fonts-manager__sort {
+	display: grid;
+	align-content: center;
+	min-width: 170px;
+	padding: 0 12px;
+	border-left: 1px solid var(--bl-fm-border);
+}
+
+.bl-fonts-manager__sort span {
+	color: var(--bl-fm-muted);
+	font-size: var(--bl-ui-text-2xs);
+	font-weight: 600;
+}
+
+.bl-fonts-manager__sort select {
+	width: 100%;
+	border: 0;
+	padding: 0;
+	background: transparent;
+	color: var(--fg);
+	font: inherit;
+	outline: 0;
+}
+
+.bl-fonts-manager__notice {
+	padding: 8px 12px;
+	border-radius: var(--bl-editor-radius, 2px);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.bl-fonts-manager__notice.is-success {
+	background: #e8f5e9;
+	color: #1b5e20;
+}
+
+.bl-fonts-manager__notice.is-error {
+	background: #fdecea;
+	color: #b71c1c;
+}
+
+.bl-fonts-manager__loading,
+.bl-fonts-manager__empty {
+	padding: 16px;
+	color: var(--bl-fm-muted);
+	text-align: center;
+	font-size: var(--bl-ui-text-sm);
+	border: 1px dashed var(--bl-fm-border);
+	border-radius: var(--bl-editor-radius, 2px);
+}
+
+.bl-fonts-manager__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	min-height: 0;
+	overflow: auto;
+	border-top: 1px solid var(--bl-fm-border);
+}
+
+.bl-fonts-manager__row {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 18px 0;
+	border: 0;
+	border-bottom: 1px solid var(--bl-fm-border);
+	background: #fff;
+}
+
+.bl-fonts-manager__row-main {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.bl-fonts-manager__row-name {
+	font-size: var(--bl-ui-text-lg);
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.bl-fonts-manager__row-meta {
+	color: var(--bl-fm-muted);
+	font-size: var(--bl-ui-text-xs);
+}
+
+.bl-fonts-manager__row-preview {
+	margin-top: 8px;
+	font-size: clamp(28px, 4vw, 52px);
+	line-height: 1.15;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: clip;
+	mask-image: linear-gradient(to right, #000 calc(100% - 80px), transparent);
+}
+
+.bl-fonts-manager__row-actions {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.bl-fonts-manager__badge {
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: var(--bl-ui-label-size-sm);
+	font-weight: 600;
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.bl-fonts-manager__badge.is-user {
+	background: rgb(56 88 233 / 12%);
+	color: var(--bl-fm-accent);
+}
+
+.bl-fonts-manager__badge.is-theme {
+	background: #f0f0f0;
+	color: var(--bl-fm-muted);
+}
+
+.bl-fonts-manager__btn {
+	padding: 6px 12px;
+	border: 1px solid var(--bl-fm-border);
+	border-radius: var(--bl-editor-radius, 2px);
+	background: #fff;
+	font-size: var(--bl-ui-text-sm);
+	color: var(--fg);
+	cursor: pointer;
+}
+
+.bl-fonts-manager__btn:hover:not( :disabled ) {
+	border-color: #c7c7c7;
+	background: #fafafa;
+}
+
+.bl-fonts-manager__btn.is-primary {
+	border-color: var(--bl-fm-accent);
+	background: var(--bl-fm-accent);
+	color: #fff;
+}
+
+.bl-fonts-manager__btn.is-primary:hover:not( :disabled ) {
+	border-color: #2445d8;
+	background: #2445d8;
+}
+
+.bl-fonts-manager__btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.bl-fonts-manager__btn.is-danger {
+	color: var(--bl-fm-danger);
+	border-color: rgb(204 24 24 / 30%);
+}
+
+.bl-fonts-manager__btn.is-danger:hover:not( :disabled ) {
+	background: rgb(204 24 24 / 6%);
+	border-color: var(--bl-fm-danger);
+}
+
+.bl-fonts-manager__browse {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.bl-fonts-manager__search {
+	width: 100%;
+	height: 46px;
+	padding: 0;
+	border: 0;
+	font-size: var(--bl-ui-text-lg);
+	background: transparent;
+	outline: 0;
+}
+
+.bl-fonts-manager__search:focus {
+	outline: none;
+}
+
+.bl-fonts-manager__grid {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	min-height: 0;
+	overflow: auto;
+	border-top: 1px solid var(--bl-fm-border);
+}
+
+.bl-fonts-manager__card {
+	display: grid;
+	gap: 16px;
+	padding: 18px 0 22px;
+	border: 0;
+	border-bottom: 1px solid var(--bl-fm-border);
+	background: #fff;
+}
+
+.bl-fonts-manager__card-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.bl-fonts-manager__card-meta {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	color: var(--bl-fm-muted);
+	font-size: var(--bl-ui-text-md);
+}
+
+.bl-fonts-manager__card-meta strong {
+	color: var(--fg);
+	font-size: var(--bl-ui-text-lg);
+}
+
+.bl-fonts-manager__card-meta span:not( :last-child )::after {
+	content: "|";
+	margin-left: 12px;
+	color: #c3c4c7;
+}
+
+.bl-fonts-manager__card-preview {
+	font-size: clamp(34px, 5vw, 64px);
+	line-height: 1.08;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: clip;
+	mask-image: linear-gradient(to right, #000 calc(100% - 96px), transparent);
+}
+
+/* Compact embedded-surface tweaks. */
+.bl-fonts-manager.is-compact .bl-fonts-manager__row {
+	padding: 8px 10px;
+}
+
+.bl-fonts-manager.is-compact .bl-fonts-manager__card {
+	padding: 8px;
+}
+
+@media (width <= 782px) {
+	.bl-fonts-manager-modal.components-modal__frame {
+		width: calc(100vw - 24px);
+		height: calc(100vh - 24px);
+		max-height: calc(100vh - 24px);
+
+		.components-modal__content {
+			padding-inline: 16px;
+		}
+	}
+
+	.bl-fonts-manager__header,
+	.bl-fonts-manager__toolbar,
+	.bl-fonts-manager__searchbar {
+		flex-direction: column;
+	}
+
+	.bl-fonts-manager__sort {
+		min-width: 0;
+		padding-block: 8px;
+		border-top: 1px solid var(--bl-fm-border);
+		border-left: 0;
+	}
+
+	.bl-fonts-manager__card-head,
+	.bl-fonts-manager__row {
+		align-items: stretch;
+		flex-direction: column;
+	}
+}

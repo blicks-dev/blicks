@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/wp-env.json",
+	"core": null,
+	"phpVersion": "8.3",
+	"plugins": [ "." ],
+	"mappings": {
+		"wp-content/plugins/blicks": "."
+	},
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_DISPLAY": true,
+		"SCRIPT_DEBUG": true
+	}
+}

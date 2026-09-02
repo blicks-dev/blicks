@@ -1,0 +1,5 @@
+[
+	{ "id": "base", "label": "Desktop", "max": null },
+	{ "id": "tablet", "label": "Tablet", "max": 782 },
+	{ "id": "mobile", "label": "Mobile", "max": 600 }
+]

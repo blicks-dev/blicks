@@ -1,0 +1,14 @@
+@layer blicks.base {
+	.bl-icon {
+		--bl-icon-size: 1.5rem;
+
+		display: inline-flex;
+		color: currentcolor;
+		box-sizing: border-box;
+
+		svg {
+			width: var(--bl-icon-size);
+			height: var(--bl-icon-size);
+		}
+	}
+}

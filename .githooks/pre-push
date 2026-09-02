@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Runs the test suites that need no Docker before anything leaves the machine.
+#
+# The WordPress integration suite is deliberately not run here: it needs wp-env and a
+# container start, which is far too slow for a push. CI runs it on every pull request.
+# Skip with `git push --no-verify`.
+
+set -e
+
+echo "pre-push: PHP unit tests"
+composer test
+
+echo ""
+echo "pre-push: JS tests"
+pnpm test

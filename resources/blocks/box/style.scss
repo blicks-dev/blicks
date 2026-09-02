@@ -1,0 +1,46 @@
+@use '../shared/placeholder';
+
+@layer blicks.base {
+	.bl-box {
+		box-sizing: border-box;
+		min-width: 0;
+	}
+
+	/* Semantic surface tags (article/aside/figure) read as cards/panels, so they get default
+	   padding; div/span stay zero-opinion. `:where()` keeps specificity 0 so Styles ▸ Spacing
+	   overrides without a fight. `figure` also drops its default browser margin. */
+	:where( article, aside, figure ).bl-box {
+		padding: var( --blicks-spacing-md, 1.25rem );
+	}
+
+	:where( figure ).bl-box {
+		margin: 0;
+	}
+
+	/* Stretched-link card: the overlay <a> covers the box; nested interactive content stays
+	   clickable above it. */
+	.bl-box--linked {
+		position: relative;
+	}
+
+	.bl-box__link {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+	}
+
+	.bl-box--linked :where( a:not( .bl-box__link ), button, input, select, textarea, label, [tabindex] ) {
+		position: relative;
+		z-index: 2;
+	}
+}
+
+/* Editor: keep a dashed outline on a selected Box (or while a child is selected) so an
+   unstyled/transparent box stays visible. Editor-only — `.is-selected` never appears on the front
+   end. Uses `outline` so it never overrides a user-set border or background-color. */
+.bl-box.is-selected,
+.bl-box.has-child-selected {
+	outline: 1px dashed var( --wp-admin-theme-color, #3858e9 );
+	outline-offset: -1px;
+}

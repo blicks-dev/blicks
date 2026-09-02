@@ -1,0 +1,48 @@
+/* Interaction states that must win the cascade, so this partial is `@use`d last.
+   `.bl-ds` (the Design System view) nests inside `.blicks-admin`, so a single
+   `.blicks-admin …` selector covers both scopes; `--brand` is defined in each. */
+
+/* ── Keyboard focus ────────────────────────────────────────────────────────
+   Custom buttons/links/clickables carried no visible focus ring — only inputs
+   did (their own box-shadow). One sharp, on-brand outline for every keyboard-
+   focusable control. `outline-offset` keeps it visible on brand-filled buttons
+   (the gap exposes the page background). Mouse clicks stay ring-free via
+   `:focus-visible`. Inputs/selects keep their existing box-shadow focus. */
+.blicks-admin button:focus-visible,
+.blicks-admin a:focus-visible,
+.blicks-admin [role="button"]:focus-visible,
+.blicks-admin [tabindex]:focus-visible {
+	outline: 2px solid var(--brand);
+	outline-offset: 2px;
+}
+
+/* Placeholders inherited the UA grey (sub-AA); pin them to the tuned muted tier
+   and force full opacity (Firefox dims placeholders by default). */
+.blicks-admin ::placeholder {
+	color: var(--fg-muted);
+	opacity: 1;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   Collapse every transition/animation and neutralise the press-scale and
+   hover-lift gestures. JS smooth-scroll is handled in the Design System view. */
+@media (prefers-reduced-motion: reduce) {
+	.blicks-admin *,
+	.blicks-admin *::before,
+	.blicks-admin *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+
+	.blicks-admin .btn:active,
+	.blicks-admin .chip:active,
+	.blicks-admin .small-link:active,
+	.blicks-admin .qa__cell:active,
+	.blicks-admin .csr:hover .csr__demo.play,
+	.blicks-admin .tcard:hover .tcard__del,
+	.blicks-admin .tcard:hover .tcard__reset {
+		transform: none !important;
+	}
+}

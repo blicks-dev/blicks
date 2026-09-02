@@ -1,0 +1,74 @@
+/* Motion facet. The preset grid is the one thing here that is not a shared field — it is a
+ * library chooser, so it keeps its own card grid. Everything else is a `ValueField` / `IconField`
+ * and is styled by the component layer. Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-anim-group + .bl-anim-group {
+	margin-top: 18px;
+}
+
+/* Same as the spacing groups: the caption's rule means "new section", and the first one in a
+   facet already has the facet header above it. */
+.bl-ins .bl-anim-group:first-of-type .bl-spacing-head {
+	padding-top: 0;
+	border-top: 0;
+}
+
+.bl-ins .bl-animation {
+	/* preset chooser — auto-fitting card grid */
+	.bl-anim-presets {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+		gap: 6px;
+		margin-top: 6px;
+
+		&__item {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 32px;
+			padding: 6px 8px;
+			border: 1px solid var(--border-strong);
+			background: var(--paper);
+			font: inherit;
+			font-size: var(--bl-ui-text-sm);
+			color: var(--fg);
+			cursor: pointer;
+			text-align: center;
+
+			&:hover {
+				background: var(--surface-sunk);
+			}
+
+			&.is-active {
+				border-color: var(--brand);
+				background: var(--brand);
+				color: #fff;
+			}
+		}
+	}
+
+}
+
+/* Presets defined by the user in Blicks → Design System → Animation, marked so they are
+   distinguishable from the seven built-ins in the same grid. */
+.bl-anim-presets__item.is-custom::after {
+	content: "";
+	width: 4px;
+	height: 4px;
+	margin-left: 6px;
+	border-radius: 999px;
+	background: currentcolor;
+	opacity: 0.55;
+}
+
+.bl-anim-presets__item.is-custom {
+	display: inline-flex;
+	align-items: center;
+}
+
+.bl-anim-presets__empty {
+	margin: 0;
+	color: var(--bl-editor-muted, #646970);
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.4;
+}

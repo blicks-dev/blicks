@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/image",
+	"title": "Image",
+	"category": "blicks",
+	"description": "A responsive media block with optional link and caption.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "border.*", "spacing.*", "effects.*", "layout.*", "position.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"id":          { "type": "number" },
+		"url":         { "type": "string", "default": "" },
+		"alt":         { "type": "string", "default": "" },
+		"aspectRatio": { "type": "string", "default": "auto" },
+		"objectFit":   { "type": "string", "default": "cover" },
+		"sizeSlug":    { "type": "string", "default": "full" },
+		"duotone":     { "type": "object" },
+		"linkTo":      { "type": "string", "default": "none" },
+		"href":        { "type": "string", "default": "" },
+		"caption":     { "type": "string", "default": "" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

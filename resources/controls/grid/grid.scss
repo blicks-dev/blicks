@@ -1,0 +1,98 @@
+/* Grid facet — tracks, sizing, preview. Scoped under .bl-ins like every control layer. */
+.bl-ins {
+	/* A stepper row: a short label, then the control. The label column is fixed so Columns and
+	   Rows line up with each other — and narrow, because the value is what is being read. */
+	.bl-tracks__row {
+		display: grid;
+		grid-template-columns: 52px minmax(0, 1fr);
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 6px;
+	}
+
+	.bl-tracks__label {
+		font: 600 var(--bl-ui-text-xs)/1 var(--font-sans);
+		color: var(--fg-2);
+	}
+
+	/* stepper: − [n] +  */
+	.bl-step {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+
+		button {
+			width: 22px;
+			height: 24px;
+			flex: 0 0 auto;
+			border: 0;
+			background: none;
+			color: var(--fg-muted);
+			cursor: pointer;
+			font-size: var(--bl-ui-text-md);
+			line-height: 1;
+
+			&:hover {
+				color: var(--fg);
+				background: var(--surface-sunk);
+			}
+		}
+	}
+
+	.bl-step__n {
+		flex: 1;
+		min-width: 0;
+		text-align: center;
+		font: 500 var(--bl-ui-text-xs)/1 var(--font-sans);
+		font-variant-numeric: tabular-nums;
+		color: var(--fg);
+	}
+
+	/* live track preview — reads the column count straight off the template */
+	.bl-grid-control__preview {
+		display: grid;
+		gap: 3px;
+		margin: 8px 0 10px;
+		padding: 4px;
+		border: 1px dashed var(--border-strong);
+
+		span {
+			height: 11px;
+			background: rgb(15 23 42 / 7%);
+
+			&.alt {
+				background: var(--brand-soft);
+			}
+		}
+	}
+
+	/* Areas is a block of text, not a row: the label sits above it rather than beside. */
+	.bl-grid-control__areas {
+		display: grid;
+		gap: 4px;
+		margin-top: 10px;
+	}
+
+	/* contextual empty state with an inline fix — "this facet needs display:grid" */
+	.bl-empty {
+		margin: 16px 0 0;
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.55;
+		color: var(--fg-muted);
+	}
+
+	.bl-empty__fix {
+		border: 0;
+		padding: 0;
+		background: none;
+		cursor: pointer;
+		font: inherit;
+		color: var(--brand);
+		text-decoration: underline;
+
+		&:hover {
+			color: var(--brand-bold);
+		}
+	}
+}

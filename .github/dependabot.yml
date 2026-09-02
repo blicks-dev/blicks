@@ -1,0 +1,27 @@
+version: 2
+
+# Only GitHub Actions are updated automatically.
+#
+# npm and Composer are deliberately NOT automated. Several dependencies are
+# pinned to exact versions because their newer releases break the build in ways
+# no type or lint check catches:
+#
+#   @wordpress/global-styles-engine  1.15.1 — newer opts into private-apis under a
+#                                             module name private-apis 1.48.0 rejects
+#   lucide-static                    1.18.0 — newer redraws glyphs, so generated icon
+#                                             markup stops matching the golden files
+#   @wordpress/*                            — pinned as a set; the editor packages
+#                                             must move together
+#
+# Bump those by hand, then confirm `pnpm test` passes and the build output is
+# unchanged before merging.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: 'ci'
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,0 +1,18 @@
+// Blicks admin SPA styles — a port of mockups/admin-design/*.html.
+//
+// `_shell` is the "Pinecone system" block those four files duplicate: the token
+// palette, base resets, `.wrap`, buttons, links, the top bar, the tabs and the
+// command palette. Every page partial after it is scoped to a `.v-*` view class,
+// because the mockups reuse the same class names (`.panel`, `.toolbar`, `.head`)
+// for different components from page to page.
+//
+// `_states` is last on purpose: its focus and reduced-motion rules must win.
+@use './admin/styles/shell';
+@use './admin/styles/overview';
+@use './admin/styles/settings';
+@use './admin/styles/design-system';
+@use './admin/styles/states';
+
+// The predefined @keyframes, shared with the front-end runtime bundle, so the Animation
+// section's built-in rows preview the real animation instead of sitting inert.
+@use './runtime/keyframes';

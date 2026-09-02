@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/buttons",
+	"title": "Buttons",
+	"category": "blicks",
+	"description": "A row or column of Button blocks with shared alignment, spacing, and wrapping.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"layout.justifyContent", "layout.alignItems", "layout.flexWrap",
+				"layout.gapRow", "layout.gapColumn",
+				"layout.width", "layout.height",
+				"gridChild.*",
+				"spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*"
+			],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"orientation": { "type": "string", "default": "horizontal" },
+		"gap":         { "type": "string", "default": "sm" },
+		"justify":     { "type": "string", "default": "flex-start" },
+		"wrap":        { "type": "boolean", "default": true }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

@@ -1,0 +1,105 @@
+name: Release
+
+# Tag-driven: pushing `v<version>` runs the full check suite, builds the plugin
+# zip, publishes it as a GitHub Release, and — for non-prerelease tags — deploys
+# to the WordPress.org SVN repository.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, no leading v (e.g. 1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  # Same suite CI runs on pull requests. A tag can point at any commit, including
+  # one that never went through a PR, so re-run rather than assume.
+  checks:
+    uses: ./.github/workflows/checks.yml
+
+  release:
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+
+          PRERELEASE=false
+          if [[ "$VERSION" == *-* ]]; then PRERELEASE=true; fi
+
+          echo "version=$VERSION"       >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION"          >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Releasing blicks v$VERSION (prerelease=$PRERELEASE)"
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer, wp-cli
+          coverage: none
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      # The tag must agree with the plugin header, the BLICKS_VERSION constant
+      # and the readme.txt stable tag. Fails the release before anything is built.
+      - name: Version guard
+        run: node scripts/check-version.mjs "${{ steps.resolve.outputs.version }}"
+
+      # Builds, generates POT/JSON translations, installs production Composer deps
+      # and writes dist/blicks.zip from an explicit allowlist.
+      - name: Bundle
+        run: pnpm bundle
+
+      - name: Unpack the zip
+        run: unzip -q dist/blicks.zip -d svn-build
+
+      # Last gate before the Directory sees it. Checking the unpacked zip means
+      # this is the exact tree that ships.
+      - name: Plugin Check
+        uses: WordPress/plugin-check-action@v1
+        with:
+          build-dir: svn-build/blicks
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.resolve.outputs.tag }}
+          name: ${{ steps.resolve.outputs.tag }}
+          files: dist/blicks.zip
+          generate_release_notes: true
+          prerelease: ${{ steps.resolve.outputs.prerelease }}
+
+      # Prereleases (1.0.0-rc.1 and friends) stop at the GitHub Release. WP.org
+      # has no concept of one, and its stable tag is a live pointer for every
+      # existing install.
+      - name: Deploy to WordPress.org
+        if: steps.resolve.outputs.prerelease == 'false'
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: blicks
+          VERSION: ${{ steps.resolve.outputs.version }}
+          BUILD_DIR: svn-build/blicks
+          ASSETS_DIR: .wordpress-org

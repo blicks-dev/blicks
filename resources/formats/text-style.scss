@@ -1,0 +1,27 @@
+/* Blicks inline text-style format — a selection-aware inspector panel ("Selection style") that
+   reuses the Blicks background control (color / gradient / image). Ships in build/editor.css. */
+.bl-ts {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+
+	&__clear {
+		align-self: flex-start;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		font-size: 11px;
+		color: #3858e9;
+		cursor: pointer;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+.bl-ts__hint {
+	margin: 0;
+	font-size: 12px;
+	color: #757575;
+}

@@ -1,0 +1,20 @@
+/* Position facet. The type row, the inset cross and the z-index field are all built from the
+ * shared field components — this file only carries what is specific to the facet: section rhythm
+ * and the spelled-out active position. Scoped to `.bl-ins`.
+ */
+.bl-ins .bl-position-group + .bl-position-group {
+	margin-top: 18px;
+}
+
+/* Same as the spacing groups: the caption's rule means "new section", and the first one in a
+   facet already has the facet header above it. */
+.bl-ins .bl-position-group:first-of-type .bl-spacing-head {
+	padding-top: 0;
+	border-top: 0;
+}
+
+/* The nested inset is a cross, not a stack of rows — it needs the width back that the disclosure's
+   indent would take, so it keeps the left rule that marks the nesting and drops the inset. */
+.bl-ins .bl-fieldgroup__body .bl-cross {
+	margin-left: -6px;
+}

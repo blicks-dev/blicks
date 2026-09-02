@@ -1,0 +1,830 @@
+/**
+ * Blicks Theme Settings sidebar (editor PluginSidebar).
+ * Editor-only chrome aligned to the current Blicks design system.
+ */
+
+/**
+ * The sidebar owns its own scrolling: the complementary area is locked to its own height and the
+ * token list inside `.bl-ts-body` is what moves. `.bl-theme-settings` is the class PluginSidebar
+ * puts *on* `.components-panel`, so the height has to be claimed from the panel itself and from
+ * the scroll container above it.
+ */
+.interface-complementary-area:has(> .bl-theme-settings) {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.components-panel.bl-theme-settings {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: auto;
+}
+
+.bl-ts {
+	--bl-ts-accent: var(--wp-admin-theme-color, #3858e9);
+	--bl-ts-accent-hover: var(--wp-admin-theme-color-darker-10, #1f3fd1);
+	--bl-ts-accent-soft: color-mix(in srgb, var(--bl-ts-accent) 9%, #fff);
+	--bl-ts-ink: #151515;
+	--bl-ts-muted: #646970;
+	--bl-ts-faint: #8c8f94;
+	--bl-ts-paper: #fff;
+	--bl-ts-canvas: #fbfbfc;
+	--bl-ts-line: #dcdcde;
+	--bl-ts-line-strong: #c3c4c7;
+	--bl-ts-warn: #b26200;
+	--bl-ts-success: #008a20;
+	--bl-ts-radius: 2px;
+	--bl-ts-font: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, oxygen-sans, ubuntu,
+		cantarell, "Helvetica Neue", sans-serif;
+	--bl-ts-mono: ui-monospace, sfmono-regular, menlo, monaco, consolas, "Liberation Mono",
+		"Courier New", monospace;
+
+	display: flex;
+	flex-direction: column;
+	// The panel owns the scroll, not the WordPress complementary area: chrome (source line, tabs,
+	// save bar) stays put and only the token list moves. Scrolling the whole area used to slide the
+	// tab bar under the sidebar header, where its first row became unreachable.
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+	background: var(--bl-ts-canvas);
+	color: var(--bl-ts-ink);
+	font-family: var(--bl-ts-font);
+	font-size: 13px;
+	line-height: 1.45;
+	font-feature-settings: "tnum";
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	a {
+		color: var(--bl-ts-accent);
+		font-weight: 600;
+		text-decoration: none;
+
+		&:hover {
+			color: var(--bl-ts-accent-hover);
+			text-decoration: none;
+		}
+	}
+}
+
+.bl-ts-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.bl-ts-dot {
+	flex: 0 0 auto;
+	width: 7px;
+	height: 7px;
+	background: var(--bl-ts-success);
+
+	&.is-warn {
+		background: var(--bl-ts-warn);
+	}
+}
+
+.bl-ts-source {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 36px;
+	padding: 6px 16px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10.5px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+
+	a {
+		margin-left: auto;
+		white-space: nowrap;
+	}
+}
+
+.bl-ts-source-label {
+	overflow: hidden;
+	min-width: 0;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.bl-ts-cats {
+	flex: 0 0 auto;
+	display: flex;
+	// Wraps rather than scrolls: the sidebar is ~280px and there is one tab per token group, so a
+	// single row would push most of them off-screen with no affordance that they exist.
+	flex-wrap: wrap;
+	gap: 0;
+	padding: 0;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+}
+
+.bl-ts-cat {
+	position: relative;
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	min-height: 30px;
+	padding: 0 9px;
+	border: 0;
+	border-right: 1px solid var(--bl-ts-line);
+	border-bottom: 1px solid var(--bl-ts-line);
+	border-radius: 0;
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition-property: background-color, color, box-shadow, transform;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+
+	&:hover {
+		background: var(--bl-ts-canvas);
+		color: var(--bl-ts-ink);
+	}
+
+	&:active {
+		transform: scale(0.96);
+	}
+
+	&.is-active {
+		color: var(--bl-ts-ink);
+		box-shadow: inset 0 -2px 0 var(--bl-ts-accent);
+	}
+
+	&:focus-visible {
+		outline: 0;
+		box-shadow:
+			inset 0 0 0 1px var(--bl-ts-accent),
+			inset 0 -2px 0 var(--bl-ts-accent);
+	}
+}
+
+.bl-ts-cat-badge {
+	width: 6px;
+	height: 6px;
+	background: var(--bl-ts-warn);
+}
+
+.bl-ts-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding-bottom: 8px;
+
+	&:focus-visible {
+		outline: 2px solid var(--bl-ts-accent);
+		outline-offset: -2px;
+	}
+}
+
+.bl-ts-note {
+	margin: 0;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-muted);
+	font-size: 12px;
+	line-height: 1.45;
+	text-wrap: pretty;
+}
+
+.bl-ts-subhead {
+	margin: 0;
+	padding: 16px 16px 9px;
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.bl-ts-tok,
+.bl-ts-field {
+	padding: 7px 16px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+
+	// The word "override" cost ~70px of a 248px row and truncated the token's own value to
+	// "--blicks-spaci…". The edge marks the same state, the reset button stays as the action, and
+	// the label survives for screen readers via .bl-ts-sr.
+	&.is-override {
+		box-shadow: inset 2px 0 0 var(--bl-ts-warn);
+	}
+}
+
+// A colour row is a swatch, a name and a short hex — one line holds all of it.
+.bl-ts-tok {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	> * {
+		flex: 0 0 auto;
+	}
+
+	.bl-ts-main {
+		flex: 1 1 auto;
+	}
+}
+
+/**
+ * A value row stacks instead: side by side, a 280px sidebar gave the label ~110px and the field
+ * ~104px, so the var name read "--blicks-butto…" and a `clamp()` value was unreadable in its own
+ * input. Full width each, on their own line, and both are legible.
+ */
+.bl-ts-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 28px;
+	align-items: center;
+	gap: 4px 8px;
+
+	.bl-ts-main {
+		grid-column: 1 / -1;
+	}
+
+	// Stacking costs a line, so the label block itself is tightened to pay for it.
+	.bl-ts-main strong {
+		line-height: 1.2;
+	}
+
+	.bl-ts-main span {
+		margin-top: 1px;
+		font-size: 10px;
+		line-height: 1.2;
+	}
+
+	.bl-ts-badge {
+		grid-column: 1;
+		justify-self: start;
+	}
+
+	.bl-ts-input {
+		grid-column: 1;
+		width: 100%;
+	}
+
+	.bl-ts-input input {
+		flex: 1 1 auto;
+		width: auto;
+		min-width: 0;
+	}
+
+	.bl-ts-reset {
+		grid-column: 2;
+	}
+
+	// Nothing truncates now, so let the var name wrap rather than ellipsise.
+	.bl-ts-main span {
+		overflow: visible;
+		overflow-wrap: anywhere;
+		white-space: normal;
+	}
+}
+
+.bl-ts-swatch {
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: 1px solid rgb(0 0 0 / 20%);
+	border-radius: var(--bl-ts-radius);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 34%);
+	cursor: pointer;
+	transition-property: box-shadow, transform;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+
+	&:hover:not(:disabled) {
+		box-shadow:
+			inset 0 0 0 1px rgb(255 255 255 / 34%),
+			0 0 0 1px var(--bl-ts-accent);
+	}
+
+	&:active:not(:disabled) {
+		transform: scale(0.96);
+	}
+
+	&.is-editing {
+		box-shadow:
+			inset 0 0 0 1px rgb(255 255 255 / 34%),
+			0 0 0 2px var(--bl-ts-accent);
+	}
+}
+
+.bl-ts-main {
+	min-width: 0;
+
+	strong {
+		display: block;
+		color: var(--bl-ts-ink);
+		font-size: 12.5px;
+		font-weight: 600;
+		line-height: 1.25;
+		overflow-wrap: anywhere;
+	}
+
+	span {
+		display: block;
+		overflow: hidden;
+		margin-top: 2px;
+		color: var(--bl-ts-muted);
+		font-family: var(--bl-ts-mono);
+		font-size: 10.5px;
+		line-height: 1.25;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.bl-ts-badge {
+	min-height: 20px;
+	padding: 4px 6px;
+	border: 1px solid var(--bl-ts-line);
+	border-radius: 0;
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 9.5px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1;
+	text-transform: uppercase;
+
+	&.is-override {
+		border-color: color-mix(in srgb, var(--bl-ts-warn) 38%, #fff);
+		background: color-mix(in srgb, var(--bl-ts-warn) 8%, #fff);
+		color: var(--bl-ts-warn);
+	}
+}
+
+.bl-ts-reset {
+	display: inline-grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: var(--bl-ts-radius);
+	background: transparent;
+	color: var(--bl-ts-faint);
+	cursor: pointer;
+	transition-property: background-color, border-color, color, transform;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+
+	&:hover:not(:disabled) {
+		border-color: var(--bl-ts-line);
+		background: var(--bl-ts-canvas);
+		color: var(--bl-ts-ink);
+	}
+
+	&:active:not(:disabled) {
+		transform: scale(0.96);
+	}
+
+	&:focus-visible {
+		border-color: var(--bl-ts-accent);
+		box-shadow: 0 0 0 1px var(--bl-ts-accent);
+		outline: 0;
+	}
+
+	&:disabled {
+		visibility: hidden;
+	}
+
+	.is-override > & {
+		color: var(--bl-ts-warn);
+	}
+
+	svg {
+		width: 14px;
+		height: 14px;
+	}
+}
+
+.bl-ts-input {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10.5px;
+
+	input {
+		width: 62px;
+		min-height: 30px;
+		padding: 4px 8px;
+		border: 1px solid var(--bl-ts-line);
+		border-radius: var(--bl-ts-radius);
+		background: var(--bl-ts-paper);
+		box-shadow: none;
+		color: var(--bl-ts-ink);
+		font-size: 12px;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+
+		&:hover {
+			border-color: var(--bl-ts-line-strong);
+		}
+
+		&:focus {
+			border-color: var(--bl-ts-accent);
+			box-shadow: 0 0 0 1px var(--bl-ts-accent);
+			outline: 0;
+		}
+	}
+
+	&.is-wide input {
+		width: 104px;
+		text-align: left;
+	}
+}
+
+.bl-ts-notice {
+	flex: 0 0 auto;
+	margin: 10px 16px 0;
+	padding: 9px 10px;
+	border: 1px solid var(--bl-ts-line);
+	border-radius: var(--bl-ts-radius);
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-ink);
+	font-size: 12px;
+}
+
+.bl-ts-savebar {
+	flex: 0 0 auto;
+	padding: 8px 16px;
+	border-top: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-canvas);
+
+	&.is-dirty {
+		padding-bottom: 12px;
+	}
+}
+
+.bl-ts-savemeta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	.bl-ts-savebar.is-dirty & {
+		margin-bottom: 8px;
+	}
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10.5px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.bl-ts-actions {
+	display: grid;
+	grid-template-columns: minmax(88px, auto) minmax(0, 1fr);
+	gap: 8px;
+}
+
+.bl-ts-discard,
+.bl-ts-save {
+	min-height: 34px;
+	padding: 7px 12px;
+	border-radius: var(--bl-ts-radius);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	transition-property: background-color, border-color, color, opacity, transform;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+
+	&:active:not(:disabled) {
+		transform: scale(0.96);
+	}
+
+	&:disabled {
+		cursor: default;
+		opacity: 0.5;
+	}
+}
+
+.bl-ts-discard {
+	border: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-ink);
+
+	&:hover:not(:disabled) {
+		border-color: var(--bl-ts-line-strong);
+		background: var(--bl-ts-canvas);
+	}
+}
+
+.bl-ts-save {
+	border: 1px solid var(--bl-ts-accent);
+	background: var(--bl-ts-accent);
+	color: #fff;
+
+	&:hover:not(:disabled) {
+		border-color: var(--bl-ts-accent-hover);
+		background: var(--bl-ts-accent-hover);
+	}
+}
+
+/* Rendered in a Popover portal — must be a top-level selector. */
+.bl-ts-picker {
+	width: 260px;
+	padding: 8px;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	background: #fff;
+	box-shadow: 0 12px 28px rgb(0 0 0 / 12%);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Themes pane — named token presets (apply / snapshot / reset / delete).
+ * -------------------------------------------------------------------------- */
+
+.bl-ts-empty {
+	margin: 0;
+	padding: 20px 16px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+	color: var(--bl-ts-faint);
+	font-size: 12px;
+	text-align: center;
+}
+
+.bl-ts-theme {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 28px;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 12px 6px 8px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+
+	&.is-active {
+		background: var(--bl-ts-accent-soft);
+	}
+}
+
+.bl-ts-theme-pick {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 8px;
+	border: 0;
+	border-radius: var(--bl-ts-radius);
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+
+	&:hover:not(:disabled) {
+		background: var(--bl-ts-canvas);
+	}
+
+	&:disabled {
+		cursor: default;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--bl-ts-accent);
+		outline-offset: -2px;
+	}
+}
+
+.bl-ts-theme-swatches {
+	display: flex;
+	flex: 0 0 auto;
+
+	i {
+		width: 14px;
+		height: 22px;
+		border: 1px solid rgb(0 0 0 / 12%);
+		border-radius: 2px;
+
+		&:not(:first-child) {
+			margin-left: -5px;
+		}
+
+		&.is-empty {
+			background: repeating-linear-gradient(45deg, #f0f0f1 0 4px, #fff 4px 8px);
+		}
+	}
+}
+
+.bl-ts-theme-name {
+	overflow: hidden;
+	font-weight: 600;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+
+	em {
+		margin-left: 4px;
+		color: var(--bl-ts-warn);
+		font-style: normal;
+	}
+}
+
+.bl-ts-newtheme {
+	padding: 14px 16px 16px;
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+
+	label {
+		display: block;
+		margin-bottom: 7px;
+		color: var(--bl-ts-muted);
+		font-family: var(--bl-ts-mono);
+		font-size: 10.5px;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	> div {
+		display: flex;
+		gap: 6px;
+		align-items: stretch;
+	}
+
+	.bl-ts-input {
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+/* -------------------------------------------------------------------------- *
+ * Type roles — a whole typographic look per row, expandable to its props.
+ * -------------------------------------------------------------------------- */
+
+.bl-ts-role {
+	border-bottom: 1px solid var(--bl-ts-line);
+	background: var(--bl-ts-paper);
+
+	&.is-open {
+		background: var(--bl-ts-canvas);
+	}
+
+	&.is-override {
+		box-shadow: inset 2px 0 0 var(--bl-ts-warn);
+	}
+}
+
+.bl-ts-role-head {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr) minmax(0, auto) auto;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 8px 14px 8px 6px;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--bl-ts-canvas);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--bl-ts-accent);
+		outline-offset: -2px;
+	}
+}
+
+.bl-ts-role-chevron svg {
+	display: block;
+	width: 16px;
+	height: 16px;
+	color: var(--bl-ts-faint);
+	transition: transform 150ms ease;
+}
+
+.bl-ts-role.is-open .bl-ts-role-chevron svg {
+	transform: rotate(180deg);
+}
+
+.bl-ts-role-main {
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+	min-width: 0;
+
+	strong {
+		flex: 0 0 auto;
+		font-size: 12.5px;
+		font-weight: 600;
+	}
+}
+
+.bl-ts-role-specimen {
+	overflow: hidden;
+	color: var(--bl-ts-muted);
+	font-size: 15px;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.bl-ts-role-size {
+	overflow: hidden;
+	max-width: 76px;
+	color: var(--bl-ts-muted);
+	font-family: var(--bl-ts-mono);
+	font-size: 10.5px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-ts-role-body {
+	padding: 2px 14px 12px 28px;
+}
+
+.bl-ts-role-field {
+	display: grid;
+	grid-template-columns: 58px minmax(0, 1fr) 26px;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 0;
+
+	> label {
+		color: var(--bl-ts-muted);
+		font-size: 11.5px;
+	}
+
+	// Text inputs and selects share the middle track, so the control edges line up down the
+	// column instead of stepping in and out by prop type.
+	.bl-ts-input {
+		display: block;
+		min-width: 0;
+	}
+
+	.bl-ts-input input,
+	&.bl-ts-role-field .bl-ts-input.is-wide input {
+		width: 100%;
+		min-height: 30px;
+		text-align: left;
+	}
+
+	.bl-ts-reset {
+		width: 26px;
+		height: 26px;
+	}
+}
+
+.bl-ts-select {
+	display: block;
+	min-width: 0;
+
+	select {
+		width: 100%;
+		min-width: 0;
+		height: 30px;
+		min-height: 30px;
+		padding: 0 22px 0 8px;
+		border: 1px solid var(--bl-ts-line-strong);
+		border-radius: var(--bl-ts-radius);
+		background: var(--bl-ts-paper);
+		color: var(--bl-ts-ink);
+		font-family: var(--bl-ts-mono);
+		font-size: 11.5px;
+
+		&:focus {
+			border-color: var(--bl-ts-accent);
+			box-shadow: 0 0 0 1px var(--bl-ts-accent);
+			outline: 0;
+		}
+	}
+}
+
+/* Per-pane draft revert, pinned under the last row of the pane. */
+.bl-ts-panefoot {
+	padding: 10px 16px;
+
+	.bl-ts-discard {
+		width: 100%;
+	}
+}

@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Formats and lints staged PHP against phpcs.xml.dist.
+#
+# phpcbf fixes what it can, the fixes are staged, and phpcs then decides whether the commit
+# proceeds. Skip with `git commit --no-verify`.
+
+set -e
+
+if [ ! -x vendor/bin/phpcs ]; then
+	echo "pre-commit: vendor/bin/phpcs is missing. Run \`composer install\`." >&2
+	exit 1
+fi
+
+# Only files the ruleset actually scans; phpcs.xml.dist covers blicks.php, src/ and
+# resources/blocks/, and excludes tests/.
+staged=$(
+	git diff --cached --name-only --diff-filter=ACMR -- '*.php' \
+		| grep -E '^(blicks\.php|src/|resources/blocks/)' || true
+)
+
+[ -z "$staged" ] && exit 0
+
+# A file that is only partially staged must not be auto-fixed: phpcbf rewrites the whole
+# working copy, and staging that would sweep in edits the commit was never meant to include.
+partial=""
+for file in $staged; do
+	if ! git diff --quiet -- "$file"; then
+		if [ -z "$partial" ]; then partial="$file"; else partial="$partial $file"; fi
+	fi
+done
+
+if [ -n "$partial" ]; then
+	echo "pre-commit: these files are only partially staged, so they cannot be auto-fixed:" >&2
+	for file in $partial; do echo "  $file" >&2; done
+	echo "" >&2
+	echo "Stage them fully, or run \`vendor/bin/phpcbf $partial\` and stage the result." >&2
+	exit 1
+fi
+
+# phpcbf exits 1 when it fixed something and 0 when there was nothing to fix; neither is an
+# error, so its status is deliberately ignored. phpcs below is the actual gate.
+echo "$staged" | xargs vendor/bin/phpcbf >/dev/null 2>&1 || true
+echo "$staged" | xargs git add
+
+echo "$staged" | xargs vendor/bin/phpcs

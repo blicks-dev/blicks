@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/button",
+	"title": "Button",
+	"category": "blicks",
+	"description": "A shadcn-style action button with variants, sizes, links, and optional icons.",
+	"textdomain": "blicks",
+	"parent": [ "blicks/buttons" ],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.*", "spacing.*", "border.*", "effects.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"text":         { "type": "string", "default": "" },
+		"url":          { "type": "string", "default": "" },
+		"linkTarget":   { "type": "string", "default": "" },
+		"rel":          { "type": "string", "default": "" },
+		"variant":      { "type": "string", "default": "default" },
+		"size":         { "type": "string", "default": "default" },
+		"icon":         { "type": "string", "default": "" },
+		"iconPosition": { "type": "string", "default": "leading" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

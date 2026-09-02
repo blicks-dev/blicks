@@ -1,0 +1,530 @@
+/* Background (color/gradient/image) control — mockup vocabulary. Mode tabs use the
+   foundation `.seg`; the color row uses foundation `.color-row`/`.swatch`/`.ctxt-lbl`.
+   This file styles the leftovers: gradient rail, bg inputs, image dropzone, lib button.
+   Scoped to `.bl-ins`. The ColorPopover block below is portaled (rendered outside
+   `.bl-ins`) so it stays standalone. */
+.bl-ins .bl-color-control {
+	font-size: var(--bl-ui-text-md);
+
+	/* collapsed summary row — opens the editor popover */
+	.bg-trigger {
+		cursor: pointer;
+
+		&:hover {
+			border-color: #aab4c2;
+		}
+	}
+
+	.bg-trigger__chev {
+		width: 14px;
+		height: 14px;
+		flex: 0 0 auto;
+		color: var(--fg-subtle);
+	}
+
+	/* the editor, rendered inside the portaled popover */
+	&.bl-bg-popover {
+		width: 272px;
+		max-width: calc(100vw - 32px);
+		padding: 14px;
+	}
+
+	.bg-mode {
+		margin-bottom: 14px;
+	}
+
+	/* color row (base look from foundation `.color-row`) */
+	.color-field {
+		position: relative;
+	}
+
+	.color-row.is-empty .color-val {
+		color: var(--fg-subtle);
+	}
+
+	.swatch {
+		cursor: pointer;
+		padding: 0;
+
+		&.is-transparent {
+			background: repeating-conic-gradient(#cfcfcf 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+		}
+	}
+
+	.color-val {
+		flex: 1;
+		min-width: 0;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		cursor: pointer;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.lib-btn {
+		flex: 0 0 auto;
+		width: 26px;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		border: 0;
+		background: transparent;
+		color: var(--brand);
+		cursor: pointer;
+		padding: 0;
+
+		svg {
+			width: 15px;
+			height: 15px;
+		}
+
+		&:hover {
+			background: var(--brand-tint);
+		}
+	}
+
+	/* gradient */
+	.bg-gradient-panel {
+		margin-top: 12px;
+	}
+
+	.grad-rail {
+		position: relative;
+		height: 30px;
+		margin: 8px 0 12px;
+		border: 1px solid rgb(15 23 42 / 12%);
+		cursor: copy;
+	}
+
+	.grad-handle {
+		position: absolute;
+		top: 50%;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 2px solid #fff;
+		box-shadow: 0 0 0 1px rgb(15 23 42 / 30%);
+		transform: translate(-50%, -50%);
+		cursor: grab;
+		padding: 0;
+
+		&:active {
+			cursor: grabbing;
+		}
+
+		&.is-active {
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+	}
+
+	.grad-token-preview {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+
+		.grad-rail {
+			flex: 1;
+			cursor: default;
+		}
+	}
+
+	.grad-tooltip {
+		position: absolute;
+		top: -24px;
+		transform: translateX(-50%);
+		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
+		background: var(--fg);
+		color: #fff;
+		padding: 3px 4px;
+		pointer-events: none;
+	}
+
+	.grad-meta {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 10px;
+		align-items: center;
+
+		.sub {
+			margin: 0;
+		}
+	}
+
+	/* inputs (angle / size / repeat / attachment / position / blend) */
+	.bg-input {
+		width: 100%;
+		height: 38px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+		padding: 0 10px;
+		font-size: var(--bl-ui-text-md);
+		color: var(--fg);
+		outline: 0;
+
+		&:hover {
+			border-color: #aab4c2;
+		}
+
+		&:focus {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+	}
+
+	.bg-input--angle {
+		width: 92px;
+		text-align: center;
+	}
+
+	select.bg-input {
+		appearance: none;
+		padding-right: 30px;
+		cursor: pointer;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 11px center;
+		background-size: 12px 8px;
+	}
+
+	/* image dropzone */
+	.bg-image-panel {
+		margin-top: 12px;
+	}
+
+	.bg-grid2 {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 12px;
+		margin-top: 12px;
+	}
+
+	.img-pick {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		border: 1px solid var(--border-strong);
+		padding: 12px;
+		background: var(--paper);
+	}
+
+	.img-thumb {
+		width: 60px;
+		height: 50px;
+		flex: 0 0 auto;
+		border: 1px solid var(--border);
+		background-color: var(--surface-sunk);
+		background-size: cover;
+		background-position: center;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.img-pick.is-empty .img-thumb {
+		background: conic-gradient(var(--bl-ui-checker) 0 25%, #fff 0 50%, var(--bl-ui-checker) 0 75%, #fff 0) 0 0 / 16px 16px;
+	}
+
+	.img-meta {
+		min-width: 0;
+	}
+
+	.img-name {
+		font-size: var(--bl-ui-text-md);
+		font-weight: 500;
+		color: var(--fg);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.img-actions {
+		display: flex;
+		gap: 12px;
+		margin-top: 4px;
+	}
+
+	.img-actions .link {
+		border: 0;
+		background: none;
+		padding: 0;
+		font-size: var(--bl-ui-text-md);
+		font-weight: 500;
+		color: var(--brand);
+		cursor: pointer;
+
+		&:hover {
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+
+		&.danger {
+			color: var(--danger);
+		}
+	}
+}
+
+/* ---- theme colour list (the caret's dropdown on a colour row) ----
+   Borrows the combobox's panel frame — same chrome, same heading — because it IS a value list and
+   there is no reason for it to arrive looking like a different kind of object. Only the row differs:
+   a colour's name is not enough to choose by, so the swatch leads and the name follows it. */
+.bl-ins .bl-colorlist {
+	max-height: 260px;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.bl-ins .bl-colorlist__option {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 4px 8px;
+	border: 0;
+	background: none;
+	font-family: var(--font-mono);
+	font-size: var(--bl-ui-text-2xs);
+	color: var(--fg);
+	text-align: left;
+	cursor: pointer;
+
+	&::before { content: none; }
+
+	&:hover {
+		background: var(--surface-sunk);
+	}
+
+	/* Tinted rather than ticked: the swatch already owns the left column, and a second marker in
+	   the same row would leave the name fighting for what is left of 264px. */
+	&.is-active {
+		background: var(--brand-tint);
+		color: var(--brand);
+	}
+}
+
+.bl-ins .bl-colorlist__swatch {
+	width: 14px;
+	height: 14px;
+	border: 1px solid rgb(15 23 42 / 18%);
+	border-radius: 50%;
+}
+
+.bl-ins .bl-colorlist__name {
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* The wheel on its own — no tabs above it, since the palette is now its own affordance. */
+.bl-ins .bl-color-picker-panel {
+	padding: 10px;
+	border: 1px solid var(--border-strong);
+	background: var(--paper);
+	box-shadow: 0 18px 44px rgb(0 0 0 / 16%);
+}
+
+/* Color Popover — shared with border control.
+   `fit-content` so the frame shrink-wraps whatever panel it carries: each of these popovers sets
+   its own width on the panel inside (280px here, 264px for the fill picker), and without this the
+   WP content box sizes itself and leaves a margin of dead chrome around the panel. */
+.bl-floating-popover .components-popover__content {
+	width: fit-content;
+	max-height: calc(100vh - 24px);
+	overflow: visible;
+}
+
+.bl-color-popover {
+	margin: 0;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--bl-editor-radius, 2px);
+	box-shadow: 0 18px 44px rgb(0 0 0 / 16%);
+	padding: 12px;
+	background: #fff;
+	width: 280px;
+	max-width: calc(100vw - 32px);
+	max-height: min(520px, calc(100vh - 24px));
+	box-sizing: border-box;
+	overflow: auto;
+	text-align: left;
+
+	.pop-tabs {
+		display: flex;
+		gap: 4px;
+		margin-bottom: 12px;
+		background: var(--surface-sunk);
+		border-radius: var(--bl-editor-radius, 2px);
+		padding: 2px;
+	}
+
+	.pop-tab {
+		flex: 1;
+		text-align: center;
+		font-size: var(--bl-ui-text-sm);
+		padding: 4px;
+		border-radius: var(--bl-editor-radius, 2px);
+		color: var(--fg-muted);
+		cursor: pointer;
+		background: transparent;
+		border: 0;
+
+		&.is-active {
+			background: #fff;
+			color: var(--fg);
+			font-weight: 500;
+			box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+		}
+	}
+
+	.pop-label {
+		font-size: var(--bl-ui-label-size-sm);
+		letter-spacing: var(--bl-ui-label-tracking-sm);
+		text-transform: uppercase;
+		color: var(--bl-editor-muted, #646970);
+		margin: 4px 0 8px;
+	}
+
+	.token-grid {
+		display: grid;
+		grid-template-columns: repeat(9, 1fr);
+		gap: 6px;
+		margin-top: 4px;
+	}
+
+	.token {
+		aspect-ratio: 1;
+		border-radius: var(--bl-editor-radius, 2px);
+		border: 1px solid rgb(0 0 0 / 10%);
+		cursor: pointer;
+		padding: 0;
+		background: transparent;
+
+		&:hover {
+			transform: scale(1.04);
+		}
+
+		&.is-selected {
+			box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--brand);
+		}
+	}
+
+	/* WP ColorPicker overrides */
+	.components-color-picker {
+		width: 100%;
+		padding: 0;
+		border: 0;
+		box-shadow: none;
+		background: transparent;
+	}
+
+	.components-color-picker__saturation {
+		border-radius: var(--bl-editor-radius, 2px);
+		overflow: hidden;
+		margin-bottom: 10px;
+	}
+
+	.components-color-picker__controls {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 0;
+		margin-bottom: 10px;
+	}
+
+	.components-color-picker__hue-and-alpha {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.components-color-picker__hue .components-color-picker__hue-bar,
+	.components-color-picker__alpha .components-color-picker__alpha-bar {
+		height: 10px;
+		border-radius: var(--bl-editor-radius, 2px);
+	}
+
+	.components-color-picker__preview,
+	.components-color-picker__preview-color {
+		width: 28px;
+		height: 28px;
+		border-radius: var(--bl-editor-radius, 2px);
+		border: 1px solid rgb(0 0 0 / 12%);
+		flex-shrink: 0;
+		overflow: hidden;
+	}
+
+	.components-color-picker__inputs-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 0;
+	}
+
+	.components-color-picker__inputs-fields {
+		flex: 1;
+		display: flex;
+		gap: 4px;
+
+		input {
+			flex: 1;
+			min-width: 0;
+			border: 1px solid var(--border-strong) !important;
+			border-radius: var(--bl-editor-radius, 2px) !important;
+			padding: 4px 6px !important;
+			font: inherit !important;
+			font-size: var(--bl-ui-text-sm) !important;
+			background: #fff !important;
+			color: var(--fg) !important;
+			outline: 0 !important;
+			box-shadow: none !important;
+			height: auto !important;
+
+			&:focus {
+				border-color: var(--brand) !important;
+				box-shadow: 0 0 0 2px var(--brand) !important;
+			}
+		}
+	}
+
+	.components-color-picker__copy-wrapper {
+		flex-shrink: 0;
+
+		button {
+			width: 28px;
+			height: 28px;
+			padding: 0;
+			border: 1px solid var(--border-strong);
+			border-radius: var(--bl-editor-radius, 2px);
+			background: transparent;
+			color: var(--fg-muted);
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+
+			&:hover {
+				background: var(--surface-sunk);
+				color: var(--fg);
+			}
+
+			svg {
+				width: 14px;
+				height: 14px;
+			}
+		}
+	}
+
+	.components-color-picker__input-label {
+		display: none;
+	}
+}
+
+@media (width <= 700px) {
+	.bl-color-popover {
+		width: 100%;
+		max-width: 100%;
+		margin: 10px 0 4px;
+	}
+}

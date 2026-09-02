@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/stack",
+	"title": "Stack",
+	"category": "blicks",
+	"description": "A one-dimensional flex layout for arranging child blocks vertically or horizontally.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"layout.flexDirection", "layout.justifyContent", "layout.alignItems", "layout.flexWrap",
+				"layout.gapRow", "layout.gapColumn",
+				"layout.width", "layout.height",
+				"layout.overflow", "layout.overflowX", "layout.overflowY", "layout.scrollSnapType",
+				"layout.containerType", "layout.containerName",
+				"layout.aspectRatio",
+				"gridChild.*",
+				"spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*"
+			],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"orientation": { "type": "string", "default": "vertical" },
+		"tag":         { "type": "string", "default": "div" },
+		"gap":         { "type": "string", "default": "md" },
+		"align":       { "type": "string", "default": "stretch" },
+		"justify":     { "type": "string", "default": "start" },
+		"wrap":        { "type": "boolean", "default": false }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

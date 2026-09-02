@@ -1,0 +1,65 @@
+@use '../shared/placeholder';
+
+@layer blicks.base {
+	.bl-section {
+		display: flow-root;
+		box-sizing: border-box;
+
+		--bl-section-width: auto;
+		--bl-section-height: auto;
+		--bl-section-content-width: 100%;
+		--bl-section-content-min-width: 0;
+		--bl-section-content-max-width: var(--blicks-content-size, var(--wp--style--global--content-size, 1200px));
+
+		// Keep width auto so WordPress' native `.has-global-padding > .alignfull`
+		// negative margins expand the section instead of shifting a fixed 100% box left.
+		width: var(--bl-section-width, auto);
+		min-height: var(--bl-section-height, auto);
+
+		&__inner {
+			box-sizing: border-box;
+			width: var(--bl-section-content-width, 100%);
+			min-width: var(--bl-section-content-min-width, 0);
+			max-width: var(--bl-section-content-max-width, 1200px);
+			margin-inline: auto;
+			padding-inline: var(--blicks-content-padding, 1rem);
+		}
+
+		&--surface-muted {
+			background: var(--blicks-color-muted, #f4f4f5);
+		}
+
+		&--surface-card {
+			background: var(--blicks-color-card, #fff);
+			border: 1px solid var(--blicks-color-border, #e4e4e7);
+			border-radius: var(--blicks-radius-lg, 0.75rem);
+			box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 8px 24px rgb(0 0 0 / 6%);
+		}
+
+		&--surface-outline {
+			border: 1px solid var(--blicks-color-border, #e4e4e7);
+			border-radius: var(--blicks-radius-lg, 0.75rem);
+		}
+
+		&--space-sm {
+			padding-block: var(--blicks-spacing-lg, 2rem);
+		}
+
+		&--space-md {
+			padding-block: var(--blicks-spacing-2xl, 4rem);
+		}
+
+		&--space-lg {
+			padding-block: var(--blicks-spacing-3xl, 6rem);
+		}
+	}
+}
+
+/* Editor: keep a dashed outline on a selected Section (or while a child is selected) so an
+   empty/transparent band stays visible. Editor-only — `.is-selected` never appears on the front
+   end. Uses `outline` so it never overrides a user-set border or surface background-color. */
+.bl-section.is-selected,
+.bl-section.has-child-selected {
+	outline: 1px dashed var( --wp-admin-theme-color, #3858e9 );
+	outline-offset: -1px;
+}

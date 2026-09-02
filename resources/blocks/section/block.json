@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/section",
+	"title": "Section",
+	"category": "blicks",
+	"description": "A full-bleed page band with outer section sizing and independent content sizing controls.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "full" ],
+		"blicks": {
+			"controls": [ "spacing.*", "border.*", "position.*", "colors.*", "background.*", "typography.*", "effects.*", "animation.*", "decoration.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"align":        { "type": "string", "default": "full" },
+		"sectionWidth":    { "type": "string", "default": "auto" },
+		"sectionHeight":   { "type": "string", "default": "auto" },
+		"contentWidth":    { "type": "string", "default": "100%" },
+		"contentMinWidth": { "type": "string", "default": "0" },
+		"contentMaxWidth": { "type": "string", "default": "var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))" },
+		"surface":         { "type": "string", "default": "plain" },
+		"sectionSpace":    { "type": "string", "default": "md" }
+	},
+	"render":       "file:./render.php",
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}
