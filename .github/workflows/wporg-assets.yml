@@ -19,7 +19,7 @@ jobs:
     name: Sync listing assets to SVN
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The plugin has no SVN repository until WordPress.org approves the
       # submission, and the action fails hard on missing credentials. Skip with a

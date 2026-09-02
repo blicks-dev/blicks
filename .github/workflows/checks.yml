@@ -9,12 +9,12 @@ jobs:
   js:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # pnpm version comes from the `packageManager` field in package.json.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -47,7 +47,7 @@ jobs:
   php-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # PHPCS itself runs on a modern PHP; the ruleset's PHPCompatibilityWP sniff
       # with testVersion 8.1- is what actually enforces the 8.1 floor, statically.
@@ -60,7 +60,7 @@ jobs:
       - name: Validate composer.json
         run: composer validate --strict --no-check-publish
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/composer/files
           key: composer-8.4-${{ hashFiles('composer.lock') }}
@@ -85,7 +85,7 @@ jobs:
         # 8.1 floor the plugin ships against is covered by php-min-compat below.
         php: ['8.4', '8.5']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -93,7 +93,7 @@ jobs:
           tools: composer
           coverage: none
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/composer/files
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
@@ -117,7 +117,7 @@ jobs:
         # is excluded, exactly as it is in the release bundle.
         php: ['8.1', '8.2', '8.3']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -144,11 +144,11 @@ jobs:
         # The two versions readme.txt commits to: the "Requires at least" floor and current.
         wp: [ '6.5', 'latest' ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
