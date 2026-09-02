@@ -21,7 +21,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The plugin has no SVN repository until WordPress.org approves the
+      # submission, and the action fails hard on missing credentials. Skip with a
+      # notice instead, so this workflow is not permanently red before then.
+      - name: Check for SVN credentials
+        id: creds
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+        run: |
+          if [ -z "$SVN_USERNAME" ]; then
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::SVN_USERNAME is not set — skipping the asset sync.'
+          else
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Update the Directory listing
+        if: steps.creds.outputs.present == 'true'
         uses: 10up/action-wordpress-plugin-asset-update@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
