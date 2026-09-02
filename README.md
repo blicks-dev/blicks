@@ -107,7 +107,7 @@ drifted. Nothing under `docs/` reaches the release zip — `scripts/bundle.js` s
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `checks.yml` | called by the two below | The shared gate: JS build/typecheck/lint/test, PHPCS, PHPUnit on PHP 8.4 + 8.5, a production `composer install` on 8.1/8.2/8.3 to prove the shipped dependency set works at the declared floor, and the WordPress integration suite on WP 6.5 + latest |
+| `checks.yml` | called by the two below | The shared gate: JS build/typecheck/lint/test, PHPCS, PHPUnit on PHP 8.4 + 8.5, a production `composer install` on 8.1/8.2/8.3 to prove the shipped dependency set works at the declared floor, the WordPress integration suite on WP 6.5 + latest, and the Playground e2e suite |
 | `ci.yml` | push to `main`, every PR | Runs `checks.yml` |
 | `plugin-check.yml` | every PR | Bundles the release zip and runs the official WordPress.org Plugin Check against it |
 | `release.yml` | `v*` tag | `checks.yml` → version guard → bundle → Plugin Check → GitHub Release → WordPress.org SVN deploy |
@@ -121,13 +121,25 @@ drifted. Nothing under `docs/` reaches the release zip — `scripts/bundle.js` s
 
 ### Tests
 
-Three suites, each answering a different question.
+Four suites, each answering a different question.
 
 | Suite | Runs on | Answers |
 |---|---|---|
 | `pnpm test` (Vitest) | Node | Does the block markup still match its golden files, and does the framework logic hold? |
 | `composer test` (PHPUnit 13) | PHP, no WordPress | Is the pure logic — tokens, projections, CSS generation — correct? |
 | `pnpm test:integration` (PHPUnit 9) | Real WordPress, in Docker | Does the plugin actually wire itself up? |
+| `tests/e2e` (Playwright) | Real WordPress, in a browser | Can a person insert every block, and does the front end render what they built? |
+
+The e2e suite drives the real WordPress editor through **WordPress Playground** — WordPress
+compiled to WebAssembly, so there is no Docker, no MySQL and nothing to install. Playwright boots
+it with `tests/e2e/blueprint.json` and *mounts the working tree* as the plugin, so the suite tests
+the plugin exactly as it is on disk rather than a built artifact. Run it with
+`cd tests/e2e && pnpm install && pnpm test`; it needs `pnpm build` and `composer install` to have
+run first, because a mounted plugin is source, not a package.
+
+It carries the coverage that unit tests structurally cannot: that a block survives a real publish,
+that the dynamic Section block's `render.php` executes, and that the PHP style engine emits its
+custom properties into the page a visitor loads.
 
 The integration suite exists because the unit suite runs against hand-written stubs of
 `WP_Error` and friends, which cannot prove that a REST route registered, that a capability

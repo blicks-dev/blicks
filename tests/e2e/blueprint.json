@@ -1,0 +1,10 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"landingPage": "/wp-admin/post-new.php?post_type=page",
+	"preferredVersions": { "php": "8.3", "wp": "latest" },
+	"features": { "networking": false },
+	"steps": [
+		{ "step": "login" },
+		{ "step": "activatePlugin", "pluginPath": "blicks/blicks.php" }
+	]
+}

@@ -1,0 +1,16 @@
+{
+	"name": "blicks-e2e",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "End-to-end suite. Isolated from the plugin package because only this needs Playwright and the Playground CLI, so the build and release jobs never install them.",
+	"scripts": {
+		"test": "playwright test",
+		"test:ui": "playwright test --ui",
+		"report": "playwright show-report"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.62.1",
+		"@wp-playground/cli": "^1.0.0"
+	}
+}

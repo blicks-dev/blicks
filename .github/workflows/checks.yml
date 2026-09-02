@@ -181,3 +181,50 @@ jobs:
       - name: Stop WordPress
         if: always()
         run: npx wp-env stop
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      # The suite mounts this working tree as the plugin, so Playground runs whatever is on
+      # disk. It does not build for you: an unbuilt tree registers no blocks.
+      - name: Build
+        run: pnpm build
+
+      # uupcode/utilities is a runtime dependency, so the plugin cannot boot without it.
+      - name: Install plugin dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist
+
+      # tests/e2e installs separately: only it needs Playwright and the Playground CLI, so the
+      # other jobs never pay for them.
+      - name: Install the e2e suite
+        working-directory: tests/e2e
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: tests/e2e
+        run: pnpm exec playwright install --with-deps chromium
+
+      # WordPress runs on PHP-WASM here — no Docker and no database, unlike the integration job.
+      - name: End-to-end tests
+        working-directory: tests/e2e
+        run: pnpm exec playwright test --reporter=line
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report
+          retention-days: 7

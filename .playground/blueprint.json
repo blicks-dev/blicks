@@ -1,0 +1,38 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Blicks",
+		"description": "Try the Blicks blocks in a real WordPress editor, in your browser.",
+		"author": "blicks-dev"
+	},
+	"landingPage": "/wp-admin/post-new.php?post_type=page",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": false
+	},
+	"steps": [
+		{
+			"step": "login"
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://github.com/blicks-dev/blicks/releases/latest/download/blicks.zip"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"blogname": "Blicks demo",
+				"blogdescription": "Gutenberg blocks that use your theme's design system"
+			}
+		}
+	]
+}
