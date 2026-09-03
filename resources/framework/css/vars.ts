@@ -72,7 +72,7 @@ interface ScopedSpec {
  *                value is a fixed slug (e.g. a type role); the look lives in a global class in
  *                runtime.scss. Base/default slot only. `v` is unused ('').
  */
-interface StyleMapRule extends ScopedSpec {
+export interface StyleMapRule extends ScopedSpec {
 	attr: string;
 	cls: string;
 	kind: 'sides' | 'inset' | 'corners' | 'single' | 'enum';
@@ -302,7 +302,7 @@ function valOrToken( category: string, v: unknown, fallbackCategory?: string ): 
 	return s;
 }
 
-type CssValueBuilder = ( value: unknown ) => string;
+export type CssValueBuilder = ( value: unknown ) => string;
 
 function imageBuilder( v: unknown ): string {
 	const url = typeof v === 'string' ? v : ( v as any )?.url;

@@ -4,3 +4,4 @@
 import './block-library';
 import './theme-settings';
 import './import';
+import './publish-api';

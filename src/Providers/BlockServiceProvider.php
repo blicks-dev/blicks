@@ -57,6 +57,8 @@ final class BlockServiceProvider extends ServiceProvider {
 			$manifest['version']
 		);
 
+		$this->registerFrameworkModule();
+
 		// The editor bundle holds the overwhelming majority of this plugin's translatable
 		// strings (block titles, inspector labels, control help). Without this call none of
 		// them can be translated, no matter what is in the .po file.
@@ -133,5 +135,44 @@ final class BlockServiceProvider extends ServiceProvider {
 				wp_enqueue_style( $handle );
 			}
 		}
+	}
+
+	/**
+	 * Registers `@blicks/framework` — the public addon API as a real WordPress Script Module.
+	 *
+	 * Registered, not enqueued: an addon declares it as a dependency of its own module, and
+	 * WordPress then adds it to the front-end import map so `import ... from '@blicks/framework'`
+	 * resolves.
+	 *
+	 *   wp_enqueue_script_module( 'my-addon', $url, [ '@blicks/framework' ], $ver );
+	 *
+	 * The module re-exports the instance the classic `blicks-editor` script publishes on
+	 * `window.blicks`, because WordPress has no editor script module — `WP_Block_Type` exposes
+	 * `view_script_module_ids` for the front end and classic `editor_script_handles` for the
+	 * editor. Compiling the framework into this module instead would give a second block and
+	 * control registry, and that failure is silent.
+	 */
+	private function registerFrameworkModule(): void {
+		if ( ! function_exists( 'wp_register_script_module' ) ) {
+			return;
+		}
+
+		$file = BasePlugin::path( 'build/framework.js' );
+		if ( ! file_exists( $file ) ) {
+			return;
+		}
+
+		$assetFile = BasePlugin::path( 'build/framework.asset.php' );
+		$asset = file_exists( $assetFile ) ? require $assetFile : [
+			'dependencies' => [],
+			'version' => '1.0.0',
+		];
+
+		wp_register_script_module(
+			'@blicks/framework',
+			BasePlugin::url( 'build/framework.js' ),
+			$asset['dependencies'],
+			$asset['version']
+		);
 	}
 }

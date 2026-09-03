@@ -59,14 +59,15 @@ function viewAssets() {
 	};
 }
 
-const input = discoverViewScripts();
-
-/* global process, console */
-if ( Object.keys( input ).length === 0 ) {
-	// No Interactivity API blocks in the tree right now — rollup errors on an empty input map.
-	console.log( '[vite.modules.config] no view.ts entries found, skipping.' );
-	process.exit( 0 );
-}
+/**
+ * `@blicks/framework` ships alongside the view modules because it is the same kind of artifact:
+ * a real ES module WordPress registers with `wp_register_script_module`. It is always built, so
+ * unlike the view scripts it is never absent.
+ */
+const input = {
+	framework: resolve( 'resources/framework-module.ts' ),
+	...discoverViewScripts(),
+};
 
 export default defineConfig( {
 	plugins: [ viewAssets() ],

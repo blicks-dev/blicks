@@ -43,5 +43,13 @@ interface Window {
 			list: () => unknown[];
 			search: ( query: string ) => unknown[];
 		};
+		// The public addon API, published by `resources/publish-api.ts` from the editor bundle.
+		// Typed off the barrel itself so this declaration cannot drift from what actually ships.
+		apiVersion?: number;
+		blocks?: typeof import('@/api').blocks;
+		values?: typeof import('@/api').values;
+		style?: typeof import('@/api').style;
+		inspector?: typeof import('@/api').inspector;
+		design?: typeof import('@/api').design;
 	};
 }
