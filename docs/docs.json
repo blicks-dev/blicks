@@ -75,7 +75,8 @@
 							"guides/responsive-patterns",
 							"guides/states-and-interactions",
 							"guides/customize-design-system",
-							"guides/scoped-custom-css"
+							"guides/scoped-custom-css",
+							"guides/extend-with-an-addon"
 						]
 					},
 					{

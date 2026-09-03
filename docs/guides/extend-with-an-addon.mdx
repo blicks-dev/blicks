@@ -1,0 +1,156 @@
+---
+title: "Extend Blicks with an Addon"
+description: "Build Blicks-native blocks and controls from your own plugin using the public JavaScript API."
+---
+
+Blicks publishes its block factory, value tree, style engine, inspector and design-system
+registries as a JavaScript API, so an addon plugin can ship blocks that behave exactly like the
+built-in ones — with the full inspector, responsive and state-aware styling, and `uniqueId`
+handling supplied for free.
+
+The model is WordPress's own: a registered script handle exposing a global namespace.
+
+## Import it as a module
+
+Blicks registers **`@blicks/framework`** as a WordPress Script Module. Declare it as a dependency
+and WordPress adds it to the editor's import map:
+
+```php
+add_action( 'enqueue_block_editor_assets', function () {
+	wp_enqueue_script_module(
+		'my-addon-editor',
+		plugins_url( 'editor.js', __FILE__ ),
+		[ '@blicks/framework' ],
+		'1.0.0'
+	);
+} );
+```
+
+Your `editor.js` is then a real ES module:
+
+```js
+import { blocks, apiVersion } from '@blicks/framework';
+
+if ( apiVersion >= 1 ) {
+	blocks.defineBlock( metadata, { render } );
+}
+```
+
+### Or depend on the classic handle
+
+The same API is on `window.blicks`, published by the **`blicks-editor`** classic script — the
+shared editor bundle every Blicks block already uses. Use this if your addon is a classic script
+rather than a module:
+
+```php
+wp_enqueue_script( 'my-addon-editor', $url, [ 'blicks-editor' ], '1.0.0', true );
+```
+
+<Note>
+Add `Requires Plugins: blicks` to your plugin header so WordPress will not activate the addon
+without Blicks present.
+</Note>
+
+## The namespace
+
+Everything lives on `window.blicks`:
+
+| Namespace | Holds |
+|---|---|
+| `blicks.blocks` | `defineBlock`, `applyBlockIdentity` |
+| `blicks.values` | `getValue`, `setValue`, `hasOverrides`, `STATES`, `BREAKPOINTS` |
+| `blicks.style` | `STYLE_MAP`, `buildElementStyle`, `registerCssValueBuilder`, the CSS sanitizers |
+| `blicks.inspector` | `Inspector`, `Section`, `ContextBar`, and `controls.*` — all fifteen control components |
+| `blicks.design` | `TOKENS`, `TYPE_ROLES`, `BREAKPOINTS`, plus the `icons` and `fonts` registries |
+
+`blicks.apiVersion` is an integer, bumped only on a breaking change and deliberately separate from
+the plugin version. Feature-detect with it rather than checking the plugin version:
+
+```js
+if ( ! window.blicks || window.blicks.apiVersion < 1 ) return;
+```
+
+## Register a block
+
+```js
+const { defineBlock } = window.blicks.blocks;
+
+defineBlock( metadata, {
+	render: ( { blockProps, children } ) => <div { ...blockProps }>{ children }</div>,
+} );
+```
+
+`metadata` is your own `block.json`. The factory supplies Edit, Save, the inspector, the
+`bl-<slug>` and `bl-<uniqueId>` classes the styling layer targets, and the InnerBlocks wiring.
+Opt into controls from your `block.json` exactly as a built-in block does:
+
+```json
+{
+	"name": "my-addon/feature",
+	"supports": {
+		"blicks": {
+			"controls": [ "spacing.*", "colors.*", "typography.*" ],
+			"states": [ "default", "hover" ]
+		}
+	}
+}
+```
+
+## Why the module re-exports a global
+
+WordPress has no editor script module. `WP_Block_Type` exposes `view_script_module_ids` for the
+front end and classic `editor_script_handles` for the editor, so the bundle that owns the block
+factory, the value tree and the control registry has to stay a classic script — and a module
+cannot import from one.
+
+`@blicks/framework` therefore re-exports the single instance that bundle publishes. The import is
+real and resolved by WordPress's import map; only the storage is shared. That is deliberate:
+compiling the framework into the module would satisfy the import syntax and give you a second
+block registry and a second control registry, with your blocks registering into one while the
+editor reads the other.
+
+<Warning>
+For the same reason, never bundle the framework into your addon. Mark `@blicks/framework`
+external, or import it as a module as shown above.
+</Warning>
+
+## Types
+
+Blicks ships TypeScript declarations for the surface. If your addon is bundled rather than served
+as a raw module, `scripts/blicks-externals.mjs` in the Blicks repo maps sub-path imports onto the
+globals — the same shape as `@wordpress/blocks` resolving to `wp.blocks`:
+
+```ts
+import { defineBlock } from '@blicks/framework/blocks';
+```
+
+## Reading the design system
+
+`blicks.design` is a read-only view of what the site's design system resolves to — useful when an
+addon needs to offer the same tokens the built-in controls offer:
+
+```js
+const { TOKENS, TYPE_ROLES } = window.blicks.design;
+const spacingSteps = TOKENS.spacing;
+```
+
+Icons and fonts are live registries rather than static data, and an addon can add to them:
+
+```js
+window.blicks.design.icons.registerIconLibrary( myLibrary );
+```
+
+## What Blicks does not offer
+
+There are **no PHP filters or actions**. That is deliberate: the plugin ships zero
+`apply_filters` / `do_action` calls, and the contract is the script handle plus the JavaScript
+namespace. On the PHP side, addons read these classes directly, guarded with `class_exists()`:
+
+- `Blicks\Style\Tokens`
+- `Blicks\Style\Breakpoints`
+- `Blicks\DesignSystem\ThemeProjection`
+
+One asymmetry worth knowing: PHP exposes `ElementStyle::registerRule()` for adding a style rule at
+runtime, and the JavaScript engine has no equivalent. An addon introducing a whole new styled CSS
+property needs a `STYLE_MAP` entry on the JS side *and* the PHP rule, or the editor preview and the
+front end will disagree.
