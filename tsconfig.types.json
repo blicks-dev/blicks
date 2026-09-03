@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"declaration": true,
+		"emitDeclarationOnly": true,
+		"declarationDir": "types",
+		"skipLibCheck": true,
+		"rootDir": "resources"
+	},
+	"include": [
+		"resources"
+	],
+	"exclude": [
+		"resources/**/*.test.ts",
+		"resources/**/*.test.tsx",
+		"resources/test"
+	]
+}

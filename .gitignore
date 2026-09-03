@@ -17,3 +17,7 @@ Thumbs.db
 
 # design mockups (scratch)
 mockups/
+
+# generated TypeScript declarations for the addon API (`pnpm types`).
+# Anchored: an unanchored `types/` also matches resources/types/, which is source.
+/types/
