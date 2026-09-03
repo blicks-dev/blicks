@@ -9,7 +9,7 @@
 		"check": "pnpm generate && mintlify broken-links"
 	},
 	"devDependencies": {
-		"mintlify": "^4.2.0"
+		"mintlify": "^4.2.866"
 	},
 	"description": "The Blicks documentation site. Isolated from the plugin package: it is the only thing that needs the Mintlify CLI, so the plugin build and its CI never install it."
 }
