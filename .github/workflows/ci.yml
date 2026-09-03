@@ -13,4 +13,7 @@ concurrency:
 
 jobs:
   checks:
+    # Dependabot only bumps pinned deps/actions; skip the full CI matrix on its
+    # PRs. Pushes to main (post-merge) still run — github.actor is the merger there.
+    if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/checks.yml

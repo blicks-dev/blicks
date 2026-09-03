@@ -25,6 +25,7 @@ concurrency:
 jobs:
   docs:
     name: Reference is current and links resolve
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:
