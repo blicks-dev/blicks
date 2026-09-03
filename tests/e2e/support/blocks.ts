@@ -75,13 +75,17 @@ export const canvas = ( page: Page ): FrameLocator =>
 export async function openEditor( page: Page ): Promise< void > {
 	await page.goto( '/wp-admin/post-new.php?post_type=page' );
 
-	// global-setup disables the "Choose a pattern" and welcome modals, which otherwise appear
-	// asynchronously and swallow clicks. Assert that rather than trusting it: if a preference
-	// ever fails to persist, the failure should name the modal instead of surfacing as a dozen
-	// unrelated click timeouts.
-	await expect( page.locator( '.components-modal__screen-overlay' ) ).toHaveCount( 0 );
-
 	await expect( page.locator( '.editor-document-tools__inserter-toggle' ) ).toBeEnabled();
+
+	// global-setup disables the "Choose a pattern" and welcome modals, but that preference is
+	// persisted over REST and a freshly booted WordPress can render the modal before the write
+	// lands. It also appears a beat AFTER the toolbar is ready, so close it if it is there rather
+	// than asserting on a race — an open overlay silently swallows every later click.
+	const overlay = page.locator( '.components-modal__screen-overlay' );
+	if ( await overlay.count() ) {
+		await page.locator( '.components-modal__frame' ).getByRole( 'button', { name: 'Close' } ).click();
+		await expect( overlay ).toHaveCount( 0 );
+	}
 }
 
 export async function insertBlock( page: Page, block: BlockMeta ): Promise< void > {
@@ -99,8 +103,32 @@ export async function insertBlock( page: Page, block: BlockMeta ): Promise< void
 	await toggle.click();
 }
 
+/**
+ * Select a block through the editor store rather than by clicking it.
+ *
+ * A click has to wait for the element to be "stable", and the editor animates on insert — under
+ * load that never settles and the click times out, failing a test that is really about the
+ * inspector. Selection is what the assertion needs; the click was only ever a means to it.
+ */
 export async function selectBlock( page: Page, slug: string ): Promise< void > {
-	await canvas( page ).locator( `.bl-${ slug }` ).first().click();
+	const selected = await page.evaluate( ( name ) => {
+		const wp = ( window as any ).wp;
+		const find = ( list: any[] ): any => {
+			for ( const block of list ) {
+				if ( block.name === name ) return block;
+				const nested = find( block.innerBlocks ?? [] );
+				if ( nested ) return nested;
+			}
+			return null;
+		};
+
+		const target = find( wp.data.select( 'core/block-editor' ).getBlocks() );
+		if ( ! target ) return false;
+		wp.data.dispatch( 'core/block-editor' ).selectBlock( target.clientId );
+		return true;
+	}, `blicks/${ slug }` );
+
+	expect( selected, `no blicks/${ slug } block in the editor to select` ).toBe( true );
 }
 
 /** Serialize whatever is in the editor and publish it as a page, returning its permalink. */
