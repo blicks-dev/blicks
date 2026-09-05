@@ -17,3 +17,9 @@ jobs:
     # PRs. Pushes to main (post-merge) still run — github.actor is the merger there.
     if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/checks.yml
+    with:
+      # The e2e suite is the slowest job by a wide margin, and the push event that
+      # follows a merge re-runs it over code the pull request already cleared. Keep
+      # it on pull requests, where it can still block a merge; release.yml runs the
+      # full suite again on the tag, so nothing ships without it.
+      e2e: ${{ github.event_name == 'pull_request' }}

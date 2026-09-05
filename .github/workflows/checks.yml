@@ -4,6 +4,12 @@ name: Checks
 # anything, so a release can never ship a commit that would have failed CI.
 on:
   workflow_call:
+    inputs:
+      e2e:
+        description: 'Run the end-to-end suite. Off for merges to main, which
+          would only re-run what the pull request already proved.'
+        type: boolean
+        default: true
 
 jobs:
   js:
@@ -184,6 +190,7 @@ jobs:
 
   e2e:
     name: e2e
+    if: inputs.e2e
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
