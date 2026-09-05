@@ -29,9 +29,9 @@ use Blicks\Style\Sanitize;
  *  - Enqueues the compiled runtime stylesheet (build/runtime.css) on both the
  *    front end and the block editor.
  *  - Collects, during render, each block's engine-emitted scoped CSS (tier-3
- *    pseudo-elements / container queries / @property / keyframes), then prints the deduped
- *    accumulation once in the footer. Dynamic blocks also queue their scoped CSS via
- *    ElementStyle::blockProps(); ScopedCss dedupes the overlap.
+ *    pseudo-elements / container queries / @property / keyframes), then attaches the deduped
+ *    accumulation to a registered stylesheet handle in the footer. Dynamic blocks also queue
+ *    their scoped CSS via ElementStyle::blockProps(); ScopedCss dedupes the overlap.
  */
 final class StyleServiceProvider extends ServiceProvider {
 
@@ -139,19 +139,37 @@ final class StyleServiceProvider extends ServiceProvider {
 		return 'g' . substr( md5( (string) $seed ), 0, 8 );
 	}
 
-	#[Action( 'wp_footer' )]
+	/**
+	 * Register the src-less handle that carries the per-page scoped CSS. Registering early means
+	 * the handle exists whether or not any Blicks block ends up on the page; nothing is printed
+	 * unless CSS is actually attached to it in the footer.
+	 */
+	#[Action( 'wp_enqueue_scripts', priority: 5 )]
+	public function registerInlineStyleHandle(): void {
+		wp_register_style( 'blicks-inline', false, [], BasePlugin::version() );
+	}
+
+	/**
+	 * Attach the accumulated scoped CSS to the `blicks-inline` handle. This runs in `wp_footer`
+	 * because the rules are only known after every block has rendered; core prints styles
+	 * enqueued this late via `print_late_styles()`, which `_wp_footer_scripts()` calls from
+	 * `wp_print_footer_scripts` (wp_footer, priority 20).
+	 */
+	#[Action( 'wp_footer', priority: 5 )]
 	public function printInlineCss(): void {
 		$css = ScopedCss::css();
 		if ( '' === $css ) {
 			return;
 		}
 
-		// The payload is CSS, not HTML: it is built by the style engine and passed through
-		// Blicks\Style\Sanitize, which strips tag openings, @import/@charset/@namespace,
-		// expression(), script/data schemes and url() before neutralising any `</style`
-		// sequence. esc_html() here would break every valid declaration.
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized by Blicks\Style\Sanitize::styleTagContent().
-		echo '<style id="blicks-inline">' . Sanitize::styleTagContent( $css ) . '</style>';
+		// `wp_enqueue_scripts` does not fire on every request that can still render blocks
+		// (feeds, some REST previews), so make sure the handle exists before enqueuing it.
+		if ( ! wp_style_is( 'blicks-inline', 'registered' ) ) {
+			wp_register_style( 'blicks-inline', false, [], BasePlugin::version() );
+		}
+
+		wp_enqueue_style( 'blicks-inline' );
+		wp_add_inline_style( 'blicks-inline', Sanitize::styleTagContent( $css ) );
 	}
 
 	private function enqueueRuntime(): void {
@@ -161,7 +179,7 @@ final class StyleServiceProvider extends ServiceProvider {
 
 		Asset::style( 'blicks-runtime', BasePlugin::url( 'build/runtime.css' ) )
 			->version( BasePlugin::version() )
-			->addInlineStyle( CssVariables::css() . "\n" . Keyframes::css() )
+			->addInlineStyle( Sanitize::styleTagContent( CssVariables::css() . "\n" . Keyframes::css() ) )
 			->enqueue();
 	}
 }
