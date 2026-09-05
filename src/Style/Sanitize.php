@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Sanitize {
 
-	private const ATTR_NAME_RE   = '/^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir)$/';
+	private const ATTR_NAME_RE   = '/^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir|tabindex)$/';
 	private const CONTROL_CHARS  = '/[\x00-\x1F\x7F]/';
 	private const SCRIPT_SCHEME  = '/(?:javascript|vbscript)\s*:/i';
 	private const ATTR_VALUE_MAX = 500;
@@ -30,6 +30,28 @@ final class Sanitize {
 	public static function attrName( string $name ): ?string {
 		$n = strtolower( trim( $name ) );
 		return 1 === preg_match( self::ATTR_NAME_RE, $n ) ? $n : null;
+	}
+
+	/**
+	 * Per-name value rule for the few attributes the generic sanitizer cannot judge.
+	 * `tabindex` is the only one: the browser ignores a non-integer, so a value that
+	 * fails here is dropped rather than written out as dead markup.
+	 */
+	private const ATTR_VALUE_RE = [
+		'tabindex' => '/^-?\\d+$/',
+	];
+
+	/**
+	 * Sanitize a value in the context of its attribute name. Null when the name carries
+	 * a value rule the value does not satisfy.
+	 */
+	public static function attrValueFor( string $name, string $value ): ?string {
+		$v   = self::attrValue( $value );
+		$rule = self::ATTR_VALUE_RE[ $name ] ?? null;
+		if ( null !== $rule && 1 !== preg_match( $rule, $v ) ) {
+			return null;
+		}
+		return $v;
 	}
 
 	/** Strip control chars + dangerous URL schemes, cap length. */
@@ -62,7 +84,11 @@ final class Sanitize {
 			if ( null === $name ) {
 				continue;
 			}
-			$out[ $name ] = self::attrValue( (string) ( $item['value'] ?? '' ) );
+			$value = self::attrValueFor( $name, (string) ( $item['value'] ?? '' ) );
+			if ( null === $value ) {
+				continue;
+			}
+			$out[ $name ] = $value;
 		}
 		return $out;
 	}

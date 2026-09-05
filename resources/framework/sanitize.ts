@@ -6,7 +6,7 @@
  */
 
 /** Allowed custom-attribute names — an allow-list, never event handlers / style / class. */
-const ATTR_NAME_RE = /^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir)$/;
+const ATTR_NAME_RE = /^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir|tabindex)$/;
 
 const ATTR_VALUE_MAX = 500;
 
@@ -31,6 +31,25 @@ export function cleanAttrValue( value: unknown ): string {
 	return v;
 }
 
+/**
+ * Per-name value rules for the few attributes the generic sanitizer cannot judge.
+ * `tabindex` is the only one: the browser ignores a non-integer, so a value that fails
+ * here is dropped rather than written out as dead markup.
+ */
+const ATTR_VALUE_RE: Record< string, RegExp > = {
+	tabindex: /^-?\d+$/,
+};
+
+/**
+ * Sanitize a value in the context of its attribute name. Null when the name carries a
+ * value rule the value does not satisfy.
+ */
+export function cleanAttrValueFor( name: string, value: unknown ): string | null {
+	const v = cleanAttrValue( value );
+	const rule = ATTR_VALUE_RE[ name ];
+	return rule && ! rule.test( v ) ? null : v;
+}
+
 /** Validate a list of `{name,value}` rows → only valid, sanitized entries (last write wins per name). */
 export function cleanAttributes(
 	list: unknown
@@ -40,7 +59,9 @@ export function cleanAttributes(
 	for ( const item of list ) {
 		const name = cleanAttrName( ( item as any )?.name );
 		if ( ! name ) continue;
-		byName.set( name, cleanAttrValue( ( item as any )?.value ) );
+		const value = cleanAttrValueFor( name, ( item as any )?.value );
+		if ( value === null ) continue;
+		byName.set( name, value );
 	}
 	return Array.from( byName, ( [ name, value ] ) => ( { name, value } ) );
 }

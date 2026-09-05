@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	cleanAttrName,
 	cleanAttrValue,
+	cleanAttrValueFor,
 	cleanAttributes,
 	isAttrNameInvalid,
 } from './sanitize';
@@ -58,6 +59,29 @@ describe( 'cleanAttributes', () => {
 	it( 'returns [] for non-arrays', () => {
 		expect( cleanAttributes( undefined ) ).toEqual( [] );
 		expect( cleanAttributes( 'x' ) ).toEqual( [] );
+	} );
+} );
+
+describe( 'tabindex', () => {
+	it( 'is allowed and survives cleanAttributes with an integer value', () => {
+		expect( cleanAttrName( 'tabindex' ) ).toBe( 'tabindex' );
+		expect( cleanAttributes( [ { name: 'tabindex', value: '0' } ] ) ).toEqual( [
+			{ name: 'tabindex', value: '0' },
+		] );
+		expect( cleanAttributes( [ { name: 'tabindex', value: '-1' } ] ) ).toEqual( [
+			{ name: 'tabindex', value: '-1' },
+		] );
+	} );
+
+	it( 'is dropped when the value is not an integer', () => {
+		expect( cleanAttrValueFor( 'tabindex', 'first' ) ).toBeNull();
+		expect( cleanAttrValueFor( 'tabindex', '1.5' ) ).toBeNull();
+		expect( cleanAttrValueFor( 'tabindex', '' ) ).toBeNull();
+		expect( cleanAttributes( [ { name: 'tabindex', value: 'first' } ] ) ).toEqual( [] );
+	} );
+
+	it( 'leaves other attributes unconstrained', () => {
+		expect( cleanAttrValueFor( 'title', 'anything at all' ) ).toBe( 'anything at all' );
 	} );
 } );
 
