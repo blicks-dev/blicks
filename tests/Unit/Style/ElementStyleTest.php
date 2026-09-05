@@ -428,11 +428,25 @@ final class ElementStyleTest extends TestCase
     public function test_builder_category_can_be_registered_with_one_function(): void
     {
         ElementStyle::registerCssValueBuilder(
-            'echoTest',
-            static fn (mixed $value): string => 'echo(' . (string) $value . ')'
+            'blurTest',
+            static fn (mixed $value): string => 'blur(' . (string) $value . ')'
         );
 
-        $this->assertSame('echo(ok)', ElementStyle::cssValueForCategory('echoTest', 'ok'));
+        $this->assertSame('blur(4px)', ElementStyle::cssValueForCategory('blurTest', '4px'));
+    }
+
+    /**
+     * Registered builders are an extension seam, so their output is validated like any other
+     * value — a builder cannot opt its category out of the CSS-injection guard.
+     */
+    public function test_registered_builder_output_is_validated(): void
+    {
+        ElementStyle::registerCssValueBuilder(
+            'blurTest',
+            static fn (mixed $value): string => 'blur(' . (string) $value . ')'
+        );
+
+        $this->assertSame('', ElementStyle::cssValueForCategory('blurTest', '4px); background:url(https://attacker.example/x.png'));
     }
 
     // ── Scoped (tier-3 / WA) emit — MUST match the JS strings in vars.test.ts ────────
