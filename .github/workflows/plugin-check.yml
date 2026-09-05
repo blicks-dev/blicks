@@ -3,8 +3,28 @@ name: Plugin Check
 # The WordPress.org Plugin Directory runs these same checks on submission and on
 # every update. Running them here means a rejection shows up on the pull request
 # rather than after a tag has been pushed.
+#
+# Denylist, not an allowlist, and deliberately so: it mirrors `scripts/bundle.js`, which
+# assembles the zip from an explicit allowlist. Anything not listed below is assumed to
+# reach the zip, so adding a new source directory keeps the check running by default. The
+# paths here cannot: none of them is in the bundle allowlist.
 on:
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'tests/**'
+      - '.wordpress-org/**'
+      - '.playground/**'
+      - '.githooks/**'
+      - 'README.md'
+      # Every workflow except this one. Editing plugin-check.yml still re-runs the
+      # check against the change; editing an unrelated workflow does not rebuild a zip.
+      - '.github/dependabot.yml'
+      - '.github/workflows/checks.yml'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/docs.yml'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/wporg-assets.yml'
   workflow_dispatch:
 
 concurrency:
