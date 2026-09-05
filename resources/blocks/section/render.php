@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\Dimension;
 use Blicks\Style\ElementStyle;
 
 $blicks_props = ElementStyle::blockProps(
@@ -43,37 +44,12 @@ $blicks_class = trim(
 	. ' bl-section--space-' . $blicks_space
 );
 
-$blicks_clean_dimension = static function ( mixed $value, string $fallback ): string {
-	$raw = trim( (string) ( $value ?? '' ) );
-	if ( '' === $raw ) {
-		return $fallback;
-	}
-	if ( '0' === $raw ) {
-		return '0';
-	}
-	if (
-		in_array( $raw, [ 'auto', 'none' ], true )
-		|| str_starts_with( $raw, 'var(' )
-		|| str_starts_with( $raw, 'calc(' )
-		|| str_starts_with( $raw, 'clamp(' )
-	) {
-		return $raw;
-	}
-	if ( preg_match( '/^-?\d*\.?\d+(px|%|em|rem|vw|vh|svh|dvh|lvh|ch|fr)$/', $raw ) ) {
-		return $raw;
-	}
-	if ( preg_match( '/^-?\d*\.?\d+$/', $raw ) ) {
-		return $raw . 'px';
-	}
-	return $fallback;
-};
-
 $blicks_dimension_vars = [
-	'--bl-section-width'             => $blicks_clean_dimension( $attributes['sectionWidth'] ?? null, 'auto' ),
-	'--bl-section-height'            => $blicks_clean_dimension( $attributes['sectionHeight'] ?? null, 'auto' ),
-	'--bl-section-content-width'     => $blicks_clean_dimension( $attributes['contentWidth'] ?? null, '100%' ),
-	'--bl-section-content-min-width' => $blicks_clean_dimension( $attributes['contentMinWidth'] ?? null, '0' ),
-	'--bl-section-content-max-width' => $blicks_clean_dimension( $attributes['contentMaxWidth'] ?? null, 'var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))' ),
+	'--bl-section-width'             => Dimension::clean( $attributes['sectionWidth'] ?? null, 'auto' ),
+	'--bl-section-height'            => Dimension::clean( $attributes['sectionHeight'] ?? null, 'auto' ),
+	'--bl-section-content-width'     => Dimension::clean( $attributes['contentWidth'] ?? null, '100%' ),
+	'--bl-section-content-min-width' => Dimension::clean( $attributes['contentMinWidth'] ?? null, '0' ),
+	'--bl-section-content-max-width' => Dimension::clean( $attributes['contentMaxWidth'] ?? null, 'var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))' ),
 ];
 
 $blicks_style = $blicks_props['style'];
