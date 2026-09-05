@@ -90,11 +90,30 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ steps.resolve.outputs.prerelease }}
 
+      # The plugin has no SVN repository until WordPress.org approves the
+      # submission, and the deploy action fails hard on missing credentials —
+      # after the GitHub Release has already been published, so the run goes red
+      # with the release half-done. Mirror the guard in wporg-assets.yml and skip
+      # with a notice instead. Secrets cannot be read from a step-level `if`,
+      # hence the env round-trip.
+      - name: Check for SVN credentials
+        id: svn
+        if: steps.resolve.outputs.prerelease == 'false'
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+        run: |
+          if [ -z "$SVN_USERNAME" ]; then
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::SVN_USERNAME is not set — skipping the WordPress.org deploy. The GitHub Release still published.'
+          else
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          fi
+
       # Prereleases (1.0.0-rc.1 and friends) stop at the GitHub Release. WP.org
       # has no concept of one, and its stable tag is a live pointer for every
       # existing install.
       - name: Deploy to WordPress.org
-        if: steps.resolve.outputs.prerelease == 'false'
+        if: steps.resolve.outputs.prerelease == 'false' && steps.svn.outputs.present == 'true'
         uses: 10up/action-wordpress-plugin-deploy@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
