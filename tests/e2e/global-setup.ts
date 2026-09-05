@@ -36,15 +36,48 @@ export default async function globalSetup( config: FullConfig ): Promise< void >
 	// it on arrival finds nothing, skips it, and then has every later click swallowed by its
 	// overlay. These are user preferences, so setting them once persists for the whole run.
 	await page.goto( '/wp-admin/post-new.php?post_type=page' );
-	await page.waitForFunction( () => ( window as any ).wp?.data?.dispatch( 'core/preferences' ) );
-	await page.evaluate( () => {
-		const preferences = ( window as any ).wp.data.dispatch( 'core/preferences' );
-		preferences.set( 'core', 'enableChoosePatternModal', false );
-		preferences.set( 'core', 'welcomeGuide', false );
-		preferences.set( 'core/edit-post', 'welcomeGuide', false );
-	} );
-	// Preferences persist to user meta over REST; give that request time to land.
-	await page.waitForTimeout( 2_000 );
+
+	// Waiting for the dispatcher to merely EXIST is not enough. Preferences hydrate from user
+	// meta asynchronously, and a value written before that arrives is overwritten by the server's
+	// copy moments later — which is how `enableChoosePatternModal` came to be set on every run
+	// and still false in none of them. Wait for the store to hold real persisted data first.
+	await page.waitForFunction( () => {
+		const select = ( window as any ).wp?.data?.select( 'core/preferences' );
+		return !! select && select.get( 'core', 'editorMode' ) !== undefined;
+	}, undefined, { timeout: 120_000 } );
+
+	const setPreferences = () =>
+		page.evaluate( () => {
+			const preferences = ( window as any ).wp.data.dispatch( 'core/preferences' );
+			preferences.set( 'core', 'enableChoosePatternModal', false );
+			preferences.set( 'core', 'welcomeGuide', false );
+			preferences.set( 'core/edit-post', 'welcomeGuide', false );
+		} );
+
+	const readsDisabled = () =>
+		page.evaluate(
+			() =>
+				( window as any ).wp.data.select( 'core/preferences' ).get(
+					'core',
+					'enableChoosePatternModal'
+				) === false
+		);
+
+	await setPreferences();
+	await expect.poll( readsDisabled, { timeout: 30_000 } ).toBe( true );
+
+	// Reloading is the only honest proof that the value reached user meta rather than sitting in
+	// a store that is about to be thrown away. If hydration lost it, set it once more and let the
+	// suite continue — openEditor dismisses the modal regardless.
+	await page.reload();
+	await page.waitForFunction( () => {
+		const select = ( window as any ).wp?.data?.select( 'core/preferences' );
+		return !! select && select.get( 'core', 'editorMode' ) !== undefined;
+	}, undefined, { timeout: 120_000 } );
+	if ( ! ( await readsDisabled() ) ) {
+		await setPreferences();
+		await expect.poll( readsDisabled, { timeout: 30_000 } ).toBe( true );
+	}
 
 	await page.context().storageState( { path: storageState as string } );
 	await browser.close();

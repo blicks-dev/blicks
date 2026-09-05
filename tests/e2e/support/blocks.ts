@@ -73,15 +73,27 @@ export const canvas = ( page: Page ): FrameLocator =>
 	page.frameLocator( 'iframe[name="editor-canvas"]' );
 
 export async function openEditor( page: Page ): Promise< void > {
+	// The "Choose a pattern" modal opens asynchronously, once patterns finish loading, so it can
+	// arrive well after the editor is otherwise ready — including in the middle of a test. Its
+	// overlay swallows every pointer event, which is why a single stray modal used to surface as
+	// `locator.click: Test timeout of 120000ms exceeded` somewhere unrelated, rather than as an
+	// obvious modal problem.
+	//
+	// global-setup disables it through user preferences; this is the belt to that braces.
+	// Playwright runs the handler whenever the overlay turns up during an actionability check, so
+	// a late modal is dismissed instead of blocking whatever click is waiting behind it.
+	await page.addLocatorHandler(
+		page.locator( '.components-modal__screen-overlay' ),
+		async () => {
+			await page.keyboard.press( 'Escape' );
+		},
+		{ times: 10 }
+	);
+
 	await page.goto( '/wp-admin/post-new.php?post_type=page' );
 
-	// global-setup disables the "Choose a pattern" and welcome modals, which otherwise appear
-	// asynchronously and swallow clicks. Assert that rather than trusting it: if a preference
-	// ever fails to persist, the failure should name the modal instead of surfacing as a dozen
-	// unrelated click timeouts.
-	await expect( page.locator( '.components-modal__screen-overlay' ) ).toHaveCount( 0 );
-
 	await expect( page.locator( '.editor-document-tools__inserter-toggle' ) ).toBeEnabled();
+	await expect( page.locator( '.components-modal__screen-overlay' ) ).toHaveCount( 0 );
 }
 
 export async function insertBlock( page: Page, block: BlockMeta ): Promise< void > {
