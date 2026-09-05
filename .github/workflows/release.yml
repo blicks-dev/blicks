@@ -21,13 +21,6 @@ jobs:
   # one that never went through a PR, so re-run rather than assume.
   checks:
     uses: ./.github/workflows/checks.yml
-    with:
-      # e2e is excluded, not merely non-blocking. `continue-on-error` changes a job's
-      # outcome, never whether anything waits for it: `release` needs this whole
-      # reusable workflow, so including e2e adds ~38 minutes to every release for a
-      # verdict that is already ignored. It still runs on pull requests. Set this back
-      # to true the moment the suite is trustworthy enough to gate a release again.
-      e2e: false
 
   release:
     needs: checks

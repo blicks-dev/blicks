@@ -191,16 +191,6 @@ jobs:
   e2e:
     name: e2e
     if: inputs.e2e
-    # Non-blocking on purpose, and temporarily. The suite currently reports
-    # `9 failed, 5 flaky, 13 passed` in 37.9 minutes: every failure is
-    # `locator.click: Test timeout of 120000ms exceeded`, so almost all of that
-    # runtime is timeout burn — 9 failures x 120s x 3 attempts — rather than work.
-    # At that length the job also outlives its own branch and gets killed by
-    # cancel-in-progress, which is why it completed successfully once in eleven
-    # attempts. Gating merges and releases on that blocks real work without
-    # producing a trustworthy signal. The report artifact still uploads on failure.
-    # Restore this to blocking once the Playground editor-readiness timeouts are fixed.
-    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
