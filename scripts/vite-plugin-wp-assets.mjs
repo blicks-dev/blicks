@@ -67,7 +67,11 @@ function collectSourceDeps( moduleIds ) {
 
 function phpManifest( deps, version ) {
 	const list = deps.map( ( d ) => `'${ d }'` ).join( ', ' );
-	return `<?php return array( 'dependencies' => array( ${ list } ), 'version' => '${ version }' );\n`;
+	// The ABSPATH guard is what Plugin Check's `direct_file_access` looks for. Nothing here
+	// executes on its own — the file is a bare `return array( ... )` — but the check is a
+	// file scan, so without the guard every one of these manifests is reported. `require`
+	// still receives the array: the guard is a statement, not the return.
+	return `<?php\ndefined( 'ABSPATH' ) || exit;\nreturn array( 'dependencies' => array( ${ list } ), 'version' => '${ version }' );\n`;
 }
 
 function normalizeHelpText( lines ) {
