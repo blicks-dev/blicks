@@ -22,8 +22,12 @@ const include = [
     'build',
     'src',
     'vendor',
-    'templates',
 ];
+
+// `templates/` is deliberately absent. It holds nothing but a .gitkeep, so listing it here
+// bought no files and made the release fail outright if the empty directory were ever
+// removed. Add it back the moment something actually ships from it.
+
 
 // PHP reads these from resources/ at runtime by absolute path, so they must ship even though
 // the rest of resources/ is build input. Keep in sync with:
