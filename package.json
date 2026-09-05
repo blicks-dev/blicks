@@ -22,8 +22,8 @@
         "env:stop": "wp-env stop",
         "test:watch": "vitest",
         "i18n:pot": "pnpm build && pnpm i18n:pot:from-build",
-        "i18n:pot:from-build": "wp i18n make-pot . languages/blicks.pot --slug=blicks --exclude=vendor,node_modules,build,tests && node scripts/append-admin-pot.js",
-        "i18n:json": "wp i18n make-json languages --no-purge && node scripts/rename-admin-json.mjs",
+        "i18n:pot:from-build": "wp i18n make-pot . languages/blicks.pot --slug=blicks --exclude=vendor,node_modules,tests",
+        "i18n:json": "wp i18n make-json languages --no-purge",
         "bundle": "node scripts/bundle.js"
     },
     "devDependencies": {

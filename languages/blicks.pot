@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-05T10:08:58+00:00\n"
+"POT-Creation-Date: 2026-09-05T12:35:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: blicks\n"
@@ -19,6 +19,9 @@ msgstr ""
 #: blicks.php
 #: src/Providers/AdminServiceProvider.php:55
 #: src/Providers/AdminServiceProvider.php:56
+#: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Blicks"
 msgstr ""
 
@@ -81,6 +84,8 @@ msgid "Translates the element by -50% — pair with a duplicated track for a sea
 msgstr ""
 
 #: src/DesignSystem/Animations.php:176
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Fill"
 msgstr ""
 
@@ -171,6 +176,7 @@ msgstr ""
 #: src/Http/Controllers/DiagnosticsController.php:137
 #: src/Http/Controllers/DiagnosticsController.php:147
 #: src/Http/Controllers/DiagnosticsController.php:157
+#: build/admin.js:1
 msgid "Global Styles"
 msgstr ""
 
@@ -238,15 +244,21 @@ msgid "Blicks requires %s to be installed and active."
 msgstr ""
 
 #: src/Providers/AdminServiceProvider.php:67
+#: build/admin.js:1
 msgid "Overview"
 msgstr ""
 
 #: src/Providers/AdminServiceProvider.php:68
+#: build/admin.js:1
 msgid "Design System"
 msgstr ""
 
 #: src/Providers/AdminServiceProvider.php:69
 #: src/Providers/AdminServiceProvider.php:100
+#: build/admin.js:1
+#: build/admin.js:2
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Settings"
 msgstr ""
 
@@ -255,151 +267,43 @@ msgstr ""
 msgid "Blicks — %s"
 msgstr ""
 
-#: resources/blocks/box/block.json
-msgctxt "block title"
-msgid "Box"
-msgstr ""
-
-#: resources/blocks/box/block.json
-msgctxt "block description"
-msgid "A generic styled wrapper for cards, panels, and manual layouts."
-msgstr ""
-
-#: resources/blocks/button/block.json
-msgctxt "block title"
-msgid "Button"
-msgstr ""
-
-#: resources/blocks/button/block.json
-msgctxt "block description"
-msgid "A shadcn-style action button with variants, sizes, links, and optional icons."
-msgstr ""
-
-#: resources/blocks/buttons/block.json
-msgctxt "block title"
-msgid "Buttons"
-msgstr ""
-
-#: resources/blocks/buttons/block.json
-msgctxt "block description"
-msgid "A row or column of Button blocks with shared alignment, spacing, and wrapping."
-msgstr ""
-
-#: resources/blocks/divider/block.json
-msgctxt "block title"
-msgid "Divider"
-msgstr ""
-
-#: resources/blocks/divider/block.json
-msgctxt "block description"
-msgid "A semantic divider for separating content groups."
-msgstr ""
-
-#: resources/blocks/grid/block.json
-msgctxt "block title"
-msgid "Grid"
-msgstr ""
-
-#: resources/blocks/grid/block.json
-msgctxt "block description"
-msgid "A two-dimensional layout block for equal-width or auto-fit child columns."
-msgstr ""
-
-#: resources/blocks/heading/block.json
-msgctxt "block title"
-msgid "Heading"
-msgstr ""
-
-#: resources/blocks/heading/block.json
-msgctxt "block description"
-msgid "A semantic h1-h6 heading that inherits the active theme by default."
-msgstr ""
-
-#: resources/blocks/icon/block.json
-msgctxt "block title"
-msgid "Icon"
-msgstr ""
-
-#: resources/blocks/icon/block.json
-msgctxt "block description"
-msgid "An inline SVG icon that inherits current text color."
-msgstr ""
-
-#: resources/blocks/image/block.json
-msgctxt "block title"
-msgid "Image"
-msgstr ""
-
-#: resources/blocks/image/block.json
-msgctxt "block description"
-msgid "A responsive media block with optional link and caption."
-msgstr ""
-
-#: resources/blocks/section/block.json
-msgctxt "block title"
-msgid "Section"
-msgstr ""
-
-#: resources/blocks/section/block.json
-msgctxt "block description"
-msgid "A full-bleed page band with outer section sizing and independent content sizing controls."
-msgstr ""
-
-#: resources/blocks/spacer/block.json
-msgctxt "block title"
-msgid "Spacer"
-msgstr ""
-
-#: resources/blocks/spacer/block.json
-msgctxt "block description"
-msgid "A responsive empty space block for vertical or horizontal rhythm."
-msgstr ""
-
-#: resources/blocks/stack/block.json
-msgctxt "block title"
-msgid "Stack"
-msgstr ""
-
-#: resources/blocks/stack/block.json
-msgctxt "block description"
-msgid "A one-dimensional flex layout for arranging child blocks vertically or horizontally."
-msgstr ""
-
-#: resources/blocks/text/block.json
-msgctxt "block title"
-msgid "Text"
-msgstr ""
-
-#: resources/blocks/text/block.json
-msgctxt "block description"
-msgid "A rich paragraph block for body copy."
-msgstr ""
-
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Themes"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Color"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Typography"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Spacing"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Radius"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Shadow"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Gradient"
 msgstr ""
 
@@ -408,22 +312,30 @@ msgid "Motion"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Animation"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Z-index"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Opacity"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Border"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Focus ring"
 msgstr ""
 
@@ -436,6 +348,7 @@ msgid "Line-height"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Breakpoints"
 msgstr ""
 
@@ -456,54 +369,80 @@ msgid "Mobile"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Display"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 1"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 2"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 3"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 4"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 5"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Heading 6"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Body"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Lead"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Small"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Caption"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Code"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Eyebrow / mono"
 msgstr ""
 
@@ -516,6 +455,7 @@ msgid "Search views and tokens"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "Docs"
 msgstr ""
 
@@ -534,6 +474,30 @@ msgstr ""
 #: build/admin.js:1
 msgid "just now"
 msgstr ""
+
+#: build/admin.js:1
+msgid "%d minute ago"
+msgid_plural "%d minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
+msgid "%d hour ago"
+msgid_plural "%d hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
+msgid "%d day ago"
+msgid_plural "%d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
+msgid "%d month ago"
+msgid_plural "%d months ago"
+msgstr[0] ""
+msgstr[1] ""
 
 #: build/admin.js:1
 msgid "Global Styles sync on"
@@ -624,6 +588,7 @@ msgid "Design system section"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "Design system"
 msgstr ""
 
@@ -632,6 +597,7 @@ msgid "%s token"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "Tokens"
 msgstr ""
 
@@ -660,6 +626,7 @@ msgid "close"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "Type roles"
 msgstr ""
 
@@ -676,6 +643,7 @@ msgid "%1$d of %2$d colors · theme-native"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "On"
 msgstr ""
 
@@ -712,12 +680,24 @@ msgid "Design system made yours"
 msgstr ""
 
 #: build/admin.js:1
+msgid "%d value changed from the theme"
+msgid_plural "%d values changed from the theme"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
 msgid "Colors, type and spacing still match the theme"
 msgstr ""
 
 #: build/admin.js:1
 msgid "Blicks blocks in use"
 msgstr ""
+
+#: build/admin.js:1
+msgid "%d page uses Blicks"
+msgid_plural "%d pages use Blicks"
+msgstr[0] ""
+msgstr[1] ""
 
 #: build/admin.js:1
 msgid "Drop a Blicks block into any page"
@@ -780,6 +760,12 @@ msgid "Registered blocks"
 msgstr ""
 
 #: build/admin.js:1
+msgid "%d interactive"
+msgid_plural "%d interactive"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
 msgid "Available in editor"
 msgstr ""
 
@@ -800,6 +786,7 @@ msgid "Fallback values"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "Per-block help"
 msgstr ""
 
@@ -834,6 +821,12 @@ msgstr ""
 #: build/admin.js:1
 msgid "Colors, type, spacing, radius."
 msgstr ""
+
+#: build/admin.js:1
+msgid "%d token"
+msgid_plural "%d tokens"
+msgstr[0] ""
+msgstr[1] ""
 
 #: build/admin.js:1
 msgid "Open the editor"
@@ -964,6 +957,12 @@ msgid "Define reusable keyframe animations. Each one becomes a preset in every b
 msgstr ""
 
 #: build/admin.js:1
+msgid "%d animation available to every block."
+msgid_plural "%d animations available to every block."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
 msgid "Predefined"
 msgstr ""
 
@@ -982,6 +981,12 @@ msgstr ""
 #: build/admin.js:1
 msgid "None yet. Add one and it joins the list above in every block’s Motion control."
 msgstr ""
+
+#: build/admin.js:1
+msgid "%d step"
+msgid_plural "%d steps"
+msgstr[0] ""
+msgstr[1] ""
 
 #: build/admin.js:1
 msgid "Blocks using it lose their motion."
@@ -1012,6 +1017,8 @@ msgid "New animation"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Name"
 msgstr ""
 
@@ -1036,6 +1043,8 @@ msgid "Iterations"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Direction"
 msgstr ""
 
@@ -1060,6 +1069,8 @@ msgid "Add step"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
+#: build/editor.js:13
 msgid "Saving…"
 msgstr ""
 
@@ -1080,6 +1091,7 @@ msgid "Could not delete that animation."
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "Reset to theme value"
 msgstr ""
 
@@ -1156,6 +1168,7 @@ msgid "Pick %s color"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "%s value"
 msgstr ""
 
@@ -1164,7 +1177,15 @@ msgid "Aa · The atomic builder"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Surface"
+msgstr ""
+
+#: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text"
 msgstr ""
 
 #: build/admin.js:1
@@ -1216,6 +1237,8 @@ msgid "Y"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Blur"
 msgstr ""
 
@@ -1228,6 +1251,8 @@ msgid "%s color"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Inset"
 msgstr ""
 
@@ -1244,14 +1269,20 @@ msgid "Kind"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Linear"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Radial"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Conic"
 msgstr ""
 
@@ -1320,6 +1351,10 @@ msgid "A gradient needs two colour stops"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
 msgid "Remove"
 msgstr ""
 
@@ -1348,6 +1383,8 @@ msgid "Several transitions at once, or an order these fields cannot rebuild exac
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Thickness"
 msgstr ""
 
@@ -1376,6 +1413,8 @@ msgid "Not a ring these fields can rebuild exactly — inset, shifted, or more t
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Width"
 msgstr ""
 
@@ -1384,6 +1423,8 @@ msgid "%s width"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Style"
 msgstr ""
 
@@ -1408,26 +1449,35 @@ msgid "The atomic builder"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Size"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Weight"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Line height"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Tracking"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Transform"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:12
 msgid "Family"
 msgstr ""
 
@@ -1444,6 +1494,8 @@ msgid "Token name"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "value"
 msgstr ""
 
@@ -1452,6 +1504,8 @@ msgid "Token value"
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/editor.js:11
 msgid "Add"
 msgstr ""
 
@@ -1480,6 +1534,10 @@ msgid "Edit the colors, type, and spacing your theme exposes. Token values compi
 msgstr ""
 
 #: build/admin.js:1
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
 msgid "Custom"
 msgstr ""
 
@@ -1498,6 +1556,12 @@ msgstr ""
 #: build/admin.js:1
 msgid "Source"
 msgstr ""
+
+#: build/admin.js:1
+msgid "%d token tracked."
+msgid_plural "%d tokens tracked."
+msgstr[0] ""
+msgstr[1] ""
 
 #: build/admin.js:1
 msgid "Filter tokens by name…"
@@ -1524,6 +1588,7 @@ msgid "preset"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "custom"
 msgstr ""
 
@@ -1536,6 +1601,7 @@ msgid "Confirm delete"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "Delete theme"
 msgstr ""
 
@@ -1568,6 +1634,12 @@ msgid "Reset this theme’s overrides"
 msgstr ""
 
 #: build/admin.js:1
+msgid "Replace %d unsaved edit?"
+msgid_plural "Replace %d unsaved edits?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
 msgid "Apply"
 msgstr ""
 
@@ -1588,6 +1660,7 @@ msgid "Name this theme"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "Theme name"
 msgstr ""
 
@@ -1600,6 +1673,7 @@ msgid "Pairs · a surface and its text"
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "Other"
 msgstr ""
 
@@ -1716,6 +1790,7 @@ msgid "The widest step: everything above the one below it."
 msgstr ""
 
 #: build/admin.js:1
+#: build/editor.js:13
 msgid "base"
 msgstr ""
 
@@ -1740,6 +1815,12 @@ msgid "Edited in"
 msgstr ""
 
 #: build/admin.js:1
+msgid "%d change not saved yet"
+msgid_plural "%d changes not saved yet"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:1
 msgid "Nothing pending"
 msgstr ""
 
@@ -1748,6 +1829,7 @@ msgid "Saved to"
 msgstr ""
 
 #: build/admin.js:1
+#: build/admin.js:2
 msgid "Global Styles sync"
 msgstr ""
 
@@ -1792,6 +1874,13 @@ msgid "Generated output"
 msgstr ""
 
 #: build/admin.js:2
+msgid "%d token changed · unsaved"
+msgid_plural "%d tokens changed · unsaved"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:2
+#: build/editor.js:13
 msgid "Discard"
 msgstr ""
 
@@ -1832,6 +1921,8 @@ msgid "Styles"
 msgstr ""
 
 #: build/admin.js:2
+#: build/block-library.js:2
+#: build/editor.js:12
 msgid "Advanced"
 msgstr ""
 
@@ -1936,6 +2027,12 @@ msgid "CSS"
 msgstr ""
 
 #: build/admin.js:2
+msgid "%d setting changed"
+msgid_plural "%d settings changed"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/admin.js:2
 msgid "unsaved"
 msgstr ""
 
@@ -1964,6 +2061,7 @@ msgid "Breakpoint overrides cleared in draft."
 msgstr ""
 
 #: build/admin.js:2
+#: build/editor.js:13
 msgid "Saved to %s."
 msgstr ""
 
@@ -1988,6 +2086,7 @@ msgid "Could not apply the theme."
 msgstr ""
 
 #: build/admin.js:2
+#: build/editor.js:13
 msgid "Theme saved from the current token values."
 msgstr ""
 
@@ -2057,4 +2156,3690 @@ msgstr ""
 
 #: build/admin.js:2
 msgid "Running on fallback data"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:1
+#: build/editor.js:12
+msgid "Reset"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:1
+#: build/editor.js:12
+msgid "No properties match “%s”."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "More options"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Box is the generic styled wrapper for cards, panels, and manual layouts. Use it when Section, Stack, and Grid are too opinionated and you need one element with the full Blicks styling system."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Stores the full Blicks style tree for layout, spacing, border, position, color, background, typography, and effects controls."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the HTML element for the wrapper. Use `div` for generic layout, `article` for repeatable cards, `aside` for supporting content, and `figure` for media groups."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Box inside Grid for pricing cards, feature cards, and other repeated panels."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Section for page bands; use Box for the smaller wrappers inside those bands."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Button renders a clickable action. It can output a real button when no URL is set or a link-style button when a URL is provided."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The visible button label."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The destination URL. When set, the block renders as an anchor so it can navigate like a link."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls whether the link opens in the same tab or a new tab."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets relationship attributes for link output, such as `nofollow` or `noopener`."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the visual style: primary/default, secondary, outline, ghost, destructive, or link."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the button size preset."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Adds an optional built-in icon."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Places the icon before or after the label."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use one primary button per section when possible."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use outline or secondary variants for supporting actions."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "If the button navigates, set a URL; if it triggers an interaction, leave the URL empty."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Buttons is a container that lays out one or more Button blocks in a row or column with shared alignment, spacing, and wrapping. Only Button blocks can be placed inside it."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Arranges the buttons horizontally (a row) or vertically (a column)."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the space between buttons using the spacing scale (XS–LG)."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Distributes the buttons along the main axis: start, center, end, or space-between."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Allows buttons to wrap onto multiple lines when they run out of room, or keeps them on a single line."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use a horizontal row with a Start or Center distribution for a typical primary/secondary action pair."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Switch to vertical orientation for stacked calls-to-action on narrow layouts."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Pair one default (primary) Button with an outline or ghost Button for a clear visual hierarchy."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Divider renders a semantic separator. Use it to separate related content groups, card sections, pricing features, or long page areas."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses a horizontal or vertical divider."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the divider line thickness."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the line style: solid, dashed, dotted, or none."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the divider color."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Divider when the separation is meaningful, not purely decorative."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Pair it with spacing so the line has room to breathe."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use border tokens for dividers that should match the theme."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Grid arranges child blocks in columns. Use it for feature cards, pricing cards, galleries, comparison panels, and any layout where multiple items should align in a repeated structure."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the number of equal-width columns when auto-fit is off."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Lets the grid create as many columns as fit the available width. This is useful for responsive card collections."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the minimum column width used by auto-fit grids."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets row and column spacing between grid children using Blicks spacing tokens (XS–XL)."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Allows the browser to pack grid items into earlier empty spaces when possible."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the grid wrapper element. Use `div` for generic layout and `ul`/`ol` when the children form a list. For a full-width band, wrap the Grid in a Section block instead of changing the tag."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Grid for repeated sibling items, then use Stack inside each item for card content."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use two columns for pricing and comparison sections."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use auto-fit for collections that should adapt without manual breakpoint changes."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Heading renders semantic H1-H6 text. Use it for page titles, section titles, card titles, and content hierarchy that should remain meaningful to readers and search engines."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the heading level from H1 to H6. Choose the level from document structure first, then style it with typography controls if the visual size needs to differ."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The editable heading text."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use one H1 for the main page title."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Do not skip heading levels just to change visual size."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use typography controls for alignment, size, weight, and text color overrides."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Icon renders a small inline SVG from the Blicks icon registry. Use it for visual emphasis, feature markers, compact labels, and UI affordances."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the icon glyph."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the icon size."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls the line weight for stroke-based icons."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Adds an accessible label. Leave it empty when the icon is decorative."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Pair decorative icons with nearby text instead of relying on the icon alone."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Add a label when the icon communicates meaning by itself."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use text color controls to make icons follow the design system."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Image renders a responsive figure with optional link and caption. Use it for visual content that belongs to the page structure, not for decorative backgrounds."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Stores the selected WordPress media ID when an image is chosen from the media library."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The image source URL."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Alternative text for accessibility."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls the displayed image ratio. Use `auto` to preserve the natural image dimensions."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls how the image fits inside the chosen aspect ratio."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses whether the image links nowhere, to the media file, or to a custom URL."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The custom destination when `linkTo` is set to custom."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Optional figure caption."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Write alt text for meaningful images; leave it empty only when the image is decorative."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use aspect ratio for consistent card and grid layouts."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Background controls on Section or Box for decorative imagery."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the outer section width. Keep `auto` for normal WordPress full-width alignment behavior, or use a CSS length when the section itself needs a specific width."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the outer section minimum height. Keep `auto` for content-driven height, or use values like `80vh`, `600px`, or `100svh` for viewport-based bands without clipping wrapped content."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the inner content wrapper width."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the inner content wrapper minimum width."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the inner content wrapper maximum width. The default follows `var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))` so the section stays aligned with the active design system or the active WordPress theme layout."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Applies a preset treatment to the full-bleed outer section. Use `plain` for invisible structure, `muted` for soft bands, `card` for elevated panels, and `outline` for bordered groups."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Applies vertical padding to the outer section. Use it for page rhythm before reaching for manual spacing controls."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Prefer Section for root-level page bands and major layout areas."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Put Stack or Grid inside Section for content layout."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The outer section owns the background; the inner wrapper owns content sizing."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Spacer adds intentional empty space. Use it sparingly to create rhythm between sections or to reserve space in utility layouts."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the spacer dimension."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses whether the spacer creates vertical or horizontal space."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Prefer Section spacing and Stack/Grid gaps before adding Spacer blocks."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Spacer for exceptional layout rhythm, not as the default spacing system."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Keep spacer values token-like and consistent across a page."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Stack arranges child blocks in one direction. Use it for vertical content groups, horizontal action rows, navigation groups, and simple card internals where items need predictable spacing."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the main axis. `Vertical` stacks children top to bottom; `Horizontal` places children in a row."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Chooses the wrapper element. Use `div` for generic layout, `section` for meaningful groups, `nav` for navigation, and `ul` when the children form a list."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Sets the spacing between children using Blicks spacing tokens."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls cross-axis alignment. In a vertical stack it affects horizontal child alignment; in a horizontal stack it affects vertical alignment."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Controls main-axis distribution. Use it when the stack has extra space and children need to group, spread, or center."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Allows horizontal stacks to wrap onto multiple lines when space gets tight."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Stack inside cards, heroes, headers, and form-like groups."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use horizontal Stack for buttons and compact metadata rows."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use Grid instead when children need columns, rows, or equal-width tracks."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Text renders a rich paragraph. Use it for body copy, descriptions, captions, feature text, short notes, and supporting content."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "The editable paragraph content. Supports inline formatting such as bold, italic, and links."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Keep Text blocks focused; use multiple Text blocks instead of one long mixed-purpose paragraph."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Pair Text with Heading inside Stack for consistent content groups."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Use typography controls for alignment and text styling instead of adding custom classes."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Show help"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "HTML"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Invalid value"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:1
+msgid "Pick from value library"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "More"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Min and max"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Not set"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Colour"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Theme colours"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "THEME COLOURS"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Token library"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Image position"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Image position — drag the image, or use the arrow keys"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Image position — drag, or use the arrow keys"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Size, tiling and scrolling"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Solid colour"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Image"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "No repeat"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Tile"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Tile across"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Tile down"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Background image"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Image selected"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "What paints this fill"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Gradient token library"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Customise"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Drag to move, click to recolour"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Gradient type"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Gradient angle"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Where the gradient starts"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Replace image"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Choose image"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "No image selected"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Replace"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Choose"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Image URL"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Background size"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Background repeat"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Background attachment"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Blend"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "How this fill blends with what is behind it"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Clip this fill to the text"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Radial gradient"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Conic gradient"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Linear gradient"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Fill colour"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Edit fill"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Theme"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Font colour"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Background"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Selection style"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Text fill"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Highlight"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Clear selection style"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Select words in the text to fill them with a color, gradient, or image — and to highlight them."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Color & gradient"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Inline code"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "top"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "right"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "bottom"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "left"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Margin"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Padding"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "link all sides"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Link all sides"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Equal — tracks share the width evenly"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Auto fit — tracks wrap to fit the container"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Custom — write the template by hand"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Grid tracks apply when display is Grid."
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Switch to Grid"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "Columns"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "column"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Rows"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/block-library.js:2
+#: build/editor.js:11
+#: build/editor.js:12
+msgid "row"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "How the columns are sized"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Minimum track width"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Maximum track width"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Column template"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Row gap — space between rows"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Column gap — space between columns"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Justify items — placement across the inline axis"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Align items — placement across the block axis"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Height of rows the grid creates itself"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Auto flow — the direction items fill the grid"
+msgstr ""
+
+#: build/block-library.js:1
+#: build/editor.js:11
+msgid "Areas"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "top left"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "top right"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "bottom left"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "bottom right"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Solid"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Dashed"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Dotted"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Edge"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Which edge the fields below edit"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Border width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Border colour"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Per corner"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Radius on every corner"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Relative"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Absolute"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fixed"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Sticky"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Type"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Insets apply once the block is positioned."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Make it relative"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stacking"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "What this block stacks above"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Could not find the current Global Styles record."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Uninstall \"%s\"? Pages still using it will fall back to the system font."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Removed \"%s\"."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Could not uninstall font."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Installed \"%s\"."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Could not install font."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Google Fonts"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Browse self-hosted fonts. Installs use WordPress’ native Font Library, so files land in uploads/fonts/."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Browse"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Installed"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Search fonts"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Sort by"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Trending"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Loading…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "%d face(s)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Use"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Removing…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Uninstall"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No fonts installed yet. Browse Google Fonts to add some."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No font collections available on this site."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "%d styles"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "1 style"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Installing…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Install & use"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No fonts match your search."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Headings"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Mono"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Thin (100)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Extra light (200)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Light (300)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Regular (400)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Medium (500)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Semi bold (600)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Bold (700)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Extra bold (800)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Black (900)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Sans Serif"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Serif"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Monospace"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Token"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "System"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Upright"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Italic"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Uppercase"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Lowercase"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Capitalize"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Underline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Strikethrough"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Overline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Left"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Center"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Right"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Justify"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Horizontal"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Vertical, right to left"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Vertical, left to right"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Smallest size"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Largest size"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Font"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Type role preset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "From level"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Style: %s"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Typography presets"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Font family"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Inherited"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Manage fonts"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fluid range"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Font size"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Font weight"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Font style"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text alignment"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Detail"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Letter spacing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Word spacing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text transform"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text decoration"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Writing mode"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text orientation"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Typography preset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Default (from level)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Pointer"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Move"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Not allowed"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Outset — the shadow falls outside the box"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Inset — the shadow falls inside the box"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Flat — children are flattened into this plane"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Preserve 3D — children keep their own depth"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fade one edge"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fade both edges"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fade to a circle"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Top"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Bottom"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Opacity token library"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Blend mode — how the block composites with what is behind it"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Cursor shown over the block"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Which side of the edge the shadow falls on"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Horizontal offset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Vertical offset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Blur radius"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Spread radius"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Box shadow colour"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Text shadow colour"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Transition — what animates on a state change"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Transform origin — the point the block transforms around"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Perspective — how deep the 3D scene is"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Transform style — whether children keep their own depth"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Filter applied to the block itself"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Backdrop blur"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Backdrop brightness"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Backdrop saturation"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clip path — the shape the block is cut to"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "How far the shape cuts in"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Raw clip-path value"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Mask — fade the block out towards an edge or a circle"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Which edge fades"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "How far the fade reaches"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Allow — items may split across a column boundary"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Avoid — keep each item whole in one column"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Columns do not apply to a %s container — its children lay themselves out."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Switch to Block"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Minimum column width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "How many columns the content flows into"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Minimum column width — the count then follows from the space available"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Gutter between the columns"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Breaks"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Break inside — whether an item may split across a column boundary"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Preset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No animations available. Add one in Blicks → Design System → Animation."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Timing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "How long one run takes"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Wait before it starts"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Easing — the shape of the motion over time"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fill mode — whether the first and last frames hold"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "How many times it runs"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Direction — which way each run plays"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "What advances the animation — time, the scroll position, or the viewport"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Which part of the timeline the animation covers"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Target value for --bl-p-target"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Dot"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Ring"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Corner"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Quote"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Glow"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Card stack"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Swatch"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "— default —"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "::before"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "::after"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Enable"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Content & position"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Content"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Position"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Pointer events"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "z-index"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Height"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Min width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Max width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Min height"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Max height"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Aspect ratio"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Overflow"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Gap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Layout"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Align items"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Wrap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Outline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Repeat"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clip"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Decoration"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Align"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "White space"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Effects"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Filter"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Backdrop filter"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Box shadow"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clip path"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Mask"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Blend mode"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Motion & transform"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Origin"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Rotate"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Scale"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Transition"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Cursor"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Presets"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "counter-reset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "counter-increment"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "State"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Editing state"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Base styles"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Editing base styles — every state inherits from here."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Editing %s — only changed properties override the base."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Overrides"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Nothing overridden for %s yet. Change any property in another facet while this state is active and it lands here."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "the base state"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Remove override"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Role"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Label"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Accessible name"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Tab index"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clear every style override on this block? This cannot be undone from here."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Visibility"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Hide this block at chosen screen sizes (front end)."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Hide on"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Custom attributes"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Extra data-*, aria-*, role, title, id, lang, or dir attributes on the block wrapper."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Remove attribute"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Add attribute"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Only data-*, aria-*, role, title, id, lang, and dir are allowed. Invalid rows are dropped."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Accessibility"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Only set these when the block needs a role or name the markup does not already convey."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Role and label"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clears every style override on this block, across all states and breakpoints."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Reset all overrides on this element"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Breakpoint"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Search properties"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clear search"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Inspector sections"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Style facets"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "(contextual)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "(styled)"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Multi-column"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Grid child"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Flex child"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Pseudo-elements"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "States"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No settings for this block."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Editing %s — cascades down"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Box"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A generic styled wrapper for cards, panels, and manual layouts."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "box"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "card"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "panel"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Section"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A full-bleed page band with section and content sizing controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "section"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "band"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "wrapper"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stack"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A one-axis auto-layout block for vertical or horizontal groups with gap and alignment controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "flex"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Grid"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A responsive collection layout for cards, galleries, features, and repeatable content."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "columns"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "cards"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "collection"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Heading"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A theme-native h1-h6 heading with quick level and alignment controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "title"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "headline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "typography"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A clean paragraph block for editable body copy that inherits your theme."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "paragraph"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "copy"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "body"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Buttons"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A row or column of Button blocks with shared alignment, spacing, and wrapping."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "cta"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "actions"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "group"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Button"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A polished action block with variants, sizes, links, and optional inline icons."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "link"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "action"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A responsive figure block with aspect ratio, object fit, caption, and link controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "media"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "photo"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "figure"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Icon"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A curated inline SVG icon with size, stroke, label, color, and spacing controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "svg"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "symbol"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "visual"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Spacer"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A deliberate rhythm block for adding responsive vertical or horizontal breathing room."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "space"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "gap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "rhythm"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Divider"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A semantic rule for separating groups with thickness, style, color, and spacing controls."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "rule"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "separator"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "line"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Blank"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Add item"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Add block"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Generic"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Card"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Aside"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Header"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Footer"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Nav"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Main"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Media"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Inline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "HTML tag"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Link"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Make the whole box clickable (stretched link)."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "URL"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Target"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Same tab"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "New tab"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Link label"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Accessible name for the link (screen readers)."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "e.g. Read the case study"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Auto"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "default"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Full width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Viewport"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Fit content"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Narrow"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Medium"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Wide"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Extra wide"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Plain"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Muted"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "None"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "SM"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "MD"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "LG"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Enter a length like 640px, 100%, or auto."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Content width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Content min width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Content max width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Treatment"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Section padding"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A full-width page band — pick a starting layout to begin."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Heading + copy"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Section heading"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Describe this section in a sentence or two."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Centered hero"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Build something great"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "A short, punchy subheading that explains the value in one line."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Get started"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Learn more"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Band"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Menu"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Items"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Vertical"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "XS"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Start"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "End"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stretch"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Between"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No wrap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Auto Layout"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Distribute"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Wrapping"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Element"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stack vertically"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stack horizontally"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "List"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Ordered"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Auto-fit"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Cards"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Auto · 16rem"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Gallery"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Auto · 12rem"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Feature"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "2 columns"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "XL"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Normal"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Dense"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Collection"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Min card width"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Column count"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Packing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Semantic level"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Page title"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Subhead"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Align left"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Align center"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Align right"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Change heading level. Current level: %d"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Heading..."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Paragraph"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Span"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Div"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Default"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Format"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Variant"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Drop cap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Enlarge the first letter of the paragraph."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Type \"/\" to insert a Blicks block…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clear icon"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Search icons…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "No icons match"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Action"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Primary"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Main CTA"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Secondary"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Quiet action"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Ghost"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Toolbar"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Inline CTA"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Arrow CTA"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Next step"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Square"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Leading"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Trailing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clear link"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Add text…"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Arrange horizontally"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Arrange vertically"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Grayscale"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Dusk"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Ocean"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Berry"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Forest"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Alt text"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Frame"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Original"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Object fit"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Resolution"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Source size loaded for this image."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Duotone"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Two-tone color effect — maps shadows and highlights to colors without altering the original image."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Shadows"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Highlights"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Clear duotone"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Link to"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Custom URL"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Drag and drop an image, upload, or choose one from your library."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Caption..."
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Drawing"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Size preset"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Custom size"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Stroke"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Accessible label"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Tight"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Small gap"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Hero"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Space"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Orientation"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Hairline"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Strong"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Rule"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Length"
+msgstr ""
+
+#: build/block-library.js:2
+#: build/editor.js:12
+msgid "Leave empty for full width (or the default height when vertical)."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Click a swatch to edit. Projected to --blicks-color-* and --blicks-gradient-*."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Roles are complete looks; the scales below are the primitives they build on."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Projected to --blicks-spacing-*."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Corner radii, border widths and styles, plus the focus-ring presets."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Shadows, motion and the opacity/stacking scales — what the Effects libraries read."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Content widths and aspect ratios. “Content size” is the theme.json layout width."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Shared button metrics — every Button variant reads these."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Used by responsive controls and runtime CSS."
+msgstr ""
+
+#: build/editor.js:12
+msgid "Gradients"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Font families"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Font sizes"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Border style"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Widths"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Aspect ratios"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Content size"
+msgstr ""
+
+#: build/editor.js:12
+msgid "Theme Settings"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Draft changes discarded."
+msgstr ""
+
+#: build/editor.js:13
+msgid "%s draft reverted to the saved values."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Theme tokens saved."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Could not save theme tokens."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Could not update themes."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Synced"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Synced with theme.json"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Sync off"
+msgstr ""
+
+#: build/editor.js:13
+msgid "theme.json theme · Global Styles sync off"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Defaults"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Using theme defaults"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Design System ↗"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Token categories"
+msgstr ""
+
+#: build/editor.js:13
+msgid "(unsaved changes)"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%s applied."
+msgstr ""
+
+#: build/editor.js:13
+msgid "%s reset to its preset values."
+msgstr ""
+
+#: build/editor.js:13
+msgid "%s deleted."
+msgstr ""
+
+#: build/editor.js:13
+msgid "base — no media query"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Overrides the theme value"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%s breakpoint max width"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Reset breakpoint"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Revert %s"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%d unsaved change · preview only"
+msgid_plural "%d unsaved changes · preview only"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/editor.js:13
+msgid "Saved · applies site-wide"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Save tokens"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Named token presets. Applying one replaces the current values site-wide — it saves immediately."
+msgstr ""
+
+#: build/editor.js:13
+msgid "No saved themes yet. Save the current values below to make one."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Customized since its preset"
+msgstr ""
+
+#: build/editor.js:13
+msgid "active"
+msgstr ""
+
+#: build/editor.js:13
+msgid "built-in"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Reset to its preset values"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Save current values as"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Save"
+msgstr ""
+
+#: build/editor.js:13
+msgid "element"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Theme default"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Edit %s color"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%d blocks"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%d%% CSS has controls"
+msgstr ""
+
+#: build/editor.js:13
+msgid "%d auto-applied"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Not imported (no matching control):"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Import from HTML"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Paste HTML (inline styles)"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Maps elements to Blicks blocks; inline CSS becomes block controls where a matching control exists. Anything else is listed in the report and left out."
+msgstr ""
+
+#: build/editor.js:13
+msgid "Analyze"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Insert %d blocks"
+msgstr ""
+
+#: build/editor.js:13
+msgid "Import HTML"
+msgstr ""
+
+#: build/blocks/box/block.json
+#: resources/blocks/box/block.json
+msgctxt "block title"
+msgid "Box"
+msgstr ""
+
+#: build/blocks/box/block.json
+#: resources/blocks/box/block.json
+msgctxt "block description"
+msgid "A generic styled wrapper for cards, panels, and manual layouts."
+msgstr ""
+
+#: build/blocks/button/block.json
+#: resources/blocks/button/block.json
+msgctxt "block title"
+msgid "Button"
+msgstr ""
+
+#: build/blocks/button/block.json
+#: resources/blocks/button/block.json
+msgctxt "block description"
+msgid "A shadcn-style action button with variants, sizes, links, and optional icons."
+msgstr ""
+
+#: build/blocks/buttons/block.json
+#: resources/blocks/buttons/block.json
+msgctxt "block title"
+msgid "Buttons"
+msgstr ""
+
+#: build/blocks/buttons/block.json
+#: resources/blocks/buttons/block.json
+msgctxt "block description"
+msgid "A row or column of Button blocks with shared alignment, spacing, and wrapping."
+msgstr ""
+
+#: build/blocks/divider/block.json
+#: resources/blocks/divider/block.json
+msgctxt "block title"
+msgid "Divider"
+msgstr ""
+
+#: build/blocks/divider/block.json
+#: resources/blocks/divider/block.json
+msgctxt "block description"
+msgid "A semantic divider for separating content groups."
+msgstr ""
+
+#: build/blocks/grid/block.json
+#: resources/blocks/grid/block.json
+msgctxt "block title"
+msgid "Grid"
+msgstr ""
+
+#: build/blocks/grid/block.json
+#: resources/blocks/grid/block.json
+msgctxt "block description"
+msgid "A two-dimensional layout block for equal-width or auto-fit child columns."
+msgstr ""
+
+#: build/blocks/heading/block.json
+#: resources/blocks/heading/block.json
+msgctxt "block title"
+msgid "Heading"
+msgstr ""
+
+#: build/blocks/heading/block.json
+#: resources/blocks/heading/block.json
+msgctxt "block description"
+msgid "A semantic h1-h6 heading that inherits the active theme by default."
+msgstr ""
+
+#: build/blocks/icon/block.json
+#: resources/blocks/icon/block.json
+msgctxt "block title"
+msgid "Icon"
+msgstr ""
+
+#: build/blocks/icon/block.json
+#: resources/blocks/icon/block.json
+msgctxt "block description"
+msgid "An inline SVG icon that inherits current text color."
+msgstr ""
+
+#: build/blocks/image/block.json
+#: resources/blocks/image/block.json
+msgctxt "block title"
+msgid "Image"
+msgstr ""
+
+#: build/blocks/image/block.json
+#: resources/blocks/image/block.json
+msgctxt "block description"
+msgid "A responsive media block with optional link and caption."
+msgstr ""
+
+#: build/blocks/section/block.json
+#: resources/blocks/section/block.json
+msgctxt "block title"
+msgid "Section"
+msgstr ""
+
+#: build/blocks/section/block.json
+#: resources/blocks/section/block.json
+msgctxt "block description"
+msgid "A full-bleed page band with outer section sizing and independent content sizing controls."
+msgstr ""
+
+#: build/blocks/spacer/block.json
+#: resources/blocks/spacer/block.json
+msgctxt "block title"
+msgid "Spacer"
+msgstr ""
+
+#: build/blocks/spacer/block.json
+#: resources/blocks/spacer/block.json
+msgctxt "block description"
+msgid "A responsive empty space block for vertical or horizontal rhythm."
+msgstr ""
+
+#: build/blocks/stack/block.json
+#: resources/blocks/stack/block.json
+msgctxt "block title"
+msgid "Stack"
+msgstr ""
+
+#: build/blocks/stack/block.json
+#: resources/blocks/stack/block.json
+msgctxt "block description"
+msgid "A one-dimensional flex layout for arranging child blocks vertically or horizontally."
+msgstr ""
+
+#: build/blocks/text/block.json
+#: resources/blocks/text/block.json
+msgctxt "block title"
+msgid "Text"
+msgstr ""
+
+#: build/blocks/text/block.json
+#: resources/blocks/text/block.json
+msgctxt "block description"
+msgid "A rich paragraph block for body copy."
 msgstr ""
