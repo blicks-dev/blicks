@@ -50,11 +50,19 @@ By default, nothing is removed — your tokens, themes, animations, and settings
 
 = Can I add my own CSS, JavaScript, or PHP through Blicks? =
 
-No. Blicks has no code-entry field of any kind. Every style it outputs is generated from its own controls and from your theme's design tokens, so there is nothing to paste arbitrary code into.
+No. There is no stylesheet field, no script field, and no snippet runner. Blicks does not accept CSS rules, selectors, or code of any kind, and it never evaluates anything you type.
+
+Some controls do take a typed value rather than offering a picker — a length like `800px`, a transform like `translateX(10px)`, a shape like `polygon(0 0, 100% 0, 100% 100%)`. Each of those is the value of one named property that the control itself chooses; you cannot write the property, a selector, or a rule. Every value is validated whole against a closed list of permitted characters and CSS functions before it is used, so a value cannot end its own declaration or start another one. Anything that does not validate is dropped.
+
+= Does Blicks let me use my own images as backgrounds? =
+
+Yes, via the media library. Background image URLs are restricted to your own site's uploads or an ordinary `http(s)` address; `javascript:` and `data:` URLs are rejected.
 
 == External Services ==
 
-Blicks uses no external services. It makes no HTTP requests, loads no remote fonts, scripts, styles or images, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
+Blicks uses no external services. It contacts no third-party server, loads no remote fonts, scripts or styles, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
+
+The only exception is one you control: if you set a background image to an address on another site, the visitor's browser loads that image from wherever you pointed it. Blicks itself makes no such request.
 
 == Third-Party Licenses ==
 
