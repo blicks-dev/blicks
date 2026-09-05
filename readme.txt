@@ -29,7 +29,6 @@ Token values become utility classes. Custom values become scoped CSS variables i
 * 12 layout and content blocks, all in one Blicks inserter category
 * A design system admin screen for editing tokens, type roles, breakpoints, and custom keyframe animations
 * Named design themes — save a set of token values, switch between them, or reset back to your theme's defaults
-* A per-block Advanced panel for scoped custom CSS
 * No jQuery and no bundled front-end framework — blocks render as plain HTML and CSS
 
 == Installation ==
@@ -49,9 +48,9 @@ It's built for block themes and full site editing, where it reads your `theme.js
 
 By default, nothing is removed — your tokens, themes, animations, and settings survive a delete and reinstall. If you want Blicks to clean up after itself, set **On uninstall** to "Delete all Blicks data" in **Blicks → Settings** before deleting the plugin.
 
-= Is the custom CSS field safe? =
+= Can I add my own CSS, JavaScript, or PHP through Blicks? =
 
-The Advanced ▸ Custom CSS field is scoped to the block it belongs to; the `selector` keyword is replaced with that block's wrapper class. Before output, the sanitizer strips HTML tag openings, remote imports, `@charset`/`@namespace` rules, legacy CSS expressions, script and data URL schemes, `url()` references, and legacy binding properties.
+No. Blicks has no code-entry field of any kind. Every style it outputs is generated from its own controls and from your theme's design tokens, so there is nothing to paste arbitrary code into.
 
 == External Services ==
 

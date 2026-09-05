@@ -36,7 +36,7 @@ function Report( { report }: { report: ImportReport } ) {
 			</div>
 			{ report.fallback.length > 0 && (
 				<p className="bl-import__fallback">
-					{ __( 'Kept as Custom CSS (no control or needs shaping):', 'blicks' ) }{ ' ' }
+					{ __( 'Not imported (no matching control):', 'blicks' ) }{ ' ' }
 					<code>{ report.fallback.join( ', ' ) }</code>
 				</p>
 			) }
@@ -76,7 +76,7 @@ function ImportModal( { onClose }: { onClose: () => void } ) {
 		<Modal title={ __( 'Import from HTML', 'blicks' ) } onRequestClose={ onClose } className="bl-import">
 			<TextareaControl
 				label={ __( 'Paste HTML (inline styles)', 'blicks' ) }
-				help={ __( 'Maps elements to Blicks blocks; inline CSS becomes controls where possible, else scoped Custom CSS.', 'blicks' ) }
+				help={ __( 'Maps elements to Blicks blocks; inline CSS becomes block controls where a matching control exists. Anything else is listed in the report and left out.', 'blicks' ) }
 				value={ html }
 				onChange={ setHtml }
 				rows={ 8 }

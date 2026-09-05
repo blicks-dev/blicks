@@ -3,7 +3,7 @@
  *
  * Answers, for any CSS declaration: does Blicks have a dedicated CONTROL for it (→ which section +
  * `blicks` attr), or is it a CUSTOM-CSS fallback (valid CSS, no control — goes to the per-block
- * Custom CSS field)? This is the engine behind "flag unsupported CSS" + "suggest controls".
+ * import report)? This is the engine behind "flag unsupported CSS" + "suggest controls".
  *
  * `PROPERTY_MAP` is curated to mirror `STYLE_MAP` (css/vars.ts); a unit test asserts every STYLE_MAP
  * attr is represented here, so the two can't silently drift.

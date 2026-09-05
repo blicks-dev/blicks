@@ -18,7 +18,6 @@ import { AnimationControl, MOTION_KEYWORDS } from '@/controls/animation/Animatio
 import { DecorationControl } from '@/controls/decoration/DecorationControl';
 import { StatesControl } from '@/controls/states/StatesControl';
 import { AdvancedControls } from './AdvancedControls';
-import { CssPanel } from './CssPanel';
 import { ContextBar } from './ContextBar';
 import { SearchField } from './SearchField';
 import { Tabs, type TabId } from './Tabs';
@@ -502,7 +501,6 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 		{ id: 'settings', label: __( 'Settings', 'blicks' ) },
 		{ id: 'style', label: __( 'Style', 'blicks' ) },
 		{ id: 'advanced', label: __( 'Advanced', 'blicks' ) },
-		{ id: 'css', label: __( 'CSS', 'blicks' ) },
 	];
 
 	const renderStyleFacet = () => {
@@ -565,9 +563,6 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 					BlockAdvanced={ Advanced }
 				/>
 			);
-		}
-		if ( tab === 'css' ) {
-			return <CssPanel attributes={ attributes } setAttributes={ setAttributes } />;
 		}
 		return renderStyleFacet();
 	};

@@ -7,7 +7,7 @@ import { useContext, useEffect, useMemo } from '@wordpress/element';
 import { Inspector } from '@/framework/inspector/Inspector';
 import { buildElementStyle } from '@/framework/css/vars';
 import { applyBlockIdentity } from '@/framework/identity';
-import { cleanAttributes, scopeCss } from '@/framework/sanitize';
+import { cleanAttributes } from '@/framework/sanitize';
 
 /** Options for an editable `RichText` field, supplied by a block's `render`. */
 export interface RichTextOpts {
@@ -454,13 +454,6 @@ function htmlAttributeProps( list: unknown ): Record< string, string > {
 	return Object.fromEntries( cleanAttributes( list ).map( ( a ) => [ a.name, a.value ] ) );
 }
 
-/** Editor preview of Advanced ▸ Custom CSS — sanitized + scoped to this instance. Mirrors the
- *  authoritative PHP front-end path (Sanitize::scopeCss). Empty until a uniqueId exists. */
-function scopedCustomCss( attributes: any ): string[] {
-	const scoped = scopeCss( attributes?.customCSS, attributes?.uniqueId ?? '' );
-	return scoped ? [ scoped ] : [];
-}
-
 function visibilityClasses( visibility: unknown, editor: boolean ): string[] {
 	if ( ! visibility || typeof visibility !== 'object' ) return [];
 	const prefix = editor ? 'bl-eh-' : 'bl-hide-';
@@ -480,7 +473,6 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		...( settings.attributes ?? {} ),
 		visibility: { type: 'object', default: {} },
 		htmlAttributes: { type: 'array', default: [] },
-		customCSS: { type: 'string', default: '' },
 		// Persisted "user chose Blank" flag — suppresses the empty-state placeholder so the container
 		// stays empty (ghost add-slot only). Only meaningful for `placeholder.allowBlank` blocks.
 		...( config.placeholder?.allowBlank ? { blicksBlank: { type: 'boolean', default: false } } : {} ),
@@ -576,7 +568,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 			}, [] );
 
 			const { blockProps, scopedCss } = buildProps( attributes, false );
-			const previewCss = [ ...( scopedCss ?? [] ), ...scopedCustomCss( attributes ) ];
+			const previewCss = scopedCss ?? [];
 
 			// Editor-only: lets a block swap itself out — powers RichText slash-inserter / autocomplete.
 			const { replaceBlocks } = useDispatch( 'core/block-editor' ) as any;
@@ -635,8 +627,8 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 				<>
 					{ previewCss.length > 0 && (
 						// Editor preview of tier-3 scoped CSS (pseudo-elements / container queries /
-						// @property / keyframes) + the Advanced ▸ Custom CSS field. The frontend prints
-						// the same via the render_block filter (StyleServiceProvider), so editor == frontend.
+						// @property / keyframes). The frontend enqueues the same rules via the
+						// render_block filter (StyleServiceProvider), so editor == frontend.
 						<style>{ previewCss.join( '' ) }</style>
 					) }
 					<Inspector

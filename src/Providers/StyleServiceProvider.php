@@ -29,10 +29,9 @@ use Blicks\Style\Sanitize;
  *  - Enqueues the compiled runtime stylesheet (build/runtime.css) on both the
  *    front end and the block editor.
  *  - Collects, during render, each block's engine-emitted scoped CSS (tier-3
- *    pseudo-elements / container queries / @property / keyframes) AND its custom
- *    CSS field (attributes.customCSS, scoping the `selector` keyword), then prints
- *    the deduped accumulation once in the footer. Dynamic blocks also queue their
- *    scoped CSS via ElementStyle::blockProps(); ScopedCss dedupes the overlap.
+ *    pseudo-elements / container queries / @property / keyframes), then prints the deduped
+ *    accumulation once in the footer. Dynamic blocks also queue their scoped CSS via
+ *    ElementStyle::blockProps(); ScopedCss dedupes the overlap.
  */
 final class StyleServiceProvider extends ServiceProvider {
 
@@ -48,7 +47,7 @@ final class StyleServiceProvider extends ServiceProvider {
 
 	/**
 	 * Collect a block's scoped CSS during render: the engine's tier-3 rules (pseudo-elements,
-	 * container queries, @property, keyframes) plus its custom-CSS field. Returns the block
+	 * container queries, @property, keyframes). Returns the block
 	 * content unchanged (registered as a render_block filter). Covers static blocks, whose saved
 	 * markup carries classes + vars but not scoped rules.
 	 *
@@ -81,19 +80,6 @@ final class StyleServiceProvider extends ServiceProvider {
 			$built = ElementStyle::build( $blicks, $scopeId );
 			if ( ! empty( $built['scopedCss'] ) ) {
 				ScopedCss::addMany( $built['scopedCss'] );
-				if ( '' === $uniqueId ) {
-					$injectId = $scopeId;
-				}
-			}
-		}
-
-		// Tier-3 custom-CSS field — strictly sanitized + scoped to this instance (Sanitize::scopeCss
-		// strips `<`, @import, expression(), js/vbscript:, data:text/html, behavior/-moz-binding).
-		$customCss = $attributes['customCSS'] ?? '';
-		if ( is_string( $customCss ) ) {
-			$scopedCustom = Sanitize::scopeCss( $customCss, $scopeId );
-			if ( '' !== $scopedCustom ) {
-				ScopedCss::add( $scopedCustom );
 				if ( '' === $uniqueId ) {
 					$injectId = $scopeId;
 				}
@@ -148,12 +134,7 @@ final class StyleServiceProvider extends ServiceProvider {
 	 * @param array<string, mixed> $attributes
 	 */
 	private static function derivedScopeId( array $attributes ): string {
-		$seed = wp_json_encode(
-			[
-				'b' => $attributes['blicks'] ?? null,
-				'c' => $attributes['customCSS'] ?? '',
-			]
-		);
+		$seed = wp_json_encode( [ 'b' => $attributes['blicks'] ?? null ] );
 
 		return 'g' . substr( md5( (string) $seed ), 0, 8 );
 	}
