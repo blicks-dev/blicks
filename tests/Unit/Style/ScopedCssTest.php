@@ -58,7 +58,6 @@ final class ScopedCssTest extends TestCase
             'attrs'     => [
                 'uniqueId' => 'box42',
                 'blicks'   => ['anim.spin' => ['default' => ['base' => 'on']]],
-                'customCSS' => 'selector{outline:1px solid red}',
             ],
         ];
 
@@ -66,8 +65,7 @@ final class ScopedCssTest extends TestCase
 
         $this->assertSame('<div>kept</div>', $out, 'block content passes through unchanged');
         $this->assertSame(
-            '@media (prefers-reduced-motion: no-preference){.bl-box42{animation-name:bl-spin}}'
-                . '.bl-box42{outline:1px solid red}',
+            '@media (prefers-reduced-motion: no-preference){.bl-box42{animation-name:bl-spin}}',
             ScopedCss::css()
         );
     }

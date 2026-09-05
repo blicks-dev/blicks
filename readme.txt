@@ -29,7 +29,6 @@ Token values become utility classes. Custom values become scoped CSS variables i
 * 12 layout and content blocks, all in one Blicks inserter category
 * A design system admin screen for editing tokens, type roles, breakpoints, and custom keyframe animations
 * Named design themes — save a set of token values, switch between them, or reset back to your theme's defaults
-* A per-block Advanced panel for scoped custom CSS
 * No jQuery and no bundled front-end framework — blocks render as plain HTML and CSS
 
 == Installation ==
@@ -49,13 +48,21 @@ It's built for block themes and full site editing, where it reads your `theme.js
 
 By default, nothing is removed — your tokens, themes, animations, and settings survive a delete and reinstall. If you want Blicks to clean up after itself, set **On uninstall** to "Delete all Blicks data" in **Blicks → Settings** before deleting the plugin.
 
-= Is the custom CSS field safe? =
+= Can I add my own CSS, JavaScript, or PHP through Blicks? =
 
-The Advanced ▸ Custom CSS field is scoped to the block it belongs to; the `selector` keyword is replaced with that block's wrapper class. Before output, the sanitizer strips HTML tag openings, remote imports, `@charset`/`@namespace` rules, legacy CSS expressions, script and data URL schemes, `url()` references, and legacy binding properties.
+No. There is no stylesheet field, no script field, and no snippet runner. Blicks does not accept CSS rules, selectors, or code of any kind, and it never evaluates anything you type.
+
+Some controls do take a typed value rather than offering a picker — a length like `800px`, a transform like `translateX(10px)`, a shape like `polygon(0 0, 100% 0, 100% 100%)`. Each of those is the value of one named property that the control itself chooses; you cannot write the property, a selector, or a rule. Every value is validated whole against a closed list of permitted characters and CSS functions before it is used, so a value cannot end its own declaration or start another one. Anything that does not validate is dropped.
+
+= Does Blicks let me use my own images as backgrounds? =
+
+Yes, via the media library. Background image URLs are restricted to your own site's uploads or an ordinary `http(s)` address; `javascript:` and `data:` URLs are rejected.
 
 == External Services ==
 
-Blicks uses no external services. It makes no HTTP requests, loads no remote fonts, scripts, styles or images, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
+Blicks uses no external services. It contacts no third-party server, loads no remote fonts, scripts or styles, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
+
+The only exception is one you control: if you set a background image to an address on another site, the visitor's browser loads that image from wherever you pointed it. Blicks itself makes no such request.
 
 == Third-Party Licenses ==
 

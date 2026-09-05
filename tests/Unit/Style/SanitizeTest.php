@@ -52,32 +52,6 @@ final class SanitizeTest extends TestCase
         $this->assertSame([], Sanitize::attributes(null));
     }
 
-    public function test_css_strips_dangerous_constructs(): void
-    {
-        $r = Sanitize::css('selector { color: red } </style><script>x</script>');
-        $this->assertStringNotContainsString('<', $r);
-
-        $this->assertStringNotContainsString('@import', Sanitize::css('@import url(evil.css); selector{}'));
-        $this->assertStringNotContainsString('@charset', Sanitize::css('@charset "UTF-8"; selector{}'));
-        $this->assertStringNotContainsString('expression(', Sanitize::css('selector{width:expression(alert(1))}'));
-        $this->assertStringNotContainsString('javascript:', Sanitize::css('selector{background:url(javascript:x)}'));
-        $this->assertStringNotContainsString('url(', Sanitize::css('selector{background:url(image.jpg)}'));
-        $this->assertStringNotContainsString('behavior:', Sanitize::css('selector{behavior:url(x.htc)}'));
-    }
-
-    public function test_css_leaves_safe_css_intact(): void
-    {
-        $this->assertSame('selector > * { gap: 8px }', Sanitize::css('selector > * { gap: 8px }'));
-    }
-
-    public function test_scope_css(): void
-    {
-        $this->assertSame('.bl-abc { color: red }', Sanitize::scopeCss('selector { color: red }', 'abc'));
-        $this->assertSame('.bl-abc:hover { color: red }', Sanitize::scopeCss('selector:hover { color: red }', 'abc'));
-        $this->assertSame('', Sanitize::scopeCss('selector{}', ''));
-        $this->assertSame('', Sanitize::scopeCss('', 'abc'));
-    }
-
     public function test_style_tag_content_neutralizes_closing_style_tag(): void
     {
         $this->assertSame('selector{} <\/style> body{}', Sanitize::styleTagContent('selector{} </style> body{}'));

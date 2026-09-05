@@ -20,7 +20,6 @@ const include = [
     'licenses.txt',
     'composer.json',
     'build',
-    'languages',
     'src',
     'vendor',
     'templates',
@@ -29,10 +28,15 @@ const include = [
 // PHP reads these from resources/ at runtime by absolute path, so they must ship even though
 // the rest of resources/ is build input. Keep in sync with:
 //   src/Style/Tokens.php · src/Style/Breakpoints.php
+//
+// languages/ ships the .pot template only. Translations for a plugin hosted on wordpress.org are
+// contributed through translate.wordpress.org and delivered by the standard translation update
+// system, so bundling .po/.mo/.json catalogues would only ship a stale copy of that.
 const runtimeResourceFiles = [
     'resources/design-system/tokens.json',
     'resources/design-system/breakpoints.json',
     'resources/framework/icons/names.gen.json',
+    'languages/blicks.pot',
 ];
 
 // 0. Preflight: the translation steps below shell out to wp-cli, which is a .phar and so
@@ -85,15 +89,11 @@ execSync('pnpm build', { stdio: 'inherit', cwd: rootDir });
 console.log('\nGenerating POT file...');
 execSync('pnpm i18n:pot:from-build', { stdio: 'inherit', cwd: rootDir });
 
-// 3. Generate JSON files for JS translations
-console.log('\nGenerating JSON translation files...');
-execSync('pnpm i18n:json', { stdio: 'inherit', cwd: rootDir });
-
-// 4. Install production PHP deps
+// 3. Install production PHP deps
 console.log('\nInstalling production dependencies...');
 execSync('composer install --no-dev --optimize-autoloader', { stdio: 'inherit', cwd: rootDir });
 
-// 5. Create zip
+// 4. Create zip
 fs.mkdirSync(distDir, { recursive: true });
 
 const output  = fs.createWriteStream(zipPath);
@@ -131,7 +131,7 @@ output.on('close', () => {
     const mb = (archive.pointer() / 1024 / 1024).toFixed(2);
     console.log(`\n✓ dist/${slug}.zip  (${mb} MB)`);
 
-    // 6. Restore dev dependencies (local convenience; skip in CI — ephemeral runner).
+    // 5. Restore dev dependencies (local convenience; skip in CI — ephemeral runner).
     if (!process.env.CI) {
         console.log('\nRestoring dev dependencies...');
         execSync('composer install', { stdio: 'inherit', cwd: rootDir });

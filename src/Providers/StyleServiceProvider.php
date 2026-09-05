@@ -29,10 +29,9 @@ use Blicks\Style\Sanitize;
  *  - Enqueues the compiled runtime stylesheet (build/runtime.css) on both the
  *    front end and the block editor.
  *  - Collects, during render, each block's engine-emitted scoped CSS (tier-3
- *    pseudo-elements / container queries / @property / keyframes) AND its custom
- *    CSS field (attributes.customCSS, scoping the `selector` keyword), then prints
- *    the deduped accumulation once in the footer. Dynamic blocks also queue their
- *    scoped CSS via ElementStyle::blockProps(); ScopedCss dedupes the overlap.
+ *    pseudo-elements / container queries / @property / keyframes), then attaches the deduped
+ *    accumulation to a registered stylesheet handle in the footer. Dynamic blocks also queue
+ *    their scoped CSS via ElementStyle::blockProps(); ScopedCss dedupes the overlap.
  */
 final class StyleServiceProvider extends ServiceProvider {
 
@@ -48,7 +47,7 @@ final class StyleServiceProvider extends ServiceProvider {
 
 	/**
 	 * Collect a block's scoped CSS during render: the engine's tier-3 rules (pseudo-elements,
-	 * container queries, @property, keyframes) plus its custom-CSS field. Returns the block
+	 * container queries, @property, keyframes). Returns the block
 	 * content unchanged (registered as a render_block filter). Covers static blocks, whose saved
 	 * markup carries classes + vars but not scoped rules.
 	 *
@@ -81,19 +80,6 @@ final class StyleServiceProvider extends ServiceProvider {
 			$built = ElementStyle::build( $blicks, $scopeId );
 			if ( ! empty( $built['scopedCss'] ) ) {
 				ScopedCss::addMany( $built['scopedCss'] );
-				if ( '' === $uniqueId ) {
-					$injectId = $scopeId;
-				}
-			}
-		}
-
-		// Tier-3 custom-CSS field — strictly sanitized + scoped to this instance (Sanitize::scopeCss
-		// strips `<`, @import, expression(), js/vbscript:, data:text/html, behavior/-moz-binding).
-		$customCss = $attributes['customCSS'] ?? '';
-		if ( is_string( $customCss ) ) {
-			$scopedCustom = Sanitize::scopeCss( $customCss, $scopeId );
-			if ( '' !== $scopedCustom ) {
-				ScopedCss::add( $scopedCustom );
 				if ( '' === $uniqueId ) {
 					$injectId = $scopeId;
 				}
@@ -148,29 +134,42 @@ final class StyleServiceProvider extends ServiceProvider {
 	 * @param array<string, mixed> $attributes
 	 */
 	private static function derivedScopeId( array $attributes ): string {
-		$seed = wp_json_encode(
-			[
-				'b' => $attributes['blicks'] ?? null,
-				'c' => $attributes['customCSS'] ?? '',
-			]
-		);
+		$seed = wp_json_encode( [ 'b' => $attributes['blicks'] ?? null ] );
 
 		return 'g' . substr( md5( (string) $seed ), 0, 8 );
 	}
 
-	#[Action( 'wp_footer' )]
+	/**
+	 * Register the src-less handle that carries the per-page scoped CSS. Registering early means
+	 * the handle exists whether or not any Blicks block ends up on the page; nothing is printed
+	 * unless CSS is actually attached to it in the footer.
+	 */
+	#[Action( 'wp_enqueue_scripts', priority: 5 )]
+	public function registerInlineStyleHandle(): void {
+		wp_register_style( 'blicks-inline', false, [], BasePlugin::version() );
+	}
+
+	/**
+	 * Attach the accumulated scoped CSS to the `blicks-inline` handle. This runs in `wp_footer`
+	 * because the rules are only known after every block has rendered; core prints styles
+	 * enqueued this late via `print_late_styles()`, which `_wp_footer_scripts()` calls from
+	 * `wp_print_footer_scripts` (wp_footer, priority 20).
+	 */
+	#[Action( 'wp_footer', priority: 5 )]
 	public function printInlineCss(): void {
 		$css = ScopedCss::css();
 		if ( '' === $css ) {
 			return;
 		}
 
-		// The payload is CSS, not HTML: it is built by the style engine and passed through
-		// Blicks\Style\Sanitize, which strips tag openings, @import/@charset/@namespace,
-		// expression(), script/data schemes and url() before neutralising any `</style`
-		// sequence. esc_html() here would break every valid declaration.
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized by Blicks\Style\Sanitize::styleTagContent().
-		echo '<style id="blicks-inline">' . Sanitize::styleTagContent( $css ) . '</style>';
+		// `wp_enqueue_scripts` does not fire on every request that can still render blocks
+		// (feeds, some REST previews), so make sure the handle exists before enqueuing it.
+		if ( ! wp_style_is( 'blicks-inline', 'registered' ) ) {
+			wp_register_style( 'blicks-inline', false, [], BasePlugin::version() );
+		}
+
+		wp_enqueue_style( 'blicks-inline' );
+		wp_add_inline_style( 'blicks-inline', Sanitize::styleTagContent( $css ) );
 	}
 
 	private function enqueueRuntime(): void {
@@ -180,7 +179,7 @@ final class StyleServiceProvider extends ServiceProvider {
 
 		Asset::style( 'blicks-runtime', BasePlugin::url( 'build/runtime.css' ) )
 			->version( BasePlugin::version() )
-			->addInlineStyle( CssVariables::css() . "\n" . Keyframes::css() )
+			->addInlineStyle( Sanitize::styleTagContent( CssVariables::css() . "\n" . Keyframes::css() ) )
 			->enqueue();
 	}
 }

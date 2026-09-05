@@ -2,7 +2,7 @@
  * HTML → Blicks block-tree mapper (Mockup→Blicks, Phase B). Deterministic: walks pasted HTML, maps
  * each element to a Blicks block, and routes its inline CSS through the Phase-A analyzer — safe
  * single-value controls become `blicks` attributes (editable), everything else is preserved in the
- * block's scoped Custom CSS (always renders), with a fidelity report.
+ * matching block controls, with a fidelity report naming whatever could not be mapped.
  *
  * Output is a plain `BlockDescriptor` tree (testable, no WP deps); the editor turns it into real
  * blocks via `createBlock()` (recovery-safe). v1 reads inline `style` only — matching a pasted
@@ -21,11 +21,11 @@ export interface ImportReport {
 	nodes: number;
 	/** Declarations that map to a Blicks control (whether or not auto-applied). */
 	controlled: number;
-	/** Declarations with no control (Custom CSS fallback). */
+	/** Declarations with no matching control (dropped, and named in `fallback`). */
 	custom: number;
 	/** Declarations auto-applied as editable `blicks` attributes. */
 	autoMapped: number;
-	/** Distinct properties that fell back to Custom CSS. */
+	/** Distinct properties that could not be mapped to a control. */
 	fallback: string[];
 }
 
@@ -37,7 +37,7 @@ const SAFE_CATEGORIES = new Set( [ 'color', 'fontSize', 'fontFamily' ] );
 
 /** A control is safe to auto-apply from a raw value only if it's a plain `single` (or a known
  *  string-safe category). Structured controls (sides/corners/inset, gradients, transforms…) would
- *  need value-shaping, so they go to Custom CSS in v1 — correct render, just not yet a control. */
+ *  need value-shaping, so they are not auto-applied in v1 — they are reported instead. */
 function isSafeSingle( attr: string ): boolean {
 	const info = ATTR_INFO.get( attr );
 	if ( ! info || info.kind !== 'single' ) {
@@ -48,17 +48,16 @@ function isSafeSingle( attr: string ): boolean {
 
 export interface CssMapResult {
 	blicks: Record< string, any >;
-	customCss: string;
 	controlled: number;
 	custom: number;
 	autoMapped: number;
 	fallback: string[];
 }
 
-/** Convert a list of CSS declarations into `blicks` attrs (safe controls) + Custom CSS (the rest). */
+/** Convert a list of CSS declarations into `blicks` attrs. Declarations with no matching control
+ *  are dropped and listed in `fallback` so the import report can name them. */
 export function cssToBlicks( declarations: Array< { property: string; value: string } > ): CssMapResult {
 	const blicks: Record< string, any > = {};
-	const customParts: string[] = [];
 	const fallback: string[] = [];
 	let controlled = 0;
 	let custom = 0;
@@ -76,12 +75,10 @@ export function cssToBlicks( declarations: Array< { property: string; value: str
 		} else {
 			custom++;
 		}
-		customParts.push( `${ property }: ${ value }` );
 		fallback.push( property );
 	}
 
-	const customCss = customParts.length ? `selector {\n\t${ customParts.join( ';\n\t' ) };\n}` : '';
-	return { blicks, customCss, controlled, custom, autoMapped, fallback };
+	return { blicks, controlled, custom, autoMapped, fallback };
 }
 
 /** Map an element tag + its declared `display` to a Blicks block name (+ seed attributes). */
@@ -143,10 +140,6 @@ export function htmlToBlockTree( html: string ): { blocks: BlockDescriptor[]; re
 		if ( Object.keys( css.blicks ).length ) {
 			attributes.blicks = css.blicks;
 		}
-		if ( css.customCss ) {
-			attributes.customCSS = css.customCss;
-		}
-
 		if ( name === 'blicks/image' ) {
 			const src = el.getAttribute( 'src' );
 			if ( src ) attributes.url = src;

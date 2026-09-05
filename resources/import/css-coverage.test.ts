@@ -21,7 +21,7 @@ describe( 'css-coverage', () => {
 		expect( classifyDeclaration( 'clip-path', 'circle(50%)' ) ).toMatchObject( { section: 'effects', attr: 'effects.clipPath' } );
 	} );
 
-	it( 'classifies an uncovered property as custom (Custom CSS fallback)', () => {
+	it( 'classifies an uncovered property as custom (no matching control)', () => {
 		expect( classifyDeclaration( 'caret-color', 'red' ).kind ).toBe( 'custom' );
 		expect( classifyDeclaration( 'hyphens', 'auto' ).kind ).toBe( 'custom' );
 	} );

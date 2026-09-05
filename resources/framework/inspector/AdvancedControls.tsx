@@ -29,8 +29,8 @@ const A11Y_FIELDS: { attr: string; label: string; placeholder: string }[] = [
  * doesn't offer (Visibility, Accessibility, Custom attributes) plus the whole-element reset.
  * Block-specific advanced controls render above via the optional `BlockAdvanced` slot.
  *
- * Custom CSS moved out to its own **CSS** tab; state×breakpoint styling (Effects, Motion,
- * Decoration, States) lives in the Style tab's facets.
+ * State×breakpoint styling (Effects, Motion, Decoration, States) lives in the Style tab's
+ * facets.
  */
 export function AdvancedControls( { attributes, setAttributes, BlockAdvanced }: Props ) {
 	const visibility: Record< string, boolean > = attributes.visibility ?? {};

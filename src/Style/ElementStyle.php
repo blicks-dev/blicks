@@ -791,17 +791,36 @@ final class ElementStyle {
 		self::$cssValueBuilders[ $category ] = $builder;
 	}
 
+	/**
+	 * Categories whose builder output is already validated and must NOT be run through
+	 * CssValue::clean() again:
+	 *
+	 *  - `decoration` emits a whole `key:val;…` declaration list, so it legitimately contains the
+	 *    `:` and `;` that clean() refuses. It validates each of its own values instead.
+	 *  - `image` emits `url("…")`, and a URL legitimately contains `:` and `/`. imageBuilder()
+	 *    validates the URL with CssValue::url() before building the function.
+	 */
+	private const SELF_VALIDATING_CATEGORIES = [ 'decoration', 'image' ];
+
 	public static function cssValueForCategory( ?string $category, mixed $v ): string {
 		self::ensureCssValueBuilders();
 		if ( null !== $category && isset( self::$cssValueBuilders[ $category ] ) ) {
-			return (string) call_user_func( self::$cssValueBuilders[ $category ], $v );
+			$built = (string) call_user_func( self::$cssValueBuilders[ $category ], $v );
+
+			return in_array( $category, self::SELF_VALIDATING_CATEGORIES, true )
+				? $built
+				: CssValue::clean( $built );
 		}
 
 		$s = trim( (string) ( $v ?? '' ) );
 		if ( null !== $category && Tokens::isToken( $category, $s ) ) {
 			return 'var(--blicks-' . $category . '-' . $s . ')';
 		}
-		return $s;
+
+		// Uncategorised `single` rules land here, which is most of SINGLE_PROPS. Returning $s raw
+		// let a stored attribute close its own declaration and append arbitrary ones to the
+		// wrapper's style attribute.
+		return CssValue::clean( $s );
 	}
 
 	/**
@@ -861,7 +880,12 @@ final class ElementStyle {
 		if ( null !== $category && Tokens::isToken( $category, $s ) ) {
 			return 'var(--blicks-' . $category . '-' . $s . ')';
 		}
-		return $s;
+
+		// A rejected side falls back to the property's own initial value rather than an empty
+		// string: `border-style:` with no value invalidates the whole shorthand, dropping the
+		// sides that were fine.
+		$clean = CssValue::clean( $s );
+		return '' !== $clean ? $clean : $empty;
 	}
 
 	private static function valOrToken( string $category, mixed $v, ?string $fallbackCategory = null ): string {
@@ -881,7 +905,11 @@ final class ElementStyle {
 		if ( null !== $fallbackCategory && Tokens::isToken( $fallbackCategory, $s ) ) {
 			return 'var(--blicks-' . $fallbackCategory . '-' . $s . ')';
 		}
-		return $s;
+
+		// `0` for a rejected length, matching the empty-value behaviour above: a side with no
+		// value at all would invalidate the shorthand and drop the other three.
+		$clean = CssValue::clean( $s );
+		return '' !== $clean ? $clean : '0';
 	}
 
 	// ── Scoped (tier-3 / WA) emission — mirror of emitScoped() in vars.ts ───────────
@@ -992,12 +1020,14 @@ final class ElementStyle {
 	}
 
 	private static function imageBuilder( mixed $v ): string {
-		$url   = is_string( $v ) ? $v : ( is_array( $v ) ? (string) ( $v['url'] ?? '' ) : '' );
-		$clean = trim( $url );
-		if ( '' === $clean ) {
-			return '';
-		}
-		return 'url("' . str_replace( [ '"', '\\' ], [ '\\"', '\\\\' ], $clean ) . '")';
+		$url = is_string( $v ) ? $v : ( is_array( $v ) ? (string) ( $v['url'] ?? '' ) : '' );
+
+		// CssValue::url() accepts only absolute http(s) URLs and site-relative paths, and refuses
+		// anything carrying a quote, backslash, paren or whitespace — so the value cannot break
+		// out of the url("…") it is about to be wrapped in.
+		$clean = CssValue::url( $url );
+
+		return '' !== $clean ? 'url("' . $clean . '")' : '';
 	}
 
 	private static function boxShadowBuilder( mixed $v ): string {
@@ -1208,8 +1238,11 @@ final class ElementStyle {
 		if ( preg_match( '/^(none|normal|inherit|initial|unset|revert|open-quote|close-quote|no-open-quote|no-close-quote)$/i', $s ) ) {
 			return $s;
 		}
+		// A function value must validate as a WHOLE. Testing only that it *starts* with `var(`
+		// also accepts `var(--a); background-image:url(…)`, which closes the content declaration
+		// and appends its own — the same defect the dimension validator was hardened against.
 		if ( preg_match( '/^(counter|counters|attr|var|env)\(/i', $s ) ) {
-			return $s;
+			return CssValue::clean( $s ) !== '' ? $s : '""';
 		}
 		$quoted = strlen( $s ) >= 2
 			&& ( ( str_starts_with( $s, '"' ) && str_ends_with( $s, '"' ) )
@@ -1218,6 +1251,18 @@ final class ElementStyle {
 		$inner = str_replace( '\\', '\\\\', $inner );
 		$inner = str_replace( '"', '\\"', $inner );
 		return '"' . $inner . '"';
+	}
+
+	/**
+	 * One declaration for the pseudo-element rule, or `''` when the value does not validate.
+	 *
+	 * Every value here is interpolated into `.bl-{id}::before{ … }`. Before validation a `}` in
+	 * any of them closed the rule and let the rest of the string start a new one with an arbitrary
+	 * selector, on every page that rendered the block.
+	 */
+	private static function decoPart( string $prop, mixed $value ): string {
+		$clean = CssValue::clean( $value );
+		return '' !== $clean ? $prop . ':' . $clean : '';
 	}
 
 	private static function decorationBuilder( mixed $v ): string {
@@ -1233,92 +1278,63 @@ final class ElementStyle {
 
 		$parts = [];
 		$parts[] = 'content:' . self::normalizeContent( $v['content'] ?? null );
-		$parts[] = 'position:' . trim( (string) ( $v['position'] ?? 'absolute' ) );
+
+		$position = CssValue::clean( $v['position'] ?? 'absolute' );
+		$parts[]  = 'position:' . ( '' !== $position ? $position : 'absolute' );
 
 		if ( ! empty( $v['background'] ) ) {
-			$bg = is_array( $v['background'] ) ? self::gradientBuilder( $v['background'] ) : trim( (string) $v['background'] );
-			if ( '' !== $bg ) {
-				$parts[] = 'background:' . $bg;
-			}
+			$bg = is_array( $v['background'] ) ? self::gradientBuilder( $v['background'] ) : $v['background'];
+			$parts[] = self::decoPart( 'background', $bg );
 		}
-		if ( ! empty( $v['bgColor'] ) ) {
-			$parts[] = 'background-color:' . trim( (string) $v['bgColor'] );
-		}
-		if ( ! empty( $v['width'] ) ) {
-			$parts[] = 'width:' . trim( (string) $v['width'] );
-		}
-		if ( ! empty( $v['height'] ) ) {
-			$parts[] = 'height:' . trim( (string) $v['height'] );
-		}
+		$parts[] = self::decoPart( 'background-color', $v['bgColor'] ?? null );
+		$parts[] = self::decoPart( 'width', $v['width'] ?? null );
+		$parts[] = self::decoPart( 'height', $v['height'] ?? null );
+
 		if ( array_key_exists( 'inset', $v ) ) {
 			$inset = $v['inset'];
 			if ( is_array( $inset ) ) {
-				$parts[] = 'top:' . (string) ( $inset['top'] ?? 'auto' );
-				$parts[] = 'right:' . (string) ( $inset['right'] ?? 'auto' );
-				$parts[] = 'bottom:' . (string) ( $inset['bottom'] ?? 'auto' );
-				$parts[] = 'left:' . (string) ( $inset['left'] ?? 'auto' );
+				foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) {
+					$val = CssValue::clean( $inset[ $side ] ?? 'auto' );
+					$parts[] = $side . ':' . ( '' !== $val ? $val : 'auto' );
+				}
 			} else {
-				$parts[] = 'inset:' . trim( (string) $inset );
+				$parts[] = self::decoPart( 'inset', $inset );
 			}
 		}
-		if ( ! empty( $v['borderRadius'] ) ) {
-			$parts[] = 'border-radius:' . trim( (string) $v['borderRadius'] );
-		}
-		if ( ! empty( $v['border'] ) ) {
-			$parts[] = 'border:' . trim( (string) $v['border'] );
-		}
-		if ( ! empty( $v['padding'] ) ) {
-			$parts[] = 'padding:' . trim( (string) $v['padding'] );
-		}
+
+		$parts[] = self::decoPart( 'border-radius', $v['borderRadius'] ?? null );
+		$parts[] = self::decoPart( 'border', $v['border'] ?? null );
+		$parts[] = self::decoPart( 'padding', $v['padding'] ?? null );
 		// Text / centering props — let a pseudo-element act as a badge, label, or numbered marker.
-		if ( ! empty( $v['display'] ) ) {
-			$parts[] = 'display:' . trim( (string) $v['display'] );
-		}
-		if ( ! empty( $v['alignItems'] ) ) {
-			$parts[] = 'align-items:' . trim( (string) $v['alignItems'] );
-		}
-		if ( ! empty( $v['justifyContent'] ) ) {
-			$parts[] = 'justify-content:' . trim( (string) $v['justifyContent'] );
-		}
-		if ( ! empty( $v['color'] ) ) {
-			$parts[] = 'color:' . trim( (string) $v['color'] );
-		}
-		if ( ! empty( $v['fontSize'] ) ) {
-			$parts[] = 'font-size:' . trim( (string) $v['fontSize'] );
-		}
-		if ( ! empty( $v['fontWeight'] ) ) {
-			$parts[] = 'font-weight:' . trim( (string) $v['fontWeight'] );
-		}
-		if ( ! empty( $v['lineHeight'] ) ) {
-			$parts[] = 'line-height:' . trim( (string) $v['lineHeight'] );
-		}
-		if ( ! empty( $v['letterSpacing'] ) ) {
-			$parts[] = 'letter-spacing:' . trim( (string) $v['letterSpacing'] );
-		}
-		if ( ! empty( $v['textAlign'] ) ) {
-			$parts[] = 'text-align:' . trim( (string) $v['textAlign'] );
-		}
+		$parts[] = self::decoPart( 'display', $v['display'] ?? null );
+		$parts[] = self::decoPart( 'align-items', $v['alignItems'] ?? null );
+		$parts[] = self::decoPart( 'justify-content', $v['justifyContent'] ?? null );
+		$parts[] = self::decoPart( 'color', $v['color'] ?? null );
+		$parts[] = self::decoPart( 'font-size', $v['fontSize'] ?? null );
+		$parts[] = self::decoPart( 'font-weight', $v['fontWeight'] ?? null );
+		$parts[] = self::decoPart( 'line-height', $v['lineHeight'] ?? null );
+		$parts[] = self::decoPart( 'letter-spacing', $v['letterSpacing'] ?? null );
+		$parts[] = self::decoPart( 'text-align', $v['textAlign'] ?? null );
+
 		if ( array_key_exists( 'zIndex', $v ) && '' !== $v['zIndex'] && null !== $v['zIndex'] ) {
-			$parts[] = 'z-index:' . trim( (string) $v['zIndex'] );
+			$parts[] = self::decoPart( 'z-index', $v['zIndex'] );
 		}
 		if ( ! empty( $v['blur'] ) ) {
-			$parts[] = 'filter:blur(' . trim( (string) $v['blur'] ) . ')';
+			$blur = CssValue::clean( $v['blur'] );
+			if ( '' !== $blur ) {
+				$parts[] = 'filter:blur(' . $blur . ')';
+			}
 		}
 		if ( array_key_exists( 'opacity', $v ) && '' !== $v['opacity'] && null !== $v['opacity'] ) {
-			$parts[] = 'opacity:' . trim( (string) $v['opacity'] );
+			$parts[] = self::decoPart( 'opacity', $v['opacity'] );
 		}
-		if ( ! empty( $v['mixBlendMode'] ) ) {
-			$parts[] = 'mix-blend-mode:' . trim( (string) $v['mixBlendMode'] );
-		}
-		if ( ! empty( $v['transform'] ) ) {
-			$parts[] = 'transform:' . trim( (string) $v['transform'] );
-		}
-		if ( ! empty( $v['pointerEvents'] ) ) {
-			$parts[] = 'pointer-events:' . trim( (string) $v['pointerEvents'] );
-		}
+		$parts[] = self::decoPart( 'mix-blend-mode', $v['mixBlendMode'] ?? null );
+		$parts[] = self::decoPart( 'transform', $v['transform'] ?? null );
+		$parts[] = self::decoPart( 'pointer-events', $v['pointerEvents'] ?? null );
 
-		// Extended box surface — pure pass-through props. Mirror of DECO_EXTRA in vars.ts;
-		// append only, never reorder, or scoped-CSS parity with the JS engine drifts.
+		// Extended box surface — pass-through props, each validated as a whole value. Mirror of
+		// DECO_EXTRA in vars.ts; append only, never reorder, or scoped-CSS parity with the JS
+		// engine drifts.
 		$extra = [
 			'margin' => 'margin',
 			'minWidth' => 'min-width',
@@ -1354,19 +1370,27 @@ final class ElementStyle {
 		];
 		foreach ( $extra as $key => $prop ) {
 			if ( isset( $v[ $key ] ) && '' !== trim( (string) $v[ $key ] ) ) {
-				$parts[] = $prop . ':' . trim( (string) $v[ $key ] );
+				$parts[] = self::decoPart( $prop, $v[ $key ] );
 			}
 		}
 		if ( ! empty( $v['mask'] ) ) {
-			$m = trim( (string) $v['mask'] );
-			$parts[] = '-webkit-mask:' . $m;
-			$parts[] = 'mask:' . $m;
+			$m = CssValue::clean( $v['mask'] );
+			if ( '' !== $m ) {
+				$parts[] = '-webkit-mask:' . $m;
+				$parts[] = 'mask:' . $m;
+			}
 		}
 		if ( ! empty( $v['backgroundClip'] ) ) {
-			$c = trim( (string) $v['backgroundClip'] );
-			$parts[] = '-webkit-background-clip:' . $c;
-			$parts[] = 'background-clip:' . $c;
+			$c = CssValue::clean( $v['backgroundClip'] );
+			if ( '' !== $c ) {
+				$parts[] = '-webkit-background-clip:' . $c;
+				$parts[] = 'background-clip:' . $c;
+			}
 		}
+
+		// decoPart() yields '' for a value that failed validation; drop those rather than
+		// emitting a bare `prop:`.
+		$parts = array_values( array_filter( $parts, static fn ( string $part ): bool => '' !== $part ) );
 
 		return count( $parts ) > 1 ? implode( ';', $parts ) : '';
 	}

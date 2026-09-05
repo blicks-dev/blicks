@@ -69,7 +69,7 @@ const corners = ( v: string ) => { const [ topLeft, topRight, bottomRight, botto
 /** `radial-gradient(130% 130% at 100% 0%, rgba(...) 0%, transparent 55%)` → value-tree shape. */
 function parseGradient( v: string ): any {
 	if ( splitTop( v, ',' ).filter( ( p ) => /^\s*(linear|radial|conic)-gradient\(/.test( p ) ).length > 1 ) {
-		throw new Error( `css(): multi-layer background not supported — use one gradient or a customCSS field: ${ v }` );
+		throw new Error( `css(): multi-layer background not supported — use one gradient: ${ v }` );
 	}
 	const m = v.trim().match( /^(linear|radial|conic)-gradient\((.*)\)$/s );
 	if ( ! m ) throw new Error( `css(): unparseable gradient: ${ v }` );
@@ -350,7 +350,7 @@ function mapNode( node: HtmlNode, ancestors: HtmlNode[], rules: CssRule[], vars:
 
 	// Decorative subtree (no text anywhere) → flatten to one placeholder box, don't descend.
 	if ( ! nodeHasText( node ) && node.children.length ) {
-		warn.push( `${ label }: decorative subtree flattened to one box — rebuild art via Custom CSS on the section.` );
+		warn.push( `${ label }: decorative subtree flattened to one box — rebuild art with nested blocks on the section.` );
 		return el( 'box', 'box', 'div', { blicks: tree, inner: '' } );
 	}
 	// Containers
@@ -393,7 +393,7 @@ function phpPattern( title: string, desc: string, keywords: string[], content: s
 	return `<?php
 /**
  * Pattern: ${ title } (scaffolded from a mockup via specimen-gen.test.ts htmlToPattern).
- * Decorative art is flattened to placeholder boxes — finish it via Custom CSS on the section.
+ * Decorative art is flattened to placeholder boxes — finish it with nested blocks on the section.
 ${ warnBlock } */
 declare(strict_types=1);
 

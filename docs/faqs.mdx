@@ -48,12 +48,10 @@ description: "Frequently asked questions about Blicks — requirements, output, 
 		post as saved markup, and no stored data is touched.
 	</Accordion>
 
-	<Accordion title="Is the custom CSS field safe?">
-		The **Advanced ▸ Custom CSS** field is scoped to the block it belongs to — the `selector`
-		keyword is replaced with that block's wrapper class. Before output, the sanitizer strips HTML
-		tag openings, remote imports, `@charset` / `@namespace` rules, legacy CSS expressions, script
-		and data URL schemes, `url()` references, and legacy binding properties. See
-		[Scoped custom CSS](/guides/scoped-custom-css).
+	<Accordion title="Can I add my own CSS, JavaScript, or PHP through Blicks?">
+		No. Blicks has no code-entry field of any kind. Every style it outputs is generated from its
+		own controls and from your theme's design tokens, so there is nothing to paste arbitrary code
+		into. For site-wide CSS, use the Customizer's Additional CSS or your theme.
 	</Accordion>
 
 	<Accordion title="Does Blicks lock my content in?">

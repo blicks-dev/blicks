@@ -9,18 +9,16 @@ describe( 'html-to-blocks: cssToBlicks', () => {
 		expect( out.blicks[ 'colors.text' ] ).toEqual( { default: { base: '#fff' } } );
 		expect( out.blicks[ 'typography.fontWeight' ] ).toEqual( { default: { base: '700' } } );
 		expect( out.autoMapped ).toBe( 3 );
-		expect( out.customCss ).toBe( '' );
+		expect( out.fallback ).toEqual( [] );
 	} );
 
-	it( 'routes structured controls (padding) + uncovered props to Custom CSS, not blicks attrs', () => {
+	it( 'reports structured controls (padding) + uncovered props as unmapped, not blicks attrs', () => {
 		const out = cssToBlicks( parseDeclarations( 'padding: 8px 16px; caret-color: red' ) );
 		expect( out.blicks[ 'spacing.padding' ] ).toBeUndefined(); // structured → custom in v1
 		expect( out.controlled ).toBe( 1 ); // padding has a control…
 		expect( out.custom ).toBe( 1 ); // …caret-color doesn't
 		expect( out.autoMapped ).toBe( 0 );
-		expect( out.customCss ).toContain( 'selector {' );
-		expect( out.customCss ).toContain( 'padding: 8px 16px' );
-		expect( out.customCss ).toContain( 'caret-color: red' );
+		expect( out.fallback ).toEqual( [ 'padding', 'caret-color' ] );
 	} );
 } );
 

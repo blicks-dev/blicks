@@ -129,9 +129,6 @@ export function SettingsPanel( {
 						<SettingRow title={ __( 'Runtime CSS', 'blicks' ) } text={ __( 'Load shared block styles on the front end.', 'blicks' ) }>
 							<span className="badge">{ __( 'On', 'blicks' ) }</span>
 						</SettingRow>
-						<SettingRow title={ __( 'Scoped custom CSS', 'blicks' ) } text={ __( 'Per-block advanced rules.', 'blicks' ) }>
-							<span className="badge">{ __( 'Sanitized', 'blicks' ) }</span>
-						</SettingRow>
 						<SettingRow title={ __( 'Reduced motion', 'blicks' ) } text={ __( 'Respect visitor prefers-reduced-motion.', 'blicks' ) }>
 							<span className="badge">{ __( 'On', 'blicks' ) }</span>
 						</SettingRow>

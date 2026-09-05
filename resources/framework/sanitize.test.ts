@@ -4,8 +4,6 @@ import {
 	cleanAttrValue,
 	cleanAttributes,
 	isAttrNameInvalid,
-	sanitizeCss,
-	scopeCss,
 } from './sanitize';
 
 // Parity mirror: tests/Unit/Style/SanitizeTest.php must assert the same cases.
@@ -68,38 +66,5 @@ describe( 'isAttrNameInvalid', () => {
 		expect( isAttrNameInvalid( '' ) ).toBe( false );
 		expect( isAttrNameInvalid( 'data-x' ) ).toBe( false );
 		expect( isAttrNameInvalid( 'onclick' ) ).toBe( true );
-	} );
-} );
-
-describe( 'sanitizeCss', () => {
-	it( 'strips dangerous constructs and reports them', () => {
-		const r = sanitizeCss( 'selector { color: red } </style><script>x</script>' );
-		expect( r.css ).not.toContain( '<' );
-		expect( r.blocked ).toContain( '<' );
-
-		expect( sanitizeCss( '@import url(evil.css); selector{}' ).blocked ).toContain( '@import' );
-		expect( sanitizeCss( 'selector{width:expression(alert(1))}' ).blocked ).toContain( 'expression()' );
-		expect( sanitizeCss( 'selector{background:url(javascript:x)}' ).blocked ).toContain( 'javascript:/vbscript:' );
-		expect( sanitizeCss( 'selector{background:url(image.jpg)}' ).blocked ).toContain( 'url()' );
-		expect( sanitizeCss( '@charset "UTF-8"; selector{}' ).blocked ).toContain( '@charset/@namespace' );
-		expect( sanitizeCss( 'selector{behavior:url(x.htc)}' ).blocked ).toContain( 'behavior/-moz-binding' );
-	} );
-
-	it( 'leaves safe CSS (incl. child combinator) intact', () => {
-		const r = sanitizeCss( 'selector > * { gap: 8px }' );
-		expect( r.css ).toBe( 'selector > * { gap: 8px }' );
-		expect( r.blocked ).toEqual( [] );
-	} );
-} );
-
-describe( 'scopeCss', () => {
-	it( 'scopes the selector keyword to the instance', () => {
-		expect( scopeCss( 'selector { color: red }', 'abc' ) ).toBe( '.bl-abc { color: red }' );
-		expect( scopeCss( 'selector:hover { color: red }', 'abc' ) ).toBe( '.bl-abc:hover { color: red }' );
-	} );
-
-	it( 'returns empty without a scope id or content', () => {
-		expect( scopeCss( 'selector{}', '' ) ).toBe( '' );
-		expect( scopeCss( '', 'abc' ) ).toBe( '' );
 	} );
 } );
