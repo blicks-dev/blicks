@@ -66,6 +66,29 @@ export function cleanAttributes(
 	return Array.from( byName, ( [ name, value ] ) => ( { name, value } ) );
 }
 
+/**
+ * Schemes allowed in a link the user controls. Anything else — `data:`, `blob:`, and the
+ * `javascript:`/`vbscript:` pair the value sanitizer already strips — yields an empty href
+ * rather than a link that does something other than navigate.
+ */
+const SAFE_HREF_SCHEMES = new Set( [ 'http:', 'https:', 'mailto:', 'tel:' ] );
+
+/** Any absolute scheme prefix, e.g. `https:`, `data:`, `x-custom.1+2:`. */
+const HAS_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+
+/**
+ * Validate a user-supplied link target. Relative paths, anchors and protocol-relative URLs
+ * pass through untouched; an absolute URL must carry an allowed scheme. Returns '' when the
+ * target is not safe to put in an `href`.
+ */
+export function cleanHref( value: unknown ): string {
+	const v = cleanAttrValue( value );
+	if ( ! v ) return '';
+	const scheme = HAS_SCHEME_RE.exec( v );
+	if ( ! scheme ) return v;
+	return SAFE_HREF_SCHEMES.has( scheme[ 0 ].toLowerCase() ) ? v : '';
+}
+
 /** True when a row's name is non-empty but invalid — drives the editor's inline error state. */
 export function isAttrNameInvalid( name: unknown ): boolean {
 	const n = String( name ?? '' ).trim();

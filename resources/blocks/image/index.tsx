@@ -2,6 +2,7 @@ import { MediaPlaceholder } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
+import { cleanHref } from '@/framework/sanitize';
 import { ImageControls, cleanAspectRatio, cleanObjectFit } from './controls';
 import { DuotoneFilter, duotoneFilterId, isDuotone } from './duotone';
 
@@ -15,9 +16,12 @@ const imageGlyph = (
 	</svg>
 );
 
+// Both sources are user-controlled and neither is scheme-checked upstream: `url` arrives from
+// the media library or `onSelectURL`, `href` from the link control or the HTML importer, which
+// reads a pasted `src`. Filtering here covers every path into the rendered anchor.
 function imageHref( attributes: any ): string {
-	if ( attributes.linkTo === 'media' ) return attributes.url || '';
-	if ( attributes.linkTo === 'custom' ) return attributes.href || '';
+	if ( attributes.linkTo === 'media' ) return cleanHref( attributes.url );
+	if ( attributes.linkTo === 'custom' ) return cleanHref( attributes.href );
 	return '';
 }
 

@@ -4,6 +4,7 @@ import {
 	cleanAttrValue,
 	cleanAttrValueFor,
 	cleanAttributes,
+	cleanHref,
 	isAttrNameInvalid,
 } from './sanitize';
 
@@ -82,6 +83,40 @@ describe( 'tabindex', () => {
 
 	it( 'leaves other attributes unconstrained', () => {
 		expect( cleanAttrValueFor( 'title', 'anything at all' ) ).toBe( 'anything at all' );
+	} );
+} );
+
+describe( 'cleanHref', () => {
+	it( 'passes the schemes a link may use', () => {
+		expect( cleanHref( 'https://example.com/a' ) ).toBe( 'https://example.com/a' );
+		expect( cleanHref( 'http://example.com' ) ).toBe( 'http://example.com' );
+		expect( cleanHref( 'mailto:a@example.com' ) ).toBe( 'mailto:a@example.com' );
+		expect( cleanHref( 'tel:+123' ) ).toBe( 'tel:+123' );
+		expect( cleanHref( 'HTTPS://example.com' ) ).toBe( 'HTTPS://example.com' );
+	} );
+
+	it( 'passes relative, anchor and protocol-relative targets', () => {
+		expect( cleanHref( '/about' ) ).toBe( '/about' );
+		expect( cleanHref( '#section' ) ).toBe( '#section' );
+		expect( cleanHref( '//cdn.example.com/x' ) ).toBe( '//cdn.example.com/x' );
+	} );
+
+	it( 'rejects every other scheme', () => {
+		expect( cleanHref( 'data:text/html;base64,PHN2Zz4=' ) ).toBe( '' );
+		expect( cleanHref( 'blob:https://example.com/uuid' ) ).toBe( '' );
+		expect( cleanHref( 'file:///etc/passwd' ) ).toBe( '' );
+		expect( cleanHref( 'ftp://example.com' ) ).toBe( '' );
+	} );
+
+	it( 'rejects the script schemes even when obfuscated', () => {
+		// cleanAttrValue strips the scheme first, leaving a relative-looking remnant.
+		expect( cleanHref( 'javascript:alert(1)' ) ).toBe( 'alert(1)' );
+		expect( cleanHref( 'JaVaScRiPt : alert(1)' ) ).toBe( 'alert(1)' );
+	} );
+
+	it( 'is empty for empty input', () => {
+		expect( cleanHref( '' ) ).toBe( '' );
+		expect( cleanHref( null ) ).toBe( '' );
 	} );
 } );
 
