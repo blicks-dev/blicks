@@ -48,7 +48,11 @@ final class SettingModel extends Model {
 		$charset = $wpdb->get_charset_collate();
 		$table = self::table();
 
-		$sql = "CREATE TABLE IF NOT EXISTS {$table} (
+		// No IF NOT EXISTS. dbDelta() extracts the table name with |CREATE TABLE ([^ ]*)|,
+		// so the guard makes it read the name as "IF": the raw query still creates the table,
+		// but schema diffing silently stops working and no later column change ever applies
+		// on upgrade. dbDelta is already idempotent, which is what the guard was there for.
+		$sql = "CREATE TABLE {$table} (
             id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             setting_key   VARCHAR(191)    NOT NULL,
             setting_value LONGTEXT        NOT NULL,
