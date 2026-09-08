@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Blicks\DesignSystem\Catalogue;
 use Blicks\DesignSystem\ThemeProjection;
 use Blicks\DesignSystem\Animations;
+use Blicks\Presets\Presets;
 use Blicks\Settings\AdminSettings;
 use UupCode\Utilities\ServiceProvider;
 use UupCode\Utilities\Attributes\Action;
@@ -89,6 +90,9 @@ final class BlockServiceProvider extends ServiceProvider {
 					// user's own from Blicks → Design System → Animation. The Motion control renders
 					// this list and holds no hardcoded set of its own.
 					'animations' => Animations::library(),
+					// User-saved design presets, grouped by block name. The editor re-registers each as
+					// a native block variation at load — see `resources/framework/presets/register.ts`.
+					'presets' => Presets::grouped(),
 					'adminSettings' => AdminSettings::snapshot(),
 				]
 			) . ';',

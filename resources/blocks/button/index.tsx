@@ -2,7 +2,7 @@ import { ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
-import { ButtonControls, cleanButtonSize, cleanButtonVariant } from './controls';
+import { ButtonControls, buttonVariations, cleanButtonSize, cleanButtonVariant } from './controls';
 import { renderIcon } from '@/framework/icons/render';
 
 function ButtonToolbar( { attributes, setAttributes }: { attributes: any; setAttributes: ( a: any ) => void } ) {
@@ -19,6 +19,11 @@ function ButtonToolbar( { attributes, setAttributes }: { attributes: any; setAtt
 defineBlock( metadata, {
 	Controls: ButtonControls,
 	Toolbar: ButtonToolbar,
+	variations: buttonVariations,
+	// Let authors save a styled button as a reusable preset. Only the design attributes travel — never
+	// the label, URL or link target (those are per-instance content).
+	userPresets: true,
+	presetAttributes: [ 'blicks', 'variant', 'size', 'icon', 'iconPosition' ],
 	deprecated: [
 		{
 			// `text` used to default to "Get started", and it is not a sourced attribute — so a

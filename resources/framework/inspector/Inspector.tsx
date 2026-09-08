@@ -304,6 +304,8 @@ interface Props {
 	clientId?: string;
 	Controls?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	Advanced?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
+	/** Rendered at the bottom of the Settings tab (the user-preset "Save as preset" control). */
+	PresetControls?: React.ReactNode;
 }
 
 const includesControl = ( controls: string[], id: string ): boolean =>
@@ -421,7 +423,7 @@ const ALL_CONTROLS = [
 	'colors.*', 'background.*', 'typography.*', 'effects.*', 'animation.*', 'decoration.*',
 ];
 
-export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
+export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced, PresetControls }: Props ) {
 	const controls = ALL_CONTROLS; // TEMP override — see ALL_CONTROLS note above
 	const states = manifest?.states ?? [ 'default' ];
 
@@ -551,10 +553,14 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 
 	const renderTab = () => {
 		if ( tab === 'settings' ) {
-			return Controls ? (
-				<Controls attributes={ attributes } setAttributes={ setAttributes } />
-			) : (
-				<p className="bl-ins-note">{ __( 'No settings for this block.', 'blicks' ) }</p>
+			if ( ! Controls && ! PresetControls ) {
+				return <p className="bl-ins-note">{ __( 'No settings for this block.', 'blicks' ) }</p>;
+			}
+			return (
+				<>
+					{ Controls && <Controls attributes={ attributes } setAttributes={ setAttributes } /> }
+					{ PresetControls }
+				</>
 			);
 		}
 		if ( tab === 'advanced' ) {

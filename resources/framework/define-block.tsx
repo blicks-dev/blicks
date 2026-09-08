@@ -1,4 +1,4 @@
-import { registerBlockType, createBlock } from '@wordpress/blocks';
+import { registerBlockType, registerBlockVariation, createBlock } from '@wordpress/blocks';
 import { useBlockProps, useInnerBlocksProps, InnerBlocks, Inserter, RichText, BlockControls, BlockPreview } from '@wordpress/block-editor';
 import { Button, Disabled } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -8,6 +8,7 @@ import { Inspector } from '@/framework/inspector/Inspector';
 import { buildElementStyle } from '@/framework/css/vars';
 import { applyBlockIdentity } from '@/framework/identity';
 import { cleanAttributes, scopeCss } from '@/framework/sanitize';
+import { SavePresetControl } from '@/framework/presets/SavePresetControl';
 
 /** Options for an editable `RichText` field, supplied by a block's `render`. */
 export interface RichTextOpts {
@@ -101,6 +102,49 @@ export interface BlockPlaceholderPreset {
 	skeleton?: PlaceholderSkeleton;
 }
 
+/**
+ * A developer-shipped design preset for a block, registered as a native block **variation**
+ * (`config.variations`). Each variation is a named bundle of attribute values WordPress offers as its
+ * own entry in the inserter and (with `scope: ['transform']`) in the block-switcher — so authors pick a
+ * pre-styled block instead of restyling by hand every time. The preset's whole look travels as
+ * attribute data (this block's design lives in the `blicks` attribute plus scalars like
+ * `variant`/`size`/`icon`), so no extra CSS or custom `save` is needed.
+ *
+ * Mirrors the shape `@wordpress/blocks` `registerBlockVariation` accepts; see
+ * https://developer.wordpress.org/block-editor/reference-guides/block-api/block-variations/.
+ */
+export interface BlockVariation {
+	/** Unique, machine-readable id within the block type (e.g. `promo-cta`). */
+	name: string;
+	/** Human label shown in the inserter / block-switcher. */
+	title: string;
+	/** Optional longer description shown in the inserter. */
+	description?: string;
+	/** Optional icon (dashicon slug or element) for the inserter entry. */
+	icon?: React.ReactNode | string;
+	/** Attribute values baked into this preset — merged over the block's defaults on insert. */
+	attributes?: Record< string, unknown >;
+	/** Inner blocks to seed (for container presets); leaf presets omit this. */
+	innerBlocks?: any[];
+	/**
+	 * Where the variation shows. `inserter` → a pick in the block inserter; `transform` → offered in
+	 * the block-switcher to swap an already-placed block; `block` → as a nested inner-block option.
+	 * Defaults to `['inserter']` when omitted.
+	 */
+	scope?: Array< 'inserter' | 'block' | 'transform' >;
+	/**
+	 * Which attributes decide the variation is "active" (so the editor highlights it). An array of
+	 * attribute names (shallow-equality match), or a predicate `( blockAttrs, variationAttrs ) => bool`.
+	 */
+	isActive?: string[] | ( ( blockAttributes: any, variationAttributes: any ) => boolean );
+	/** Make this the default inserted variation for the block type. */
+	isDefault?: boolean;
+	/** Inserter keywords for search. */
+	keywords?: string[];
+	/** Preview example for the inserter hover card. */
+	example?: Record< string, unknown >;
+}
+
 export interface BlockPlaceholderConfig {
 	icon?: React.ReactNode;
 	title?: string;
@@ -122,6 +166,26 @@ export interface BlockConfig {
 	Controls?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	/** Block-specific toolbar items — wrapped in `<BlockControls>` (editor only). */
 	Toolbar?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
+	/**
+	 * Developer-shipped design presets, registered as native block **variations** (see
+	 * {@link BlockVariation}). They surface in WordPress's own inserter and block-switcher — no custom
+	 * toolbar UI — so authors grab a pre-styled block instead of restyling every time. Registered once
+	 * per block type at load via `registerBlockVariation`.
+	 */
+	variations?: BlockVariation[];
+	/**
+	 * Let authors save this block's current design as a reusable **user preset** (stored in the
+	 * `wp_blicks_presets` table, re-registered as a block variation — see
+	 * `resources/framework/presets/`). Adds a "Presets" control to the inspector's Settings tab and a
+	 * hidden `blicksPreset` marker attribute so the applied preset can be highlighted.
+	 */
+	userPresets?: boolean;
+	/**
+	 * Attribute allowlist stored in a user preset (design only — never instance content like text or
+	 * URLs). When omitted, everything except the factory/system + common instance fields is saved.
+	 * Only meaningful with `userPresets`.
+	 */
+	presetAttributes?: string[];
 	/** Block-specific controls for the inspector's **Advanced** tab (above the shared advanced panel). */
 	Advanced?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	innerBlocks?: boolean | InnerBlocksConfig;
@@ -217,10 +281,14 @@ function PlaceholderPresetGallery( {
 	presets,
 	onPick,
 	onBlank,
+	viewportWidth = 560,
 }: {
 	presets: BlockPlaceholderPreset[];
 	onPick: ( preset: BlockPlaceholderPreset ) => void;
 	onBlank?: () => void;
+	/** `BlockPreview` viewport width. Smaller → the preview fills more of the card. Full-section
+	 *  layouts want ~560; a single element (e.g. a Button style preset) reads better around ~200. */
+	viewportWidth?: number;
 } ) {
 	const cards = useMemo(
 		() =>
@@ -256,7 +324,7 @@ function PlaceholderPresetGallery( {
 						<span className="bl-placeholder__preview">
 							{ /* Narrow viewport → larger scale so the thumbnail reads at card size
 							     (1200 squished to a ~220px card is microscopic). */ }
-							<BlockPreview blocks={ blocks } viewportWidth={ 560 } />
+							<BlockPreview blocks={ blocks } viewportWidth={ viewportWidth } />
 						</span>
 					) }
 					<span className="bl-placeholder__label">{ preset.label }</span>
@@ -265,6 +333,7 @@ function PlaceholderPresetGallery( {
 		</div>
 	);
 }
+
 
 /**
  * Repeater appender — a labelled "+ Add item" button at the end of a parent block's inner blocks.
@@ -484,6 +553,10 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		// Persisted "user chose Blank" flag — suppresses the empty-state placeholder so the container
 		// stays empty (ghost add-slot only). Only meaningful for `placeholder.allowBlank` blocks.
 		...( config.placeholder?.allowBlank ? { blicksBlank: { type: 'boolean', default: false } } : {} ),
+		// Marks which user preset is applied, so the block-switcher can highlight it. Non-sourced with
+		// an empty default, so existing saved blocks parse unchanged (absent → ''). Only blocks that
+		// opt into user presets carry it.
+		...( config.userPresets ? { blicksPreset: { type: 'string', default: '' } } : {} ),
 	};
 
 	const innerBlocksEnabled = !! config.innerBlocks;
@@ -646,6 +719,16 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 						clientId={ clientId }
 						Controls={ config.Controls }
 						Advanced={ config.Advanced }
+						PresetControls={
+							config.userPresets && clientId ? (
+								<SavePresetControl
+									blockName={ settings.name }
+									clientId={ clientId }
+									attributes={ attributes }
+									presetAttributes={ config.presetAttributes }
+								/>
+							) : null
+						}
 					/>
 					{ Toolbar && (
 						<BlockControls>
@@ -669,5 +752,14 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		},
 
 		save: saveBlock,
+	} );
+
+	// Developer-shipped design presets → native block variations (inserter + block-switcher). Default
+	// the scope so a preset surfaces both as an inserter pick and as a swap for an already-placed block.
+	( config.variations ?? [] ).forEach( ( variation ) => {
+		registerBlockVariation( settings.name, {
+			scope: [ 'inserter', 'transform' ],
+			...variation,
+		} as any );
 	} );
 }

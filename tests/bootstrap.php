@@ -124,6 +124,13 @@ if (!function_exists('is_wp_error')) {
     }
 }
 
+if (!function_exists('get_current_user_id')) {
+    function get_current_user_id(): int
+    {
+        return (int) ($GLOBALS['wp_current_user_id'] ?? 0);
+    }
+}
+
 if (!function_exists('get_option')) {
     function get_option(string $option, mixed $default = false): mixed
     {

@@ -1,0 +1,66 @@
+/* User-preset inspector control (SavePresetControl). Lives in the Settings tab inside a
+   `.bl-settings-card`, so this only styles the preset list + save row within it. */
+
+.bl-preset-list {
+	margin: 0 0 12px;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+
+	&__item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 4px 6px;
+		border-radius: 4px;
+
+		&:hover {
+			background: #f0f0f0;
+		}
+	}
+
+	&__title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		color: #1e1e1e;
+		min-width: 0;
+	}
+
+	&__applied {
+		flex: none;
+		font-size: 10px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #2271b1;
+		background: #f0f6fc;
+		padding: 1px 6px;
+		border-radius: 9999px;
+	}
+}
+
+.bl-preset-save {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+
+	.components-base-control {
+		width: 100%;
+	}
+}
+
+.bl-preset-note {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #757575;
+
+	&--error {
+		color: #cc1818;
+	}
+}

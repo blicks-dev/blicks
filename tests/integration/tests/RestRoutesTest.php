@@ -34,6 +34,8 @@ final class RestRoutesTest extends WP_UnitTestCase {
 		[ 'POST', '/blicks/v1/design-system/animations', [ 'slug' => 'probe', 'steps' => [ [ 'offset' => 0 ] ] ] ],
 		[ 'GET', '/blicks/v1/settings', [] ],
 		[ 'PATCH', '/blicks/v1/settings', [] ],
+		[ 'GET', '/blicks/v1/presets', [] ],
+		[ 'POST', '/blicks/v1/presets', [ 'blockName' => 'blicks/button', 'title' => 'probe' ] ],
 	];
 
 	/** Build a request with its required parameters filled in. */

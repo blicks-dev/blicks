@@ -19,6 +19,14 @@ interface Window {
 		fontLibrary?: unknown;
 		colorPalette?: unknown;
 		tokenCatalogue?: unknown;
+		/** User-saved design presets, grouped by block name (e.g. `blicks/button`). */
+		presets?: Record< string, Array< {
+			id: number;
+			key: string;
+			title: string;
+			attributes: Record< string, unknown >;
+			author: number;
+		} > >;
 	};
 	blicks?: {
 		fontLibrary?: Array< {

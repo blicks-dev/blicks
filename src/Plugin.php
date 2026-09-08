@@ -22,6 +22,7 @@ use Blicks\Providers\AdminServiceProvider;
 use Blicks\Providers\BlockServiceProvider;
 use Blicks\Providers\StyleServiceProvider;
 use Blicks\Models\SettingModel;
+use Blicks\Models\PresetModel;
 use Blicks\Settings\AdminSettings;
 
 /**
@@ -74,6 +75,7 @@ final class Plugin {
 		}
 
 		SettingModel::maybeInstall();
+		PresetModel::maybeInstall();
 
 		( new HookServiceProvider() )->register();
 		( new RestServiceProvider() )->register();
@@ -85,6 +87,7 @@ final class Plugin {
 
 	public static function activate(): void {
 		SettingModel::install();
+		PresetModel::install();
 		// Design-system overrides are now owned per-theme; discard the legacy global override set.
 		Store::purgeLegacyOption();
 		flush_rewrite_rules();
@@ -107,6 +110,7 @@ final class Plugin {
 		'blicks_design_animations',
 		'blicks_design_themes',
 		'blicks_settings_schema_version',
+		'blicks_presets_schema_version',
 		'blicks_hub',
 		'blicks_hub_items_schema_version',
 		'blicks_hub_library_last_good',
@@ -130,7 +134,7 @@ final class Plugin {
 		if ( is_object( $wpdb ) ) {
 			// Table names are class constants joined to $wpdb->prefix — no user input reaches
 			// this identifier, and identifiers cannot be bound with prepare().
-			foreach ( [ SettingModel::table(), $wpdb->prefix . 'blicks_hub_items' ] as $table ) {
+			foreach ( [ SettingModel::table(), PresetModel::table(), $wpdb->prefix . 'blicks_hub_items' ] as $table ) {
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Static identifier; DROP TABLE cannot be prepared.
 				$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 			}

@@ -22,6 +22,7 @@ final class LifecycleTest extends WP_UnitTestCase {
 		'blicks_design_animations',
 		'blicks_design_themes',
 		'blicks_settings_schema_version',
+		'blicks_presets_schema_version',
 	];
 
 	public function test_activation_creates_the_settings_table(): void {

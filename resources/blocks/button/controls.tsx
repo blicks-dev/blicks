@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { FieldRow, OptionCards, SegmentedSetting, SettingsCard, useBlockHelp } from '@/blocks/shared/settings-ui';
 import { IconPicker } from '@/controls/IconPicker';
+import type { BlockVariation } from '@/framework/define-block';
 
 const VARIANTS = [ 'default', 'secondary', 'destructive', 'outline', 'ghost', 'link' ];
 const SIZES = [ 'sm', 'default', 'lg', 'icon' ];
@@ -13,6 +14,32 @@ const PRESETS: Record< string, Record< string, string > > = {
 	arrow: { variant: 'default', size: 'default', icon: 'arrow-right', iconPosition: 'trailing' },
 	icon: { variant: 'outline', size: 'icon', icon: 'plus', iconPosition: 'leading' },
 };
+
+/** Human labels for each `PRESETS` key — used by the inspector cards and the toolbar Patterns dropdown. */
+const PRESET_LABELS: Record< string, string > = {
+	primary: __( 'Primary', 'blicks' ),
+	secondary: __( 'Secondary', 'blicks' ),
+	ghost: __( 'Ghost', 'blicks' ),
+	link: __( 'Link', 'blicks' ),
+	arrow: __( 'With arrow', 'blicks' ),
+	icon: __( 'Icon only', 'blicks' ),
+};
+
+/**
+ * Native block **variations** for the Button — the developer-shipped design presets authors pick from
+ * the inserter (and swap to via the block-switcher). Each is the same `variant`/`size`/`icon` bundle
+ * the inspector's preset cards drive, so the two stay in sync. No `text` is baked in: on insert the
+ * author types the label (placeholder shown); on a block-switcher swap this avoids clobbering existing
+ * text. `isActive` matches the design-defining scalars so the editor highlights the active preset.
+ */
+export const buttonVariations: BlockVariation[] = Object.entries( PRESETS ).map(
+	( [ key, attributes ] ) => ( {
+		name: key,
+		title: PRESET_LABELS[ key ] ?? key,
+		attributes: { ...attributes },
+		isActive: [ 'variant', 'size', 'icon', 'iconPosition' ],
+	} )
+);
 
 export function cleanButtonVariant( value: unknown ): string {
 	const variant = String( value || 'default' );

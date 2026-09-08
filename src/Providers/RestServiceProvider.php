@@ -21,6 +21,7 @@ use Blicks\Http\Controllers\AnimationsController;
 use Blicks\Http\Controllers\DashboardController;
 use Blicks\Http\Controllers\DesignSystemController;
 use Blicks\Http\Controllers\DiagnosticsController;
+use Blicks\Http\Controllers\PresetsController;
 use Blicks\Http\Controllers\SettingsController;
 use Blicks\Http\Controllers\ThemesController;
 
@@ -127,6 +128,35 @@ final class RestServiceProvider extends ServiceProvider {
 		Rest::delete( 'blicks/v1', 'design-system/animations/(?P<slug>[A-Za-z0-9_-]+)', [ AnimationsController::class, 'remove' ] )
 			->permission( fn () => current_user_can( 'manage_options' ) )
 			->schema( [ 'slug' => RestArgs::identifier( true ) ] );
+
+		// User-saved block design presets. Editor-facing (any author who can edit content), so these
+		// gate on `edit_posts` rather than `manage_options` like the site-wide design system does.
+		// `blockName` is validated against the registered-block pattern by Presets; `attributes` is a
+		// deep-sanitized bundle re-applied only as ordinary block attributes.
+		Rest::get( 'blicks/v1', 'presets', [ PresetsController::class, 'index' ] )
+			->permission( fn () => current_user_can( 'edit_posts' ) );
+
+		Rest::post( 'blicks/v1', 'presets', [ PresetsController::class, 'create' ] )
+			->permission( fn () => current_user_can( 'edit_posts' ) )
+			->schema(
+				[
+					'blockName' => RestArgs::text( true ),
+					'title' => RestArgs::text( true ),
+					'attributes' => RestArgs::object(),
+				]
+			);
+
+		Rest::patch( 'blicks/v1', 'presets/(?P<id>[0-9]+)', [ PresetsController::class, 'update' ] )
+			->permission( fn () => current_user_can( 'edit_posts' ) )
+			->schema(
+				[
+					'title' => RestArgs::text( true ),
+					'attributes' => RestArgs::object(),
+				]
+			);
+
+		Rest::delete( 'blicks/v1', 'presets/(?P<id>[0-9]+)', [ PresetsController::class, 'remove' ] )
+			->permission( fn () => current_user_can( 'edit_posts' ) );
 
 		Rest::get( 'blicks/v1', 'settings', [ SettingsController::class, 'show' ] )
 			->permission( fn () => current_user_can( 'manage_options' ) );

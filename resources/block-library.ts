@@ -16,3 +16,8 @@ import './blocks/image';
 import './blocks/icon';
 import './blocks/spacer';
 import './blocks/divider';
+import { registerBootPresets } from './framework/presets/register';
+
+// Blocks are registered by the imports above (each `defineBlock` runs `registerBlockType` at import).
+// Now re-register every user-saved preset as a block variation on those types.
+registerBootPresets();
