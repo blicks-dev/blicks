@@ -29,6 +29,43 @@ final class CssVariables {
 
 		$lines = [ ':root {' ];
 
+		// Base-scale floor. `Catalogue::effectiveCatalogue()` replaces a scale WHOLESALE with the
+		// active theme's own (a theme whose spacing scale is `20/30/40…` leaves no
+		// `--blicks-spacing-md` behind), but the editor's JS token catalogue is the static
+		// `tokens.json` and goes on emitting `var(--blicks-spacing-md)` into block markup. An
+		// undefined custom property there is not "no value" — the declaration referencing it is
+		// invalid at computed-value time, and its `var(…, fallback)` never applies because the
+		// property IS set, just to an invalid token stream. A gap or padding then silently
+		// collapses to its initial value. Emitting the plugin's own values as a floor keeps every
+		// catalogue slug resolvable. Written FIRST so the projected/overridden values below win on
+		// source order.
+		foreach ( ThemeProjection::baseFallbacks() as $category => $tokens ) {
+			if ( ! is_string( $category ) || ! is_array( $tokens ) ) {
+				continue;
+			}
+
+			foreach ( $tokens as $rawSlug => $value ) {
+				$slug = Overrides::slugKey( $rawSlug );
+				if ( null === $slug || ! is_scalar( $value ) ) {
+					continue;
+				}
+
+				// Skip anything the projection already emits below — including a slug the theme
+				// merely renamed, which keeps the floor from resurrecting a scale the theme dropped.
+				$projected = $values[ $category ][ $rawSlug ] ?? $values[ $category ][ $slug ] ?? null;
+				if ( is_scalar( $projected ) && '' !== self::sanitizeValue( (string) $projected ) ) {
+					continue;
+				}
+
+				$value = self::sanitizeValue( (string) $value );
+				if ( '' === $value ) {
+					continue;
+				}
+
+				$lines[] = sprintf( '  --blicks-%s-%s: %s;', self::sanitizeName( $category ), self::sanitizeName( $slug ), $value );
+			}
+		}
+
 		foreach ( $values as $category => $tokens ) {
 			if ( ! is_string( $category ) || ! is_array( $tokens ) ) {
 				continue;

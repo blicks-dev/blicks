@@ -154,6 +154,17 @@ final class ThemeProjection {
 		],
 	];
 
+	/**
+	 * The plugin's own token values, keyed category → slug. These are the values every slug in the
+	 * shared catalogue (`resources/design-system/tokens.json`) resolves to before the active theme
+	 * is projected over them, so they double as the base-scale floor {@see CssVariables} emits.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public static function baseFallbacks(): array {
+		return self::FALLBACKS;
+	}
+
 	/** @param array<string, list<string>> $catalogue */
 	public static function current( array $catalogue ): array {
 		$settings = self::currentSettings();
