@@ -31,4 +31,28 @@
 		column-gap: var(--bl-gap-c);
 		box-sizing: border-box;
 	}
+
+	/* Stretch: buttons stop hugging their label and take up the row/column instead. The two axes
+	   need different declarations, so the vertical case carries its own marker rather than sharing
+	   one rule — across a row the buttons split the width evenly (`flex-basis: 0` + grow), down a
+	   column they each span the full width, which is the cross axis and so comes from
+	   `align-items`. Left at `flex: 1 1 0` a column would size every button to min-content height,
+	   since basis is the MAIN axis there.
+
+	   `flex-basis: 0` with the default `min-width: auto` still floors each button at its label
+	   width, so a row of long labels degrades to unequal widths (or wraps) instead of clipping.
+
+	   Scoped to `.bl-button` so the editor's ghost appender slot keeps the compact sizing set
+	   above. Layered, so an explicit Styles ▸ Layout alignment still wins. */
+	.bl-buttons--stretch {
+		align-items: stretch;
+
+		> .bl-button {
+			flex: 1 1 0;
+		}
+	}
+
+	.bl-buttons--stretch-y > .bl-button {
+		flex: 0 0 auto;
+	}
 }

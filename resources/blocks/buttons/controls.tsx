@@ -25,6 +25,27 @@ const WRAP_OPTIONS = [
 	{ label: __( 'Wrap', 'blicks' ), value: 'wrap' },
 ];
 
+const SIZING_OPTIONS = [
+	{ label: __( 'Hug', 'blicks' ), value: 'hug' },
+	{ label: __( 'Stretch', 'blicks' ), value: 'stretch' },
+];
+
+/**
+ * Marker classes for the "Stretch" sizing mode, or `''` when buttons hug their label.
+ *
+ * Emitted as classes rather than written into the `blicks` value tree because the effect is on the
+ * *children* (each button's flex sizing), which the container's own style tree has no control for.
+ * The vertical case carries a second marker: the two axes need different declarations — see
+ * style.scss.
+ */
+export function buttonsStretchClass( attributes: any ): string {
+	if ( ! attributes.stretch ) {
+		return '';
+	}
+	const vertical = validOption( ORIENTATION_OPTIONS, attributes.orientation, 'horizontal' ) === 'vertical';
+	return vertical ? 'bl-buttons--stretch bl-buttons--stretch-y' : 'bl-buttons--stretch';
+}
+
 export function buttonsDirection( orientation: unknown ): string {
 	return validOption( ORIENTATION_OPTIONS, orientation, 'horizontal' ) === 'vertical' ? 'column' : 'row';
 }
@@ -62,7 +83,7 @@ function writeBaseValue( tree: any, controlId: string, value: string ) {
 function updateButtonsLayout(
 	attributes: any,
 	setAttributes: ( a: any ) => void,
-	next: Partial< { orientation: string; gap: string; justify: string; wrap: boolean } >
+	next: Partial< { orientation: string; gap: string; justify: string; wrap: boolean; stretch: boolean } >
 ) {
 	const orientation = validOption( ORIENTATION_OPTIONS, next.orientation ?? attributes.orientation, 'horizontal' );
 	const gap = validOption( GAP_OPTIONS, next.gap ?? attributes.gap, 'sm' );
@@ -125,12 +146,23 @@ export function ButtonsControls( {
 				onChange={ ( next ) => updateButtonsLayout( attributes, setAttributes, { justify: next } ) }
 			/>
 			<SegmentedSetting
-				label={ __( 'Wrapping', 'blicks' ) }
-				help={ controlHelp.wrap }
-				value={ wrap }
-				options={ WRAP_OPTIONS }
-				onChange={ ( next ) => updateButtonsLayout( attributes, setAttributes, { wrap: next === 'wrap' } ) }
+				label={ __( 'Button width', 'blicks' ) }
+				help={ controlHelp.stretch }
+				value={ attributes.stretch ? 'stretch' : 'hug' }
+				options={ SIZING_OPTIONS }
+				onChange={ ( next ) =>
+					updateButtonsLayout( attributes, setAttributes, { stretch: next === 'stretch' } )
+				}
 			/>
+			{ orientation === 'horizontal' && (
+				<SegmentedSetting
+					label={ __( 'Wrapping', 'blicks' ) }
+					help={ controlHelp.wrap }
+					value={ wrap }
+					options={ WRAP_OPTIONS }
+					onChange={ ( next ) => updateButtonsLayout( attributes, setAttributes, { wrap: next === 'wrap' } ) }
+				/>
+			) }
 		</SettingsCard>
 	);
 }

@@ -1,5 +1,6 @@
 import { ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { renderIcon } from '@/framework/icons/render';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
 import {
@@ -7,6 +8,7 @@ import {
 	buttonsDirection,
 	buttonsGapValue,
 	buttonsJustifyValue,
+	buttonsStretchClass,
 	setButtonsOrientation,
 } from './controls';
 
@@ -19,20 +21,14 @@ function ButtonsToolbar( {
 } ) {
 	const isVertical = attributes.orientation === 'vertical';
 	return (
-		<>
-			<ToolbarButton
-				icon="columns"
-				label={ __( 'Arrange horizontally', 'blicks' ) }
-				isPressed={ ! isVertical }
-				onClick={ () => setButtonsOrientation( attributes, setAttributes, 'horizontal' ) }
-			/>
-			<ToolbarButton
-				icon="editor-ul"
-				label={ __( 'Arrange vertically', 'blicks' ) }
-				isPressed={ isVertical }
-				onClick={ () => setButtonsOrientation( attributes, setAttributes, 'vertical' ) }
-			/>
-		</>
+		<ToolbarButton
+			icon={ renderIcon( 'rows-2', { strokeWidth: 2 } ) }
+			label={ __( 'Arrange vertically', 'blicks' ) }
+			isPressed={ isVertical }
+			onClick={ () =>
+				setButtonsOrientation( attributes, setAttributes, isVertical ? 'horizontal' : 'vertical' )
+			}
+		/>
 	);
 }
 
@@ -61,6 +57,12 @@ defineBlock( metadata, {
 			...( blockProps.style ?? {} ),
 		};
 
-		return <div { ...blockProps } style={ style }>{ children }</div>;
+		// Only appended when Stretch is on (default off), so markup saved before the setting
+		// existed is byte-identical and stays valid.
+		const className = [ blockProps.className, buttonsStretchClass( attributes ) ]
+			.filter( Boolean )
+			.join( ' ' );
+
+		return <div { ...blockProps } className={ className } style={ style }>{ children }</div>;
 	},
 } );

@@ -26,7 +26,8 @@
 		"orientation": { "type": "string", "default": "horizontal" },
 		"gap":         { "type": "string", "default": "sm" },
 		"justify":     { "type": "string", "default": "flex-start" },
-		"wrap":        { "type": "boolean", "default": true }
+		"wrap":        { "type": "boolean", "default": true },
+		"stretch":     { "type": "boolean", "default": false }
 	},
 	"editorScript": "blicks-editor",
 	"style":        "file:./index.css"
