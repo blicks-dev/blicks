@@ -12,7 +12,19 @@
 		"className": false,
 		"blicks": {
 			"controls": [ "gridChild.*", "typography.*", "colors.*", "spacing.*", "border.*", "effects.*" ],
-			"states": [ "default", "hover", "focus", "active" ]
+			"states": [ "default", "hover", "focus", "active" ],
+			"elements": {
+				"icon": {
+					"label": "Icon",
+					"controls": [ "colors.text", "spacing.*", "effects.*", "layout.width", "layout.height" ],
+					"states": [ "default", "hover", "focus", "active" ]
+				},
+				"label": {
+					"label": "Label",
+					"controls": [ "typography.*", "colors.text", "spacing.*" ],
+					"states": [ "default", "hover" ]
+				}
+			}
 		}
 	},
 	"attributes": {

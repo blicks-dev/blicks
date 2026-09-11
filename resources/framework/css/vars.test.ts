@@ -868,6 +868,47 @@ describe( 'buildElementStyle', () => {
 // Scoped (tier-3 / WA) emit. These rules need a real selector or @property, which a class+inline
 // var can't express, so they go through the scoped path. The PHP mirror (ElementStyleTest) asserts
 // the SAME strings — this is the engine-parity guard.
+describe( 'buildElementStyle — element scope', () => {
+	/** A block styled at the wrapper AND on its `icon` element. */
+	const tree = {
+		'colors.text': { default: { base: 'primary' } },
+		'icon:colors.text': { default: { base: 'accent' } },
+		'icon:effects.transform': { hover: { base: { translateX: '4px' } } },
+	};
+
+	it( 'ignores element values when building the block', () => {
+		const r = buildElementStyle( tree, { uniqueId: 'btn1' } );
+
+		// The wrapper gets its own colour and nothing of the icon's — the whole leak guarantee.
+		expect( r.vars ).toEqual( { '--bl-tx': 'var(--blicks-color-primary)' } );
+		expect( r.classes ).toEqual( [ 'bl-tx' ] );
+	} );
+
+	it( 'builds only that element when scoped', () => {
+		const r = buildElementStyle( tree, { uniqueId: 'btn1', scope: 'icon' } );
+
+		expect( r.vars[ '--bl-tx' ] ).toBe( 'var(--blicks-color-accent)' );
+		expect( r.classes ).toContain( 'bl-tx' );
+	} );
+
+	it( 'resolves an element state against the block, not the element', () => {
+		const r = buildElementStyle( tree, { uniqueId: 'btn1', scope: 'icon' } );
+
+		// `phov`, not `hov`: the runtime pairs this with `.bl-ph:hover .bl-tfm--phov`, so the icon
+		// moves when the BUTTON is hovered. `hov` would require hovering the icon itself.
+		expect( r.classes ).toContain( 'bl-tfm--phov' );
+		expect( r.classes ).not.toContain( 'bl-tfm--hov' );
+		expect( r.vars[ '--bl-tfm-phov' ] ).toBe( 'translate3d(4px, 0, 0)' );
+	} );
+
+	it( 'emits nothing for an element with no values', () => {
+		const r = buildElementStyle( tree, { uniqueId: 'btn1', scope: 'label' } );
+
+		expect( r.classes ).toEqual( [] );
+		expect( r.vars ).toEqual( {} );
+	} );
+} );
+
 describe( 'buildElementStyle — scoped emit', () => {
 	afterEach( () => {
 		// drop any probe rules pushed by a test

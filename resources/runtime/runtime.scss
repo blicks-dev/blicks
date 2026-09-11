@@ -16,6 +16,7 @@
 //   stateKey: hover→hov  focus→foc  active→act   (default → '')
 //   bpKey  : tablet→tab  mobile→mob              (base → '')
 
+@use 'sass:list';
 @use 'sass:map';
 
 // The predefined @keyframes live in _keyframes.scss so the admin bundle can reuse the exact
@@ -25,6 +26,63 @@
 $breakpoints: ( 'base': null, 'tab': 782px, 'mob': 600px );
 $states: ( '': '', 'hov': ':hover', 'foc': ':focus', 'act': ':active' );
 
+// ---------- Parent-driven states (block elements) ----------
+// A block can declare stylable ELEMENTS (`supports.blicks.elements` — e.g. a Button's icon). Their
+// styling rides the same consumer classes as any block, on the element's own node, but their
+// states resolve against the BLOCK: hovering the button is what moves its icon, and the `$states`
+// rules above would instead require hovering the icon itself.
+//
+// So these emit `.bl-ph:hover .bl-tfm--phov` — `.bl-ph` is the marker the engine adds to a wrapper
+// whose block has element values. `:focus-within` rather than `:focus` so it matches whether the
+// wrapper itself is focusable (Button's `<button>`/`<a>`) or only something inside it is.
+//
+// Leak-safety is unchanged: the override is still gated by a marker class on the styled element,
+// so an element that did not set it lacks the class and the inherited var sits unused.
+//
+// Keys MUST stay in sync with PARENT_STATE_KEY in resources/framework/css/vars.ts and the PHP
+// mirror in src/Style/ElementStyle.php.
+$pstates: ( 'phov': ':hover', 'pfoc': ':focus-within', 'pact': ':active' );
+
+// Which consumer classes get parent-state variants. This is a size decision, not a capability one:
+// the state loops run once per class, so generating the variants for all ~110 classes would inflate
+// the stylesheet for combinations nobody writes. Listed here are the properties an element
+// plausibly changes while its block is hovered/focused — colour, type, box, motion. Left out:
+// grid/flex child placement, multi-column, containment and the other structural layout props,
+// which describe how a node sits in ITS parent's layout and do not change on hover.
+$pstate-classes:
+	// spacing
+	'pad', 'mar',
+	// box + flow
+	'd', 'fd', 'jc', 'ai', 'fw', 'gap-r', 'gap-c', 'w', 'h', 'miw', 'maw', 'mih', 'mah',
+	'ov', 'ar', 'of', 'vis',
+	// colour + background
+	'bg', 'tx', 'bg-img', 'bg-grad', 'bg-size', 'bg-pos', 'bg-repeat', 'bg-blend',
+	// typography
+	'ff', 'fs', 'lh', 'fwt', 'fst', 'ls', 'ws', 'tt', 'td', 'ta',
+	// effects
+	'op', 'cur', 'bm', 'bsh', 'tsh', 'tr', 'tfm', 'flt', 'tfo', 'tfs', 'psp',
+	'clip', 'bdf', 'mask',
+	// border
+	'bw', 'br', 'bs', 'bc';
+
+/** The state map a consumer class generates over — with parent states when it opts in. */
+@function bl-states( $cls ) {
+	@if list.index( $pstate-classes, $cls ) {
+		@return map.merge( $states, $pstates );
+	}
+
+	@return $states;
+}
+
+/** A parent state moves the pseudo onto the block wrapper; every other state keeps it in place. */
+@function bl-selector( $marker, $st-key, $pseudo ) {
+	@if map.has-key( $pstates, $st-key ) {
+		@return '.bl-ph#{$pseudo} #{$marker}';
+	}
+
+	@return '#{$marker}#{$pseudo}';
+}
+
 // ---------- Spacing ----------
 $spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
 
@@ -33,7 +91,7 @@ $spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
 	$v: map.get( $cfg, v );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			// slot key = stateKey + bpKey (omit empties); '' → the root consumer class.
 			$key: $stKey;
 
@@ -49,7 +107,7 @@ $spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} {
@@ -151,7 +209,7 @@ $layout: (
 	$default: map.get( $cfg, default );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -166,7 +224,7 @@ $layout: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} {
@@ -189,8 +247,10 @@ $layout: (
 // not just the line count. Same one-class-many-props shape as `.bl-type--*` (Typography);
 // kept as its own loop (not part of `$layout` above) since every other entry there is a
 // single dynamic property.
+$cls: 'lc';
+
 @each $bpKey, $bpMax in $breakpoints {
-	@each $stKey, $pseudo in $states {
+	@each $stKey, $pseudo in bl-states( $cls ) {
 		$key: $stKey;
 
 		@if $bpKey != 'base' {
@@ -205,7 +265,7 @@ $layout: (
 			$suf: '-#{$key}';
 		}
 
-		$selector: '#{$marker}#{$pseudo}';
+		$selector: bl-selector( $marker, $stKey, $pseudo );
 
 		@if $bpMax == null {
 			#{$selector} {
@@ -245,7 +305,7 @@ $grid-child: (
 	$span: map.get( $cfg, span );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -260,7 +320,7 @@ $grid-child: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} {
@@ -297,7 +357,7 @@ $columns: (
 	$default: map.get( $cfg, default );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -312,7 +372,7 @@ $columns: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
@@ -339,7 +399,7 @@ $flex-child: (
 	$default: map.get( $cfg, default );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -354,7 +414,7 @@ $flex-child: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
@@ -388,7 +448,7 @@ $effects: (
 	$default: map.get( $cfg, default );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -403,7 +463,7 @@ $effects: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 
 			@if $bpMax == null {
 				#{$selector} {
@@ -437,7 +497,7 @@ $multis: (
 	$fallback: map.get( $cfg, fallback );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -452,7 +512,7 @@ $multis: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 			$val-str: '';
 
 			@each $v in $vars-list {
@@ -475,8 +535,10 @@ $multis: (
 }
 
 // ---------- Position Inset ----------
+$cls: 'inset';
+
 @each $bpKey, $bpMax in $breakpoints {
-	@each $stKey, $pseudo in $states {
+	@each $stKey, $pseudo in bl-states( $cls ) {
 		$key: $stKey;
 
 		@if $bpKey != 'base' {
@@ -491,7 +553,7 @@ $multis: (
 			$suf: '-#{$key}';
 		}
 
-		$selector: '#{$marker}#{$pseudo}';
+		$selector: bl-selector( $marker, $stKey, $pseudo );
 
 		@if $bpMax == null {
 			#{$selector} {
@@ -527,7 +589,7 @@ $multis: (
 	$webkit: map.get( $cfg, webkit );
 
 	@each $bpKey, $bpMax in $breakpoints {
-		@each $stKey, $pseudo in $states {
+		@each $stKey, $pseudo in bl-states( $cls ) {
 			$key: $stKey;
 
 			@if $bpKey != 'base' {
@@ -542,7 +604,7 @@ $multis: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: bl-selector( $marker, $stKey, $pseudo );
 			$varRef: 'var(--bl-#{$cls}#{$suf})';
 
 			@if $bpMax == null {

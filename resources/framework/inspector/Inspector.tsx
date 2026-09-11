@@ -3,7 +3,7 @@ import { useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { DEFAULT_BREAKPOINTS } from '@/design-system/breakpoints';
-import { getValue } from '@/framework/values';
+import { getValue, mergeScopeTree, scopeTree } from '@/framework/values';
 import { SpacingControl, SPACING_KEYWORDS } from '@/controls/spacing/SpacingControl';
 import { LayoutControl, LAYOUT_KEYWORDS } from '@/controls/layout/LayoutControl';
 import { BORDER_KEYWORDS, BorderControl } from '@/controls/border/BorderControl';
@@ -292,9 +292,18 @@ const SECTIONS: StyleSection[] = [
 	},
 ];
 
+/** One separately stylable sub-part of a block, declared in `supports.blicks.elements`. */
+interface ElementManifest {
+	label?: string;
+	/** Facet allow-list for this element — its own, deliberately narrower than the block's. */
+	controls?: string[];
+	states?: string[];
+}
+
 interface Manifest {
 	controls?: string[];
 	states?: string[];
+	elements?: Record< string, ElementManifest >;
 }
 
 interface Props {
@@ -424,14 +433,49 @@ const ALL_CONTROLS = [
 ];
 
 export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced, PresetControls }: Props ) {
-	const controls = ALL_CONTROLS; // TEMP override — see ALL_CONTROLS note above
-	const states = manifest?.states ?? [ 'default' ];
-
 	const [ tab, setTab ] = useState< TabId >( Controls ? 'settings' : 'style' );
 	const [ active, setActive ] = useState< string >( '' );
 	const [ query, setQuery ] = useState< string >( '' );
 	const [ state, setState ] = useState< string >( 'default' );
+	const [ scope, setScope ] = useState< string >( '' );
 	const [ breakpoint, setBreakpoint ] = useNativeResponsiveBreakpoint();
+
+	// ---- Element scope ----------------------------------------------------------------------
+	// Picking an element re-points the SAME facets at that element's slice of the value tree. The
+	// controls know nothing about it: they are handed a proxied attributes/setAttributes pair whose
+	// `blicks` is the scoped sub-tree, so every field, Reset and "styled" dot works unchanged.
+	const elements = manifest?.elements ?? {};
+	const elementScopes = Object.keys( elements ).map( ( id ) => ( {
+		id,
+		label: elements[ id ]?.label ?? id,
+	} ) );
+	// A scope the block does not declare falls back to the block itself, so a stale selection can
+	// never leave the inspector editing keys nothing reads.
+	const element = scope ? elements[ scope ] : undefined;
+	const activeScope = element ? scope : '';
+
+	// The block keeps the TEMP full-control override; an element gets exactly what it declared —
+	// its whole point is a narrower surface than the block's.
+	const controls = element ? element.controls ?? [] : ALL_CONTROLS;
+	const states = element ? element.states ?? [ 'default' ] : manifest?.states ?? [ 'default' ];
+
+	const scopedAttributes = activeScope
+		? { ...attributes, blicks: scopeTree( attributes?.blicks, activeScope ) }
+		: attributes;
+
+	const scopedSetAttributes = activeScope
+		? ( patch: any ) =>
+				setAttributes(
+					'blicks' in ( patch ?? {} )
+						? { ...patch, blicks: mergeScopeTree( attributes?.blicks, activeScope, patch.blicks ) }
+						: patch
+				)
+		: setAttributes;
+	// An element may declare fewer states than the block (a label that only reacts to hover), so a
+	// state selected before the scope changed can be one this scope does not offer. Fall back to
+	// default rather than editing a slot the engine will never emit.
+	const activeState = states.includes( state ) ? state : 'default';
+
 	const hasGridParent = useHasGridParent( clientId );
 	const hasFlexParent = useHasFlexParent( clientId );
 	const CONTEXT_MET: Record< string, boolean > = { 'grid-parent': hasGridParent, 'flex-parent': hasFlexParent };
@@ -457,7 +501,7 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 	/** Any value set in this facet's controls (any state/breakpoint) — drives the rail "styled" dot. */
 	const facetHasValue = ( controlIds: string[] ): boolean =>
 		controlIds.some( ( id ) => {
-			const control = attributes?.blicks?.[ id ];
+			const control = scopedAttributes?.blicks?.[ id ];
 			return (
 				!! control &&
 				Object.values( control ).some(
@@ -468,26 +512,26 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 
 	/** Any value in the *current* state+breakpoint slot — drives the per-facet Reset affordance. */
 	const facetSlotHasValue = ( controlIds: string[] ): boolean =>
-		controlIds.some( ( id ) => getValue( attributes, id, state, breakpoint ) !== undefined );
+		controlIds.some( ( id ) => getValue( scopedAttributes, id, activeState, breakpoint ) !== undefined );
 
 	/** Clear a facet's controls at the current state+breakpoint in one batched write. */
 	const resetFacet = ( controlIds: string[] ): void => {
-		const blicks: Record< string, any > = { ...( attributes.blicks ?? {} ) };
+		const blicks: Record< string, any > = { ...( scopedAttributes.blicks ?? {} ) };
 		let changed = false;
 		for ( const id of controlIds ) {
 			const control = blicks[ id ];
-			const slot = control?.[ state ];
+			const slot = control?.[ activeState ];
 			if ( ! slot || ! ( breakpoint in slot ) ) continue;
 			const nextSlot = { ...slot };
 			delete nextSlot[ breakpoint ];
 			const nextControl = { ...control };
-			if ( Object.keys( nextSlot ).length ) nextControl[ state ] = nextSlot;
-			else delete nextControl[ state ];
+			if ( Object.keys( nextSlot ).length ) nextControl[ activeState ] = nextSlot;
+			else delete nextControl[ activeState ];
 			if ( Object.keys( nextControl ).length ) blicks[ id ] = nextControl;
 			else delete blicks[ id ];
 			changed = true;
 		}
-		if ( changed ) setAttributes( { blicks } );
+		if ( changed ) scopedSetAttributes( { blicks } );
 	};
 
 	const facets: Facet[] = matchedSections.map( ( s ) => ( {
@@ -538,9 +582,9 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 					) }
 				</h3>
 				<Control
-					attributes={ attributes }
-					setAttributes={ setAttributes }
-					state={ state }
+					attributes={ scopedAttributes }
+					setAttributes={ scopedSetAttributes }
+					state={ activeState }
 					breakpoint={ breakpoint }
 					isAllowed={ allow }
 					states={ states }
@@ -594,10 +638,13 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 							<>
 								<ContextBar
 									states={ states }
-									state={ state }
+									state={ activeState }
 									setState={ setState }
 									breakpoint={ breakpoint }
 									setBreakpoint={ setBreakpoint }
+									scopes={ elementScopes }
+									scope={ activeScope }
+									setScope={ setScope }
 								/>
 								<SearchField value={ query } onChange={ setQuery } />
 							</>
@@ -607,7 +654,7 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 						     labelling them as its panels would be a lie. */ }
 						<div
 							className="ins-facet"
-							key={ `${ tab }:${ activeFacet?.id ?? '' }` }
+							key={ `${ tab }:${ activeScope }:${ activeFacet?.id ?? '' }` }
 							{ ...( isStyle && activeFacet
 								? {
 										role: 'tabpanel',

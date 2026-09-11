@@ -1,4 +1,5 @@
 import { isToken } from '@/design-system/tokens';
+import { scopeTree } from '@/framework/values';
 
 /**
  * The single Blicks style engine — turns the `blicks` value tree into the **class list + inline
@@ -22,6 +23,21 @@ const STATE_KEY: Record< string, string > = {
 	hover: 'hov',
 	focus: 'foc',
 	active: 'act',
+};
+
+/**
+ * state → marker/var key for a block **element** (an emission with `opts.scope`). Elements get
+ * their own key family because their states are PARENT-driven: `.bl-ph:hover .bl-tx--phov` styles
+ * the element while the block wrapper is hovered, which is what "the icon moves when you hover the
+ * button" needs. The self-hover keys above would instead require hovering the icon itself.
+ *
+ * Keep in sync with `$pstates` in resources/runtime/runtime.scss and the PHP mirror.
+ */
+const PARENT_STATE_KEY: Record< string, string > = {
+	default: '',
+	hover: 'phov',
+	focus: 'pfoc',
+	active: 'pact',
 };
 
 // breakpoint id → marker/var key (base has no key)
@@ -628,6 +644,12 @@ export interface ElementStyle {
 export interface BuildOptions {
 	/** Block instance id, required to scope tier-3 rules. */
 	uniqueId?: string;
+	/**
+	 * Emit for one declared **element** (`supports.blicks.elements`) instead of the block wrapper:
+	 * reads only that scope's slice of the tree and switches to the parent-driven state keys. The
+	 * result is spread onto the element's own node, so no selector for it is ever generated.
+	 */
+	scope?: string;
 }
 
 /** The four sides / corners var keys for an expanded `kind`. */
@@ -694,14 +716,22 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 	if ( ! blicks ) return { classes, vars };
 
 	const uniqueId = String( opts.uniqueId ?? '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
+	// One scope's slice, prefix stripped — so the loop below is identical for a block and for one
+	// of its elements. Scope '' also *excludes* every element's values, which is what keeps element
+	// styling from leaking onto the wrapper.
+	const values = scopeTree( blicks, opts.scope ?? '' );
+	const stateKeys = opts.scope ? PARENT_STATE_KEY : STATE_KEY;
 
 	for ( const rule of STYLE_MAP ) {
-		const tree = blicks[ rule.attr ];
+		const tree = values[ rule.attr ];
 		if ( ! tree ) continue;
 
 		// Scoped (tier-3) rules emit a real selector / @property instead of class+var.
 		if ( rule.selectorSuffix || rule.atRule || rule.keyframes || rule.registerProperty ) {
-			emitScoped( rule, tree, uniqueId, scopedCss );
+			// Tier-3 rules key to `.bl-{uniqueId}` — the block wrapper — so they cannot describe an
+			// element. Element manifests exclude these controls; skipping here means a manifest that
+			// allows one anyway silently emits nothing rather than styling the whole block.
+			if ( ! opts.scope ) emitScoped( rule, tree, uniqueId, scopedCss );
 			continue;
 		}
 
@@ -715,7 +745,7 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 		if ( rule.kind === 'single' ) {
 			let hasValue = false;
 			for ( const [ state, byBp ] of Object.entries< any >( tree ) ) {
-				const stateKey = STATE_KEY[ state ] ?? '';
+				const stateKey = stateKeys[ state ] ?? '';
 				for ( const [ bp, value ] of Object.entries< any >( byBp ) ) {
 					if ( ! isSet( value ) ) continue;
 					hasValue = true;
@@ -734,7 +764,7 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 		const keys = expandKeys( rule.kind );
 		const dash = rule.kind === 'inset' ? '-' : '';
 		for ( const [ state, byBp ] of Object.entries< any >( tree ) ) {
-			const stateKey = STATE_KEY[ state ] ?? '';
+			const stateKey = stateKeys[ state ] ?? '';
 			for ( const [ bp, rawValue ] of Object.entries< any >( byBp ) ) {
 				if ( ! rawValue ) continue;
 				const value = expandSideValue( rawValue, keys );

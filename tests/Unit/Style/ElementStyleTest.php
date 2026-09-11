@@ -1041,4 +1041,53 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('preserve-3d', $r['vars']['--bl-tfs']);
         $this->assertSame('800px',       $r['vars']['--bl-psp']);
     }
+
+    // ── element scope ────────────────────────────────────────────────────────────
+    // Mirrors "buildElementStyle — element scope" in resources/framework/css/vars.test.ts.
+
+    /** @return array<string, mixed> A block styled at the wrapper AND on its `icon` element. */
+    private function scopedTree(): array
+    {
+        return [
+            'colors.text'           => ['default' => ['base' => 'primary']],
+            'icon:colors.text'      => ['default' => ['base' => 'accent']],
+            'icon:effects.transform' => ['hover'  => ['base' => ['translateX' => '4px']]],
+        ];
+    }
+
+    public function test_block_build_ignores_element_values(): void
+    {
+        $r = ElementStyle::build($this->scopedTree(), 'btn1');
+
+        // The wrapper gets its own colour and nothing of the icon's — the whole leak guarantee.
+        $this->assertSame(['--bl-tx' => 'var(--blicks-color-primary)'], $r['vars']);
+        $this->assertSame(['bl-tx'], $r['classes']);
+    }
+
+    public function test_scoped_build_emits_only_that_element(): void
+    {
+        $r = ElementStyle::build($this->scopedTree(), 'btn1', 'icon');
+
+        $this->assertSame('var(--blicks-color-accent)', $r['vars']['--bl-tx']);
+        $this->assertContains('bl-tx', $r['classes']);
+    }
+
+    public function test_element_state_resolves_against_the_block(): void
+    {
+        $r = ElementStyle::build($this->scopedTree(), 'btn1', 'icon');
+
+        // `phov`, not `hov`: paired with `.bl-ph:hover .bl-tfm--phov` in runtime.scss, so the icon
+        // moves when the BUTTON is hovered rather than when the icon itself is.
+        $this->assertContains('bl-tfm--phov', $r['classes']);
+        $this->assertNotContains('bl-tfm--hov', $r['classes']);
+        $this->assertSame('translate3d(4px, 0, 0)', $r['vars']['--bl-tfm-phov']);
+    }
+
+    public function test_scoped_build_of_an_unstyled_element_is_empty(): void
+    {
+        $r = ElementStyle::build($this->scopedTree(), 'btn1', 'label');
+
+        $this->assertSame([], $r['classes']);
+        $this->assertSame([], $r['vars']);
+    }
 }

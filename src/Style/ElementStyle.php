@@ -30,6 +30,22 @@ final class ElementStyle {
 		'focus' => 'foc',
 		'active' => 'act',
 	];
+
+	/**
+	 * State → marker/var key for a block ELEMENT (a `$scope`d build). An element's states are
+	 * parent-driven — `.bl-ph:hover .bl-tx--phov` styles the element while the block wrapper is
+	 * hovered — so it needs its own key family. Mirror of PARENT_STATE_KEY in vars.ts; keep in
+	 * sync with `$pstates` in resources/runtime/runtime.scss.
+	 */
+	private const PARENT_STATE_KEY = [
+		'default' => '',
+		'hover' => 'phov',
+		'focus' => 'pfoc',
+		'active' => 'pact',
+	];
+
+	/** Separates an element scope from the control id in a `blicks` key. Mirror of values.ts. */
+	private const SCOPE_SEP = ':';
 	private const BP_KEY    = [
 		'base' => '',
 		'tablet' => 'tab',
@@ -667,15 +683,21 @@ final class ElementStyle {
 	 *
 	 * @param mixed  $blicks   The block's `blicks` attribute (decoded JSON object → assoc array)
 	 * @param string $uniqueId Block instance id, required to scope tier-3 rules
+	 * @param string $scope    Emit for one declared element (`supports.blicks.elements`) instead of
+	 *                         the block wrapper: reads only that scope's slice of the tree and uses
+	 *                         the parent-driven state keys. `''` = the block itself.
 	 * @return array{classes: list<string>, vars: array<string, string>, scopedCss?: list<string>}
 	 */
-	public static function build( mixed $blicks, string $uniqueId = '' ): array {
+	public static function build( mixed $blicks, string $uniqueId = '', string $scope = '' ): array {
 		if ( ! is_array( $blicks ) || empty( $blicks ) ) {
 			return [
 				'classes' => [],
 				'vars' => [],
 			];
 		}
+
+		$blicks     = self::scopeTree( $blicks, $scope );
+		$state_keys = '' !== $scope ? self::PARENT_STATE_KEY : self::STATE_KEY;
 
 		/** @var array<string, true> $classSet */
 		$classSet = [];
@@ -691,9 +713,13 @@ final class ElementStyle {
 				continue;
 			}
 
-			// Scoped (tier-3) rules emit a real selector / @property instead of class + var.
+			// Scoped (tier-3) rules emit a real selector / @property instead of class + var. They key
+			// to `.bl-{uniqueId}` — the block wrapper — so they cannot describe an element; skipping
+			// keeps a manifest that allows one from styling the whole block instead.
 			if ( isset( $rule['selectorSuffix'] ) || isset( $rule['atRule'] ) || isset( $rule['keyframes'] ) || isset( $rule['registerProperty'] ) ) {
-				self::emitScoped( $rule, $tree, $uid, $scopedCss );
+				if ( '' === $scope ) {
+					self::emitScoped( $rule, $tree, $uid, $scopedCss );
+				}
 				continue;
 			}
 
@@ -712,7 +738,7 @@ final class ElementStyle {
 					if ( ! is_array( $byBp ) ) {
 						continue;
 					}
-					$sk = self::STATE_KEY[ $state ] ?? '';
+					$sk = $state_keys[ $state ] ?? '';
 					foreach ( $byBp as $bp => $value ) {
 						if ( null === $value || '' === $value || ( is_array( $value ) && empty( $value ) ) ) {
 							continue;
@@ -747,7 +773,7 @@ final class ElementStyle {
 				if ( ! is_array( $byBp ) ) {
 					continue;
 				}
-				$sk = self::STATE_KEY[ $state ] ?? '';
+				$sk = $state_keys[ $state ] ?? '';
 				foreach ( $byBp as $bp => $value ) {
 					// A bare string means "the same on every side" — how border.style/border.color
 					// were stored before they became per-side. Mirrors expandSideValue() in vars.ts.
@@ -785,6 +811,30 @@ final class ElementStyle {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * One scope's slice of the value tree, with the prefix stripped — so the emission loop is
+	 * identical for a block and for one of its elements. Scope `''` yields the block's own values
+	 * and EXCLUDES every element's, which is what keeps element styling off the wrapper.
+	 *
+	 * Mirror of `scopeTree` in resources/framework/values.ts.
+	 *
+	 * @param array<string, mixed> $blicks
+	 * @return array<string, mixed>
+	 */
+	private static function scopeTree( array $blicks, string $scope ): array {
+		$out = [];
+		foreach ( $blicks as $key => $value ) {
+			$key = (string) $key;
+			$at  = strpos( $key, self::SCOPE_SEP );
+			$key_scope = false === $at ? '' : substr( $key, 0, $at );
+			if ( $key_scope !== $scope ) {
+				continue;
+			}
+			$out[ false === $at ? $key : substr( $key, $at + 1 ) ] = $value;
+		}
+		return $out;
 	}
 
 	public static function registerCssValueBuilder( string $category, callable $builder ): void {

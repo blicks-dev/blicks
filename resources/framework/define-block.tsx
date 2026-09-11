@@ -6,6 +6,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { useContext, useEffect, useMemo } from '@wordpress/element';
 import { Inspector } from '@/framework/inspector/Inspector';
 import { buildElementStyle } from '@/framework/css/vars';
+import { hasElementValues } from '@/framework/values';
 import { applyBlockIdentity } from '@/framework/identity';
 import { cleanAttributes, scopeCss } from '@/framework/sanitize';
 import { SavePresetControl } from '@/framework/presets/SavePresetControl';
@@ -48,6 +49,16 @@ export interface RenderCtx {
 	onReplace?: ( blocks: any[] ) => void;
 	/** WP block context (block.json `usesContext`) — editor only (undefined on save). */
 	context?: Record< string, any >;
+	/**
+	 * Style props for one of the block's declared **elements** (`supports.blicks.elements`) — spread
+	 * them onto that element's node, e.g. `renderIcon( name, { ...elementProps( 'icon' ) } )`. The
+	 * element's styling comes from the same attribute tree and the same engine as the wrapper's, in
+	 * both the editor and `save()`, so the two cannot drift.
+	 *
+	 * Safe to spread unconditionally: an undeclared name, or a declared element the author has not
+	 * styled, yields an empty object.
+	 */
+	elementProps: ( name: string ) => { className?: string; style?: Record< string, string > };
 }
 
 /** Inner-block configuration forwarded to `useInnerBlocksProps` / `<InnerBlocks.Content>`. */
@@ -243,6 +254,13 @@ export interface BlockConfig {
 		isEligible?: ( attributes: any, innerBlocks: any[] ) => boolean;
 		migrate?: ( attributes: any, innerBlocks: any[] ) => any;
 		save?: ( props: any ) => React.ReactElement | null;
+		/**
+		 * The block's earlier `render`, wrapped by the factory exactly as today's is. Prefer this
+		 * over `save` when only the block's own markup changed: `save` would have to rebuild the
+		 * wrapper props (classes, style vars, InnerBlocks) by hand and would silently rot the next
+		 * time the factory changes how it builds them.
+		 */
+		render?: ( ctx: RenderCtx ) => React.ReactElement | null;
 	} >;
 	render: ( ctx: RenderCtx ) => React.ReactElement | null;
 }
@@ -542,6 +560,9 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 	const settings = applyBlockIdentity( metadata );
 	const manifest = settings?.supports?.blicks ?? {};
 	const slug = String( settings.name ?? '' ).split( '/' )[ 1 ] ?? 'block';
+	// Sub-parts of this block the author declared as separately stylable (a Button's icon, say).
+	// Their values live in the same `blicks` tree under a scope prefix — see resources/framework/values.ts.
+	const elementNames = Object.keys( manifest.elements ?? {} );
 
 	// Factory-level Advanced attributes — every block gets these (visibility + custom attributes).
 	// Existing saved blocks default to empty, so no markup change / no validation break.
@@ -573,6 +594,26 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		return props;
 	}
 
+	/**
+	 * Style props for one declared element. Built with the same engine as the wrapper's, over the
+	 * element's slice of the same tree — so `save()` and `edit()` produce identical markup.
+	 */
+	function elementPropsFor( attributes: any, name: string ): { className?: string; style?: Record< string, string > } {
+		if ( ! elementNames.includes( name ) ) {
+			return {};
+		}
+		const { classes, vars } = buildElementStyle( attributes.blicks, {
+			uniqueId: attributes.uniqueId,
+			scope: name,
+		} );
+		return {
+			// Undefined rather than empty, so an unstyled element adds no attribute to the markup —
+			// an empty `class=""`/`style=""` would still be a saved-markup change for every block.
+			className: classes.length ? classes.join( ' ' ) : undefined,
+			style: Object.keys( vars ).length ? vars : undefined,
+		};
+	}
+
 	function buildProps( attributes: any, save: boolean ): { blockProps: any; scopedCss?: string[] } {
 		const { classes, vars, scopedCss } = buildElementStyle( attributes.blicks, {
 			uniqueId: attributes.uniqueId,
@@ -580,6 +621,10 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		const className = [
 			`bl-${ slug }`,
 			attributes.uniqueId ? `bl-${ attributes.uniqueId }` : '',
+			// Element states are parent-driven (`.bl-ph:hover .bl-tx--phov`), so the wrapper is the
+			// hover/focus target. Only added once the block actually carries element values, so a
+			// block nobody has styled that way keeps its markup unchanged.
+			hasElementValues( attributes.blicks ) ? 'bl-ph' : '',
 			...classes,
 			...visibilityClasses( attributes.visibility, ! save ),
 		]
@@ -598,32 +643,38 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 		};
 	}
 
-	function saveBlock( { attributes }: any ) {
-		if ( config.dynamic ) {
-			return innerBlocksEnabled ? <InnerBlocks.Content /> : null;
-		}
-		const { blockProps } = buildProps( attributes, true );
+	/** The save path for one `render` — today's, or a deprecation's earlier one. */
+	function makeSave( render: ( ctx: RenderCtx ) => React.ReactElement | null ) {
+		return function saveWithRender( { attributes }: any ) {
+			if ( config.dynamic ) {
+				return innerBlocksEnabled ? <InnerBlocks.Content /> : null;
+			}
+			const { blockProps } = buildProps( attributes, true );
 
-		return config.render( {
-			attributes,
-			setAttributes: () => {},
-			blockProps,
-			isEdit: false,
-			richText: makeRichText( attributes, () => {}, false ),
-			children: innerBlocksEnabled && ! innerWrapperClassName ? <InnerBlocks.Content /> : null,
-			innerBlocksProps:
-				innerBlocksEnabled && innerWrapperClassName
-					? { className: innerWrapperClassName, children: <InnerBlocks.Content /> }
-					: null,
-		} );
+			return render( {
+				attributes,
+				setAttributes: () => {},
+				blockProps,
+				isEdit: false,
+				elementProps: ( name: string ) => elementPropsFor( attributes, name ),
+				richText: makeRichText( attributes, () => {}, false ),
+				children: innerBlocksEnabled && ! innerWrapperClassName ? <InnerBlocks.Content /> : null,
+				innerBlocksProps:
+					innerBlocksEnabled && innerWrapperClassName
+						? { className: innerWrapperClassName, children: <InnerBlocks.Content /> }
+						: null,
+			} );
+		};
 	}
+
+	const saveBlock = makeSave( config.render );
 
 	registerBlockType( settings.name, {
 		...settings,
 		...( config.merge ? { merge: config.merge } : {} ),
 		...( config.deprecated
 			? {
-					deprecated: config.deprecated.map( ( entry ) => ( {
+					deprecated: config.deprecated.map( ( { render: entryRender, ...entry } ) => ( {
 						// WordPress builds a deprecated block type by *removing* every
 						// DEPRECATED_ENTRY_KEYS field from the current one and merging the entry
 						// over it — and `apiVersion` is one of those keys. Leave it out and the
@@ -634,7 +685,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 						supports: settings.supports,
 						attributes: settings.attributes,
 						...entry,
-						save: entry.save ?? saveBlock,
+						save: entry.save ?? ( entryRender ? makeSave( entryRender ) : saveBlock ),
 					} ) ),
 			  }
 			: {} ),
@@ -740,6 +791,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 						setAttributes,
 						blockProps: wrapperProps,
 						isEdit: true,
+						elementProps: ( name: string ) => elementPropsFor( attributes, name ),
 						richText: makeRichText( attributes, setAttributes, true ),
 						children,
 						innerBlocksProps: innerWrap,
