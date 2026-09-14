@@ -239,7 +239,16 @@ export function useDesignSystem() {
 			setTypeRoleDraft( cloneTokens( next.overrides.typeRoles ) );
 			setApiStatus( 'ready' );
 			const activeName = themes.themes.find( t => t.id === themes.active )?.name;
-			setNotice( activeName ? sprintf( __( 'Saved to %s.', 'blicks' ), activeName ) : ( snapshot.source.globalStyles ? __( 'Saved to Global Styles. Synced tokens now read from theme.json.', 'blicks' ) : __( 'Saved design-system overrides.', 'blicks' ) ) );
+			const rejected = rejectedPaths( data );
+			if ( rejected.length > 0 ) {
+				setNotice( sprintf(
+					/* translators: %s: comma-separated list of setting paths, e.g. "tokens.color.primary". */
+					__( 'Saved, except values that are not valid CSS and were not kept: %s', 'blicks' ),
+					rejected.join( ', ' )
+				) );
+			} else {
+				setNotice( activeName ? sprintf( __( 'Saved to %s.', 'blicks' ), activeName ) : ( snapshot.source.globalStyles ? __( 'Saved to Global Styles. Synced tokens now read from theme.json.', 'blicks' ) : __( 'Saved design-system overrides.', 'blicks' ) ) );
+			}
 			// Editing the active theme can flip its "edited" flag (e.g. a built-in now diverges from its
 			// preset); refresh the list so the reset affordance + marker stay accurate.
 			apiFetch( { path: '/blicks/v1/design-system/themes' } ).then( ( d: unknown ) => setThemes( normalizeThemes( d ) ) ).catch( () => {} );
@@ -364,4 +373,10 @@ export function useDesignSystem() {
 		resetTheme,
 		resetGroup,
 	};
+}
+
+/** Paths the save endpoint refused (see Overrides::rejectedPaths() in PHP). */
+function rejectedPaths( data: unknown ): string[] {
+	const list = ( data as { rejected?: unknown } | null )?.rejected;
+	return Array.isArray( list ) ? list.filter( ( item ): item is string => typeof item === 'string' ) : [];
 }

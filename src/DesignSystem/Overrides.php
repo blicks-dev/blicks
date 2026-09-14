@@ -43,6 +43,51 @@ final class Overrides {
 	}
 
 	/**
+	 * Dotted paths of every value the caller submitted that {@see self::sanitize()} did not keep —
+	 * `tokens.color.primary`, `typeRoles.h1.fontFamily`, `breakpoints.tablet`. Lets the save
+	 * endpoint tell the user which inputs were refused instead of reporting a clean save while the
+	 * field quietly snaps back. An empty submitted value is a deliberate clear, not a rejection.
+	 *
+	 * @param array<string, mixed> $payload
+	 * @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} $sanitized
+	 * @return list<string>
+	 */
+	public static function rejectedPaths( array $payload, array $sanitized ): array {
+		$rejected = [];
+
+		foreach ( [ 'tokens', 'typeRoles' ] as $group ) {
+			$submitted = is_array( $payload[ $group ] ?? null ) ? $payload[ $group ] : [];
+			foreach ( $submitted as $outer => $values ) {
+				if ( ! is_array( $values ) ) {
+					continue;
+				}
+				foreach ( $values as $inner => $value ) {
+					if ( null === $value || '' === $value ) {
+						continue;
+					}
+					$outerKey = self::slugKey( $outer );
+					$innerKey = self::slugKey( $inner );
+					if ( null === $outerKey || null === $innerKey || ! isset( $sanitized[ $group ][ $outerKey ][ $innerKey ] ) ) {
+						$rejected[] = $group . '.' . $outer . '.' . $inner;
+					}
+				}
+			}
+		}
+
+		$breakpoints = is_array( $payload['breakpoints'] ?? null ) ? $payload['breakpoints'] : [];
+		foreach ( $breakpoints as $id => $max ) {
+			if ( null === $max || '' === $max ) {
+				continue;
+			}
+			if ( ! is_string( $id ) || ! isset( $sanitized['breakpoints'][ $id ] ) ) {
+				$rejected[] = 'breakpoints.' . $id;
+			}
+		}
+
+		return $rejected;
+	}
+
+	/**
 	 * @param array<string, mixed> $overrides
 	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
 	 */

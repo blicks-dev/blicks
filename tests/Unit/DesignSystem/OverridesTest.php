@@ -128,4 +128,35 @@ final class OverridesTest extends TestCase
         $this->assertNull(Overrides::slugKey(1.5));
         $this->assertNull(Overrides::slugKey(null));
     }
+
+    /** The save endpoint reports exactly the submitted values the validator refused. */
+    public function test_rejected_paths_names_every_refused_value(): void
+    {
+        $catalogue = ['color' => ['primary', 'accent', 'jp'], 'fontFamily' => ['jp']];
+        $breakpoints = [
+            ['id' => 'base', 'label' => 'Desktop', 'max' => null],
+            ['id' => 'tablet', 'label' => 'Tablet', 'max' => 782],
+        ];
+        $payload = [
+            'tokens' => [
+                'color' => [
+                    'primary' => 'red; background:url(https://attacker.example/x.png)',
+                    'accent' => 'light-dark(#fff, #000)',
+                    'jp' => '',
+                ],
+                'fontFamily' => ['jp' => '"ヒラギノ角ゴ ProN", Meiryo, sans-serif'],
+                'notACategory' => ['x' => 'y'],
+            ],
+            'breakpoints' => ['tablet' => 900, 'mobile' => 100],
+        ];
+
+        $sanitized = Overrides::sanitize($payload, $catalogue, $breakpoints);
+
+        $this->assertSame('light-dark(#fff, #000)', $sanitized['tokens']['color']['accent']);
+        $this->assertSame('"ヒラギノ角ゴ ProN", Meiryo, sans-serif', $sanitized['tokens']['fontFamily']['jp']);
+        $this->assertSame(
+            ['tokens.color.primary', 'tokens.notACategory.x', 'breakpoints.mobile'],
+            Overrides::rejectedPaths($payload, $sanitized)
+        );
+    }
 }

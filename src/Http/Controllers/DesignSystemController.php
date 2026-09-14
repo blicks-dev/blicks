@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Blicks\DesignSystem\Catalogue;
+use Blicks\DesignSystem\Overrides;
 use Blicks\DesignSystem\Store;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -58,6 +59,9 @@ final class DesignSystemController {
 
 		$overrides = Store::saveOverrides( $payload );
 		$snapshot = Catalogue::withSavedValues( Catalogue::snapshot( $overrides ), $payload );
+
+		// Values the validator refused, so the UI can say so rather than report a clean save.
+		$snapshot['rejected'] = Overrides::rejectedPaths( $payload, $overrides );
 
 		return new WP_REST_Response( $snapshot, 200 );
 	}

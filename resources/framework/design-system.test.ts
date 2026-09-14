@@ -134,16 +134,20 @@ describe( 'buildPreviewVars', () => {
 		expect( css ).toContain( '--blicks-color-primary: #18181b;' );
 	} );
 
-	it( 'sanitizes names and values like the PHP emitter', () => {
+	it( 'drops unsafe values whole, like the PHP emitter', () => {
 		const css = buildPreviewVars(
-			{ color: { primary: '#fff; } body { background: red' }, spacing: { md: '2rem<script>' } },
+			{
+				color: { primary: '#fff; } body { background: red', accent: 'light-dark(#fff, #000)' },
+				spacing: { md: '2rem<script>', lg: '\\75rl(https://attacker.example/x.png)' },
+			},
 			{},
 			baseValues
 		);
-		expect( css ).toContain( '--blicks-color-primary: #fff  body  background: red;' );
-		expect( css ).toContain( '--blicks-spacing-md: 2remscript;' );
-		expect( css ).not.toContain( '<' );
-		expect( css ).not.toContain( '{ background' );
+		// Scrubbing used to leave a forged body (`#fff  body  background: red`); now nothing is emitted.
+		expect( css ).not.toContain( '--blicks-color-primary' );
+		expect( css ).not.toContain( '--blicks-spacing-md' );
+		expect( css ).not.toContain( 'attacker.example' );
+		expect( css ).toContain( '--blicks-color-accent: light-dark(#fff, #000);' );
 	} );
 
 	it( 'skips slugs with no draft and no base value', () => {
@@ -196,10 +200,11 @@ describe( 'buildTypeRolePreview', () => {
 		expect( css ).toContain( '--blicks-type-h2-font-size: 1.875rem;' );
 	} );
 
-	it( 'strips CSS-breaking characters out of values', () => {
+	it( 'drops values that would break out of the rule', () => {
 		const css = buildTypeRolePreview( { lead: { fontSize: '1rem; } body { display: none' } }, {}, BASE, SLOTS );
-		expect( css ).not.toContain( '}' + ' body' );
-		expect( css ).toContain( '--blicks-type-lead-font-size: 1rem  body  display: none;' );
+		expect( css ).not.toContain( 'body' );
+		expect( css ).not.toContain( 'display: none' );
+		expect( css ).not.toContain( '--blicks-type-lead-font-size' );
 	} );
 } );
 

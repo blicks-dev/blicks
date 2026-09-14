@@ -31,6 +31,7 @@ import {
 	hex8ToCssValue,
 	normalizeSnapshot,
 	normalizeThemes,
+	rejectedPaths,
 	titleCase,
 	tokenVar,
 	type Breakpoint,
@@ -534,7 +535,14 @@ function ThemeSettingsPanel( {
 
 			if ( adopt( data ) ) {
 				const activeName = themes.themes.find( theme => theme.id === themes.active )?.name;
-				setNotice( activeName
+				const rejected = rejectedPaths( data );
+				setNotice( rejected.length > 0
+					? sprintf(
+						/* translators: %s: comma-separated list of setting paths, e.g. "tokens.color.primary". */
+						__( 'Saved, except values that are not valid CSS and were not kept: %s', 'blicks' ),
+						rejected.join( ', ' )
+					)
+					: activeName
 					? sprintf(
 						/* translators: %s: design theme name. */
 						__( 'Saved to %s.', 'blicks' ),
