@@ -6,7 +6,10 @@
  */
 
 /** Allowed custom-attribute names — an allow-list, never event handlers / style / class. */
-const ATTR_NAME_RE = /^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir|tabindex)$/;
+const ATTR_NAME_RE = /^(?:data(?:-[a-z0-9_]+)+|aria-[a-z]+(?:-[a-z]+)*|role|title|id|lang|dir|tabindex)$/;
+
+/** Interactivity API directive namespace — refused so an attribute cannot drive runtime behaviour. */
+const RESERVED_DATA_PREFIX = 'data-wp-';
 
 const ATTR_VALUE_MAX = 500;
 
@@ -18,6 +21,7 @@ const SCRIPT_SCHEME = /(?:javascript|vbscript)\s*:/gi;
 /** Validate one attribute name. Returns the normalised (lowercased) name, or null if disallowed. */
 export function cleanAttrName( name: unknown ): string | null {
 	const n = String( name ?? '' ).trim().toLowerCase();
+	if ( n.startsWith( RESERVED_DATA_PREFIX ) ) return null;
 	return ATTR_NAME_RE.test( n ) ? n : null;
 }
 

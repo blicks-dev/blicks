@@ -21,7 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Sanitize {
 
-	private const ATTR_NAME_RE   = '/^(?:data-[a-z0-9-]+|aria-[a-z-]+|role|title|id|lang|dir|tabindex)$/';
+	/**
+	 * `data-*` follows core kses's own shape (`data(?:-[a-z0-9_]+)+`), which refuses the `--`
+	 * separators Interactivity API directives use; `data-wp-*` is refused outright on top of that
+	 * (see {@see self::attrName()}).
+	 */
+	private const ATTR_NAME_RE   = '/^(?:data(?:-[a-z0-9_]+)+|aria-[a-z]+(?:-[a-z]+)*|role|title|id|lang|dir|tabindex)$/';
 	private const CONTROL_CHARS  = '/[\x00-\x1F\x7F]/';
 	private const SCRIPT_SCHEME  = '/(?:javascript|vbscript)\s*:/i';
 	private const ATTR_VALUE_MAX = 500;
@@ -29,6 +34,12 @@ final class Sanitize {
 	/** Normalised (lowercased) attribute name, or null if disallowed. */
 	public static function attrName( string $name ): ?string {
 		$n = strtolower( trim( $name ) );
+		// `data-wp-*` is the Interactivity API's directive namespace: `data-wp-style--*`,
+		// `data-wp-bind--*` and `data-wp-on--*` would let the attribute drive styles, attributes and
+		// store actions at runtime, past every server-side check.
+		if ( str_starts_with( $n, 'data-wp-' ) ) {
+			return null;
+		}
 		return 1 === preg_match( self::ATTR_NAME_RE, $n ) ? $n : null;
 	}
 

@@ -80,4 +80,18 @@ final class SanitizeTest extends TestCase
     {
         $this->assertSame('selector{} <\/style> body{}', Sanitize::styleTagContent('selector{} </style> body{}'));
     }
+
+    /**
+     * `data-wp-*` is the Interactivity API's directive namespace; `data-wp-style--*` would set a
+     * remote background past every CSS check. The `--` form is refused as core kses refuses it.
+     */
+    public function test_attr_name_refuses_interactivity_directives(): void
+    {
+        foreach (['data-wp-interactive', 'data-wp-context', 'data-wp-style--background-image', 'data-wp-on--click', 'data-a--b', 'data-x-', 'aria--x'] as $name) {
+            $this->assertNull(Sanitize::attrName($name), "should refuse: {$name}");
+        }
+        $this->assertSame('data-track_id', Sanitize::attrName('data-track_id'));
+        $this->assertSame('data-wpx', Sanitize::attrName('data-wpx'));
+        $this->assertSame('aria-describedby', Sanitize::attrName('aria-describedby'));
+    }
 }

@@ -27,6 +27,16 @@ describe( 'cleanAttrName', () => {
 		expect( cleanAttrName( 'data-' ) ).toBeNull();
 		expect( cleanAttrName( '' ) ).toBeNull();
 	} );
+
+	// Mirror of SanitizeTest::test_attr_name_refuses_interactivity_directives().
+	it( 'refuses Interactivity API directives and core-invalid data names', () => {
+		for ( const name of [ 'data-wp-interactive', 'data-wp-context', 'data-wp-style--background-image', 'data-wp-on--click', 'data-a--b', 'data-x-', 'aria--x' ] ) {
+			expect( cleanAttrName( name ) ).toBeNull();
+		}
+		expect( cleanAttrName( 'data-track_id' ) ).toBe( 'data-track_id' );
+		expect( cleanAttrName( 'data-wpx' ) ).toBe( 'data-wpx' );
+		expect( cleanAttrName( 'aria-describedby' ) ).toBe( 'aria-describedby' );
+	} );
 } );
 
 describe( 'cleanAttrValue', () => {
