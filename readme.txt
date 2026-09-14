@@ -64,6 +64,21 @@ Blicks uses no external services. It contacts no third-party server, loads no re
 
 The only exception is one you control: if you set a background image to an address on another site, the visitor's browser loads that image from wherever you pointed it. Blicks itself makes no such request.
 
+== Source Code ==
+
+The JavaScript and CSS in the `build/` directory are compiled. The full, human-readable source they are built from — TypeScript, SCSS, the block definitions and the build configuration — is public at:
+
+https://github.com/blicks-dev/blicks
+
+To rebuild the plugin from source you need Node.js 20+, pnpm and Composer:
+
+1. `git clone https://github.com/blicks-dev/blicks.git && cd blicks`
+2. `composer install --no-dev`
+3. `pnpm install`
+4. `pnpm build` — writes the compiled assets to `build/`.
+
+The PHP in `src/` is shipped as source and is not compiled.
+
 == Third-Party Licenses ==
 
 Blicks includes a curated icon registry generated from Lucide icons. Lucide is licensed under ISC; some Lucide icons derive from Feather icons, licensed under MIT. Full notices are in `licenses.txt` and in the generated icon registry metadata.
