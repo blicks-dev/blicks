@@ -1231,7 +1231,10 @@ final class ElementStyle {
 	/** Wave F — pseudo-element decoration: full `key:val;…` body, no surrounding braces. */
 	/** Safe CSS `content` value — mirror of normalizeContent() in vars.ts. */
 	private static function normalizeContent( mixed $raw ): string {
-		$s = trim( str_replace( '<', '', (string) ( $raw ?? '' ) ) );
+		// Control characters go first: a newline ends a CSS string early, after which a `}` in
+		// the same value closes the rule and the rest parses as a new one.
+		$s = (string) preg_replace( '/[\x00-\x1F\x7F]/', '', is_scalar( $raw ) ? (string) $raw : '' );
+		$s = trim( str_replace( '<', '', $s ) );
 		if ( '' === $s ) {
 			return '""';
 		}
@@ -1266,9 +1269,9 @@ final class ElementStyle {
 	}
 
 	private static function decorationBuilder( mixed $v ): string {
-		if ( is_string( $v ) ) {
-			return trim( $v );
-		}
+		// Only the structured object is accepted. `decoration` is a self-validating category, so
+		// a bare string would reach `.bl-{id}::before{…}` unchecked and could close the rule.
+		// The Inspector never writes one.
 		if ( ! is_array( $v ) ) {
 			return '';
 		}

@@ -159,6 +159,43 @@ final class StyleInjectionTest extends TestCase
         $this->assertStringContainsString('content:""', $css);
     }
 
+    /**
+     * `decoration` skips the engine's whole-value check because it validates each of its own
+     * values — but a bare string skipped that too and was written into the rule verbatim.
+     */
+    public function test_decoration_string_cannot_write_the_rule_body(): void
+    {
+        $css = $this->scoped([
+            'decoration.before' => ['default' => ['base' =>
+                "content:''}body{background:url(https://attacker.example/s.png)",
+            ]],
+        ]);
+
+        $this->assertStringNotContainsString('attacker.example', $css);
+        $this->assertStringNotContainsString('body{', $css);
+    }
+
+    /**
+     * A newline ends a CSS string early, so the `}` after it closed the `::before` rule even
+     * though quotes and backslashes were escaped.
+     */
+    public function test_content_newline_cannot_end_the_string_and_close_the_rule(): void
+    {
+        foreach (["\n", "\r", "\f", "\x0B"] as $break) {
+            ScopedCss::reset();
+            $css = $this->scoped([
+                'decoration.before' => ['default' => ['base' => [
+                    'enabled' => true,
+                    'content' => "a{$break}}body{background:url(https://attacker.example/n.png)}",
+                ]]],
+            ]);
+
+            // With the break gone the braces sit inside one unbroken string, where they are text.
+            $this->assertDoesNotMatchRegularExpression('/[\x00-\x1F\x7F]/', $css);
+            $this->assertStringContainsString('content:"a}body{background:url(https://attacker.example/n.png)}"', $css);
+        }
+    }
+
     /** A whole, balanced `var()` in content is legitimate and must survive. */
     public function test_content_accepts_a_whole_var_function(): void
     {

@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\CssValue;
+
 /**
  * The user-defined keyframe library.
  *
@@ -455,20 +457,13 @@ final class Animations {
 	}
 
 	/**
-	 * Values are whitelisted by shape rather than blocklisted: no braces (cannot close the rule),
-	 * no `<` (cannot close a `<style>`), no `url(`/`@`/script schemes (cannot fetch or execute),
-	 * no comment markers (cannot smuggle past the parser).
+	 * A value is validated whole against the style engine's allow-list ({@see CssValue::clean()}):
+	 * permitted characters only — no `;` `{` `}` `<` `>` `\` `@` `:` — balanced parentheses and
+	 * quotes, and only allow-listed CSS functions, so `url()`, `expression()` and escape-encoded
+	 * forms of either are refused. A value that fails is dropped, never partially scrubbed.
 	 */
 	private static function value( string $raw ): string {
-		$value = trim( (string) preg_replace( '/[\x00-\x1F\x7F]/', '', $raw ) );
-		$value = str_replace( [ '{', '}', ';', '<', '>', '\\' ], '', $value );
-		$value = (string) preg_replace( '#/\*|\*/#', '', $value );
-
-		if ( 1 === preg_match( '/url\s*\(|expression\s*\(|(?:javascript|vbscript|data)\s*:|@import|behavior\s*:|-moz-binding/i', $value ) ) {
-			return '';
-		}
-
-		$value = trim( $value );
+		$value = CssValue::clean( $raw );
 
 		return mb_strlen( $value ) > self::MAX_VALUE ? '' : $value;
 	}

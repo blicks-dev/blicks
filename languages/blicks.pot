@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-05T12:35:22+00:00\n"
+"POT-Creation-Date: 2026-09-14T09:31:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: blicks\n"
@@ -35,61 +35,61 @@ msgstr ""
 msgid "Composable Gutenberg blocks with a theme-native design system."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:113
+#: src/DesignSystem/Animations.php:115
 msgid "Spin"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:114
+#: src/DesignSystem/Animations.php:116
 msgid "Rotates one full turn."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:123
+#: src/DesignSystem/Animations.php:125
 msgid "Float"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:124
+#: src/DesignSystem/Animations.php:126
 msgid "Gentle up/down bobbing."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:134
+#: src/DesignSystem/Animations.php:136
 msgid "Ping"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:135
+#: src/DesignSystem/Animations.php:137
 msgid "Expanding pulse — opacity fades while scaling up."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:144
+#: src/DesignSystem/Animations.php:146
 msgid "Rise"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:145
+#: src/DesignSystem/Animations.php:147
 msgid "Fades in from below — good for view-driven reveals."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:155
+#: src/DesignSystem/Animations.php:157
 msgid "Pan"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:156
+#: src/DesignSystem/Animations.php:158
 msgid "Slides the background-position horizontally."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:166
+#: src/DesignSystem/Animations.php:168
 msgid "Marquee"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:167
+#: src/DesignSystem/Animations.php:169
 msgid "Translates the element by -50% — pair with a duplicated track for a seamless loop."
 msgstr ""
 
-#: src/DesignSystem/Animations.php:176
+#: src/DesignSystem/Animations.php:178
 #: build/block-library.js:1
 #: build/editor.js:11
 msgid "Fill"
 msgstr ""
 
-#: src/DesignSystem/Animations.php:177
+#: src/DesignSystem/Animations.php:179
 msgid "Animates --bl-p from 0 to --bl-p-target — drives progress dials and bars."
 msgstr ""
 

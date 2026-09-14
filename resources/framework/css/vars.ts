@@ -440,7 +440,9 @@ function maskBuilder( v: unknown ): string {
  * `attr()`/`var()`/`env()`, and already-quoted strings pass through (re-escaped). Mirror in PHP.
  */
 function normalizeContent( raw: unknown ): string {
-	const s = String( raw ?? '' ).replace( /</g, '' ).trim();
+	// Control characters first: a newline ends a CSS string early and lets a `}` close the rule.
+	// eslint-disable-next-line no-control-regex
+	const s = String( raw ?? '' ).replace( /[\x00-\x1F\x7F]/g, '' ).replace( /</g, '' ).trim();
 	if ( s === '' ) return '""';
 	if ( /^(none|normal|inherit|initial|unset|revert|open-quote|close-quote|no-open-quote|no-close-quote)$/i.test( s ) ) {
 		return s;
@@ -455,7 +457,7 @@ function normalizeContent( raw: unknown ): string {
 
 /** Wave F — pseudo-element decoration: returns the full `key:val;…` body (no surrounding braces). */
 function decorationBuilder( v: unknown ): string {
-	if ( typeof v === 'string' ) return v.trim();
+	// Only the structured object — a bare string would reach the scoped rule unchecked.
 	if ( ! v || typeof v !== 'object' ) return '';
 	const d = v as any;
 	if ( d.enabled === false ) return '';

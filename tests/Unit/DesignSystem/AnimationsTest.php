@@ -95,7 +95,16 @@ final class AnimationsTest extends TestCase
     /** A value able to close the declaration, the rule, or the surrounding <style> is refused. */
     public function testRejectsEscapingValues(): void
     {
-        foreach (['red; } body { display: none', 'url(http://evil.test/x.png)', '</style><script>', 'expression(alert(1))'] as $hostile) {
+        foreach ([
+            'red; } body { display: none',
+            'url(http://evil.test/x.png)',
+            '</style><script>',
+            'expression(alert(1))',
+            // CSS escapes decode to url( / @import in the browser; a denylist never sees them.
+            '\75rl(http://evil.test/x.png)',
+            '@\69mport "http://evil.test/x.css"',
+            'image-set("http://evil.test/x.png" 1x)',
+        ] as $hostile) {
             $result = $this->save($this->valid([
                 'slug' => 'hostile',
                 'steps' => [
@@ -111,6 +120,8 @@ final class AnimationsTest extends TestCase
             $this->assertStringNotContainsString('<', $value);
             $this->assertStringNotContainsString(';', $value);
             $this->assertDoesNotMatchRegularExpression('/url\s*\(|expression\s*\(/i', $value);
+            $this->assertStringNotContainsString('evil.test', $value);
+            $this->assertStringNotContainsString('\\', $value);
 
             $GLOBALS['wp_options'] = [];
         }

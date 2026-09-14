@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\CssValue;
+
 /**
  * Validates and normalises user-supplied token overrides.
  */
@@ -304,8 +306,10 @@ final class Overrides {
 			return null;
 		}
 
-		$stripped = preg_replace( '/[\x00-\x1F\x7F]/', '', $value );
+		// Same whole-value allow-list the renderer applies, so an unsafe value is refused at save
+		// time instead of being stored and silently dropped from the page later.
+		$clean = CssValue::clean( $value );
 
-		return $stripped ? $stripped : null;
+		return '' !== $clean ? $clean : null;
 	}
 }
