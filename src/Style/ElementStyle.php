@@ -1244,6 +1244,11 @@ final class ElementStyle {
 		// A function value must validate as a WHOLE. Testing only that it *starts* with `var(`
 		// also accepts `var(--a); background-image:url(…)`, which closes the content declaration
 		// and appends its own — the same defect the dimension validator was hardened against.
+		// Untyped `attr(name)` yields text in `content`, never a URL, so it is accepted in exactly
+		// that shape. CssValue refuses `attr()` everywhere else.
+		if ( preg_match( '/^attr\(\s*[A-Za-z][A-Za-z0-9_-]*\s*\)$/', $s ) ) {
+			return $s;
+		}
 		if ( preg_match( '/^(counter|counters|attr|var|env)\(/i', $s ) ) {
 			return CssValue::clean( $s ) !== '' ? $s : '""';
 		}

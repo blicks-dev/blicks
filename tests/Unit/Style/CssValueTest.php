@@ -41,6 +41,40 @@ final class CssValueTest extends TestCase
         }
     }
 
+    /** @return array<string, list<string>> */
+    private static function sharedCases(): array
+    {
+        return json_decode((string) file_get_contents(__DIR__ . '/../../fixtures/css-value-cases.json'), true);
+    }
+
+    /**
+     * The table css-value.test.ts also runs, so the editor mirror and this gate cannot drift. It
+     * covers the round-4 review holes: non-ASCII font families, `light-dark()`, `attr()` and a quote
+     * sequence whose counts are even but whose last string never closes.
+     */
+    public function test_shared_parity_table(): void
+    {
+        $cases = self::sharedCases();
+        foreach ($cases['accept'] as $value) {
+            $this->assertSame($value, CssValue::clean($value), "should accept: {$value}");
+        }
+        foreach ($cases['reject'] as $value) {
+            $this->assertSame('', CssValue::clean($value), "should reject: {$value}");
+        }
+        foreach ($cases['url_accept'] as $value) {
+            $this->assertSame($value, CssValue::url($value), "should accept url: {$value}");
+        }
+        foreach ($cases['url_reject'] as $value) {
+            $this->assertSame('', CssValue::url($value), "should reject url: {$value}");
+        }
+    }
+
+    /** Bytes that are not valid UTF-8 fail the `u` match instead of slipping past it. */
+    public function test_rejects_invalid_utf8(): void
+    {
+        $this->assertSame('', CssValue::clean("red\xC3"));
+    }
+
     public function test_rejects_empty_and_non_scalar(): void
     {
         $this->assertSame('', CssValue::clean(null));

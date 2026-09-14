@@ -1,4 +1,5 @@
 import { isToken } from '@/design-system/tokens';
+import { cleanCssUrl, cleanCssValue } from './css-value';
 
 /**
  * The single Blicks style engine — turns the `blicks` value tree into the **class list + inline
@@ -270,7 +271,9 @@ function rawOrToken( category: string | undefined, v: unknown, empty: string ): 
 	if ( category && isToken( category as any, s ) ) {
 		return `var(--blicks-${ category }-${ s })`;
 	}
-	return s;
+	// Mirror of ElementStyle::rawOrToken(): a rejected side falls back to the property's initial
+	// value, since an empty side would invalidate the whole shorthand.
+	return cleanCssValue( s ) || empty;
 }
 
 /**
@@ -299,16 +302,18 @@ function valOrToken( category: string, v: unknown, fallbackCategory?: string ): 
 	if ( fallbackCategory && isToken( fallbackCategory as any, s ) ) {
 		return `var(--blicks-${ fallbackCategory }-${ s })`;
 	}
-	return s;
+	// Mirror of ElementStyle::valOrToken(): `0` for a rejected length.
+	return cleanCssValue( s ) || '0';
 }
 
 type CssValueBuilder = ( value: unknown ) => string;
 
 function imageBuilder( v: unknown ): string {
-	const url = typeof v === 'string' ? v : ( v as any )?.url;
-	const clean = String( url ?? '' ).trim();
-	if ( ! clean ) return '';
-	return `url("${ clean.replace( /["\\]/g, '\\$&' ) }")`;
+	const url = typeof v === 'string' ? v : ( v && typeof v === 'object' ? ( v as any ).url : '' );
+	// Mirror of ElementStyle::imageBuilder(): http(s) or site-relative only, and nothing that could
+	// leave the url("…") it is wrapped in.
+	const clean = cleanCssUrl( url );
+	return clean ? `url("${ clean }")` : '';
 }
 
 function boxShadowBuilder( v: unknown ): string {
@@ -447,7 +452,10 @@ function normalizeContent( raw: unknown ): string {
 	if ( /^(none|normal|inherit|initial|unset|revert|open-quote|close-quote|no-open-quote|no-close-quote)$/i.test( s ) ) {
 		return s;
 	}
-	if ( /^(counter|counters|attr|var|env)\(/i.test( s ) ) return s;
+	// Untyped `attr(name)` yields text in `content`, never a URL — accepted in exactly that shape.
+	if ( /^attr\(\s*[A-Za-z][A-Za-z0-9_-]*\s*\)$/.test( s ) ) return s;
+	// Any other function must validate whole, as ElementStyle::normalizeContent() requires.
+	if ( /^(counter|counters|attr|var|env)\(/i.test( s ) ) return cleanCssValue( s ) ? s : '""';
 	const quoted =
 		s.length >= 2 &&
 		( ( s.startsWith( '"' ) && s.endsWith( '"' ) ) || ( s.startsWith( "'" ) && s.endsWith( "'" ) ) );
@@ -461,65 +469,74 @@ function decorationBuilder( v: unknown ): string {
 	if ( ! v || typeof v !== 'object' ) return '';
 	const d = v as any;
 	if ( d.enabled === false ) return '';
+	// Every value is interpolated into `.bl-{id}::before{ … }`, so each is validated whole and a
+	// failing one is dropped — mirror of ElementStyle::decorationBuilder() / decoPart().
+	const part = ( prop: string, value: unknown ): string => {
+		const clean = cleanCssValue( value );
+		return clean ? `${ prop }:${ clean }` : '';
+	};
 	const parts: string[] = [];
 	parts.push( `content:${ normalizeContent( d.content ) }` );
 	// Pseudo-elements need positioning to behave like overlays/orbs.
-	parts.push( `position:${ String( d.position || 'absolute' ).trim() }` );
+	parts.push( `position:${ cleanCssValue( d.position ?? 'absolute' ) || 'absolute' }` );
 	if ( d.background ) {
-		const bg = typeof d.background === 'object' ? gradientBuilder( d.background ) : String( d.background ).trim();
-		if ( bg ) parts.push( `background:${ bg }` );
+		const bg = typeof d.background === 'object' ? gradientBuilder( d.background ) : d.background;
+		parts.push( part( 'background', bg ) );
 	}
-	if ( d.bgColor ) parts.push( `background-color:${ String( d.bgColor ).trim() }` );
-	if ( d.width  ) parts.push( `width:${ String( d.width ).trim() }` );
-	if ( d.height ) parts.push( `height:${ String( d.height ).trim() }` );
+	parts.push( part( 'background-color', d.bgColor ) );
+	parts.push( part( 'width', d.width ) );
+	parts.push( part( 'height', d.height ) );
 	if ( d.inset !== undefined ) {
 		if ( typeof d.inset === 'object' && d.inset !== null ) {
 			const i = d.inset;
-			parts.push( `top:${ String( i.top ?? 'auto' ) }` );
-			parts.push( `right:${ String( i.right ?? 'auto' ) }` );
-			parts.push( `bottom:${ String( i.bottom ?? 'auto' ) }` );
-			parts.push( `left:${ String( i.left ?? 'auto' ) }` );
+			for ( const side of [ 'top', 'right', 'bottom', 'left' ] ) {
+				parts.push( `${ side }:${ cleanCssValue( i[ side ] ?? 'auto' ) || 'auto' }` );
+			}
 		} else {
-			parts.push( `inset:${ String( d.inset ).trim() }` );
+			parts.push( part( 'inset', d.inset ) );
 		}
 	}
-	if ( d.borderRadius ) parts.push( `border-radius:${ String( d.borderRadius ).trim() }` );
-	if ( d.border ) parts.push( `border:${ String( d.border ).trim() }` );
-	if ( d.padding ) parts.push( `padding:${ String( d.padding ).trim() }` );
+	parts.push( part( 'border-radius', d.borderRadius ) );
+	parts.push( part( 'border', d.border ) );
+	parts.push( part( 'padding', d.padding ) );
 	// Text / centering props — let a pseudo-element act as a badge, label, or numbered marker.
-	if ( d.display ) parts.push( `display:${ String( d.display ).trim() }` );
-	if ( d.alignItems ) parts.push( `align-items:${ String( d.alignItems ).trim() }` );
-	if ( d.justifyContent ) parts.push( `justify-content:${ String( d.justifyContent ).trim() }` );
-	if ( d.color ) parts.push( `color:${ String( d.color ).trim() }` );
-	if ( d.fontSize ) parts.push( `font-size:${ String( d.fontSize ).trim() }` );
-	if ( d.fontWeight ) parts.push( `font-weight:${ String( d.fontWeight ).trim() }` );
-	if ( d.lineHeight ) parts.push( `line-height:${ String( d.lineHeight ).trim() }` );
-	if ( d.letterSpacing ) parts.push( `letter-spacing:${ String( d.letterSpacing ).trim() }` );
-	if ( d.textAlign ) parts.push( `text-align:${ String( d.textAlign ).trim() }` );
-	if ( d.zIndex !== undefined ) parts.push( `z-index:${ String( d.zIndex ).trim() }` );
-	if ( d.blur ) parts.push( `filter:blur(${ String( d.blur ).trim() })` );
-	if ( d.opacity !== undefined ) parts.push( `opacity:${ String( d.opacity ).trim() }` );
-	if ( d.mixBlendMode ) parts.push( `mix-blend-mode:${ String( d.mixBlendMode ).trim() }` );
-	if ( d.transform ) parts.push( `transform:${ String( d.transform ).trim() }` );
-	if ( d.pointerEvents ) parts.push( `pointer-events:${ String( d.pointerEvents ).trim() }` );
-	// Extended box surface — a pseudo-element is a full styleable box. Pure pass-through props
-	// (key → CSS property); kept in lock-step with the PHP mirror in ElementStyle::decorationBuilder.
+	parts.push( part( 'display', d.display ) );
+	parts.push( part( 'align-items', d.alignItems ) );
+	parts.push( part( 'justify-content', d.justifyContent ) );
+	parts.push( part( 'color', d.color ) );
+	parts.push( part( 'font-size', d.fontSize ) );
+	parts.push( part( 'font-weight', d.fontWeight ) );
+	parts.push( part( 'line-height', d.lineHeight ) );
+	parts.push( part( 'letter-spacing', d.letterSpacing ) );
+	parts.push( part( 'text-align', d.textAlign ) );
+	if ( d.zIndex !== undefined && d.zIndex !== null && d.zIndex !== '' ) parts.push( part( 'z-index', d.zIndex ) );
+	if ( d.blur ) {
+		const blur = cleanCssValue( d.blur );
+		if ( blur ) parts.push( `filter:blur(${ blur })` );
+	}
+	if ( d.opacity !== undefined && d.opacity !== null && d.opacity !== '' ) parts.push( part( 'opacity', d.opacity ) );
+	parts.push( part( 'mix-blend-mode', d.mixBlendMode ) );
+	parts.push( part( 'transform', d.transform ) );
+	parts.push( part( 'pointer-events', d.pointerEvents ) );
+	// Extended box surface — a pseudo-element is a full styleable box. Pass-through props
+	// (key → CSS property), each validated whole; kept in lock-step with the PHP mirror.
 	for ( const [ key, prop ] of DECO_EXTRA ) {
 		const val = d[ key ];
 		if ( val !== undefined && val !== null && String( val ).trim() !== '' ) {
-			parts.push( `${ prop }:${ String( val ).trim() }` );
+			parts.push( part( prop, val ) );
 		}
 	}
 	// Vendor-prefixed pairs.
 	if ( d.mask ) {
-		const m = String( d.mask ).trim();
-		parts.push( `-webkit-mask:${ m }`, `mask:${ m }` );
+		const m = cleanCssValue( d.mask );
+		if ( m ) parts.push( `-webkit-mask:${ m }`, `mask:${ m }` );
 	}
 	if ( d.backgroundClip ) {
-		const c = String( d.backgroundClip ).trim();
-		parts.push( `-webkit-background-clip:${ c }`, `background-clip:${ c }` );
+		const c = cleanCssValue( d.backgroundClip );
+		if ( c ) parts.push( `-webkit-background-clip:${ c }`, `background-clip:${ c }` );
 	}
-	return parts.length > 1 ? parts.join( ';' ) : '';
+	const kept = parts.filter( ( p ) => p !== '' );
+	return kept.length > 1 ? kept.join( ';' ) : '';
 }
 
 /** Extended pseudo-element props (pure pass-through key → CSS property). Order is part of the
@@ -603,14 +620,23 @@ export function registerCssValueBuilder( category: string, builder: CssValueBuil
 export function cssValueForCategory( category: string | undefined, v: unknown ): string {
 	const builder = category ? CSS_VALUE_BUILDERS[ category ] : undefined;
 	if ( builder ) {
-		return builder( v );
+		const built = builder( v );
+		return SELF_VALIDATING_CATEGORIES.has( category as string ) ? built : cleanCssValue( built );
 	}
 	const s = String( v ?? '' ).trim();
 	if ( category && isToken( category as any, s ) ) {
 		return `var(--blicks-${ category }-${ s })`;
 	}
-	return s;
+	// Mirror of ElementStyle::cssValueForCategory(): uncategorised values are validated whole.
+	return cleanCssValue( s );
 }
+
+/**
+ * Builders whose output legitimately holds characters cleanCssValue() refuses — `decoration` is a
+ * `key:val;…` body, `image` a `url("…")` — and which validate their own inputs instead. Mirror of
+ * ElementStyle::SELF_VALIDATING_CATEGORIES.
+ */
+const SELF_VALIDATING_CATEGORIES = new Set( [ 'decoration', 'image' ] );
 
 function slotKey( stateKey: string, bpKey: string ): string {
 	return [ stateKey, bpKey ].filter( Boolean ).join( '-' );
@@ -724,7 +750,8 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 					const key = slotKey( stateKey, BP_KEY[ bp ] ?? '' );
 					if ( key ) classes.push( `bl-${ rule.cls }--${ key }` );
 					const suf = key ? `-${ key }` : '';
-					vars[ `${ rule.v }${ suf }` ] = cssValueForCategory( rule.category, value );
+					const css = cssValueForCategory( rule.category, value );
+					if ( css !== '' ) vars[ `${ rule.v }${ suf }` ] = css;
 				}
 			}
 			if ( hasValue ) classes.push( `bl-${ rule.cls }` );
