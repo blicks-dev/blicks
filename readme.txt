@@ -72,14 +72,16 @@ The JavaScript and CSS in the `build/` directory are compiled. The full, human-r
 
 https://github.com/blicks-dev/blicks
 
-To rebuild the plugin from source you need Node.js 20+, pnpm and Composer:
+To rebuild the plugin from source you need Node.js 20+ and pnpm:
 
 1. `git clone https://github.com/blicks-dev/blicks.git && cd blicks`
-2. `composer install --no-dev`
-3. `pnpm install`
-4. `pnpm build` — writes the compiled assets to `build/`.
+2. `pnpm install`
+3. `pnpm build` — writes the compiled assets to `build/`.
 
-The PHP in `src/` is shipped as source and is not compiled.
+The PHP in `src/` is shipped as source and is not compiled. Blicks has no production PHP
+dependencies and bundles no third-party PHP library: it loads its own classes from `blicks.php`,
+so there is no `vendor/` directory in the release. Composer is used only for the development
+tools (PHPUnit, PHP_CodeSniffer), which are never shipped.
 
 == Third-Party Licenses ==
 
