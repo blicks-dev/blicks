@@ -19,6 +19,7 @@ use Blicks\Core\Assets\Asset;
 use Blicks\Core\Plugin as BasePlugin;
 use Blicks\DesignSystem\CssVariables;
 use Blicks\DesignSystem\Keyframes;
+use Blicks\Style\Sanitize;
 
 /**
  * Enqueues the front-end and admin scripts and stylesheets.
@@ -29,11 +30,16 @@ final class AssetServiceProvider extends ServiceProvider {
 	public function enqueueFrontend(): void {
 		$asset = $this->assetManifest( 'index' );
 
-		Asset::script( 'blicks', BasePlugin::url( 'build/index.js' ) )
-			->deps( ...$asset['dependencies'] )
-			->version( $asset['version'] )
-			->footer()
-			->enqueue();
+		// Blocks render as plain HTML and CSS, so the front-end entry is CSS-only and the build
+		// emits no script for it. Enqueue one only if a future entry actually produces JS —
+		// otherwise every page would carry a <script> tag for a file that does not exist.
+		if ( file_exists( BasePlugin::path( 'build/index.js' ) ) ) {
+			Asset::script( 'blicks', BasePlugin::url( 'build/index.js' ) )
+				->deps( ...$asset['dependencies'] )
+				->version( $asset['version'] )
+				->footer()
+				->enqueue();
+		}
 
 		// Vite only emits a CSS file when the entry actually imports styles.
 		if ( file_exists( BasePlugin::path( 'build/index.css' ) ) ) {
@@ -113,7 +119,12 @@ final class AssetServiceProvider extends ServiceProvider {
 
 			Asset::style( 'blicks-admin', BasePlugin::url( 'build/admin.css' ) )
 				->version( $cssVersion )
-				->addInlineStyle( $themeVariables . "\n" . CssVariables::css() . "\n" . Keyframes::css() )
+				// Same `</style` guard the front-end path applies (StyleServiceProvider::172,182).
+				// Nothing here can currently produce one — CssValue::clean() refuses `<` outright —
+				// but the two paths carry the same payload and should not diverge.
+				->addInlineStyle(
+					Sanitize::styleTagContent( $themeVariables . "\n" . CssVariables::css() . "\n" . Keyframes::css() )
+				)
 				->enqueue();
 		}
 	}

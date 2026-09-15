@@ -216,6 +216,15 @@ export default function wpAssets( { blocksDir = 'resources/blocks', generatedHel
 			for ( const [ fileName, chunk ] of Object.entries( bundle ) ) {
 				if ( chunk.type !== 'chunk' || ! chunk.isEntry ) continue;
 
+				// A CSS-only entry (resources/index.js, runtime.js, every block style entry)
+				// compiles to an empty chunk. Shipping it means a <script> tag and an HTTP
+				// request for a file holding a newline, so drop the chunk and its manifest and
+				// let the PHP side treat "no file" as "nothing to enqueue".
+				if ( chunk.code.trim() === '' ) {
+					delete bundle[ fileName ];
+					continue;
+				}
+
 				// 1. dependency manifest (.asset.php)
 				const deps = new Set( [
 					...defaultDeps( chunk.name ),
