@@ -9,6 +9,7 @@
 import { getValue } from '@/framework/values';
 import { tokenOptions } from '@/controls/token-utils';
 import { gradientCss } from '@/controls/color/gradient-css';
+import { cleanCssUrl, cleanCssValue } from '@/framework/css/css-value';
 
 export type Target = 'text' | 'highlight';
 /** One synthetic `blicks` value-tree per target, driven by a `ColorControl` each. */
@@ -63,21 +64,29 @@ function fillFromTree( tree: any ): { paint: string; isImage: boolean; size?: st
 	const color = getValue( synth, 'colors.background', 'default', 'base' ) as string;
 
 	if ( image?.url ) {
+		// This style string is written straight into `post_content` and never passes through the
+		// PHP style engine, so it is the one CSS path that has to validate itself. Same gate as
+		// `CssValue::url()` / `CssValue::clean()` on the block path.
+		const url = cleanCssUrl( image.url );
+		if ( ! url ) return null;
 		return {
-			paint: `url("${ image.url }")`,
+			paint: `url("${ url }")`,
 			isImage: true,
-			size: ( getValue( synth, 'background.size', 'default', 'base' ) as string ) || 'cover',
-			position: ( getValue( synth, 'background.position', 'default', 'base' ) as string ) || 'center',
+			size: cleanCssValue( getValue( synth, 'background.size', 'default', 'base' ) ) || 'cover',
+			position: cleanCssValue( getValue( synth, 'background.position', 'default', 'base' ) ) || 'center',
 		};
 	}
 	// A theme gradient preset is stored as a bare slug; a customised one as a stops object.
 	if ( gradient ) {
-		return {
-			paint: typeof gradient === 'string' ? `var(--blicks-gradient-${ gradient })` : gradientCss( gradient ),
-			isImage: true,
-		};
+		const paint = cleanCssValue(
+			typeof gradient === 'string' ? `var(--blicks-gradient-${ gradient })` : gradientCss( gradient )
+		);
+		return paint ? { paint, isImage: true } : null;
 	}
-	if ( color ) return { paint: toCss( color ), isImage: false };
+	if ( color ) {
+		const paint = cleanCssValue( toCss( color ) );
+		return paint ? { paint, isImage: false } : null;
+	}
 	return null;
 }
 

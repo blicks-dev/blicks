@@ -473,7 +473,7 @@ final class Animations {
 	private const ALLOWED_CUSTOM_PROPERTIES = [ '--bl-p', '--bl-ang' ];
 
 	/** A whitelisted animatable property, or one of the registered custom properties. */
-	private static function property( string $name ): ?string {
+	public static function property( string $name ): ?string {
 		$prop = strtolower( trim( $name ) );
 
 		return in_array( $prop, self::ALLOWED_PROPERTIES, true ) || in_array( $prop, self::ALLOWED_CUSTOM_PROPERTIES, true )
@@ -487,7 +487,7 @@ final class Animations {
 	 * quotes, and only allow-listed CSS functions, so `url()`, `expression()` and escape-encoded
 	 * forms of either are refused. A value that fails is dropped, never partially scrubbed.
 	 */
-	private static function value( string $raw ): string {
+	public static function value( string $raw ): string {
 		$value = CssValue::clean( $raw );
 
 		return mb_strlen( $value ) > self::MAX_VALUE ? '' : $value;

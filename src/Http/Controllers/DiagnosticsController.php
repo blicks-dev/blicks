@@ -26,7 +26,7 @@ use WP_REST_Response;
 final class DiagnosticsController {
 
 	private const MIN_PHP = '8.1';
-	private const MIN_WP = '6.5';
+	private const MIN_WP = '6.6';
 
 	public static function run(): WP_REST_Response {
 		$checks = [
@@ -34,7 +34,6 @@ final class DiagnosticsController {
 			self::blockRegistration(),
 			self::themeJson(),
 			self::globalStyles(),
-			self::interactivity(),
 			self::phpVersion(),
 			self::wpVersion(),
 		];
@@ -55,7 +54,9 @@ final class DiagnosticsController {
 
 	/** @return array{id:string,label:string,detail:string,status:string} */
 	private static function buildAssets(): array {
-		$required = [ 'build/admin.js', 'build/index.js', 'build/blocks' ];
+		// `build/index.js` is deliberately absent: the front-end entry is CSS-only, so the
+		// build emits no chunk for it. The editor bundle is what every block depends on.
+		$required = [ 'build/admin.js', 'build/editor.js', 'build/runtime.css', 'build/blocks' ];
 		$missing = array_values(
 			array_filter(
 				$required,
@@ -159,20 +160,6 @@ final class DiagnosticsController {
 				? __( 'User Global Styles record is present and writable.', 'blicks' )
 				: __( 'User Global Styles record is present but this account cannot edit it.', 'blicks' ),
 			$canEdit ? 'pass' : 'warn'
-		);
-	}
-
-	/** @return array{id:string,label:string,detail:string,status:string} */
-	private static function interactivity(): array {
-		$available = function_exists( 'wp_interactivity' );
-
-		return self::check(
-			'interactivity',
-			__( 'Interactivity API', 'blicks' ),
-			$available
-				? __( 'Available — interactive blocks can run.', 'blicks' )
-				: __( 'Unavailable — the interactive blocks will render but not respond.', 'blicks' ),
-			$available ? 'pass' : 'fail'
 		);
 	}
 

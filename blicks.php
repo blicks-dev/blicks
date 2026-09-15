@@ -9,7 +9,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: blicks
  * Domain Path: /languages
- * Requires at least: 6.5
+ * Requires at least: 6.6
  * Requires PHP: 8.1
  *
  * @package Blicks
