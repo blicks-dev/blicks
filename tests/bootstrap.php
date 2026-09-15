@@ -242,3 +242,144 @@ if (!function_exists('serialize_block')) {
         return '<!-- wp:' . $commentName . ' -->' . $inner . '<!-- /wp:' . $commentName . ' -->';
     }
 }
+
+/**
+ * Recording stubs for the WordPress functions Blicks\Core wraps.
+ *
+ * Each one appends to $GLOBALS['blicks_test_calls'] so a test can assert exactly what the core
+ * classes handed to WordPress. Reset with blicks_test_reset_calls() in setUp().
+ */
+$GLOBALS['blicks_test_calls'] = [];
+
+function blicks_test_reset_calls(): void
+{
+    $GLOBALS['blicks_test_calls'] = [];
+}
+
+/** @return list<array<string, mixed>> */
+function blicks_test_calls(string $function = ''): array
+{
+    $calls = $GLOBALS['blicks_test_calls'] ?? [];
+
+    return '' === $function
+        ? $calls
+        : array_values(array_filter($calls, static fn (array $c): bool => $c['fn'] === $function));
+}
+
+function blicks_test_record(string $function, array $args): void
+{
+    $GLOBALS['blicks_test_calls'][] = ['fn' => $function, 'args' => $args];
+}
+
+if (!function_exists('add_action')) {
+    function add_action(string $hook, callable|array $callback, int $priority = 10, int $args = 1): bool
+    {
+        blicks_test_record('add_action', compact('hook', 'callback', 'priority', 'args'));
+
+        return true;
+    }
+}
+
+if (!function_exists('add_filter')) {
+    function add_filter(string $hook, callable|array $callback, int $priority = 10, int $args = 1): bool
+    {
+        blicks_test_record('add_filter', compact('hook', 'callback', 'priority', 'args'));
+
+        return true;
+    }
+}
+
+if (!function_exists('register_rest_route')) {
+    function register_rest_route(string $namespace, string $route, array $args = []): bool
+    {
+        blicks_test_record('register_rest_route', compact('namespace', 'route', 'args'));
+
+        return true;
+    }
+}
+
+if (!function_exists('wp_enqueue_script')) {
+    function wp_enqueue_script(string $handle, string $src = '', array $deps = [], string|bool|null $ver = null, bool $inFooter = false): void
+    {
+        blicks_test_record('wp_enqueue_script', compact('handle', 'src', 'deps', 'ver', 'inFooter'));
+    }
+}
+
+if (!function_exists('wp_enqueue_style')) {
+    function wp_enqueue_style(string $handle, string $src = '', array $deps = [], string|bool|null $ver = null, string $media = 'all'): void
+    {
+        blicks_test_record('wp_enqueue_style', compact('handle', 'src', 'deps', 'ver', 'media'));
+    }
+}
+
+if (!function_exists('wp_add_inline_style')) {
+    function wp_add_inline_style(string $handle, string $css): bool
+    {
+        blicks_test_record('wp_add_inline_style', compact('handle', 'css'));
+
+        return true;
+    }
+}
+
+if (!function_exists('plugin_dir_path')) {
+    function plugin_dir_path(string $file): string
+    {
+        return rtrim(dirname($file), '/') . '/';
+    }
+}
+
+if (!function_exists('plugin_dir_url')) {
+    function plugin_dir_url(string $file): string
+    {
+        return 'https://example.test/wp-content/plugins/' . basename(dirname($file)) . '/';
+    }
+}
+
+if (!function_exists('plugin_basename')) {
+    function plugin_basename(string $file): string
+    {
+        return basename(dirname($file)) . '/' . basename($file);
+    }
+}
+
+if (!function_exists('register_activation_hook')) {
+    function register_activation_hook(string $file, callable $callback): void
+    {
+        blicks_test_record('register_activation_hook', compact('file', 'callback'));
+    }
+}
+
+if (!function_exists('register_deactivation_hook')) {
+    function register_deactivation_hook(string $file, callable $callback): void
+    {
+        blicks_test_record('register_deactivation_hook', compact('file', 'callback'));
+    }
+}
+
+if (!function_exists('register_uninstall_hook')) {
+    function register_uninstall_hook(string $file, callable $callback): void
+    {
+        blicks_test_record('register_uninstall_hook', compact('file', 'callback'));
+    }
+}
+
+if (!function_exists('_doing_it_wrong')) {
+    function _doing_it_wrong(string $function, string $message, string $version): void
+    {
+        blicks_test_record('_doing_it_wrong', compact('function', 'message', 'version'));
+    }
+}
+
+if (!function_exists('__return_false')) {
+    function __return_false(): bool
+    {
+        return false;
+    }
+}
+
+if (!function_exists('esc_html')) {
+    function esc_html(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}

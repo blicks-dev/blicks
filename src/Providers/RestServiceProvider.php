@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\ServiceProvider;
-use UupCode\Utilities\Attributes\Action;
-use UupCode\Utilities\Http\Rest;
+use Blicks\Core\ServiceProvider;
+use Blicks\Core\Attributes\Action;
+use Blicks\Core\Http\Rest;
 use Blicks\Http\RestArgs;
 use Blicks\Http\Controllers\AnimationsController;
 use Blicks\Http\Controllers\DashboardController;

@@ -13,10 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\ServiceProvider;
-use UupCode\Utilities\Attributes\Action;
-use UupCode\Utilities\Assets\Asset;
-use UupCode\Utilities\Plugin as BasePlugin;
+use Blicks\Core\ServiceProvider;
+use Blicks\Core\Attributes\Action;
+use Blicks\Core\Assets\Asset;
+use Blicks\Core\Plugin as BasePlugin;
 use Blicks\DesignSystem\CssVariables;
 use Blicks\DesignSystem\Keyframes;
 use Blicks\Style\ElementStyle;
