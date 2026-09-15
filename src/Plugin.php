@@ -30,7 +30,7 @@ use Blicks\Settings\AdminSettings;
 final class Plugin {
 
 	private const MIN_PHP = '8.1';
-	private const MIN_WP  = '6.5';
+	private const MIN_WP  = '6.6';
 
 	/**
 	 * Plugins that must be active before this plugin loads.
@@ -96,8 +96,7 @@ final class Plugin {
 
 	/**
 	 * Options this plugin owns. Kept in one place so uninstall cannot drift from what the
-	 * plugin actually writes. The `blicks_hub*` entries are legacy: Blicks Hub was removed
-	 * before 1.0, but an install that ran a pre-release build may still carry them.
+	 * plugin actually writes.
 	 *
 	 * @var list<string>
 	 */
@@ -107,10 +106,6 @@ final class Plugin {
 		'blicks_design_animations',
 		'blicks_design_themes',
 		'blicks_settings_schema_version',
-		'blicks_hub',
-		'blicks_hub_items_schema_version',
-		'blicks_hub_library_last_good',
-		'blicks_hub_library_last_sync',
 	];
 
 	/**
@@ -128,12 +123,11 @@ final class Plugin {
 		global $wpdb;
 
 		if ( is_object( $wpdb ) ) {
-			// Table names are class constants joined to $wpdb->prefix — no user input reaches
+			// Table name is a class constant joined to $wpdb->prefix — no user input reaches
 			// this identifier, and identifiers cannot be bound with prepare().
-			foreach ( [ SettingModel::table(), $wpdb->prefix . 'blicks_hub_items' ] as $table ) {
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Static identifier; DROP TABLE cannot be prepared.
-				$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
-			}
+			$table = SettingModel::table();
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Static identifier; DROP TABLE cannot be prepared.
+			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 		}
 
 		foreach ( self::OWNED_OPTIONS as $option ) {
