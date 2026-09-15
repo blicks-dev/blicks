@@ -6,14 +6,14 @@ namespace Blicks\Tests\Unit\Core;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The shipped plugin has no Composer autoloader: blicks.php registers its own PSR-4 loader for the
- * `Blicks\` prefix. These tests exercise THAT loader, not the one Composer generates for the test
- * run, so a class whose file path does not match its namespace fails here instead of fatally on
- * whichever request first needs it.
+ * Every class ships under one PSR-4 root, `Blicks\` => `src/`, resolved by Composer's autoloader.
+ * These tests check that mapping by hand rather than through Composer's generated classmap, so a
+ * class whose file path does not match its namespace fails here instead of fatally on whichever
+ * request first needs it — a classmap built from the current tree would hide exactly that.
  */
 final class AutoloadTest extends TestCase
 {
-    /** The same mapping blicks.php registers. */
+    /** The PSR-4 mapping composer.json declares, applied literally. */
     private static function resolve(string $class): ?string
     {
         if (! str_starts_with($class, 'Blicks\\')) {
@@ -76,16 +76,28 @@ final class AutoloadTest extends TestCase
         $this->assertNull(self::resolve('Blicks\\NoSuchClass'));
     }
 
-    /** blicks.php must register the loader itself — an uninstall request loads nothing else. */
-    public function test_plugin_file_registers_the_autoloader_before_booting(): void
+    /**
+     * The autoloader must be in place before anything else in blicks.php runs: WordPress includes
+     * this file by itself during an uninstall and then calls the stored callback, so
+     * Blicks\Plugin::uninstall() has to resolve with nothing else loaded.
+     */
+    public function test_plugin_file_loads_the_autoloader_before_booting(): void
     {
         $source = (string) file_get_contents(dirname(__DIR__, 3) . '/blicks.php');
 
-        $this->assertStringNotContainsString('vendor/autoload.php', $source);
         $this->assertLessThan(
-            strpos($source, 'Plugin::boot('),
-            strpos($source, 'spl_autoload_register('),
-            'the autoloader must be registered before Plugin::boot()'
+            strpos($source, "\nPlugin::boot( __FILE__ );"),
+            strpos($source, "require_once __DIR__ . '/vendor/autoload.php'"),
+            'the autoloader must be required before Plugin::boot()'
         );
+    }
+
+    /** The PSR-4 root the tests assume is the one composer.json actually declares. */
+    public function test_composer_maps_the_blicks_namespace_to_src(): void
+    {
+        $composer = json_decode((string) file_get_contents(dirname(__DIR__, 3) . '/composer.json'), true);
+
+        $this->assertSame(['Blicks\\' => 'src/'], $composer['autoload']['psr-4']);
+        $this->assertSame(['php' => '>=8.1'], $composer['require'], 'the plugin must ship no production dependencies');
     }
 }

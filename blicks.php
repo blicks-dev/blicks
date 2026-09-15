@@ -36,27 +36,13 @@ if ( ! defined( 'BLICKS_DOCS_URI' ) ) {
 use Blicks\Plugin;
 
 /**
- * Autoload this plugin's classes.
+ * Composer's autoloader. The plugin has no production dependencies — this maps the `Blicks\`
+ * namespace onto `src/` and nothing else.
  *
- * Registered at file scope, before anything below runs, because WordPress loads this file on its
- * own during an uninstall — `uninstall_plugin()` does `include_once` on the plugin file and then
- * fires the stored callback, so `Blicks\Plugin::uninstall()` has to be resolvable from here alone.
- *
- * The plugin has no production dependencies, so there is no Composer autoloader in the release.
+ * Required at file scope, before Plugin::boot(), because WordPress loads this file on its own
+ * during an uninstall: `uninstall_plugin()` includes it and then fires the stored callback, so
+ * `Blicks\Plugin::uninstall()` has to be resolvable from here alone.
  */
-spl_autoload_register(
-	static function ( string $class ): void {
-		if ( ! str_starts_with( $class, 'Blicks\\' ) ) {
-			return;
-		}
-
-		$relative = str_replace( '\\', '/', substr( $class, strlen( 'Blicks\\' ) ) );
-		$file     = __DIR__ . '/src/' . $relative . '.php';
-
-		if ( is_readable( $file ) ) {
-			require_once $file;
-		}
-	}
-);
+require_once __DIR__ . '/vendor/autoload.php';
 
 Plugin::boot( __FILE__ );

@@ -79,9 +79,9 @@ To rebuild the plugin from source you need Node.js 20+ and pnpm:
 3. `pnpm build` — writes the compiled assets to `build/`.
 
 The PHP in `src/` is shipped as source and is not compiled. Blicks has no production PHP
-dependencies and bundles no third-party PHP library: it loads its own classes from `blicks.php`,
-so there is no `vendor/` directory in the release. Composer is used only for the development
-tools (PHPUnit, PHP_CodeSniffer), which are never shipped.
+dependencies and bundles no third-party PHP library — the `vendor/` directory in the release holds
+only Composer's own class autoloader. Composer is otherwise used just for the development tools
+(PHPUnit, PHP_CodeSniffer), which are never shipped.
 
 == Third-Party Licenses ==
 

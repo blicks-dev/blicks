@@ -21,6 +21,9 @@ const include = [
     'composer.json',
     'build',
     'src',
+    // Composer's autoloader only: the plugin has no production dependencies, so this is
+    // vendor/autoload.php plus vendor/composer/*. Nothing third-party ships here.
+    'vendor',
 ];
 
 // `templates/` is deliberately absent. It holds nothing but a .gitkeep, so listing it here
