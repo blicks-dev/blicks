@@ -54,12 +54,6 @@ const vendorLibraryFiles = new Set([
     'src/ServiceProvider.php',
 ]);
 
-for (const file of vendorLibraryFiles) {
-    if (!fs.existsSync(path.join(rootDir, 'vendor', vendorLibraryRoot, file))) {
-        throw new Error(`Allow-listed vendor file is missing — re-derive the list: vendor/${vendorLibraryRoot}${file}`);
-    }
-}
-
 // PHP reads these from resources/ at runtime by absolute path, so they must ship even though
 // the rest of resources/ is build input. Keep in sync with:
 //   src/Style/Tokens.php · src/Style/Breakpoints.php
@@ -127,6 +121,14 @@ execSync('pnpm i18n:pot:from-build', { stdio: 'inherit', cwd: rootDir });
 // 3. Install production PHP deps
 console.log('\nInstalling production dependencies...');
 execSync('composer install --no-dev --optimize-autoloader', { stdio: 'inherit', cwd: rootDir });
+
+// Verify the vendor allow-list against what composer just installed — before this point (and in
+// CI, before step 3) vendor/ need not exist at all.
+for (const file of vendorLibraryFiles) {
+    if (!fs.existsSync(path.join(rootDir, 'vendor', vendorLibraryRoot, file))) {
+        throw new Error(`Allow-listed vendor file is missing — re-derive the list: vendor/${vendorLibraryRoot}${file}`);
+    }
+}
 
 // 4. Create zip
 fs.mkdirSync(distDir, { recursive: true });
