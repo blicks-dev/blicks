@@ -143,3 +143,41 @@ describe( 'styleToTrees', () => {
 		expect( styleToTrees( '' ) ).toEqual( { text: {}, highlight: {} } );
 	} );
 } );
+
+/**
+ * `buildStyle()` writes a `style` attribute straight into `post_content`. The PHP style engine
+ * never sees it, so unlike every other CSS path in the plugin it has to validate itself — the
+ * readme's "every value is validated whole" claim covers this path too.
+ */
+describe( 'text-style-css: buildStyle validates its values', () => {
+	const base = ( value: any ) => ( { default: { base: value } } );
+
+	it( 'refuses a background image URL that breaks out of url()', () => {
+		const style = buildStyle( trees( { 'background.image': base( { url: 'https://e.com/a.png") ; background:url("https://attacker.example/b.png' } ) } ) );
+		expect( style ).not.toContain( 'attacker.example' );
+	} );
+
+	it( 'refuses javascript: and data: image URLs', () => {
+		for ( const url of [ 'javascript:alert(1)', 'data:text/html;base64,PHN2Zz4=' ] ) {
+			const style = buildStyle( trees( { 'background.image': base( { url } ) } ) );
+			expect( style ).toBe( '' );
+		}
+	} );
+
+	it( 'refuses a colour that would end its own declaration', () => {
+		const style = buildStyle( trees( { 'colors.background': base( 'red;background-image:url(https://attacker.example/c.png)' ) } ) );
+		expect( style ).not.toContain( 'attacker.example' );
+		expect( style ).toBe( '' );
+	} );
+
+	it( 'refuses a highlight colour carrying a closing brace', () => {
+		const style = buildStyle( trees( {}, { 'colors.background': base( '#fff} body{display:none' ) } ) );
+		expect( style ).not.toContain( 'body{' );
+	} );
+
+	it( 'still emits legitimate values', () => {
+		expect( buildStyle( trees( { 'colors.background': base( '#ff0080' ) } ) ) ).toContain( 'color:#ff0080' );
+		const image = buildStyle( trees( { 'background.image': base( { url: 'https://example.com/a.png' } ) } ) );
+		expect( image ).toContain( 'url("https://example.com/a.png")' );
+	} );
+} );
