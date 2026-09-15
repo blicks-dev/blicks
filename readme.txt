@@ -1,7 +1,7 @@
 === Blicks ===
 Contributors: blicks
 Tags: blocks, gutenberg, design system, full site editing
-Requires at least: 6.5
+Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
 Stable tag: 1.0.0
@@ -22,13 +22,14 @@ Blicks tokens (`--blicks-*`) map to WordPress preset variables (`--wp--preset--*
 
 **Output**
 
-Token values become utility classes. Custom values become scoped CSS variables instead of inline styles.
+Token values become utility classes. Custom values become CSS custom properties on the element, and per-instance rules — pseudo-elements, container queries, keyframes — are collected into one stylesheet rather than repeated on every block.
 
 **What's included**
 
 * 12 layout and content blocks, all in one Blicks inserter category
 * A design system admin screen for editing tokens, type roles, breakpoints, and custom keyframe animations
 * Named design themes — save a set of token values, switch between them, or reset back to your theme's defaults
+* An HTML importer that turns pasted markup into Blicks blocks, mapping the inline styles it recognises onto block controls
 * No jQuery and no bundled front-end framework — blocks render as plain HTML and CSS
 
 == Installation ==
@@ -50,11 +51,21 @@ By default, nothing is removed — your tokens, themes, animations, and settings
 
 = Can I add my own CSS, JavaScript, or PHP through Blicks? =
 
-No. There is no stylesheet field, no script field, and no snippet runner. Blicks does not accept CSS rules, selectors, or code of any kind, and it never evaluates anything you type.
+No. There is no stylesheet field, no script field, and no snippet runner. Blicks never evaluates anything you type, and you cannot write a CSS rule, a selector, or an at-rule anywhere in it.
 
-Some controls do take a typed value rather than offering a picker — a length like `800px`, a transform like `translateX(10px)`, a shape like `polygon(0 0, 100% 0, 100% 100%)`. Each of those is the value of one named property that the control itself chooses; you cannot write the property, a selector, or a rule. Every value is validated whole against a closed list of permitted characters and CSS functions before it is used, so a value cannot end its own declaration or start another one. Anything that does not validate is dropped.
+Two places do accept typed input, and both are described below.
+
+Some controls take a typed value rather than offering a picker — a length like `800px`, a transform like `translateX(10px)`, a shape like `polygon(0 0, 100% 0, 100% 100%)`. Each of those is the value of one named property that the control itself chooses; you cannot write the property, a selector, or a rule. Every value is validated whole against a closed list of permitted characters and CSS functions before it is used, so a value cannot end its own declaration or start another one. Anything that does not validate is dropped.
 
 The custom animation editor (**Blicks → Design System → Animations**, administrators only) works the same way. Each keyframe step is a form row: you pick a property from a fixed list of animatable properties (opacity, transform, color and similar), and type its value, which is validated exactly as above. You cannot name any other property, write a selector, or add an at-rule; Blicks generates the `@keyframes` rule and its name itself.
+
+= Can I paste in HTML from somewhere else? =
+
+Yes. **Import HTML** in the editor's options (⋮) menu opens a one-way importer: you paste a block of markup, Blicks maps each element to the closest Blicks block, and inserts the result into the post.
+
+It reads each element's inline `style` attribute only — not `<style>` blocks, not stylesheets, not `<script>`. A declaration is kept only where its property matches an existing Blicks control that takes a plain value; it then becomes an ordinary block attribute, validated exactly like any value you would have typed into that control yourself. Everything else — every property with no matching control, and every structured control that would need reshaping — is dropped, and the import report names each one so nothing is silently discarded.
+
+The pasted text itself is never stored and never rendered. No pasted CSS reaches the front end unvalidated, and pasted `<script>` is parsed as text, never executed.
 
 = Does Blicks let me use my own images as backgrounds? =
 
