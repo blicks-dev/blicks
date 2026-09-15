@@ -148,7 +148,9 @@ jobs:
       fail-fast: false
       matrix:
         # The two versions readme.txt commits to: the "Requires at least" floor and current.
-        wp: [ '6.5', 'latest' ]
+        # Move the floor here whenever readme.txt's changes. Note this suite is PHP-only, so it
+        # cannot see a missing script handle — 6.5 passed here while the editor was dead on it.
+        wp: [ '6.6', 'latest' ]
     steps:
       - uses: actions/checkout@v7
 
