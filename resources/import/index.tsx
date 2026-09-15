@@ -1,7 +1,7 @@
 import { useMemo, useState } from '@wordpress/element';
 import { Modal, Button, TextareaControl } from '@wordpress/components';
 import { BlockPreview } from '@wordpress/block-editor';
-import { createBlock } from '@wordpress/blocks';
+import { createBlock, getBlockType } from '@wordpress/blocks';
 import { useDispatch } from '@wordpress/data';
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginMoreMenuItem } from '@wordpress/editor';
@@ -19,9 +19,20 @@ const ICON = (
 	</svg>
 );
 
-/** Descriptor tree → real blocks (recovery-safe, via createBlock). */
+/**
+ * Descriptor tree → real blocks (recovery-safe, via createBlock).
+ *
+ * `createBlock()` throws for a name no one registered, and this runs inside a render, so an
+ * unmapped tag would take the whole editor down with it rather than failing one import. Any name
+ * the registry does not know degrades to a paragraph carrying whatever text it held.
+ */
 function toBlock( d: BlockDescriptor ): any {
-	return createBlock( d.name, d.attributes, ( d.innerBlocks || [] ).map( toBlock ) );
+	const children = ( d.innerBlocks || [] ).map( toBlock );
+	if ( ! getBlockType( d.name ) ) {
+		const text = String( d.attributes?.content ?? d.attributes?.text ?? '' );
+		return createBlock( 'core/paragraph', text ? { content: text } : {}, children );
+	}
+	return createBlock( d.name, d.attributes, children );
 }
 
 function Report( { report }: { report: ImportReport } ) {
@@ -60,10 +71,18 @@ function ImportModal( { onClose }: { onClose: () => void } ) {
 		}
 	};
 
-	const previewBlocks = useMemo(
-		() => ( result?.blocks?.length ? result.blocks.map( toBlock ) : [] ),
-		[ result ]
-	);
+	// Built here, not in the click handler, so the preview stays in sync with `result` — but
+	// guarded, because a throw during render escapes to the editor's error boundary.
+	const previewBlocks = useMemo( () => {
+		if ( ! result?.blocks?.length ) {
+			return [];
+		}
+		try {
+			return result.blocks.map( toBlock );
+		} catch ( e: any ) {
+			return [];
+		}
+	}, [ result ] );
 
 	const insert = () => {
 		if ( result?.blocks?.length ) {

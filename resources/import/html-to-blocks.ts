@@ -93,11 +93,13 @@ export function pickBlock(
 	if ( t === 'p' ) {
 		return { name: 'blicks/text' };
 	}
+	// Blicks ships no list block, so lists map onto core's — which are always registered, and
+	// which the Blicks controls still apply to through the wrapper.
 	if ( t === 'ul' || t === 'ol' ) {
-		return { name: 'blicks/list', extra: { marker: t === 'ol' ? 'decimal' : 'disc' } };
+		return { name: 'core/list', extra: { ordered: t === 'ol' } };
 	}
 	if ( t === 'li' ) {
-		return { name: 'blicks/list-item' };
+		return { name: 'core/list-item' };
 	}
 	if ( t === 'img' ) {
 		return { name: 'blicks/image' };
@@ -119,7 +121,7 @@ export function pickBlock(
 }
 
 /** Block names that carry their text as `content` (leaf text blocks). */
-const TEXT_BLOCKS = new Set( [ 'blicks/heading', 'blicks/text', 'blicks/button' ] );
+const TEXT_BLOCKS = new Set( [ 'blicks/heading', 'blicks/text', 'blicks/button', 'core/list-item' ] );
 
 /** Browser-only: parse pasted HTML into a Blicks block-tree descriptor + a fidelity report. */
 export function htmlToBlockTree( html: string ): { blocks: BlockDescriptor[]; report: ImportReport } {
