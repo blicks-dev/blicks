@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\ServiceProvider;
-use UupCode\Utilities\Attributes\Action;
-use UupCode\Utilities\Attributes\Filter;
+use Blicks\Core\ServiceProvider;
+use Blicks\Core\Attributes\Action;
+use Blicks\Core\Attributes\Filter;
 
 /**
  * Registers the admin submenu pages and the plugin action links.

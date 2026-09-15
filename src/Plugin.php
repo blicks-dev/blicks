@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\Plugin as BasePlugin;
+use Blicks\Core\Plugin as BasePlugin;
 use Blicks\DesignSystem\Store;
 use Blicks\Providers\HookServiceProvider;
 use Blicks\Providers\RestServiceProvider;

@@ -13,14 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\Database\Model;
-
 /**
  * Table-backed, cached store for the plugin's settings.
  */
-final class SettingModel extends Model {
+final class SettingModel {
 
-	protected static string $table = 'blicks_settings';
+	private const TABLE = 'blicks_settings';
 
 	private const CACHE_GROUP = 'blicks_settings';
 	private const NOT_FOUND = '__blicks_setting_not_found__';
@@ -29,6 +27,13 @@ final class SettingModel extends Model {
 
 	/** @var array<string, mixed> */
 	private static array $runtimeCache = [];
+
+	/** This model's prefixed table name. */
+	public static function table(): string {
+		global $wpdb;
+
+		return $wpdb->prefix . self::TABLE;
+	}
 
 	public static function install(): void {
 		self::createTable();

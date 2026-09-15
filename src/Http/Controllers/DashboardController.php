@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\Plugin as BasePlugin;
+use Blicks\Core\Plugin as BasePlugin;
 use Blicks\DesignSystem\DesignThemes;
 use Blicks\Settings\AdminSettings;
 use WP_REST_Response;

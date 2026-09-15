@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use UupCode\Utilities\ServiceProvider;
-use UupCode\Utilities\Attributes\Action;
+use Blicks\Core\ServiceProvider;
+use Blicks\Core\Attributes\Action;
 
 /**
  * Registers the plugin's general-purpose WordPress hooks.

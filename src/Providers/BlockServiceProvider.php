@@ -17,9 +17,9 @@ use Blicks\DesignSystem\Catalogue;
 use Blicks\DesignSystem\ThemeProjection;
 use Blicks\DesignSystem\Animations;
 use Blicks\Settings\AdminSettings;
-use UupCode\Utilities\ServiceProvider;
-use UupCode\Utilities\Attributes\Action;
-use UupCode\Utilities\Plugin as BasePlugin;
+use Blicks\Core\ServiceProvider;
+use Blicks\Core\Attributes\Action;
+use Blicks\Core\Plugin as BasePlugin;
 
 /**
  * Registers every Blicks block and enqueues its editor and base styles.
