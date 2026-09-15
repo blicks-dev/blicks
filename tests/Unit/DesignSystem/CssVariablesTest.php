@@ -25,7 +25,29 @@ final class CssVariablesTest extends TestCase
         $this->assertStringContainsString(':root {', $css);
         $this->assertStringContainsString('--blicks-color-primary: #18181b;', $css);
         $this->assertStringContainsString('--blicks-spacing-md: 1rem;', $css);
-        $this->assertStringContainsString('--blicks-color-badname: red color: blue;', $css);
+        // An unsafe value is dropped whole, not scrubbed into a forged declaration body.
+        $this->assertStringNotContainsString('--blicks-color-badname', $css);
+        $this->assertStringNotContainsString('color: blue', $css);
+    }
+
+    /** A token value cannot load a resource, including through CSS escape sequences. */
+    public function test_css_drops_values_that_load_resources_or_use_escapes(): void
+    {
+        $css = CssVariables::css([
+            'values' => [
+                'color' => [
+                    'a' => 'url(https://attacker.example/a.png)',
+                    'b' => '\75rl(https://attacker.example/b.png)',
+                    'c' => '@\69mport "https://attacker.example/c.css"',
+                    'd' => 'red} body{background:red',
+                    'ok' => 'color-mix(in srgb, #fff 50%, transparent)',
+                ],
+            ],
+        ]);
+
+        $this->assertStringNotContainsString('attacker.example', $css);
+        $this->assertStringNotContainsString('body{', $css);
+        $this->assertStringContainsString('--blicks-color-ok: color-mix(in srgb, #fff 50%, transparent);', $css);
     }
 
     public function test_css_emits_type_role_aliases_for_all_roles_and_preserves_clamp(): void

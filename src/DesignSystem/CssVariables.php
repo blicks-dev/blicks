@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\CssValue;
+
 /**
  * Renders a token snapshot to `--blicks-*` CSS custom properties.
  */
@@ -87,10 +89,12 @@ final class CssVariables {
 		return $stripped ? $stripped : '';
 	}
 
+	/**
+	 * A token value is validated whole against the style engine's allow-list and dropped when it
+	 * fails, never scrubbed: stripping `;` from `red; color: blue` still left a forged declaration
+	 * body, and a character denylist cannot see `url(` or a CSS escape like `\75rl(`.
+	 */
 	private static function sanitizeValue( string $value ): string {
-		$value = trim( $value );
-		$value = preg_replace( '/[\x00-\x1F\x7F]/', '', $value ) ?? '';
-
-		return str_replace( [ ';', '{', '}', '<', '>' ], '', $value );
+		return CssValue::clean( $value );
 	}
 }

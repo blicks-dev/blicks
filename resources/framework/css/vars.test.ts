@@ -289,7 +289,8 @@ describe( 'buildElementStyle', () => {
 			'effects.boxShadow': { default: { base: 'md', tablet: 'bogus' } },
 		} );
 		expect( vars[ '--bl-bsh' ] ).toBe( 'var(--blicks-shadow-md)' );
-		expect( vars[ '--bl-bsh-tab' ] ).toBe( '' );
+		// Mirror of PHP blockProps(): an empty value writes no var at all.
+		expect( vars[ '--bl-bsh-tab' ] ).toBeUndefined();
 	} );
 
 	it( 'resolves transition/transform/filter token slugs to alias vars', () => {
@@ -373,9 +374,67 @@ describe( 'buildElementStyle', () => {
 	} );
 
 	it( 'allows a builder category to be registered with one function', () => {
-		registerCssValueBuilder( 'echoTest', ( value ) => `echo(${ String( value ) })` );
+		registerCssValueBuilder( 'blurTest', ( value ) => `blur(${ String( value ) })` );
 
-		expect( cssValueForCategory( 'echoTest', 'ok' ) ).toBe( 'echo(ok)' );
+		expect( cssValueForCategory( 'blurTest', '4px' ) ).toBe( 'blur(4px)' );
+	} );
+
+	// Mirror of ElementStyleTest::test_registered_builder_output_is_validated().
+	it( 'validates registered builder output like any other value', () => {
+		registerCssValueBuilder( 'blurTest', ( value ) => `blur(${ String( value ) })` );
+
+		expect( cssValueForCategory( 'blurTest', '4px); background:url(https://attacker.example/x.png' ) ).toBe( '' );
+	} );
+
+	// Mirrors of tests/Unit/Style/StyleInjectionTest.php — the editor canvas renders these rules for
+	// whoever opens the post, so a contributor's value must not escape them here either.
+	describe( 'CSS injection (editor mirror of the PHP gate)', () => {
+		const scoped = ( blicks: any ) => buildElementStyle( blicks, { uniqueId: 'abc12345' } ).scopedCss?.join( '' ) ?? '';
+
+		it( 'drops a decoration value that would close its rule', () => {
+			const css = scoped( {
+				'decoration.before': { default: { base: { enabled: true, content: 'x', width: '1px}body{background:url(//attacker.example/w.png)' } } },
+			} );
+			expect( css ).not.toContain( 'attacker.example' );
+			expect( css.split( '{' ) ).toHaveLength( 2 );
+		} );
+
+		it( 'ignores a bare-string decoration', () => {
+			expect( scoped( {
+				'decoration.before': { default: { base: "content:''}body{background:red" } },
+			} ) ).toBe( '' );
+		} );
+
+		it( 'strips a newline that would end the content string', () => {
+			const css = scoped( {
+				'decoration.before': { default: { base: { enabled: true, content: 'a\n}body{x:y}' } } },
+			} );
+			expect( css ).not.toMatch( /[\n\r\f]/ );
+			expect( css ).toContain( 'content:"a}body{x:y}"' );
+		} );
+
+		it( 'validates a content function whole, keeping untyped attr()', () => {
+			expect( scoped( {
+				'decoration.before': { default: { base: { enabled: true, content: 'var(--a); color:red' } } },
+			} ) ).toContain( 'content:""' );
+			expect( scoped( {
+				'decoration.before': { default: { base: { enabled: true, content: 'attr(data-label)' } } },
+			} ) ).toContain( 'content:attr(data-label)' );
+		} );
+
+		it( 'drops an uncategorised value that forges a declaration', () => {
+			const { vars } = buildElementStyle( {
+				'typography.letterSpacing': { default: { base: '1px; background:url(https://attacker.example/ls.png)' } },
+			} );
+			expect( Object.values( vars ).join( '' ) ).not.toContain( 'attacker.example' );
+		} );
+
+		it( 'refuses a background image that is not http(s) or site-relative', () => {
+			for ( const url of [ 'javascript:alert(1)', 'https://a.example/x.png") ; background:url("https://attacker.example/b.png' ] ) {
+				const { vars } = buildElementStyle( { 'background.image': { default: { base: url } } } );
+				expect( Object.values( vars ).join( '' ) ).not.toMatch( /javascript|attacker/ );
+			}
+		} );
 	} );
 
 	// Wave B parity fixtures — each new prop must emit the same string in PHP (ElementStyleTest).

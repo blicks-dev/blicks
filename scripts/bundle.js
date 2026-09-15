@@ -29,6 +29,31 @@ const include = [
 // removed. Add it back the moment something actually ships from it.
 
 
+// uupcode/utilities is a general toolkit; Blicks loads 14 of its classes. Ship only those. The rest
+// (Debug, Http\Request, Http\Ajax, Mail, Cron, …) is never called, but it would still ship, and it
+// holds debug output and raw request reads that Plugin Check flags in any file in the zip. Classes
+// autoload by name, so an unshipped file costs nothing unless something references it — which is
+// why this list is the transitive closure of what src/ uses. Re-derive it after a library upgrade.
+const vendorLibraryRoot = 'uupcode/utilities/';
+const vendorLibraryFiles = new Set([
+    'composer.json',
+    'LICENSE',
+    'src/Assets/Asset.php',
+    'src/Assets/ScriptAsset.php',
+    'src/Assets/StyleAsset.php',
+    'src/Attributes/Action.php',
+    'src/Attributes/Filter.php',
+    'src/Database/DB.php',
+    'src/Database/Expression.php',
+    'src/Database/Model.php',
+    'src/Database/QueryBuilder.php',
+    'src/Hook.php',
+    'src/Http/Rest.php',
+    'src/Http/RestRoute.php',
+    'src/Plugin.php',
+    'src/ServiceProvider.php',
+]);
+
 // PHP reads these from resources/ at runtime by absolute path, so they must ship even though
 // the rest of resources/ is build input. Keep in sync with:
 //   src/Style/Tokens.php · src/Style/Breakpoints.php
@@ -97,6 +122,14 @@ execSync('pnpm i18n:pot:from-build', { stdio: 'inherit', cwd: rootDir });
 console.log('\nInstalling production dependencies...');
 execSync('composer install --no-dev --optimize-autoloader', { stdio: 'inherit', cwd: rootDir });
 
+// Verify the vendor allow-list against what composer just installed — before this point (and in
+// CI, before step 3) vendor/ need not exist at all.
+for (const file of vendorLibraryFiles) {
+    if (!fs.existsSync(path.join(rootDir, 'vendor', vendorLibraryRoot, file))) {
+        throw new Error(`Allow-listed vendor file is missing — re-derive the list: vendor/${vendorLibraryRoot}${file}`);
+    }
+}
+
 // 4. Create zip
 fs.mkdirSync(distDir, { recursive: true });
 
@@ -113,11 +146,16 @@ for (const entry of include) {
     }
 
     fs.statSync(abs).isDirectory()
-        ? archive.directory(abs, `${slug}/${entry}`, entryData =>
+        ? archive.directory(abs, `${slug}/${entry}`, entryData => {
             // Belt and braces: even inside an allowlisted directory, never ship OS cruft or
             // git placeholder files (.gitkeep) — wordpress.org's Plugin Check rejects any
             // dotfile in the zip.
-            /(^|\/)\./.test(entryData.name) ? false : entryData)
+            if (/(^|\/)\./.test(entryData.name)) return false;
+            if (entry === 'vendor' && entryData.name.startsWith(vendorLibraryRoot)) {
+                return vendorLibraryFiles.has(entryData.name.slice(vendorLibraryRoot.length)) ? entryData : false;
+            }
+            return entryData;
+        })
         : archive.file(abs, { name: `${slug}/${entry}` });
 }
 

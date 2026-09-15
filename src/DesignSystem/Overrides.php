@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\CssValue;
+
 /**
  * Validates and normalises user-supplied token overrides.
  */
@@ -38,6 +40,51 @@ final class Overrides {
 			'breakpoints' => self::sanitizeBreakpoints( $payload['breakpoints'] ?? [], $breakpoints ),
 			'typeRoles' => self::sanitizeTypeRoles( $payload['typeRoles'] ?? [], $catalogue ),
 		];
+	}
+
+	/**
+	 * Dotted paths of every value the caller submitted that {@see self::sanitize()} did not keep —
+	 * `tokens.color.primary`, `typeRoles.h1.fontFamily`, `breakpoints.tablet`. Lets the save
+	 * endpoint tell the user which inputs were refused instead of reporting a clean save while the
+	 * field quietly snaps back. An empty submitted value is a deliberate clear, not a rejection.
+	 *
+	 * @param array<string, mixed> $payload
+	 * @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} $sanitized
+	 * @return list<string>
+	 */
+	public static function rejectedPaths( array $payload, array $sanitized ): array {
+		$rejected = [];
+
+		foreach ( [ 'tokens', 'typeRoles' ] as $group ) {
+			$submitted = is_array( $payload[ $group ] ?? null ) ? $payload[ $group ] : [];
+			foreach ( $submitted as $outer => $values ) {
+				if ( ! is_array( $values ) ) {
+					continue;
+				}
+				foreach ( $values as $inner => $value ) {
+					if ( null === $value || '' === $value ) {
+						continue;
+					}
+					$outerKey = self::slugKey( $outer );
+					$innerKey = self::slugKey( $inner );
+					if ( null === $outerKey || null === $innerKey || ! isset( $sanitized[ $group ][ $outerKey ][ $innerKey ] ) ) {
+						$rejected[] = $group . '.' . $outer . '.' . $inner;
+					}
+				}
+			}
+		}
+
+		$breakpoints = is_array( $payload['breakpoints'] ?? null ) ? $payload['breakpoints'] : [];
+		foreach ( $breakpoints as $id => $max ) {
+			if ( null === $max || '' === $max ) {
+				continue;
+			}
+			if ( ! is_string( $id ) || ! isset( $sanitized['breakpoints'][ $id ] ) ) {
+				$rejected[] = 'breakpoints.' . $id;
+			}
+		}
+
+		return $rejected;
 	}
 
 	/**
@@ -304,8 +351,10 @@ final class Overrides {
 			return null;
 		}
 
-		$stripped = preg_replace( '/[\x00-\x1F\x7F]/', '', $value );
+		// Same whole-value allow-list the renderer applies, so an unsafe value is refused at save
+		// time instead of being stored and silently dropped from the page later.
+		$clean = CssValue::clean( $value );
 
-		return $stripped ? $stripped : null;
+		return '' !== $clean ? $clean : null;
 	}
 }

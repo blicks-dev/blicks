@@ -11,6 +11,7 @@
  */
 
 import tokenCatalogue from '@/design-system/tokens.json';
+import { cleanCssValue } from '@/framework/css/css-value';
 
 /**
  * Every token category the snapshot can carry, derived from the shared catalogue
@@ -85,6 +86,12 @@ export function titleCase( value: string ): string {
 		.split( '-' )
 		.map( part => part.charAt( 0 ).toUpperCase() + part.slice( 1 ) )
 		.join( ' ' );
+}
+
+/** Paths the save endpoint refused (see Overrides::rejectedPaths() in PHP), or `[]`. */
+export function rejectedPaths( value: unknown ): string[] {
+	const list = ( value as { rejected?: unknown } | null )?.rejected;
+	return Array.isArray( list ) ? list.filter( ( item ): item is string => typeof item === 'string' ) : [];
 }
 
 /** Strict-shape the API snapshot; null means "not a usable snapshot". */
@@ -395,14 +402,17 @@ export function buildTypeRolePreview(
 	return blocks.join( '\n' );
 }
 
-// Mirrors the conservative sanitization in src/DesignSystem/CssVariables.php.
+// Mirrors the sanitization in src/DesignSystem/CssVariables.php.
 function sanitizeCssName( value: string ): string {
 	return value.replace( /[^a-zA-Z0-9_-]/g, '' );
 }
 
+/**
+ * Whole-value allow-list, dropped on failure — the same CssValue rule CssVariables.php applies, so
+ * the preview never shows a value the save would reject or the front end would never render.
+ */
 function sanitizeCssValue( value: string ): string {
-	// eslint-disable-next-line no-control-regex
-	return value.trim().replace( /[\x00-\x1F\x7F]/g, '' ).replace( /[;{}<>]/g, '' );
+	return cleanCssValue( value );
 }
 
 /** WP ColorPicker (enableAlpha) emits #rrggbbaa — convert to a usable CSS value. */

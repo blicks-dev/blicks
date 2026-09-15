@@ -113,4 +113,26 @@ final class DesignThemesTest extends TestCase
         $this->assertFalse($reset['edited']);
         $this->assertSame([], $reset['tokens']['tokens']);
     }
+
+    /**
+     * Creating or re-snapshotting a theme is a write path like Save: unknown categories and values
+     * that are not valid CSS must not be stored and made active.
+     */
+    public function test_create_and_update_validate_token_values(): void
+    {
+        $hostile = 'red;}body{background:url(https://attacker.example/x.png)}';
+        $created = DesignThemes::create('Hostile', [
+            'tokens' => ['color' => ['primary' => $hostile, 'accent' => '#00ff00'], 'notACategory' => ['x' => 'y']],
+            'typeRoles' => ['bogusRole' => ['bogusProp' => $hostile]],
+        ]);
+        $theme = $created['themes'][count($created['themes']) - 1];
+
+        $this->assertSame(['color' => ['accent' => '#00ff00']], $theme['tokens']['tokens']);
+        $this->assertSame([], $theme['tokens']['typeRoles']);
+        $this->assertStringNotContainsString('attacker.example', (string) wp_json_encode($GLOBALS['wp_options']));
+
+        $updated = DesignThemes::update($theme['id'], null, ['tokens' => ['color' => ['primary' => $hostile]]]);
+        $this->assertSame([], DesignThemes::find($theme['id'])['tokens']['tokens']);
+        $this->assertNotEmpty($updated['themes']);
+    }
 }

@@ -55,8 +55,12 @@ final class CssValue {
 	 *
 	 * `[` and `]` are permitted: grid line names (`[col-start]`) need them and neither can
 	 * terminate a declaration or a rule block.
+	 *
+	 * Non-ASCII code points are permitted: theme font stacks name families such as `メイリオ`, and
+	 * no character above U+007F can end a string, a declaration or a rule. The `u` flag makes a
+	 * value that is not valid UTF-8 fail the match outright.
 	 */
-	private const ALLOWED_CHARS = '/^[A-Za-z0-9 \t.,%#+\-*\/()_\[\]=\'"]*$/';
+	private const ALLOWED_CHARS = '/^[A-Za-z0-9 \t.,%#+\-*\/()_\[\]=\'"\x{80}-\x{10FFFF}]*$/u';
 
 	/** CSS functions the engine is allowed to emit. Anything else fails the whole value. */
 	private const ALLOWED_FUNCTIONS = [
@@ -68,7 +72,8 @@ final class CssValue {
 		'max',
 		'minmax',
 		'env',
-		'attr',
+		// `attr()` is deliberately absent. Typed `attr(data-x url)` reads a URL from an attribute
+		// the author also controls, bypassing url(). `content` accepts the untyped form separately.
 		'counter',
 		'counters',
 		// Colour.
@@ -83,6 +88,7 @@ final class CssValue {
 		'oklch',
 		'color',
 		'color-mix',
+		'light-dark',
 		// Gradients.
 		'linear-gradient',
 		'radial-gradient',
@@ -181,7 +187,7 @@ final class CssValue {
 		if ( str_contains( $s, '/*' ) || str_contains( $s, '*/' ) ) {
 			return '';
 		}
-		if ( substr_count( $s, '"' ) % 2 !== 0 || substr_count( $s, "'" ) % 2 !== 0 ) {
+		if ( ! self::quotesClose( $s ) ) {
 			return '';
 		}
 		if ( ! self::parensBalance( $s ) ) {
@@ -267,6 +273,34 @@ final class CssValue {
 		}
 
 		return 0 === $depth;
+	}
+
+	/**
+	 * True when every string the value opens is closed again.
+	 *
+	 * Counting each quote character separately is not enough: `"'"'` holds two of each, yet the
+	 * tokenizer reads `"'"` as a string and the final `'` as the start of one that never ends —
+	 * swallowing every rule after it in the shared stylesheet. Scan the way the tokenizer does: inside
+	 * a string only its own quote closes it (backslash escapes are already refused by ALLOWED_CHARS).
+	 */
+	private static function quotesClose( string $s ): bool {
+		$open   = '';
+		$length = strlen( $s );
+
+		for ( $i = 0; $i < $length; $i++ ) {
+			$c = $s[ $i ];
+			if ( '' !== $open ) {
+				if ( $c === $open ) {
+					$open = '';
+				}
+				continue;
+			}
+			if ( '"' === $c || "'" === $c ) {
+				$open = $c;
+			}
+		}
+
+		return '' === $open;
 	}
 
 	/** True when every function call in the value names an allow-listed function. */

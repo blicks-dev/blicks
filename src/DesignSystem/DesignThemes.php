@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\Breakpoints;
+
 /**
  * Named local design themes — user-owned snapshots of token overrides applied on top of the
  * theme.json projection. These live in the
@@ -147,7 +149,7 @@ final class DesignThemes {
 		$state['custom'][] = [
 			'id' => self::generateId(),
 			'name' => $name,
-			'tokens' => self::sanitizeTokens( $tokens ),
+			'tokens' => self::validateTokens( $tokens ),
 		];
 		$state['active'] = $state['custom'][ count( $state['custom'] ) - 1 ]['id'];
 		self::persist( $state );
@@ -171,7 +173,7 @@ final class DesignThemes {
 				$theme['name'] = self::sanitizeName( $name );
 			}
 			if ( null !== $tokens ) {
-				$theme['tokens'] = self::sanitizeTokens( $tokens );
+				$theme['tokens'] = self::validateTokens( $tokens );
 			}
 			break;
 		}
@@ -403,6 +405,19 @@ final class DesignThemes {
 	 */
 	private static function sanitizeTokens( array $tokens ): array {
 		return Overrides::normalize( $tokens );
+	}
+
+	/**
+	 * Validate an incoming token payload before it is stored: known categories and slugs only, and
+	 * every value through the same whole-value allow-list as the design-system save path. Reads use
+	 * {@see self::sanitizeTokens()} (shape only), because stored bags were validated on the way in
+	 * and are re-validated again when rendered to CSS.
+	 *
+	 * @param array<string, mixed> $tokens
+	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
+	 */
+	private static function validateTokens( array $tokens ): array {
+		return Overrides::sanitize( $tokens, Catalogue::catalogue(), Breakpoints::defaults() );
 	}
 
 	/** @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} */

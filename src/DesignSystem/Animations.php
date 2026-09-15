@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Style\CssValue;
+
 /**
  * The user-defined keyframe library.
  *
@@ -269,23 +271,26 @@ final class Animations {
 			];
 		}
 
-		$existing = self::all();
+		// Work on the stored records, not the validated view: a record that no longer validates is
+		// hidden from the library and the stylesheet, but saving a different animation must not be
+		// what erases it for good.
+		$stored = self::stored();
 		$isRename = '' !== $originalSlug && $originalSlug !== $clean['slug'];
 
-		foreach ( $existing as $animation ) {
-			if ( $animation['slug'] === $clean['slug'] && ( '' === $originalSlug || $isRename ) ) {
+		foreach ( $stored as $animation ) {
+			if ( self::slugOf( $animation ) === $clean['slug'] && ( '' === $originalSlug || $isRename ) ) {
 				return [
 					'ok' => false,
 					'error' => 'duplicate',
-					'animations' => $existing,
+					'animations' => self::all(),
 				];
 			}
 		}
 
 		$replaced = false;
 		$next = [];
-		foreach ( $existing as $animation ) {
-			if ( ( '' !== $originalSlug ? $originalSlug : $clean['slug'] ) === $animation['slug'] ) {
+		foreach ( $stored as $animation ) {
+			if ( ( '' !== $originalSlug ? $originalSlug : $clean['slug'] ) === self::slugOf( $animation ) ) {
 				$next[] = $clean;
 				$replaced = true;
 				continue;
@@ -298,7 +303,7 @@ final class Animations {
 				return [
 					'ok' => false,
 					'error' => 'limit',
-					'animations' => $existing,
+					'animations' => self::all(),
 				];
 			}
 			$next[] = $clean;
@@ -308,7 +313,7 @@ final class Animations {
 
 		return [
 			'ok' => true,
-			'animations' => $next,
+			'animations' => self::all(),
 		];
 	}
 
@@ -316,14 +321,31 @@ final class Animations {
 	public static function delete( string $slug ): array {
 		$next = array_values(
 			array_filter(
-				self::all(),
-				static fn ( array $animation ): bool => $animation['slug'] !== $slug
+				self::stored(),
+				static fn ( array $animation ): bool => self::slugOf( $animation ) !== $slug
 			)
 		);
 
 		self::persist( $next );
 
-		return $next;
+		return self::all();
+	}
+
+	/**
+	 * The raw stored records, shape-checked only. Writes go through this so that tightening
+	 * validation never deletes data as a side effect; {@see self::all()} is what reads and renders.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private static function stored(): array {
+		$raw = function_exists( 'get_option' ) ? get_option( self::OPTION, [] ) : [];
+
+		return is_array( $raw ) ? array_values( array_filter( $raw, 'is_array' ) ) : [];
+	}
+
+	/** @param array<string,mixed> $animation */
+	private static function slugOf( array $animation ): string {
+		return is_string( $animation['slug'] ?? null ) ? $animation['slug'] : '';
 	}
 
 	/** @param list<array<string,mixed>> $animations */
@@ -443,32 +465,30 @@ final class Animations {
 		return $out;
 	}
 
-	/** A whitelisted animatable property, or one of our own `--bl-*` custom properties. */
+	/**
+	 * Custom properties a keyframe may animate: exactly the ones runtime.scss registers with
+	 * `@property` (an unregistered custom property cannot interpolate). A named list, not a `--bl-*`
+	 * prefix, so the property is always one this plugin chose.
+	 */
+	private const ALLOWED_CUSTOM_PROPERTIES = [ '--bl-p', '--bl-ang' ];
+
+	/** A whitelisted animatable property, or one of the registered custom properties. */
 	private static function property( string $name ): ?string {
 		$prop = strtolower( trim( $name ) );
 
-		if ( str_starts_with( $prop, '--bl-' ) ) {
-			return 1 === preg_match( '/^--bl-[a-z0-9-]{1,40}$/', $prop ) ? $prop : null;
-		}
-
-		return in_array( $prop, self::ALLOWED_PROPERTIES, true ) ? $prop : null;
+		return in_array( $prop, self::ALLOWED_PROPERTIES, true ) || in_array( $prop, self::ALLOWED_CUSTOM_PROPERTIES, true )
+			? $prop
+			: null;
 	}
 
 	/**
-	 * Values are whitelisted by shape rather than blocklisted: no braces (cannot close the rule),
-	 * no `<` (cannot close a `<style>`), no `url(`/`@`/script schemes (cannot fetch or execute),
-	 * no comment markers (cannot smuggle past the parser).
+	 * A value is validated whole against the style engine's allow-list ({@see CssValue::clean()}):
+	 * permitted characters only — no `;` `{` `}` `<` `>` `\` `@` `:` — balanced parentheses and
+	 * quotes, and only allow-listed CSS functions, so `url()`, `expression()` and escape-encoded
+	 * forms of either are refused. A value that fails is dropped, never partially scrubbed.
 	 */
 	private static function value( string $raw ): string {
-		$value = trim( (string) preg_replace( '/[\x00-\x1F\x7F]/', '', $raw ) );
-		$value = str_replace( [ '{', '}', ';', '<', '>', '\\' ], '', $value );
-		$value = (string) preg_replace( '#/\*|\*/#', '', $value );
-
-		if ( 1 === preg_match( '/url\s*\(|expression\s*\(|(?:javascript|vbscript|data)\s*:|@import|behavior\s*:|-moz-binding/i', $value ) ) {
-			return '';
-		}
-
-		$value = trim( $value );
+		$value = CssValue::clean( $raw );
 
 		return mb_strlen( $value ) > self::MAX_VALUE ? '' : $value;
 	}

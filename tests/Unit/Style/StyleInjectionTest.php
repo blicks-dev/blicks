@@ -159,6 +159,43 @@ final class StyleInjectionTest extends TestCase
         $this->assertStringContainsString('content:""', $css);
     }
 
+    /**
+     * `decoration` skips the engine's whole-value check because it validates each of its own
+     * values — but a bare string skipped that too and was written into the rule verbatim.
+     */
+    public function test_decoration_string_cannot_write_the_rule_body(): void
+    {
+        $css = $this->scoped([
+            'decoration.before' => ['default' => ['base' =>
+                "content:''}body{background:url(https://attacker.example/s.png)",
+            ]],
+        ]);
+
+        $this->assertStringNotContainsString('attacker.example', $css);
+        $this->assertStringNotContainsString('body{', $css);
+    }
+
+    /**
+     * A newline ends a CSS string early, so the `}` after it closed the `::before` rule even
+     * though quotes and backslashes were escaped.
+     */
+    public function test_content_newline_cannot_end_the_string_and_close_the_rule(): void
+    {
+        foreach (["\n", "\r", "\f", "\x0B"] as $break) {
+            ScopedCss::reset();
+            $css = $this->scoped([
+                'decoration.before' => ['default' => ['base' => [
+                    'enabled' => true,
+                    'content' => "a{$break}}body{background:url(https://attacker.example/n.png)}",
+                ]]],
+            ]);
+
+            // With the break gone the braces sit inside one unbroken string, where they are text.
+            $this->assertDoesNotMatchRegularExpression('/[\x00-\x1F\x7F]/', $css);
+            $this->assertStringContainsString('content:"a}body{background:url(https://attacker.example/n.png)}"', $css);
+        }
+    }
+
     /** A whole, balanced `var()` in content is legitimate and must survive. */
     public function test_content_accepts_a_whole_var_function(): void
     {
@@ -205,5 +242,41 @@ final class StyleInjectionTest extends TestCase
 
         $ok = $this->style(['background.image' => ['default' => ['base' => 'https://example.com/a.png']]]);
         $this->assertStringContainsString('--bl-bg-img:url("https://example.com/a.png")', $ok);
+    }
+
+    /**
+     * `"'"'` holds two of each quote, so a per-character parity count passed it, but the last `'`
+     * opens a string that never closes and swallows every later block's rule in the shared sheet.
+     */
+    public function test_unclosed_string_cannot_swallow_later_rules(): void
+    {
+        ElementStyle::blockProps([
+            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'x', 'color' => "\"'\"'"]]],
+        ], 'attacker1', 'box');
+        ElementStyle::blockProps([
+            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'Victim', 'width' => '11px']]],
+        ], 'victim01', 'box');
+        $css = ScopedCss::css();
+
+        $this->assertStringNotContainsString("\"'\"'", $css);
+        $this->assertStringContainsString('.bl-victim01::before{content:"Victim";position:absolute;width:11px}', $css);
+    }
+
+    /**
+     * Typed `attr(data-m url)` would read a URL from a custom attribute the same author sets,
+     * skipping CssValue::url(). Only untyped `attr(name)` in `content` survives.
+     */
+    public function test_attr_cannot_smuggle_a_url_from_a_custom_attribute(): void
+    {
+        $style = $this->style([
+            'effects.mask' => ['default' => ['base' => 'attr(data-m url)']],
+            'colors.background' => ['default' => ['base' => 'attr(data-m url)']],
+        ]);
+        $this->assertStringNotContainsString('attr(', $style);
+
+        $css = $this->scoped([
+            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'attr(data-label)']]],
+        ]);
+        $this->assertStringContainsString('content:attr(data-label)', $css);
     }
 }

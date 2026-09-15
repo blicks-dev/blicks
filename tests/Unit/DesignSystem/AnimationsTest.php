@@ -85,17 +85,27 @@ final class AnimationsTest extends TestCase
     {
         $result = $this->save($this->valid(['steps' => [
             ['offset' => 0, 'declarations' => ['--bl-p' => '0']],
-            ['offset' => 100, 'declarations' => ['--bl-p' => '1', '--evil-thing' => '2']],
+            ['offset' => 100, 'declarations' => ['--bl-p' => '1', '--bl-ang' => '90deg', '--evil-thing' => '2', '--bl-anything' => '3']],
         ]]));
 
         $this->assertTrue($result['ok']);
-        $this->assertSame(['--bl-p' => '1'], $result['animations'][0]['steps'][1]['declarations']);
+        // Only the custom properties runtime.scss registers — not the whole `--bl-*` namespace.
+        $this->assertSame(['--bl-p' => '1', '--bl-ang' => '90deg'], $result['animations'][0]['steps'][1]['declarations']);
     }
 
     /** A value able to close the declaration, the rule, or the surrounding <style> is refused. */
     public function testRejectsEscapingValues(): void
     {
-        foreach (['red; } body { display: none', 'url(http://evil.test/x.png)', '</style><script>', 'expression(alert(1))'] as $hostile) {
+        foreach ([
+            'red; } body { display: none',
+            'url(http://evil.test/x.png)',
+            '</style><script>',
+            'expression(alert(1))',
+            // CSS escapes decode to url( / @import in the browser; a denylist never sees them.
+            '\75rl(http://evil.test/x.png)',
+            '@\69mport "http://evil.test/x.css"',
+            'image-set("http://evil.test/x.png" 1x)',
+        ] as $hostile) {
             $result = $this->save($this->valid([
                 'slug' => 'hostile',
                 'steps' => [
@@ -111,6 +121,8 @@ final class AnimationsTest extends TestCase
             $this->assertStringNotContainsString('<', $value);
             $this->assertStringNotContainsString(';', $value);
             $this->assertDoesNotMatchRegularExpression('/url\s*\(|expression\s*\(/i', $value);
+            $this->assertStringNotContainsString('evil.test', $value);
+            $this->assertStringNotContainsString('\\', $value);
 
             $GLOBALS['wp_options'] = [];
         }
@@ -214,5 +226,29 @@ final class AnimationsTest extends TestCase
 
         $this->assertTrue($result['ok']);
         $this->assertSame(['fillMode' => 'both'], $result['animations'][0]['defaults']);
+    }
+
+    /**
+     * A stored record that no longer validates is hidden, but saving or deleting a *different*
+     * animation must not write the filtered list back and erase it for good.
+     */
+    public function testTighterValidationNeverDeletesStoredRecords(): void
+    {
+        $legacy = [
+            'slug' => 'legacy',
+            'label' => 'Legacy',
+            'defaults' => [],
+            'steps' => [
+                ['offset' => 0, 'declarations' => ['opacity' => 'red !important']],
+                ['offset' => 100, 'declarations' => ['opacity' => 'red !important']],
+            ],
+        ];
+        $GLOBALS['wp_options']['blicks_design_animations'] = [$legacy];
+        $this->assertSame([], Animations::all());
+
+        $this->assertTrue($this->save($this->valid(['slug' => 'fresh']))['ok']);
+        Animations::delete('fresh');
+
+        $this->assertSame([$legacy], $GLOBALS['wp_options']['blicks_design_animations']);
     }
 }

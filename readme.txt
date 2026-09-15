@@ -54,6 +54,8 @@ No. There is no stylesheet field, no script field, and no snippet runner. Blicks
 
 Some controls do take a typed value rather than offering a picker — a length like `800px`, a transform like `translateX(10px)`, a shape like `polygon(0 0, 100% 0, 100% 100%)`. Each of those is the value of one named property that the control itself chooses; you cannot write the property, a selector, or a rule. Every value is validated whole against a closed list of permitted characters and CSS functions before it is used, so a value cannot end its own declaration or start another one. Anything that does not validate is dropped.
 
+The custom animation editor (**Blicks → Design System → Animations**, administrators only) works the same way. Each keyframe step is a form row: you pick a property from a fixed list of animatable properties (opacity, transform, color and similar), and type its value, which is validated exactly as above. You cannot name any other property, write a selector, or add an at-rule; Blicks generates the `@keyframes` rule and its name itself.
+
 = Does Blicks let me use my own images as backgrounds? =
 
 Yes, via the media library. Background image URLs are restricted to your own site's uploads or an ordinary `http(s)` address; `javascript:` and `data:` URLs are rejected.
@@ -63,6 +65,21 @@ Yes, via the media library. Background image URLs are restricted to your own sit
 Blicks uses no external services. It contacts no third-party server, loads no remote fonts, scripts or styles, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
 
 The only exception is one you control: if you set a background image to an address on another site, the visitor's browser loads that image from wherever you pointed it. Blicks itself makes no such request.
+
+== Source Code ==
+
+The JavaScript and CSS in the `build/` directory are compiled. The full, human-readable source they are built from — TypeScript, SCSS, the block definitions and the build configuration — is public at:
+
+https://github.com/blicks-dev/blicks
+
+To rebuild the plugin from source you need Node.js 20+, pnpm and Composer:
+
+1. `git clone https://github.com/blicks-dev/blicks.git && cd blicks`
+2. `composer install --no-dev`
+3. `pnpm install`
+4. `pnpm build` — writes the compiled assets to `build/`.
+
+The PHP in `src/` is shipped as source and is not compiled.
 
 == Third-Party Licenses ==
 
