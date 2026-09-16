@@ -1,5 +1,6 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { bootstrap } from '../bootstrap';
+import { getRegisteredView } from '../registry';
 import { icon, StackBMark } from '../icons';
 import { urlForView } from '../routing';
 import type { AdminView } from '../types';
@@ -17,11 +18,26 @@ export function AdminHeader( {
 } ): JSX.Element {
 	const { version, docsUrl, editorUrl } = bootstrap();
 
-	const tabs: Array< { id: AdminView; label: string; icon: JSX.Element } > = [
+	// A neutral square, for a registered page that supplied no icon of its own. Better than an
+	// empty slot, which makes the nav row look misaligned.
+	const fallbackIcon = icon( <><rect x="4" y="4" width="16" height="16" rx="2" /></> );
+
+	const builtinTabs: Array< { id: AdminView; label: string; icon: JSX.Element } > = [
 		{ id: 'overview', label: __( 'Overview', 'blicks' ), icon: icon( <><path d="M3 12l9-8 9 8" /><path d="M5 10v10h14V10" /></> ) },
 		{ id: 'design', label: __( 'Design System', 'blicks' ), icon: icon( <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></> ) },
 		{ id: 'settings', label: __( 'Settings', 'blicks' ), icon: icon( <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.6H9.5L9 5.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.5 2.6h5l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z" /></> ) },
 	];
+
+	// Registered pages come from PHP, which has already capability-filtered them, and keep the
+	// order the menu gave them. The label is PHP's too — translated in the plugin that owns the
+	// string — while the icon is optional and comes from the runtime registration.
+	const externalTabs = bootstrap().externalViews.map( entry => ( {
+		id: entry.id as AdminView,
+		label: entry.label,
+		icon: getRegisteredView( entry.id )?.icon ?? fallbackIcon,
+	} ) );
+
+	const tabs = [ ...builtinTabs, ...externalTabs ];
 
 	const shortcut = isAppleOs() ? '⌘K' : 'Ctrl K';
 

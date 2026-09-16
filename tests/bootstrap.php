@@ -383,3 +383,43 @@ if (!function_exists('esc_html')) {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 }
+
+/**
+ * A real (if tiny) filter registry.
+ *
+ * `add_filter()` above only records the call, which is right for asserting that a provider wired
+ * a hook. `blicks_admin_views` needs the other half — callbacks that actually run — so the tests
+ * can prove what a third-party callback can and cannot do to the admin menu.
+ *
+ * @var array<string, list<callable>> $GLOBALS['blicks_test_filters']
+ */
+$GLOBALS['blicks_test_filters'] = [];
+
+function blicks_test_add_filter(string $hook, callable $callback): void
+{
+    $GLOBALS['blicks_test_filters'][$hook][] = $callback;
+}
+
+function blicks_test_reset_filters(): void
+{
+    $GLOBALS['blicks_test_filters'] = [];
+}
+
+if (!function_exists('apply_filters')) {
+    function apply_filters(string $hook, $value, ...$args)
+    {
+        foreach ($GLOBALS['blicks_test_filters'][$hook] ?? [] as $callback) {
+            $value = $callback($value, ...$args);
+        }
+
+        return $value;
+    }
+}
+
+if (!function_exists('current_user_can')) {
+    function current_user_can(string $capability, ...$args): bool
+    {
+        // Denied by name, so a test can prove a page the user cannot open is withheld.
+        return 'do_not_allow' !== $capability;
+    }
+}

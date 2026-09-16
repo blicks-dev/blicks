@@ -25,7 +25,33 @@ export type DesignThemeTokens = {
 };
 export type DesignTheme = { id: string; name: string; builtin: boolean; edited: boolean; tokens: DesignThemeTokens };
 export type ThemesState = { active: string; themes: DesignTheme[] };
-export type AdminView = 'overview' | 'design' | 'settings';
+/** The views this plugin ships. Exhaustive, so a `switch` over them can still be checked. */
+export type BuiltinView = 'overview' | 'design' | 'settings';
+
+/**
+ * Any view the app can route to — a built-in, or one a companion plugin registered.
+ *
+ * Widened from the `BuiltinView` union so external pages are addressable at all. The type system
+ * can no longer prove a view is handled, so `ADMIN_VIEWS` is the runtime allow-list that replaces
+ * it: nothing reaches routing without appearing there first.
+ */
+export type AdminView = BuiltinView | ( string & {} );
+
+/** A page registered in PHP, as injected into the app's bootstrap. */
+export type ExternalView = { id: string; label: string; slug: string };
+
+/** What a companion plugin passes to `window.blicks.admin.registerView()`. */
+export type ExternalViewDefinition = {
+	id: string;
+	render: ( props: { navigate: ( view: AdminView ) => void } ) => JSX.Element;
+	icon?: JSX.Element;
+};
+
+export type RegisteredView = {
+	id: string;
+	render: ExternalViewDefinition['render'];
+	icon?: JSX.Element;
+};
 export type TokenSourceTone = 'theme' | 'sync' | 'override' | 'draft' | 'fallback';
 
 export type EditorStyle = {
@@ -141,9 +167,11 @@ export type DiagnosticsResult = {
 export type AdminBootstrap = {
 	version: string;
 	view: AdminView;
-	pageSlugs: Partial< Record< AdminView, string > >;
+	pageSlugs: Record< string, string >;
 	adminUrl: string;
 	docsUrl: string;
 	editorUrl: string;
+	/** Pages other plugins registered in PHP. Their components arrive separately, at runtime. */
+	externalViews: ExternalView[];
 };
 

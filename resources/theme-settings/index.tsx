@@ -41,6 +41,7 @@ import {
 	type TokenOverrides,
 	type TypeRoleOverrides,
 } from '@/framework/design-system';
+import { blicksMarkIcon } from '@/framework/brand';
 import './theme-settings.scss';
 
 const SIDEBAR_NAME = 'blicks-theme-settings';
@@ -148,15 +149,7 @@ const TYPE_ROLE_PROP_LABELS: Record< string, string > = {
 	textTransform: __( 'Transform', 'blicks' ),
 };
 
-const SIDEBAR_ICON = (
-	<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-		<circle cx="13.5" cy="6.5" r="2.5" />
-		<circle cx="19" cy="13" r="2" />
-		<circle cx="6" cy="12" r="3" />
-		<path d="M14 19.5a7.5 7.5 0 0 0 5.5-12.6" />
-		<path d="M4.6 16.4A7.5 7.5 0 0 0 16 20.3" />
-	</svg>
-);
+const SIDEBAR_ICON = blicksMarkIcon;
 
 const RESET_ICON = (
 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

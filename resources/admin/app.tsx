@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
+import { createRoot, useCallback, useEffect, useState, useSyncExternalStore } from '@wordpress/element';
 import { AdminHeader } from './components/AdminHeader';
 import { CommandPalette } from './components/CommandPalette';
 import { OverviewPanel } from './components/OverviewPanel';
@@ -10,6 +10,10 @@ import { useDesignSystem } from './hooks/useDesignSystem';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import { useDashboard } from './hooks/useDashboard';
 import { useDiagnostics } from './hooks/useDiagnostics';
+import { ExternalPanel } from './components/ExternalPanel';
+import { bootstrap } from './bootstrap';
+import { BUILTIN_VIEWS } from './constants';
+import { exposeRegistry, getRegisteredView, getRegisteredViews, subscribeToViews } from './registry';
 import type { AdminView } from './types';
 
 function App(): JSX.Element {
@@ -19,6 +23,11 @@ function App(): JSX.Element {
 	const dashboard = useDashboard();
 	const diagnostics = useDiagnostics();
 	const [ paletteOpen, setPaletteOpen ] = useState( false );
+
+	// Companion plugins register their components from their own bundles, which load after this
+	// one. Subscribing — rather than reading once — is what makes a late registration appear
+	// instead of leaving the user on a permanently empty panel.
+	useSyncExternalStore( subscribeToViews, getRegisteredViews );
 
 	// ⌘K / Ctrl-K anywhere in the page opens the palette.
 	useEffect( () => {
@@ -56,11 +65,13 @@ function App(): JSX.Element {
 
 	// The mockups scope their page CSS per file; here all four views share one document,
 	// so the active view's class is what keeps `.panel`/`.toolbar`/`.head` from colliding.
-	const viewClass = {
+	const viewClass = ( {
 		overview: 'v-overview',
 		design: 'v-design',
 		settings: 'v-settings',
-	}[ activeView ];
+	} as Record< string, string > )[ activeView ] ?? 'v-external';
+
+	const isBuiltin = ( BUILTIN_VIEWS as readonly string[] ).includes( activeView );
 
 	return (
 		<div className="blicks-admin">
@@ -139,13 +150,38 @@ function App(): JSX.Element {
 						onSave={ settings.saveAdminSettings }
 					/>
 				) }
+				{ ! isBuiltin && (
+					<ExternalPanel
+						view={ activeView }
+						registered={ getRegisteredView( activeView ) }
+						navigate={ navigate }
+					/>
+				) }
 			</div>
 		</div>
 	);
 }
 
-const root = document.getElementById( 'blicks-admin-root' );
+exposeRegistry();
 
-if ( root ) {
-	createRoot( root ).render( <App /> );
+/**
+ * Mount after the document is ready, not at module evaluation.
+ *
+ * A companion plugin's script declares `blicks-admin` as a dependency, so it runs *after* this
+ * file. Mounting here and now would render before any of them had registered, and their pages
+ * would be empty on first paint. Waiting for `DOMContentLoaded` lets every enqueued script run
+ * first; the registry subscription above covers anything that registers later still.
+ */
+function mount(): void {
+	const root = document.getElementById( 'blicks-admin-root' );
+
+	if ( root ) {
+		createRoot( root ).render( <App /> );
+	}
+}
+
+if ( 'loading' === document.readyState ) {
+	document.addEventListener( 'DOMContentLoaded', mount, { once: true } );
+} else {
+	mount();
 }

@@ -25,6 +25,15 @@ if ( ! defined( 'BLICKS_VERSION' ) ) {
 	define( 'BLICKS_VERSION', '1.0.0' );
 }
 
+/**
+ * Extension API version. Companion plugins load this plugin's classes in-process, so there is no
+ * package boundary to version against — this is it. Bump on a breaking change to the surface
+ * listed in `tests/Unit/Core/ExtensionApiTest.php`; additive changes need no bump.
+ */
+if ( ! defined( 'BLICKS_API_VERSION' ) ) {
+	define( 'BLICKS_API_VERSION', '1' );
+}
+
 if ( ! defined( 'BLICKS_URI' ) ) {
 	define( 'BLICKS_URI', 'https://blicks.dev' );
 }
@@ -35,14 +44,8 @@ if ( ! defined( 'BLICKS_DOCS_URI' ) ) {
 
 use Blicks\Plugin;
 
-/**
- * Composer's autoloader. The plugin has no production dependencies — this maps the `Blicks\`
- * namespace onto `src/` and nothing else.
- *
- * Required at file scope, before Plugin::boot(), because WordPress loads this file on its own
- * during an uninstall: `uninstall_plugin()` includes it and then fires the stored callback, so
- * `Blicks\Plugin::uninstall()` has to be resolvable from here alone.
- */
+// Maps `Blicks\` onto `src/`; the plugin has no production dependencies. Required at file scope
+// because `uninstall_plugin()` includes this file directly and then fires the stored callback.
 require_once __DIR__ . '/vendor/autoload.php';
 
 Plugin::boot( __FILE__ );
