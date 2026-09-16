@@ -3,10 +3,16 @@ name: WordPress.org assets
 # The Directory listing — banners, icons, screenshots — is served from SVN, not from
 # the plugin zip. Without this, replacing a banner would mean cutting a whole release.
 #
-# readme.txt is deliberately NOT synced on push. It carries `Stable tag:`, so a version
+# readme.txt is deliberately NOT synced here. It carries `Stable tag:`, so a version
 # bump merged to main would publish "the stable version is X" to trunk before tags/X
 # exists. The release deploy pushes readme.txt to trunk and the tag together instead.
-# For a copy-only readme fix, run this workflow by hand.
+#
+# This touches `assets/` and nothing else. It deliberately does not use
+# 10up/action-wordpress-plugin-asset-update, which rsyncs a `git archive` of HEAD into
+# `trunk/` and aborts if that changes anything but readme.txt. That assumes trunk is a
+# copy of the repository; ours is built by `scripts/bundle.js` from an allowlist, and
+# `vendor/` and `build/` are gitignored — so the action tries to delete them from trunk
+# and stops on its own guard. It can never succeed against this repository.
 on:
   push:
     branches: [main]
@@ -21,9 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # The plugin has no SVN repository until WordPress.org approves the
-      # submission, and the action fails hard on missing credentials. Skip with a
-      # notice instead, so this workflow is not permanently red before then.
+      # The plugin had no SVN repository until WordPress.org approved the submission.
+      # Skip with a notice rather than failing, so a fork or a pre-approval branch is
+      # not permanently red.
       - name: Check for SVN credentials
         id: creds
         env:
@@ -36,11 +42,49 @@ jobs:
             echo 'present=true' >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Update the Directory listing
+      - name: Sync .wordpress-org to SVN assets
         if: steps.creds.outputs.present == 'true'
-        uses: 10up/action-wordpress-plugin-asset-update@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: blicks
-          ASSETS_DIR: .wordpress-org
+        run: |
+          set -euo pipefail
+
+          # --depth immediates fetches the repository's top level only, then assets/ in
+          # full. trunk/ and tags/ are never materialised, which is both the speed win
+          # and the safety property: this job cannot modify the plugin itself.
+          svn checkout --depth immediates "https://plugins.svn.wordpress.org/${SLUG}/" svn
+          svn update --set-depth infinity svn/assets
+
+          # --delete makes .wordpress-org authoritative: a file removed from the
+          # repository is removed from the listing.
+          rsync -rc --delete .wordpress-org/ svn/assets/
+
+          cd svn
+
+          # rsync moves files without telling SVN. Everything untracked becomes an add,
+          # everything missing a delete, before anything can be committed.
+          svn add --force --auto-props --parents --depth infinity assets -q
+          svn status assets | sed -n 's/^![[:space:]]*//p' | while IFS= read -r gone; do
+            svn delete --force "$gone"
+          done
+
+          # Without an explicit mime type the Directory serves screenshots as a download
+          # instead of displaying them.
+          # https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/
+          for ext in png:image/png jpg:image/jpeg gif:image/gif svg:image/svg+xml; do
+            find assets -maxdepth 1 -name "*.${ext%%:*}" \
+              -exec svn propset svn:mime-type "${ext##*:}" {} +
+          done
+
+          if [ -z "$(svn status assets)" ]; then
+            echo '::notice::Listing assets are already up to date.'
+            exit 0
+          fi
+
+          svn status assets
+          svn commit assets \
+            -m "Update listing assets from ${GITHUB_SHA::7}" \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
+            --non-interactive --no-auth-cache
