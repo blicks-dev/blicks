@@ -51,6 +51,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          # ubuntu-latest stopped shipping subversion, so it has to be installed.
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends subversion
+
           # --depth immediates fetches the repository's top level only, then assets/ in
           # full. trunk/ and tags/ are never materialised, which is both the speed win
           # and the safety property: this job cannot modify the plugin itself.
