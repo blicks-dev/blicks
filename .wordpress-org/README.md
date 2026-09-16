@@ -24,8 +24,8 @@ https://plugins.svn.wordpress.org/blicks/
 | `banner-1544x500.png` | 1544×500 | Listing header, retina |
 
 The dimensions are what wordpress.org requires and must not change. The in-product brand mark
-(`resources/admin/icons.tsx` → `StackBMark`) on accent `#002bff` / `#4d8bff` over `#070b18` is a
-usable source for a first set.
+(`resources/framework/brand.tsx` → `BlicksMark`, also drawn in `docs/favicon.svg`) on accent
+`#002bff` / `#4d8bff` over `#070b18` is a usable source for a first set.
 
 ## Screenshots
 
