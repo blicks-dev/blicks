@@ -71,6 +71,12 @@ The pasted text itself is never stored and never rendered. No pasted CSS reaches
 
 Yes, via the media library. Background image URLs are restricted to your own site's uploads or an ordinary `http(s)` address; `javascript:` and `data:` URLs are rejected.
 
+== Screenshots ==
+
+1. The Blicks admin: an overview of what is registered, the design system screen where token values are edited, and the presets that repaint the whole set at once.
+2. Theme Settings in the editor. The colours, type scale and spacing come from the active theme's theme.json, so they are the same values the front end uses.
+3. Block controls, split across three tabs: Settings for what the block is, Style for every property at each breakpoint and state, and Advanced for visibility and custom attributes.
+
 == External Services ==
 
 Blicks uses no external services. It contacts no third-party server, loads no remote fonts, scripts or styles, and sends no data anywhere. Everything it renders is served from the plugin itself and from your own theme's settings.
