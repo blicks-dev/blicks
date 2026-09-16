@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-14T11:16:14+00:00\n"
+"POT-Creation-Date: 2026-09-16T15:44:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: blicks\n"
@@ -17,8 +17,8 @@ msgstr ""
 #. Plugin Name of the plugin
 #. Author of the plugin
 #: blicks.php
-#: src/Providers/AdminServiceProvider.php:55
-#: src/Providers/AdminServiceProvider.php:56
+#: src/Providers/AdminServiceProvider.php:199
+#: src/Providers/AdminServiceProvider.php:200
 #: build/admin.js:1
 #: build/block-library.js:2
 #: build/editor.js:12
@@ -134,92 +134,80 @@ msgstr ""
 msgid "A JSON object is required."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:68
+#: src/Http/Controllers/DiagnosticsController.php:69
 msgid "Build assets"
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:70
+#: src/Http/Controllers/DiagnosticsController.php:71
 msgid "Editor, front-end, and block bundles are present."
 msgstr ""
 
 #. translators: %s: comma-separated list of missing build paths.
-#: src/Http/Controllers/DiagnosticsController.php:73
+#: src/Http/Controllers/DiagnosticsController.php:74
 msgid "Missing: %s. Run the plugin build."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:88
-#: src/Http/Controllers/DiagnosticsController.php:96
+#: src/Http/Controllers/DiagnosticsController.php:89
+#: src/Http/Controllers/DiagnosticsController.php:97
 msgid "Block registration"
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:89
+#: src/Http/Controllers/DiagnosticsController.php:90
 msgid "No built blocks found in build/blocks."
 msgstr ""
 
 #. translators: 1: registered block count, 2: built block count.
-#: src/Http/Controllers/DiagnosticsController.php:99
+#: src/Http/Controllers/DiagnosticsController.php:100
 msgid "%1$d of %2$d built blocks are registered."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:116
+#: src/Http/Controllers/DiagnosticsController.php:117
 msgid "The active theme has no theme.json — Blicks falls back to its own token defaults."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:125
+#: src/Http/Controllers/DiagnosticsController.php:126
 msgid "Block theme with theme.json — tokens project from the theme."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:126
+#: src/Http/Controllers/DiagnosticsController.php:127
 msgid "theme.json found in a classic theme — tokens project, site editing does not."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:137
-#: src/Http/Controllers/DiagnosticsController.php:147
-#: src/Http/Controllers/DiagnosticsController.php:157
+#: src/Http/Controllers/DiagnosticsController.php:138
+#: src/Http/Controllers/DiagnosticsController.php:148
+#: src/Http/Controllers/DiagnosticsController.php:158
 #: build/admin.js:1
 msgid "Global Styles"
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:138
+#: src/Http/Controllers/DiagnosticsController.php:139
 msgid "This WordPress version exposes no user Global Styles record."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:148
+#: src/Http/Controllers/DiagnosticsController.php:149
 msgid "No user Global Styles record yet — one is created on the first token save."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:159
+#: src/Http/Controllers/DiagnosticsController.php:160
 msgid "User Global Styles record is present and writable."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:160
+#: src/Http/Controllers/DiagnosticsController.php:161
 msgid "User Global Styles record is present but this account cannot edit it."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:171
-msgid "Interactivity API"
-msgstr ""
-
-#: src/Http/Controllers/DiagnosticsController.php:173
-msgid "Available — interactive blocks can run."
-msgstr ""
-
-#: src/Http/Controllers/DiagnosticsController.php:174
-msgid "Unavailable — the interactive blocks will render but not respond."
-msgstr ""
-
-#: src/Http/Controllers/DiagnosticsController.php:185
+#: src/Http/Controllers/DiagnosticsController.php:172
 msgid "PHP version"
 msgstr ""
 
 #. translators: 1: running PHP version, 2: minimum required PHP version.
 #. translators: 1: running WordPress version, 2: minimum required version.
-#: src/Http/Controllers/DiagnosticsController.php:188
-#: src/Http/Controllers/DiagnosticsController.php:206
+#: src/Http/Controllers/DiagnosticsController.php:175
+#: src/Http/Controllers/DiagnosticsController.php:193
 msgid "Running %1$s (minimum %2$s)."
 msgstr ""
 
-#: src/Http/Controllers/DiagnosticsController.php:203
+#: src/Http/Controllers/DiagnosticsController.php:190
 msgid "WordPress version"
 msgstr ""
 
@@ -229,32 +217,32 @@ msgid "Theme not found."
 msgstr ""
 
 #. translators: 1: minimum required PHP version, 2: PHP version currently running.
-#: src/Plugin.php:153
+#: src/Plugin.php:147
 msgid "Blicks requires PHP %1$s or higher. You are running PHP %2$s."
 msgstr ""
 
 #. translators: 1: minimum required WordPress version, 2: WordPress version currently running.
-#: src/Plugin.php:167
+#: src/Plugin.php:161
 msgid "Blicks requires WordPress %1$s or higher. You are running WordPress %2$s."
 msgstr ""
 
 #. translators: %s: name of the required plugin.
-#: src/Plugin.php:185
+#: src/Plugin.php:179
 msgid "Blicks requires %s to be installed and active."
 msgstr ""
 
-#: src/Providers/AdminServiceProvider.php:67
+#: src/Providers/AdminServiceProvider.php:46
 #: build/admin.js:1
 msgid "Overview"
 msgstr ""
 
-#: src/Providers/AdminServiceProvider.php:68
+#: src/Providers/AdminServiceProvider.php:51
 #: build/admin.js:1
 msgid "Design System"
 msgstr ""
 
-#: src/Providers/AdminServiceProvider.php:69
-#: src/Providers/AdminServiceProvider.php:100
+#: src/Providers/AdminServiceProvider.php:56
+#: src/Providers/AdminServiceProvider.php:238
 #: build/admin.js:1
 #: build/admin.js:2
 #: build/block-library.js:2
@@ -263,7 +251,7 @@ msgid "Settings"
 msgstr ""
 
 #. translators: %s: admin view name, e.g. "Design System".
-#: src/Providers/AdminServiceProvider.php:77
+#: src/Providers/AdminServiceProvider.php:215
 msgid "Blicks — %s"
 msgstr ""
 
@@ -2141,6 +2129,14 @@ msgstr ""
 
 #: build/admin.js:2
 msgid "Diagnostics could not run."
+msgstr ""
+
+#: build/admin.js:2
+msgid "The plugin that provides “%s” did not finish loading this screen. Reload the page, and if it keeps happening check that plugin is up to date."
+msgstr ""
+
+#: build/admin.js:2
+msgid "That screen is no longer available."
 msgstr ""
 
 #: build/admin.js:2
