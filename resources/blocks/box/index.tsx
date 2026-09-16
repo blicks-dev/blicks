@@ -8,14 +8,11 @@ defineBlock( metadata, {
 	Toolbar: BoxToolbar,
 	Advanced: BoxAdvanced,
 	// A Box is a free-form wrapper that's valid empty (spacer, decorative panel), so it gets no
-	// starting-layout placeholder — a plain wrapper has no layout of its own to explain.
-	//
-	// It does get the ghost slot, same as Stack and Grid. Leaning on WordPress's corner appender
-	// looked reasonable until you insert one: an empty, unpadded Box computes to 0×0, so there is
-	// nothing on the canvas to hover or click and the corner appender only exists while the block
-	// is selected — which you cannot do by clicking it either. The ghost slot gives the empty box
-	// both a height and a target.
-	appender: 'ghost',
+	// starting-layout placeholder — a plain wrapper has no layout of its own to explain — and no
+	// ghost add-slot either. Unlike Stack and Grid, a Box is routinely *meant* to stay empty: a
+	// rule, a swatch, a sized block of colour. Giving every one of those a permanent "Add block"
+	// button turns a deliberate design into visible scaffolding all over the canvas. It falls back
+	// to WordPress's own appender, which appears only while the block is selected.
 	render( { attributes, blockProps, children, isEdit } ) {
 		const Tag = cleanBoxTag( attributes.tag ) as keyof JSX.IntrinsicElements;
 		const href = String( attributes.href || '' ).trim();
