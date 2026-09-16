@@ -1,23 +1,41 @@
 import { bootstrap } from './bootstrap';
-import { ADMIN_VIEWS } from './constants';
+import { BUILTIN_VIEWS } from './constants';
 import type { AdminView } from './types';
 
 // Each view is its own WP submenu page (`admin.php?page=blicks-design`), so the **page slug**
 // owns the view and the hash owns the design view's *section* (`#design/color`). Hash-only
 // URLs still work — links minted before the submenus existed, and the editor's deep links —
 // so `#design` alone resolves to the design view.
-export { ADMIN_VIEWS };
+export { BUILTIN_VIEWS };
+
+/**
+ * Every view the app may route to: the built-ins plus whatever PHP registered.
+ *
+ * Derived rather than declared. `ADMIN_VIEWS` used to be a literal, which meant a companion
+ * plugin's page was refused by routing and silently fell back to Overview even though its submenu
+ * existed.
+ */
+export function adminViews(): readonly string[] {
+	return [
+		...BUILTIN_VIEWS as readonly string[],
+		...bootstrap().externalViews.map( view => view.id ),
+	];
+}
+
+function isKnownView( value: string ): boolean {
+	return adminViews().includes( value );
+}
 
 export function parseHash(): { view: AdminView; section: string } {
 	const [ rawView, section ] = window.location.hash.replace( /^#/, '' ).split( '/' );
-	const view = ( ADMIN_VIEWS as readonly string[] ).includes( rawView ) ? rawView as AdminView : 'overview';
+	const view = isKnownView( rawView ) ? rawView as AdminView : 'overview';
 	return { view, section: section ?? '' };
 }
 
 /** The view the current URL points at: the hash wins when it names one, else the page slug. */
 export function viewFromUrl(): AdminView {
 	const rawHash = window.location.hash.replace( /^#/, '' ).split( '/' )[ 0 ];
-	if ( ( ADMIN_VIEWS as readonly string[] ).includes( rawHash ) ) {
+	if ( isKnownView( rawHash ) ) {
 		return rawHash as AdminView;
 	}
 

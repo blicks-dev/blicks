@@ -1,7 +1,17 @@
 import { __ } from '@wordpress/i18n';
-import type { AdminView, TokenValues, TypeRoleSnapshot, TypeRoleSlot, TypeRoleValues } from './types';
+import type { BuiltinView, TokenValues, TypeRoleSnapshot, TypeRoleSlot, TypeRoleValues } from './types';
 
-export const ADMIN_VIEWS: readonly AdminView[] = [ 'overview', 'design', 'settings' ];
+/**
+ * The views this plugin ships.
+ *
+ * Not the full routing allow-list any more — a companion plugin can register more. Use
+ * `adminViews()` from `./routing` for "is this a view the app can open"; this is only the
+ * built-in set, which several panels still need to reason about on its own.
+ */
+export const BUILTIN_VIEWS: readonly BuiltinView[] = [ 'overview', 'design', 'settings' ];
+
+/** @deprecated Use `adminViews()` from `./routing`, which includes registered pages. */
+export const ADMIN_VIEWS: readonly BuiltinView[] = BUILTIN_VIEWS;
 
 // The Design System view's section anchors (`#design/<id>` → `<section id="s-<id>">`). The
 // panel renders its own nav with live counts; this is the id↔label list everything else

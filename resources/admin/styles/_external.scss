@@ -1,0 +1,154 @@
+/* ── pages registered by other plugins ──────────────────────────────────────
+ *
+ * The class vocabulary a companion plugin's panel may use, and the only admin CSS it should rely
+ * on. `.panel`, `.ph`, `.btn`, `.lnk`, `.notice-card` and `.eyebrow` are already view-agnostic in
+ * _shell.scss; what was missing is the panel's *inside* — the head, the row list, the form
+ * controls — which exists only as `.v-settings .p-head` and friends.
+ *
+ * Deliberately not solved by giving external views the `v-settings` class. That would couple every
+ * companion page to the internals of one built-in view, and restyling Settings would silently
+ * restyle them. This file is the contract instead: same design tokens, same visual language,
+ * owned here, so a companion page inherits a Blicks redesign without shipping any CSS of its own.
+ *
+ * Kept small on purpose. Every class added here is one more thing that cannot change freely. */
+
+/* `.blicks-admin .panel` is shared, but its padding is not — that lives on
+ * `.v-settings .panel`. Without this an external page renders flush against its own border. */
+.blicks-admin .v-external .panel {
+	display: flex;
+	flex-direction: column;
+	padding: 26px 28px;
+	border: var(--hair);
+	background: var(--surface);
+}
+
+.blicks-admin .v-external .cols {
+	display: grid;
+	gap: 18px;
+	max-width: 52rem;
+}
+
+.blicks-admin .v-external .p-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 6px;
+}
+
+.blicks-admin .v-external .p-head h2 {
+	font-size: var(--bl-ui-text-xl);
+}
+
+.blicks-admin .v-external .p-head .sub {
+	margin-top: 4px;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-md);
+}
+
+.blicks-admin .v-external .badge {
+	flex: none;
+	padding: 4px 8px;
+	border: 1px solid color-mix(in srgb, var(--success) 30%, var(--border));
+	color: var(--success);
+	font: var(--bl-ui-label-size-sm) / 1 var(--mono);
+	letter-spacing: var(--bl-ui-label-tracking-sm);
+	text-transform: uppercase;
+}
+
+.blicks-admin .v-external .badge.is-muted {
+	border-color: var(--border);
+	color: var(--muted);
+}
+
+/* ── rows ───────────────────────────────────────────────────────────────── */
+.blicks-admin .v-external .setlist {
+	margin-top: 14px;
+	border-top: var(--hair);
+}
+
+.blicks-admin .v-external .srow {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	padding: 16px 0;
+	border-bottom: var(--hair);
+}
+
+.blicks-admin .v-external .srow:last-child {
+	border-bottom: 0;
+}
+
+.blicks-admin .v-external .srow .t {
+	flex: 1;
+	min-width: 0;
+}
+
+.blicks-admin .v-external .srow .t b {
+	display: block;
+	font-size: var(--bl-ui-text-lg);
+	font-weight: 555;
+}
+
+.blicks-admin .v-external .srow .t small {
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.45;
+}
+
+.blicks-admin .v-external .srow .ctl {
+	flex: none;
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+}
+
+.blicks-admin .v-external .srow .ctl code {
+	padding: 2px 6px;
+	border: var(--hair);
+	background: var(--surface-2, transparent);
+	color: var(--fg);
+	font: var(--bl-ui-text-sm) / 1.4 var(--mono);
+}
+
+/* ── form field ─────────────────────────────────────────────────────────── */
+.blicks-admin .v-external .field {
+	display: grid;
+	gap: 6px;
+	margin: 18px 0;
+	max-width: 28rem;
+}
+
+.blicks-admin .v-external .field label {
+	font-size: var(--bl-ui-text-sm);
+	font-weight: 555;
+}
+
+.blicks-admin .v-external .field input[type="text"] {
+	width: 100%;
+	padding: 9px 11px;
+	border: var(--hair);
+	border-radius: 0;
+	background: var(--surface);
+	color: var(--fg);
+	font: var(--bl-ui-text-md) / 1.4 var(--mono);
+	box-shadow: none;
+}
+
+.blicks-admin .v-external .field input[type="text"]:focus {
+	border-color: var(--accent);
+	outline: 0;
+	box-shadow: none;
+}
+
+.blicks-admin .v-external .field .hint {
+	color: var(--muted);
+	font-size: var(--bl-ui-text-sm);
+	line-height: 1.45;
+}
+
+.blicks-admin .v-external .actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 4px;
+}

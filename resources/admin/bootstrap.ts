@@ -1,5 +1,5 @@
-import { ADMIN_VIEWS } from './constants';
-import type { AdminBootstrap, AdminView } from './types';
+import { BUILTIN_VIEWS } from './constants';
+import type { AdminBootstrap, AdminView, ExternalView } from './types';
 
 // `window.blicksAdminSettings` is injected by AssetServiceProvider. Everything the admin UI
 // needs from PHP — the real plugin version, the real docs URL, the page slug of each view —
@@ -11,6 +11,7 @@ const FALLBACK: AdminBootstrap = {
 	adminUrl: '',
 	docsUrl: '',
 	editorUrl: '',
+	externalViews: [],
 };
 
 function readInjected(): Record< string, unknown > {
@@ -23,14 +24,39 @@ function readString( source: Record< string, unknown >, key: string ): string {
 	return typeof value === 'string' ? value : '';
 }
 
-function readPageSlugs( source: Record< string, unknown > ): Partial< Record< AdminView, string > > {
+/**
+ * `view => slug`, for every page PHP says this user can open.
+ *
+ * No longer filtered against the built-in list: that filter is exactly what would drop a
+ * companion plugin's page. PHP has already capability-checked these, so the only validation left
+ * is that both halves are non-empty strings.
+ */
+function readPageSlugs( source: Record< string, unknown > ): Record< string, string > {
 	const raw = source.pageSlugs;
 	if ( typeof raw !== 'object' || raw === null ) return {};
 
 	const entries = Object.entries( raw as Record< string, unknown > )
-		.filter( ( [ view, slug ] ) => ( ADMIN_VIEWS as readonly string[] ).includes( view ) && typeof slug === 'string' );
+		.filter( ( [ view, slug ] ) => view !== '' && typeof slug === 'string' && slug !== '' );
 
-	return Object.fromEntries( entries ) as Partial< Record< AdminView, string > >;
+	return Object.fromEntries( entries ) as Record< string, string >;
+}
+
+/** Pages registered by other plugins. Anything malformed is dropped, never rendered. */
+function readExternalViews( source: Record< string, unknown > ): ExternalView[] {
+	const raw = source.externalViews;
+	if ( ! Array.isArray( raw ) ) return [];
+
+	return raw.filter( ( entry ): entry is ExternalView => {
+		if ( typeof entry !== 'object' || entry === null ) return false;
+
+		const { id, label, slug } = entry as Partial< ExternalView >;
+
+		return typeof id === 'string' && id !== ''
+			&& typeof label === 'string' && label !== ''
+			&& typeof slug === 'string' && slug !== ''
+			// A companion cannot claim a built-in id and take over a Blicks panel.
+			&& ! ( BUILTIN_VIEWS as readonly string[] ).includes( id );
+	} );
 }
 
 let cached: AdminBootstrap | null = null;
@@ -41,14 +67,21 @@ export function bootstrap(): AdminBootstrap {
 	const source = readInjected();
 	const view = readString( source, 'view' );
 
+	const externalViews = readExternalViews( source );
+	const known = [
+		...BUILTIN_VIEWS as readonly string[],
+		...externalViews.map( entry => entry.id ),
+	];
+
 	cached = {
 		...FALLBACK,
 		version: readString( source, 'version' ),
-		view: ( ADMIN_VIEWS as readonly string[] ).includes( view ) ? view as AdminView : 'overview',
+		view: known.includes( view ) ? view as AdminView : 'overview',
 		pageSlugs: readPageSlugs( source ),
 		adminUrl: readString( source, 'adminUrl' ),
 		docsUrl: readString( source, 'docsUrl' ),
 		editorUrl: readString( source, 'editorUrl' ),
+		externalViews,
 	};
 
 	return cached;

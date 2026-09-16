@@ -51,13 +51,12 @@ final class AssetServiceProvider extends ServiceProvider {
 
 	#[Action( 'admin_enqueue_scripts' )]
 	public function enqueueAdmin(): void {
-		// Read-only: decides whether to enqueue this screen's assets. Not form processing and
-		// it changes no state, so there is nothing for a nonce to protect. Unslashed and
-		// sanitized, then matched against a fixed allowlist of our own menu slugs.
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-		$slugs = AdminServiceProvider::views();
-		if ( ! isset( $slugs[ $page ] ) ) {
+		// Matched against the allowlist of our own menu slugs — built-in and registered alike,
+		// which is what lets a companion plugin's page get these assets at all. Read-only: it
+		// changes no state, so there is nothing for a nonce to protect.
+		$page = AdminServiceProvider::currentSlug();
+		$views = AdminServiceProvider::views();
+		if ( ! isset( $views[ $page ] ) ) {
 			return;
 		}
 
@@ -85,8 +84,15 @@ final class AssetServiceProvider extends ServiceProvider {
 					'cssVariables' => CssVariables::css(),
 					'keyframesCss' => Keyframes::css(),
 					'version' => defined( 'BLICKS_VERSION' ) ? BLICKS_VERSION : '',
-					'view' => $slugs[ $page ],
-					'pageSlugs' => array_flip( $slugs ),
+					'view' => $views[ $page ]['view'],
+					// A straight view => slug map. `array_flip()` used to do this, which quietly
+					// stopped being possible the moment a page became a struct rather than a
+					// bare view id — and it is capability-filtered now, so the app never offers
+					// a link to a page WordPress would refuse.
+					'pageSlugs' => AdminServiceProvider::pageSlugs(),
+					// Pages registered by other plugins. The app renders their nav entry from
+					// this, and looks up the component a companion script registered at runtime.
+					'externalViews' => AdminServiceProvider::externalViews(),
 					'adminUrl' => admin_url( 'admin.php' ),
 					'docsUrl' => defined( 'BLICKS_DOCS_URI' ) ? BLICKS_DOCS_URI : '',
 					'editorUrl' => wp_is_block_theme()
