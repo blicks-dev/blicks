@@ -176,7 +176,7 @@ function indexPage(blocks) {
 	const cards = blocks
 		.map(
 			(block) =>
-				`	<Card title="${block.title.replaceAll('"', '\\"')}" icon="cube" href="/reference/blocks/${block.slug}">
+				`	<Card title="${block.title.replaceAll('"', '\\"')}" icon="blocks" href="/reference/blocks/${block.slug}">
 		\`${block.name}\` — ${(block.description || '').replaceAll('`', '\\`').replaceAll('"', '\\"')}
 	</Card>`,
 		)
