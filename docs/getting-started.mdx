@@ -9,7 +9,7 @@ lives in the admin.
 
 ## Requirements
 
-- WordPress **6.5** or newer (tested up to 7.1)
+- WordPress **6.6** or newer (tested up to 7.1)
 - PHP **8.1** or newer
 - A **block theme** is recommended — Blicks is designed for full site editing
 
@@ -31,29 +31,32 @@ into the editor.
 ## Installation
 
 <Steps>
-	<Step title="Download">
-		Grab `blicks.zip` from the [latest release](https://github.com/blicks-dev/blicks/releases) on GitHub.
+	<Step title="Search for it">
+		In WordPress, go to **Plugins → Add New** and search for **Blicks**.
 	</Step>
-	<Step title="Install">
-		In WordPress, go to **Plugins → Add New → Upload Plugin**, choose the zip, and install it. You can also unzip it into `/wp-content/plugins/blicks/` yourself.
-	</Step>
-	<Step title="Activate">
-		Activate **Blicks** from the Plugins screen.
+	<Step title="Install and activate">
+		Install it, then activate **Blicks** from the Plugins screen.
 	</Step>
 	<Step title="Open the editor">
 		Open any post or page in the block editor and insert blocks from the **Blicks** category.
 	</Step>
 </Steps>
 
+Updates arrive through WordPress like any other Directory plugin.
+
 <Note>
 No build step is required — the plugin ships with compiled scripts and styles.
 </Note>
 
-<Info>
-Blicks is under review for the WordPress.org plugin directory. Once it is listed you will be able to
-install it from **Plugins → Add New** by searching for it, and updates will arrive through WordPress
-like any other plugin.
-</Info>
+### Installing the zip instead
+
+To pin a specific version, or to install on a site without Directory access, download `blicks.zip`
+from the [latest release](https://github.com/blicks-dev/blicks/releases) and upload it under
+**Plugins → Add New → Upload Plugin**. Unzipping it into `/wp-content/plugins/blicks/` yourself
+works too.
+
+A zip installed this way still updates from the Directory, because it is the same plugin under the
+same slug.
 
 ## Insert your first block
 
