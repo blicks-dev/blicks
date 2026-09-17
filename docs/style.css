@@ -311,6 +311,24 @@ a[class*="card"] {
 }
 
 /*
+ * Card titles ship as `<h2 data-component-part="card-title" class="… text-base">`,
+ * so Mintlify already sizes them. The bare `h2` rule above was overriding it and
+ * rendering every card title at section-heading size — up to 1.9rem, which wrapped
+ * "Customize the design system" onto two lines and made a grid of link cards shout
+ * louder than the page heading above it.
+ *
+ * Note the override is not a specificity win: `.text-base` (0,1,0) outranks `h2`
+ * (0,0,1). Tailwind's utilities sit in an `@layer`, and unlayered CSS beats any
+ * layered rule whatever its specificity — the same trap as the plugin's unlayered
+ * runtime.css. Scoping by `data-component-part` keeps this off prose headings.
+ */
+[data-component-part="card-title"] {
+	font-size: 1.125rem;
+	letter-spacing: -0.015em;
+	line-height: 1.3;
+}
+
+/*
  * Hover moves the border and the title only. Flooding the whole card with
  * accent and forcing every child to white read as a selected state, and on a
  * grid of link cards it made the page flash between two colour schemes.
