@@ -22,7 +22,7 @@
 	<!-- No <arg name="parallel"> on purpose: parallel runs under-report on some PHP builds,
 	     scanning only one batch and exiting 0 while the rest of the tree is never linted. -->
 
-	<config name="minimum_wp_version" value="6.5"/>
+	<config name="minimum_wp_version" value="6.6"/>
 	<config name="testVersion" value="8.1-"/>
 
 	<rule ref="WordPress">
