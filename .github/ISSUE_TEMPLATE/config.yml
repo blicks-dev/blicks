@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or help using Blicks
+    url: https://github.com/blicks-dev/blicks/discussions
+    about: >
+      Not sure whether it is a bug? Ask in Discussions. Setup, theme integration and "how do I
+      build this layout" questions get better answers there than in the issue tracker.
+  - name: Documentation
+    url: https://docs.blicks.dev
+    about: Block references, design system guide and developer docs.
+  - name: Security vulnerability
+    url: https://github.com/blicks-dev/blicks/security/advisories/new
+    about: >
+      Report privately, never as a public issue. This opens a private advisory visible only to the
+      maintainers.

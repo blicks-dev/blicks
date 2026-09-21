@@ -1,0 +1,151 @@
+name: Bug report
+description: Something in Blicks behaves differently from what it documents.
+labels: [ "bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this.
+
+        Two things worth checking first, because they account for most reports:
+
+        - **Reproduce with only Blicks active**, on a default block theme (Twenty Twenty-Five).
+          Blicks reads your theme's `theme.json`, so a theme or another plugin overriding the same
+          tokens looks identical to a bug in Blicks.
+        - **Do not paste licence keys, API keys or customer data** into this form. It is public.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+      placeholder: |
+        Expected: the Box keeps its 2rem padding on mobile.
+        Actual: padding collapses to 0 below 768px.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered, starting from a fresh post. The more exact, the faster this gets fixed.
+      placeholder: |
+        1. Insert a Section, then a Box inside it.
+        2. Set the Box padding to 2rem on Desktop.
+        3. Switch the preview to Mobile.
+        4. Padding is gone.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen
+      description: >
+        A style that is right in one and wrong in the other is a different bug from one that is
+        wrong in both, so this answer decides where we start looking.
+      options:
+        - Both the editor and the front end
+        - Editor only — the front end is correct
+        - Front end only — the editor is correct
+        - Neither — admin screen, importer, or something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: blocks
+    attributes:
+      label: Which blocks are involved
+      multiple: true
+      options:
+        - Section
+        - Box
+        - Stack
+        - Grid
+        - Heading
+        - Text
+        - Buttons
+        - Button
+        - Image
+        - Icon
+        - Spacer
+        - Divider
+        - Not block-specific — design system, importer, or admin
+
+  - type: textarea
+    id: markup
+    attributes:
+      label: Block markup
+      description: >
+        Select the block in the editor, then **Options → Copy**, and paste here. This is the single
+        most useful thing in the report — it carries every attribute exactly as saved, which a
+        screenshot cannot.
+      render: html
+
+  - type: input
+    id: blicks-version
+    attributes:
+      label: Blicks version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: wp-version
+    attributes:
+      label: WordPress version
+      placeholder: "6.8.1"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      description: Tools → Site Health → Info → Server.
+      placeholder: "8.3.6"
+    validations:
+      required: true
+
+  - type: input
+    id: theme
+    attributes:
+      label: Active theme
+      description: Name and version. Say so if it is a custom or child theme.
+      placeholder: "Twenty Twenty-Five 1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Only needed for an editor or front-end rendering problem.
+      placeholder: "Firefox 141, macOS"
+
+  - type: textarea
+    id: other-plugins
+    attributes:
+      label: Other active plugins
+      description: >
+        If it only reproduces with another plugin active, name it — that is not a lesser bug, but
+        it is a different one.
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, a screen recording, console errors, PHP notices.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reproduced this with only Blicks active on a default block theme.
+          required: true
+        - label: I searched existing issues and this is not already reported.
+          required: true
+        - label: This report contains no licence keys, credentials or customer data.
+          required: true

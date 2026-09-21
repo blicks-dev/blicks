@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Blicks\Core\ServiceProvider;
 use Blicks\Core\Attributes\Action;
 use Blicks\Core\Attributes\Filter;
+use Blicks\Core\Plugin as BasePlugin;
 
 /**
  * Registers the admin submenu pages and the plugin action links.
@@ -173,6 +174,51 @@ final class AdminServiceProvider extends ServiceProvider {
 		return $external;
 	}
 
+	/**
+	 * Where a user goes for help, and to tell us something is wrong.
+	 *
+	 * One list, read by both the Plugins-screen row and the admin app, so the two cannot drift
+	 * into offering different links. The issue URLs name a form in `.github/ISSUE_TEMPLATE/`:
+	 * GitHub preselects it, which is the difference between a blank textarea and a report that
+	 * arrives with the WordPress version, the theme and the block markup already in it.
+	 *
+	 * A link whose constant is undefined is omitted rather than emitted as a dead `/issues/new`
+	 * — a broken CTA is worse than an absent one.
+	 *
+	 * @return array<string, array{label: string, url: string}>
+	 */
+	public static function supportLinks(): array {
+		$docs = defined( 'BLICKS_DOCS_URI' ) ? (string) constant( 'BLICKS_DOCS_URI' ) : '';
+		$repo = defined( 'BLICKS_REPO_URI' ) ? untrailingslashit( (string) constant( 'BLICKS_REPO_URI' ) ) : '';
+
+		$links = [];
+
+		if ( '' !== $docs ) {
+			$links['docs'] = [
+				'label' => __( 'Documentation', 'blicks' ),
+				'url' => $docs,
+			];
+		}
+
+		if ( '' !== $repo ) {
+			$links['bug'] = [
+				'label' => __( 'Report a bug', 'blicks' ),
+				'url' => $repo . '/issues/new?template=bug_report.yml',
+			];
+			$links['feature'] = [
+				'label' => __( 'Request a feature', 'blicks' ),
+				'url' => $repo . '/issues/new?template=feature_request.yml',
+			];
+		}
+
+		/**
+		 * Filters the support links shown on the Plugins screen and in the admin app.
+		 *
+		 * @param array<string, array{label: string, url: string}> $links key => label and url.
+		 */
+		return apply_filters( 'blicks_support_links', $links );
+	}
+
 	/** The view a slug maps to, or an empty string when the slug is not ours. */
 	public static function viewForSlug( string $slug ): string {
 		return self::views()[ $slug ]['view'] ?? '';
@@ -238,6 +284,37 @@ final class AdminServiceProvider extends ServiceProvider {
 			esc_html__( 'Settings', 'blicks' )
 		);
 		return $links;
+	}
+
+	/**
+	 * Adds the support links under this plugin's row on the Plugins screen.
+	 *
+	 * This is the one surface every user passes through — they reach it to activate the plugin,
+	 * and return to it the moment something looks wrong — so it is where "report a bug" has to be
+	 * reachable without knowing the project has a GitHub repo at all.
+	 *
+	 * `plugin_row_meta` fires once per installed plugin, so the file is checked first. Without
+	 * that guard these links would appear under every plugin on the site.
+	 *
+	 * @param array<int, string> $meta Row meta links.
+	 * @param string             $file Plugin basename the row belongs to.
+	 * @return array<int, string>
+	 */
+	#[Filter( 'plugin_row_meta', 10, 2 )]
+	public function addRowMeta( array $meta, string $file ): array {
+		if ( BasePlugin::basename() !== $file ) {
+			return $meta;
+		}
+
+		foreach ( self::supportLinks() as $link ) {
+			$meta[] = sprintf(
+				'<a href="%s" target="_blank" rel="noreferrer noopener">%s</a>',
+				esc_url( $link['url'] ),
+				esc_html( $link['label'] )
+			);
+		}
+
+		return $meta;
 	}
 
 	/**

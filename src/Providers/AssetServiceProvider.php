@@ -95,6 +95,9 @@ final class AssetServiceProvider extends ServiceProvider {
 					'externalViews' => AdminServiceProvider::externalViews(),
 					'adminUrl' => admin_url( 'admin.php' ),
 					'docsUrl' => defined( 'BLICKS_DOCS_URI' ) ? BLICKS_DOCS_URI : '',
+					// Label and url both, so the app renders whatever the filter left rather
+					// than holding its own copy of the list.
+					'supportLinks' => array_values( AdminServiceProvider::supportLinks() ),
 					'editorUrl' => wp_is_block_theme()
 						? admin_url( 'site-editor.php' )
 						: admin_url( 'post-new.php?post_type=page' ),

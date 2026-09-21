@@ -103,6 +103,26 @@ Mintlify does **not** run build scripts, so the generated block reference under
 `block.json` or a per-block `readme.md` changes; CI fails the build if the committed copy has
 drifted. Nothing under `docs/` reaches the release zip — `scripts/bundle.js` ships an allowlist.
 
+## Reporting bugs and requesting features
+
+Both go through GitHub issue forms, which are the only two issue types the repo accepts:
+
+- [Report a bug](https://github.com/blicks-dev/blicks/issues/new?template=bug_report.yml)
+- [Request a feature](https://github.com/blicks-dev/blicks/issues/new?template=feature_request.yml)
+- [Ask a question](https://github.com/blicks-dev/blicks/discussions) — Discussions, not issues
+
+Blank issues are disabled. The bug form asks for WordPress, PHP, theme and the copied block
+markup, and for whether the problem shows in the editor, on the front end or both — that last
+answer is the one that narrows a style bug fastest, because the style engine has a separate
+implementation on each side.
+
+Security vulnerabilities go to [a private advisory](https://github.com/blicks-dev/blicks/security/advisories/new),
+never a public issue.
+
+Both forms are surfaced in the plugin too: `AdminServiceProvider::supportLinks()` is the single
+list, rendered into the Plugins-screen row meta and into the admin app's Overview. Adding a
+destination there reaches both at once; `blicks_support_links` filters it.
+
 ## Continuous integration
 
 | Workflow | Trigger | What it does |

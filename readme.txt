@@ -100,6 +100,20 @@ dependencies and bundles no third-party PHP library — the `vendor/` directory 
 only Composer's own class autoloader. Composer is otherwise used just for the development tools
 (PHPUnit, PHP_CodeSniffer), which are never shipped.
 
+== Support and Feedback ==
+
+Bug reports and feature requests are handled in public, on the GitHub issue tracker:
+
+* Report a bug: https://github.com/blicks-dev/blicks/issues/new?template=bug_report.yml
+* Request a feature: https://github.com/blicks-dev/blicks/issues/new?template=feature_request.yml
+* Questions and how-do-I: https://github.com/blicks-dev/blicks/discussions
+
+Both forms are also linked from the plugin itself — under the Blicks row on the Plugins screen, and at the foot of the Blicks Overview screen.
+
+A bug report is most useful with the WordPress and PHP versions, the active theme, and the block markup copied from the editor (select the block, then Options -> Copy). The form asks for each of these.
+
+Security issues should never be filed as a public issue. Report them privately at https://github.com/blicks-dev/blicks/security/advisories/new.
+
 == Third-Party Licenses ==
 
 Blicks includes a curated icon registry generated from Lucide icons. Lucide is licensed under ISC; some Lucide icons derive from Feather icons, licensed under MIT. Full notices are in `licenses.txt` and in the generated icon registry metadata.

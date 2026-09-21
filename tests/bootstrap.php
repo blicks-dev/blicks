@@ -15,6 +15,26 @@ if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);
 }
 
+/**
+ * The plugin's own `BLICKS_*_URI` constants, lifted out of `blicks.php`.
+ *
+ * `blicks.php` cannot be included here — it boots the whole plugin — but code under test reads
+ * these constants, and restating the URLs in this file would mean a changed domain passes the
+ * suite while shipping the old one. Parsing the source keeps one definition.
+ */
+foreach (
+    (function (): array {
+        $source = (string) file_get_contents(dirname(__DIR__) . '/blicks.php');
+        preg_match_all("/define\(\s*'(BLICKS_[A-Z_]*URI)'\s*,\s*'([^']+)'/", $source, $matches, PREG_SET_ORDER);
+
+        return $matches;
+    })() as $constant
+) {
+    if (!defined($constant[1])) {
+        define($constant[1], $constant[2]);
+    }
+}
+
 if (!class_exists('WP_Error')) {
     class WP_Error
     {
@@ -381,6 +401,20 @@ if (!function_exists('esc_html')) {
     function esc_html(string $text): string
     {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_url')) {
+    function esc_url(string $url): string
+    {
+        return htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('untrailingslashit')) {
+    function untrailingslashit(string $value): string
+    {
+        return rtrim($value, '/\\');
     }
 }
 

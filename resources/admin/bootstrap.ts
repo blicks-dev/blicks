@@ -1,5 +1,5 @@
 import { BUILTIN_VIEWS } from './constants';
-import type { AdminBootstrap, AdminView, ExternalView } from './types';
+import type { AdminBootstrap, AdminView, ExternalView, SupportLink } from './types';
 
 // `window.blicksAdminSettings` is injected by AssetServiceProvider. Everything the admin UI
 // needs from PHP — the real plugin version, the real docs URL, the page slug of each view —
@@ -11,6 +11,7 @@ const FALLBACK: AdminBootstrap = {
 	adminUrl: '',
 	docsUrl: '',
 	editorUrl: '',
+	supportLinks: [],
 	externalViews: [],
 };
 
@@ -59,6 +60,24 @@ function readExternalViews( source: Record< string, unknown > ): ExternalView[] 
 	} );
 }
 
+/**
+ * Docs and issue links. Dropped rather than rendered if either half is missing — a CTA with an
+ * empty href looks like a broken button, which is worse than one link fewer.
+ */
+function readSupportLinks( source: Record< string, unknown > ): SupportLink[] {
+	const raw = source.supportLinks;
+	if ( ! Array.isArray( raw ) ) return [];
+
+	return raw.filter( ( entry ): entry is SupportLink => {
+		if ( typeof entry !== 'object' || entry === null ) return false;
+
+		const { label, url } = entry as Partial< SupportLink >;
+
+		return typeof label === 'string' && label !== ''
+			&& typeof url === 'string' && url !== '';
+	} );
+}
+
 let cached: AdminBootstrap | null = null;
 
 export function bootstrap(): AdminBootstrap {
@@ -81,6 +100,7 @@ export function bootstrap(): AdminBootstrap {
 		adminUrl: readString( source, 'adminUrl' ),
 		docsUrl: readString( source, 'docsUrl' ),
 		editorUrl: readString( source, 'editorUrl' ),
+		supportLinks: readSupportLinks( source ),
 		externalViews,
 	};
 

@@ -1,0 +1,89 @@
+name: Feature request
+description: Propose a block, a control, or a change to how Blicks works.
+labels: [ "enhancement" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Blicks is deliberately small: 12 blocks, one design system, no bundled framework. Every
+        control added is one more thing in every inspector, and every block added is one more thing
+        to keep migrating for as long as the plugin exists.
+
+        So the useful part of this form is not the feature — it is **the problem underneath it**.
+        A well-described problem often gets solved by an existing control, or by a better change
+        than the one proposed.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to build
+      description: >
+        Describe the page, layout or workflow, not the feature. Start from what you are making and
+        where Blicks stops you.
+      placeholder: |
+        I build landing pages where the hero image bleeds past the section on desktop but stays
+        contained on mobile. Today I need a custom class and a stylesheet in the theme, which puts
+        the layout outside the design system and outside the client's reach.
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you handle it today
+      description: >
+        Custom CSS, another plugin, a pattern, giving up. This tells us how much friction the gap
+        actually causes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: >
+        Optional. If you have a specific shape in mind — a control, an option, a new block — say
+        so. If you would rather leave the solution open, leave this empty.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of Blicks
+      options:
+        - An existing block
+        - A new block
+        - The design system — tokens, type roles, breakpoints, themes
+        - The Inspector controls
+        - The HTML importer
+        - Front-end output — CSS, classes, performance
+        - Developer surface — hooks, filters, APIs
+        - Documentation
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: >
+        Including ones you rejected, and why. A rejected alternative is often the most informative
+        part of a proposal.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: >
+            This works with the theme's design system rather than around it — it does not need
+            hardcoded colours, sizes or spacing that ignore `theme.json`.
+        - label: This would change existing block markup, and I understand that needs a migration.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and discussions, and this is not already proposed.
+          required: true

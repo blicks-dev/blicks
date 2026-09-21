@@ -42,6 +42,15 @@ if ( ! defined( 'BLICKS_DOCS_URI' ) ) {
 	define( 'BLICKS_DOCS_URI', 'https://docs.blicks.dev' );
 }
 
+/**
+ * The public source repository. Bug reports and feature requests are filed here, and both the
+ * Plugins-screen row and the admin app build their links from it — so the host lives in one place
+ * rather than being spelled out at each call site.
+ */
+if ( ! defined( 'BLICKS_REPO_URI' ) ) {
+	define( 'BLICKS_REPO_URI', 'https://github.com/blicks-dev/blicks' );
+}
+
 use Blicks\Plugin;
 
 // Maps `Blicks\` onto `src/`; the plugin has no production dependencies. Required at file scope

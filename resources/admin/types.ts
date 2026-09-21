@@ -163,6 +163,12 @@ export type DiagnosticsResult = {
 	summary: Record< DiagnosticsStatus, number >;
 };
 
+/** One "get help" destination — docs, or a prefilled GitHub issue form. */
+export type SupportLink = {
+	label: string;
+	url: string;
+};
+
 // Injected by AssetServiceProvider as `window.blicksAdminSettings`.
 export type AdminBootstrap = {
 	version: string;
@@ -171,6 +177,8 @@ export type AdminBootstrap = {
 	adminUrl: string;
 	docsUrl: string;
 	editorUrl: string;
+	/** Docs and issue links, labelled in PHP so the strings stay in one translation domain. */
+	supportLinks: SupportLink[];
 	/** Pages other plugins registered in PHP. Their components arrive separately, at runtime. */
 	externalViews: ExternalView[];
 };
