@@ -177,8 +177,14 @@ final class StyleServiceProvider extends ServiceProvider {
 			return;
 		}
 
+		// Versioned by the file's OWN mtime, not the plugin version — a CSS-only rebuild between
+		// releases leaves the version unchanged, so a browser keeps the stale stylesheet. Falls
+		// back to the plugin version: filemtime() returns false on failure, and an empty version
+		// makes WordPress omit the `ver` argument entirely, which caches the file forever.
+		$mtime = filemtime( BasePlugin::path( 'build/runtime.css' ) );
+
 		Asset::style( 'blicks-runtime', BasePlugin::url( 'build/runtime.css' ) )
-			->version( BasePlugin::version() )
+			->version( (string) ( $mtime ? $mtime : BasePlugin::version() ) )
 			->addInlineStyle( Sanitize::styleTagContent( CssVariables::css() . "\n" . Keyframes::css() ) )
 			->enqueue();
 	}
