@@ -4,6 +4,7 @@
 	"name": "blicks/divider",
 	"title": "Divider",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M8 8.8L16 8.8L16 7.2L8 7.2ZM8 16.8L16 16.8L16 15.2L8 15.2Z\" fill=\"currentColor\"/><path d=\"M5 12.8L19 12.8L19 11.2L5 11.2Z\" fill=\"#002bff\"/></svg>",
 	"description": "A semantic divider for separating content groups.",
 	"textdomain": "blicks",
 	"supports": {

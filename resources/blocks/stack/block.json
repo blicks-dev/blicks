@@ -4,6 +4,7 @@
 	"name": "blicks/stack",
 	"title": "Stack",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.2 4.2L19.8 4.2L19.8 9.6L4.2 9.6ZM5.8 8L18.2 8L18.2 5.8L5.8 5.8ZM4.2 14.4L19.8 14.4L19.8 19.8L4.2 19.8ZM5.8 18.2L18.2 18.2L18.2 16L5.8 16Z\" fill=\"currentColor\"/><path d=\"M4.2 9.3L19.8 9.3L19.8 14.7L4.2 14.7Z\" fill=\"#002bff\"/></svg>",
 	"description": "A one-dimensional flex layout for arranging child blocks vertically or horizontally.",
 	"textdomain": "blicks",
 	"supports": {

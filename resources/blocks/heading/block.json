@@ -4,6 +4,7 @@
 	"name": "blicks/heading",
 	"title": "Heading",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.2 6L4.2 18L5.8 18L5.8 6ZM14.2 6L14.2 18L15.8 18L15.8 6ZM18.2 8L18.2 18L19.8 18L19.8 8Z\" fill=\"currentColor\"/><path d=\"M5 12.8L15 12.8L15 11.2L5 11.2Z\" fill=\"#002bff\"/></svg>",
 	"description": "A semantic h1-h6 heading that inherits the active theme by default.",
 	"textdomain": "blicks",
 	"supports": {

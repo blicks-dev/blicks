@@ -4,6 +4,7 @@
 	"name": "blicks/section",
 	"title": "Section",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.7 4.2L21.3 4.2L21.3 19.8L2.7 19.8ZM4.3 18.2L19.7 18.2L19.7 5.8L4.3 5.8ZM7 9.3L17 9.3L17 7.7L7 7.7ZM7 12.8L17 12.8L17 11.2L7 11.2Z\" fill=\"currentColor\"/><path d=\"M7 16.3L14 16.3L14 14.7L7 14.7Z\" fill=\"#002bff\"/></svg>",
 	"description": "A full-bleed page band with outer section sizing and independent content sizing controls.",
 	"textdomain": "blicks",
 	"supports": {

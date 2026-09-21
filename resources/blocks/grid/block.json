@@ -4,6 +4,7 @@
 	"name": "blicks/grid",
 	"title": "Grid",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M3.7 3.7L11.3 3.7L11.3 11.3L3.7 11.3ZM5.3 9.7L9.7 9.7L9.7 5.3L5.3 5.3ZM12.7 3.7L20.3 3.7L20.3 11.3L12.7 11.3ZM14.3 9.7L18.7 9.7L18.7 5.3L14.3 5.3ZM3.7 12.7L11.3 12.7L11.3 20.3L3.7 20.3ZM5.3 18.7L9.7 18.7L9.7 14.3L5.3 14.3Z\" fill=\"currentColor\"/><path d=\"M12.7 12.7L20.3 12.7L20.3 20.3L12.7 20.3Z\" fill=\"#002bff\"/></svg>",
 	"description": "A two-dimensional layout block for equal-width or auto-fit child columns.",
 	"textdomain": "blicks",
 	"supports": {

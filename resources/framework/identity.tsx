@@ -19,19 +19,66 @@ interface Identity {
  *   • **sharp** geometry (butt caps, miter joins, hairline 1.6 stroke) — no rounded Lucide softness;
  *   • a **glyph accent** in electric blue — one key element of each glyph is the brand color (a
  *     filled cell, the key line, the active part), so blue is *integrated into* the mark, not a
- *     bolt-on. Degrades cleanly where WP forces monochrome. Per-block `children` carry currentColor
- *     plus the one accent element (`stroke`/`fill` = `BRAND_ACCENT`). Keep glyphs sharp (no `rx`).
+ *     bolt-on. Degrades cleanly where WP forces monochrome.
+ *
+ * The geometry itself lives in `./icons/block-glyphs.json`, not in this file, because it has a
+ * second consumer: `scripts/gen-block-icons.mjs` outlines the same shapes into filled paths and
+ * writes them into each `block.json`, for the surfaces that read the metadata without ever running
+ * this bundle (the wordpress.org plugin page, Plugins → Add New → Blocks). One source, two
+ * renderers — `block-glyphs.test.ts` holds them to the same block list.
  */
-const BRAND_ACCENT = '#002bff';
+import GLYPHS from './icons/block-glyphs.json';
+
+const BRAND_ACCENT = GLYPHS.accent;
+
+type Shape = {
+	type: string;
+	accent?: boolean;
+	filled?: boolean;
+	x?: number; y?: number; w?: number; h?: number;
+	cx?: number; cy?: number; r?: number;
+	points?: number[][];
+	closed?: boolean;
+	d?: string;
+};
+
+/** One glyph shape as a real stroked element — the editor has no `wp_kses` to answer to. */
+function shape( s: Shape, key: number ): React.ReactElement {
+	const stroke = s.accent ? BRAND_ACCENT : undefined;
+	const fill   = s.filled ? BRAND_ACCENT : undefined;
+
+	switch ( s.type ) {
+		case 'rect':
+			return <rect key={ key } x={ s.x } y={ s.y } width={ s.w } height={ s.h } stroke={ stroke } fill={ fill } />;
+		case 'circle':
+			return <circle key={ key } cx={ s.cx } cy={ s.cy } r={ s.r } stroke={ stroke } fill={ fill } />;
+		case 'line': {
+			const [ head, ...rest ] = s.points as number[][];
+			const d = `M${ head[ 0 ] } ${ head[ 1 ] }`
+				+ rest.map( ( p ) => `L${ p[ 0 ] } ${ p[ 1 ] }` ).join( '' )
+				+ ( s.closed ? 'Z' : '' );
+			return <path key={ key } d={ d } stroke={ stroke } fill={ fill } />;
+		}
+		default:
+			return <path key={ key } d={ s.d } stroke={ stroke } fill={ fill } />;
+	}
+}
 
 function icon( children: React.ReactNode ): any {
 	return (
-		<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-			<g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="butt" strokeLinejoin="miter">
+		<svg viewBox={ GLYPHS.viewBox } width="24" height="24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" strokeWidth={ GLYPHS.strokeWidth } strokeLinecap="butt" strokeLinejoin="miter">
 				{ children }
 			</g>
 		</svg>
 	);
+}
+
+/** The icon for one block, built from its entry in the shared glyph source. */
+function glyph( name: string ): any {
+	const shapes = ( GLYPHS.glyphs as Record< string, Shape[] > )[ name ];
+	if ( ! shapes ) return undefined;
+	return icon( shapes.map( shape ) );
 }
 
 const brandIcon = icon(
@@ -86,13 +133,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Box', 'blicks' ),
 		description: __( 'A generic styled wrapper for cards, panels, and manual layouts.', 'blicks' ),
 		keywords: [ __( 'box', 'blicks' ), __( 'card', 'blicks' ), __( 'panel', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="5" y="5" width="14" height="14" />
-				<path d="M8 9h8" stroke={ BRAND_ACCENT } />
-				<path d="M8 13h5" stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/box' ),
 		example: {
 			attributes: {
 				tag: 'article',
@@ -104,14 +145,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Section', 'blicks' ),
 		description: __( 'A full-bleed page band with section and content sizing controls.', 'blicks' ),
 		keywords: [ __( 'section', 'blicks' ), __( 'band', 'blicks' ), __( 'wrapper', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="3.5" y="5" width="17" height="14" />
-				<path d="M7 8.5h10" />
-				<path d="M7 12h10" />
-				<path d="M7 15.5h7" stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/section' ),
 		example: {
 			attributes: { contentWidth: '100%', contentMaxWidth: 'var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))', surface: 'muted', sectionSpace: 'md', align: 'full' },
 			innerBlocks: [
@@ -130,13 +164,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Stack', 'blicks' ),
 		description: __( 'A one-axis auto-layout block for vertical or horizontal groups with gap and alignment controls.', 'blicks' ),
 		keywords: [ __( 'flex', 'blicks' ), __( 'row', 'blicks' ), __( 'column', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="5" y="5" width="14" height="3.8" />
-				<rect x="5" y="10.1" width="14" height="3.8" fill={ BRAND_ACCENT } stroke={ BRAND_ACCENT } />
-				<rect x="5" y="15.2" width="14" height="3.8" />
-			</>
-		),
+		icon: glyph( 'blicks/stack' ),
 		example: {
 			attributes: { orientation: 'vertical', gap: 'md', align: 'center' },
 			innerBlocks: [
@@ -149,14 +177,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Grid', 'blicks' ),
 		description: __( 'A responsive collection layout for cards, galleries, features, and repeatable content.', 'blicks' ),
 		keywords: [ __( 'columns', 'blicks' ), __( 'cards', 'blicks' ), __( 'collection', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="4.5" y="4.5" width="6" height="6" />
-				<rect x="13.5" y="4.5" width="6" height="6" />
-				<rect x="4.5" y="13.5" width="6" height="6" />
-				<rect x="13.5" y="13.5" width="6" height="6" fill={ BRAND_ACCENT } stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/grid' ),
 		example: {
 			attributes: { columns: 3, autoFit: true, minColumnWidth: '14rem', gap: 'md' },
 			innerBlocks: [
@@ -170,14 +191,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Heading', 'blicks' ),
 		description: __( 'A theme-native h1-h6 heading with quick level and alignment controls.', 'blicks' ),
 		keywords: [ __( 'title', 'blicks' ), __( 'headline', 'blicks' ), __( 'typography', 'blicks' ) ],
-		icon: icon(
-			<>
-				<path d="M5 6v12" />
-				<path d="M15 6v12" />
-				<path d="M5 12h10" stroke={ BRAND_ACCENT } />
-				<path d="M19 8v10" />
-			</>
-		),
+		icon: glyph( 'blicks/heading' ),
 		example: {
 			attributes: { level: 2, content: 'Design with real primitives' },
 		},
@@ -186,14 +200,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Text', 'blicks' ),
 		description: __( 'A clean paragraph block for editable body copy that inherits your theme.', 'blicks' ),
 		keywords: [ __( 'paragraph', 'blicks' ), __( 'copy', 'blicks' ), __( 'body', 'blicks' ) ],
-		icon: icon(
-			<>
-				<path d="M5 7h14" />
-				<path d="M5 11h12" />
-				<path d="M5 15h14" />
-				<path d="M5 19h8" stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/text' ),
 		example: {
 			attributes: { content: 'Write concise body copy that can still use the full Blicks styling system.' },
 		},
@@ -202,12 +209,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Buttons', 'blicks' ),
 		description: __( 'A row or column of Button blocks with shared alignment, spacing, and wrapping.', 'blicks' ),
 		keywords: [ __( 'cta', 'blicks' ), __( 'actions', 'blicks' ), __( 'group', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="3" y="9" width="8" height="6" />
-				<rect x="13" y="9" width="8" height="6" fill={ BRAND_ACCENT } stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/buttons' ),
 		example: {
 			innerBlocks: [
 				{ name: 'blicks/button', attributes: { text: 'Get started', variant: 'default' } },
@@ -219,13 +221,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Button', 'blicks' ),
 		description: __( 'A polished action block with variants, sizes, links, and optional inline icons.', 'blicks' ),
 		keywords: [ __( 'cta', 'blicks' ), __( 'link', 'blicks' ), __( 'action', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="4" y="7" width="16" height="10" />
-				<path d="M9 12h6" />
-				<path d="M13 10l2 2-2 2" stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/button' ),
 		example: {
 			attributes: { text: 'Get started', variant: 'default', size: 'default', icon: 'arrowRight', iconPosition: 'trailing' },
 		},
@@ -234,13 +230,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Image', 'blicks' ),
 		description: __( 'A responsive figure block with aspect ratio, object fit, caption, and link controls.', 'blicks' ),
 		keywords: [ __( 'media', 'blicks' ), __( 'photo', 'blicks' ), __( 'figure', 'blicks' ) ],
-		icon: icon(
-			<>
-				<rect x="4" y="5" width="16" height="14" />
-				<circle cx="9" cy="10" r="1.4" fill={ BRAND_ACCENT } stroke={ BRAND_ACCENT } />
-				<path d="M6.5 17l4.2-4.2 2.6 2.6 1.7-1.7 2.5 3.3" />
-			</>
-		),
+		icon: glyph( 'blicks/image' ),
 		example: {
 			attributes: { aspectRatio: '16 / 9', objectFit: 'cover', caption: 'Responsive media with a clean caption.' },
 		},
@@ -249,11 +239,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Icon', 'blicks' ),
 		description: __( 'A curated inline SVG icon with size, stroke, label, color, and spacing controls.', 'blicks' ),
 		keywords: [ __( 'svg', 'blicks' ), __( 'symbol', 'blicks' ), __( 'visual', 'blicks' ) ],
-		icon: icon(
-			<>
-				<path d="M12 4.5l2.2 4.5 4.9.7-3.6 3.5.9 4.9-4.4-2.3-4.4 2.3.9-4.9-3.6-3.5 4.9-.7z" fill={ BRAND_ACCENT } stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/icon' ),
 		example: {
 			attributes: { icon: 'bolt', size: '2rem', label: 'Feature' },
 		},
@@ -262,13 +248,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Spacer', 'blicks' ),
 		description: __( 'A deliberate rhythm block for adding responsive vertical or horizontal breathing room.', 'blicks' ),
 		keywords: [ __( 'space', 'blicks' ), __( 'gap', 'blicks' ), __( 'rhythm', 'blicks' ) ],
-		icon: icon(
-			<>
-				<path d="M12 4v16" />
-				<path d="M8.5 7.5L12 4l3.5 3.5" stroke={ BRAND_ACCENT } />
-				<path d="M8.5 16.5L12 20l3.5-3.5" stroke={ BRAND_ACCENT } />
-			</>
-		),
+		icon: glyph( 'blicks/spacer' ),
 		example: {
 			attributes: { size: '48px', orientation: 'vertical' },
 		},
@@ -277,13 +257,7 @@ const IDENTITIES: Record< string, Identity > = {
 		title: __( 'Divider', 'blicks' ),
 		description: __( 'A semantic rule for separating groups with thickness, style, color, and spacing controls.', 'blicks' ),
 		keywords: [ __( 'rule', 'blicks' ), __( 'separator', 'blicks' ), __( 'line', 'blicks' ) ],
-		icon: icon(
-			<>
-				<path d="M5 12h14" stroke={ BRAND_ACCENT } />
-				<path d="M8 8h8" />
-				<path d="M8 16h8" />
-			</>
-		),
+		icon: glyph( 'blicks/divider' ),
 		example: {
 			attributes: { orientation: 'horizontal', thickness: '2px', lineStyle: 'solid' },
 		},

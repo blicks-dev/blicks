@@ -4,6 +4,7 @@
 	"name": "blicks/text",
 	"title": "Text",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M5 7.8L19 7.8L19 6.2L5 6.2ZM5 11.8L17 11.8L17 10.2L5 10.2ZM5 15.8L19 15.8L19 14.2L5 14.2Z\" fill=\"currentColor\"/><path d=\"M5 19.8L13 19.8L13 18.2L5 18.2Z\" fill=\"#002bff\"/></svg>",
 	"description": "A rich paragraph block for body copy.",
 	"textdomain": "blicks",
 	"supports": {

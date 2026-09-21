@@ -5,8 +5,9 @@
     "scripts": {
         "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
         "gen:icons": "node scripts/gen-icons.mjs",
-        "predev": "node scripts/gen-icons.mjs",
-        "prebuild": "node scripts/gen-icons.mjs",
+        "gen:block-icons": "node scripts/gen-block-icons.mjs",
+        "predev": "pnpm gen:icons && pnpm gen:block-icons",
+        "prebuild": "pnpm gen:icons && pnpm gen:block-icons",
         "dev": "run-p dev:js dev:block-library dev:modules",
         "dev:js": "vite build --watch",
         "dev:block-library": "vite build --config vite.block-library.config.mjs --watch",

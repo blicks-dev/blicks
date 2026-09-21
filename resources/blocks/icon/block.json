@@ -4,6 +4,7 @@
 	"name": "blicks/icon",
 	"title": "Icon",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M12 2.679L14.733 8.268L20.825 9.138L16.364 13.476L17.483 19.569L12 16.703L6.517 19.569L7.636 13.476L3.175 9.138L9.267 8.268Z\" fill=\"#002bff\"/></svg>",
 	"description": "An inline SVG icon that inherits current text color.",
 	"textdomain": "blicks",
 	"supports": {

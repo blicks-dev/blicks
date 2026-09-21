@@ -1,0 +1,69 @@
+{
+	"_comment": "Single source of truth for the 12 block icons. Rendered as stroked SVG in the editor (resources/framework/identity.tsx) and outlined into filled paths for block.json by `pnpm gen:block-icons` — wordpress.org's plugin page runs the icon through wp_kses, which strips every stroke attribute and every element but <path>/<g>.",
+	"strokeWidth": 1.6,
+	"accent": "#002bff",
+	"viewBox": "0 0 24 24",
+	"glyphs": {
+		"blicks/box": [
+			{ "type": "rect", "x": 5, "y": 5, "w": 14, "h": 14 },
+			{ "type": "line", "points": [ [ 8, 9 ], [ 16, 9 ] ], "accent": true },
+			{ "type": "line", "points": [ [ 8, 13 ], [ 13, 13 ] ], "accent": true }
+		],
+		"blicks/section": [
+			{ "type": "rect", "x": 3.5, "y": 5, "w": 17, "h": 14 },
+			{ "type": "line", "points": [ [ 7, 8.5 ], [ 17, 8.5 ] ] },
+			{ "type": "line", "points": [ [ 7, 12 ], [ 17, 12 ] ] },
+			{ "type": "line", "points": [ [ 7, 15.5 ], [ 14, 15.5 ] ], "accent": true }
+		],
+		"blicks/stack": [
+			{ "type": "rect", "x": 5, "y": 5, "w": 14, "h": 3.8 },
+			{ "type": "rect", "x": 5, "y": 10.1, "w": 14, "h": 3.8, "accent": true, "filled": true },
+			{ "type": "rect", "x": 5, "y": 15.2, "w": 14, "h": 3.8 }
+		],
+		"blicks/grid": [
+			{ "type": "rect", "x": 4.5, "y": 4.5, "w": 6, "h": 6 },
+			{ "type": "rect", "x": 13.5, "y": 4.5, "w": 6, "h": 6 },
+			{ "type": "rect", "x": 4.5, "y": 13.5, "w": 6, "h": 6 },
+			{ "type": "rect", "x": 13.5, "y": 13.5, "w": 6, "h": 6, "accent": true, "filled": true }
+		],
+		"blicks/heading": [
+			{ "type": "line", "points": [ [ 5, 6 ], [ 5, 18 ] ] },
+			{ "type": "line", "points": [ [ 15, 6 ], [ 15, 18 ] ] },
+			{ "type": "line", "points": [ [ 5, 12 ], [ 15, 12 ] ], "accent": true },
+			{ "type": "line", "points": [ [ 19, 8 ], [ 19, 18 ] ] }
+		],
+		"blicks/text": [
+			{ "type": "line", "points": [ [ 5, 7 ], [ 19, 7 ] ] },
+			{ "type": "line", "points": [ [ 5, 11 ], [ 17, 11 ] ] },
+			{ "type": "line", "points": [ [ 5, 15 ], [ 19, 15 ] ] },
+			{ "type": "line", "points": [ [ 5, 19 ], [ 13, 19 ] ], "accent": true }
+		],
+		"blicks/buttons": [
+			{ "type": "rect", "x": 3, "y": 9, "w": 8, "h": 6 },
+			{ "type": "rect", "x": 13, "y": 9, "w": 8, "h": 6, "accent": true, "filled": true }
+		],
+		"blicks/button": [
+			{ "type": "rect", "x": 4, "y": 7, "w": 16, "h": 10 },
+			{ "type": "line", "points": [ [ 9, 12 ], [ 15, 12 ] ] },
+			{ "type": "line", "points": [ [ 13, 10 ], [ 15, 12 ], [ 13, 14 ] ], "accent": true }
+		],
+		"blicks/image": [
+			{ "type": "rect", "x": 4, "y": 5, "w": 16, "h": 14 },
+			{ "type": "circle", "cx": 9, "cy": 10, "r": 1.4, "accent": true, "filled": true },
+			{ "type": "line", "points": [ [ 6.5, 17 ], [ 10.7, 12.8 ], [ 13.3, 15.4 ], [ 15, 13.7 ], [ 17.5, 17 ] ] }
+		],
+		"blicks/icon": [
+			{ "type": "line", "closed": true, "accent": true, "filled": true, "points": [ [ 12, 4.5 ], [ 14.2, 9 ], [ 19.1, 9.7 ], [ 15.5, 13.2 ], [ 16.4, 18.1 ], [ 12, 15.8 ], [ 7.6, 18.1 ], [ 8.5, 13.2 ], [ 4.9, 9.7 ], [ 9.8, 9 ] ] }
+		],
+		"blicks/spacer": [
+			{ "type": "line", "points": [ [ 12, 4 ], [ 12, 20 ] ] },
+			{ "type": "line", "points": [ [ 8.5, 7.5 ], [ 12, 4 ], [ 15.5, 7.5 ] ], "accent": true },
+			{ "type": "line", "points": [ [ 8.5, 16.5 ], [ 12, 20 ], [ 15.5, 16.5 ] ], "accent": true }
+		],
+		"blicks/divider": [
+			{ "type": "line", "points": [ [ 5, 12 ], [ 19, 12 ] ], "accent": true },
+			{ "type": "line", "points": [ [ 8, 8 ], [ 16, 8 ] ] },
+			{ "type": "line", "points": [ [ 8, 16 ], [ 16, 16 ] ] }
+		]
+	}
+}

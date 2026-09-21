@@ -4,6 +4,7 @@
 	"name": "blicks/button",
 	"title": "Button",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M3.2 6.2L20.8 6.2L20.8 17.8L3.2 17.8ZM4.8 16.2L19.2 16.2L19.2 7.8L4.8 7.8ZM9 12.8L15 12.8L15 11.2L9 11.2Z\" fill=\"currentColor\"/><path d=\"M12.434 10.566L13.869 12L12.434 13.434L13.566 14.566L16.131 12L13.566 9.434Z\" fill=\"#002bff\"/></svg>",
 	"description": "A shadcn-style action button with variants, sizes, links, and optional icons.",
 	"textdomain": "blicks",
 	"parent": [ "blicks/buttons" ],

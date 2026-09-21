@@ -4,6 +4,7 @@
 	"name": "blicks/buttons",
 	"title": "Buttons",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.2 8.2L11.8 8.2L11.8 15.8L2.2 15.8ZM3.8 14.2L10.2 14.2L10.2 9.8L3.8 9.8Z\" fill=\"currentColor\"/><path d=\"M12.2 8.2L21.8 8.2L21.8 15.8L12.2 15.8Z\" fill=\"#002bff\"/></svg>",
 	"description": "A row or column of Button blocks with shared alignment, spacing, and wrapping.",
 	"textdomain": "blicks",
 	"supports": {

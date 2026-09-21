@@ -4,6 +4,7 @@
 	"name": "blicks/image",
 	"title": "Image",
 	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M3.2 4.2L20.8 4.2L20.8 19.8L3.2 19.8ZM4.8 18.2L19.2 18.2L19.2 5.8L4.8 5.8ZM7.066 17.566L10.7 13.931L13.3 16.531L14.917 14.915L16.862 17.483L18.138 16.517L15.083 12.485L13.3 14.269L10.7 11.669L5.934 16.434Z\" fill=\"currentColor\"/><path d=\"M6.8 10a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0Z\" fill=\"#002bff\"/></svg>",
 	"description": "A responsive media block with optional link and caption.",
 	"textdomain": "blicks",
 	"supports": {
