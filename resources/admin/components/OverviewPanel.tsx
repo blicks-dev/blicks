@@ -113,7 +113,7 @@ export function OverviewPanel( {
 	onViewChange: ( view: AdminView ) => void;
 	onOpenDesignSection: ( section: string ) => void;
 } ): JSX.Element {
-	const { editorUrl } = bootstrap();
+	const { editorUrl, supportLinks } = bootstrap();
 	const themeReady = apiStatus === 'ready' && snapshot.counts.colors > 0;
 	const tokenCount = snapshot.counts.colors + snapshot.counts.typography;
 	const overrideCount = countOverrides( snapshot.overrides );
@@ -280,9 +280,12 @@ export function OverviewPanel( {
 				</div>
 			</div>
 
-			{ /* ── quick actions | system health ── */ }
+			{ /* ── the four cards, one 2-column grid ──
+			     One grid rather than two rows of two, so a card's column edge is the same all
+			     the way down and the 16px rhythm comes from a single `gap` instead of a
+			     margin between two containers. */ }
 			<div className="row two">
-				<div className="panel card">
+				<div className="panel ocard">
 					<div className="head">
 						<div>
 							<h2>{ __( 'Quick actions', 'blicks' ) }</h2>
@@ -319,7 +322,7 @@ export function OverviewPanel( {
 					</div>
 				</div>
 
-				<div className="panel card">
+				<div className="panel ocard">
 					<div className="head">
 						<div>
 							<h2>{ __( 'System health', 'blicks' ) }</h2>
@@ -378,11 +381,8 @@ export function OverviewPanel( {
 						</div>
 					) }
 				</div>
-			</div>
 
-			{ /* ── current tokens | recent activity ── */ }
-			<div className="row two">
-				<div className="panel card">
+				<div className="panel ocard">
 					<div className="head">
 						<div>
 							<h2>{ __( 'Current tokens', 'blicks' ) }</h2>
@@ -394,7 +394,7 @@ export function OverviewPanel( {
 					<div className="grow" />
 				</div>
 
-				<div className="panel card">
+				<div className="panel ocard">
 					<div className="head">
 						<div>
 							<h2>{ __( 'Recent activity', 'blicks' ) }</h2>
@@ -433,6 +433,28 @@ export function OverviewPanel( {
 				</div>
 				<button className="lnk" type="button" onClick={ () => onOpenDesignSection( 'out' ) }>{ __( 'See generated output', 'blicks' ) }</button>
 			</div>
+
+			{ /* ── help & feedback ──
+			     The only route a user has from "this is broken" to a report we can act on. It
+			     lives at the foot of the Overview rather than behind a menu because the moment
+			     someone needs it is the moment they are least willing to go looking. Rendered
+			     from PHP's list, so it disappears cleanly if the URLs are ever unset. */ }
+			{ supportLinks.length > 0 && (
+				<div className="panel tip support">
+					<span className="eyebrow">{ __( 'Help', 'blicks' ) }</span>
+					<div className="body">
+						<b>{ __( 'Something not working?', 'blicks' ) }</b>
+						<p>{ __( 'Bug reports and feature requests go to the public issue tracker, on forms that ask for what makes a report reproducible.', 'blicks' ) }</p>
+					</div>
+					<div className="links">
+						{ supportLinks.map( link => (
+							<a key={ link.url } className="lnk" href={ link.url } target="_blank" rel="noreferrer">
+								{ link.label }
+							</a>
+						) ) }
+					</div>
+				</div>
+			) }
 		</>
 	);
 }

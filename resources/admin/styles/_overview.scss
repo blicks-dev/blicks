@@ -8,6 +8,15 @@
 	margin-bottom: 16px;
 }
 
+/* The same 16px for a top-level panel that is not inside a row.
+   `.row` carried the rhythm and a bare `.panel` carried none, so every such panel sat flush
+   against whatever came after it: the stat strip hard against the cards below, and the two
+   footer strips hard against each other, hairline to hairline. One rule rather than a margin
+   added to each panel as it turns up. */
+.blicks-admin .v-overview > .panel {
+	margin-bottom: 16px;
+}
+
 .blicks-admin .v-overview .head {
 	display: flex;
 	align-items: baseline;
@@ -240,17 +249,32 @@
 }
 
 /* ── two-col rows ──────────────────────────────────────────────────────── */
+
+/* All four cards live in this one grid, so the column edges line up down the whole page and
+   the 16px rhythm between the two rows is the grid's own `gap`.
+
+   Items stretch, matching the Settings screen's `.cols`: a row of cards that ends on one line
+   is what the admin looks like everywhere else, and a ragged bottom edge here would be the
+   odd one out. The cost is that a row is only as tidy as its shorter card — see `.grow`, which
+   is what keeps a card's footer pinned to the bottom of the stretched box rather than floating
+   in the middle of it. */
 .blicks-admin .v-overview .row.two {
 	grid-template-columns: 1fr 1fr;
 }
 
-.blicks-admin .v-overview .card {
+/* `ocard`, not `card`: wp-admin's forms.css ships a global `.card` — `max-width: 520px`,
+   `min-width: 255px`, `margin-top: 20px`, `border-radius: 8px`. Our own rules set neither
+   width, so the clamp got through and every card stopped 100px short of its grid column,
+   leaving a dead strip down the right of both. The 20px margin broke the 16px row rhythm on
+   top of it. Scoping does not help — `.blicks-admin .v-overview .card` wins the properties it
+   declares and inherits the rest — so the class itself has to be one core does not own. */
+.blicks-admin .v-overview .ocard {
 	display: flex;
 	flex-direction: column;
 	padding: 28px 30px;
 }
 
-.blicks-admin .v-overview .card .grow {
+.blicks-admin .v-overview .ocard .grow {
 	flex: 1;
 	min-height: 20px;
 }
@@ -507,8 +531,16 @@
 	padding: 22px 30px;
 }
 
+/* Fixed width, and aligned to the first line rather than centred.
+   Both strips put a label in the left gutter, but "TIP" and "HELP" are 23px and 31px wide, so
+   without a shared width the two headings beside them started 8px apart — two stacked strips
+   whose text does not line up read as a rendering fault. Centring had the same problem
+   vertically: against a three-line body the label drifted below the heading it labels. */
 .blicks-admin .v-overview .tip .eyebrow {
 	flex: none;
+	align-self: flex-start;
+	min-width: 46px;
+	padding-top: 4px;
 }
 
 .blicks-admin .v-overview .tip .body {
@@ -530,6 +562,26 @@
 	color: var(--muted);
 	line-height: 1.5;
 	max-width: 64ch;
+}
+
+/* Three links where the tip has one leaves too little room for the copy to sit beside its own
+   heading, so it wrapped underneath — the same shape, arrived at by accident and with the
+   flex row gap between the two lines. Stacked deliberately instead, at a gap that reads as
+   one block rather than two stray sentences. */
+.blicks-admin .v-overview .tip.support .body {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+}
+
+/* The support strip carries several links where the tip carries one, so they get their own
+   row that wraps instead of squeezing the copy. */
+.blicks-admin .v-overview .tip.support .links {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	flex-wrap: wrap;
 }
 
 @media (width <= 1080px) {
@@ -572,5 +624,13 @@
 	.blicks-admin .v-overview .tip {
 		flex-wrap: wrap;
 		gap: 14px;
+	}
+
+	/* `flex-wrap` alone does not wrap anything here: the body is `flex: 1` over `min-width: 0`,
+	   so it shrinks to whatever is left instead, and the trailing link stays on the row beside
+	   a column six lines tall. A floor on the body makes it wrap the link underneath instead,
+	   which is what the support strip was already doing by being wide enough to force it. */
+	.blicks-admin .v-overview .tip .body {
+		min-width: 320px;
 	}
 }
