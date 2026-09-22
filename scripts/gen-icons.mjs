@@ -5,6 +5,7 @@
  * Outputs:
  *   - resources/framework/icons/lucide.gen.ts   (registers itself with the icon registry)
  *   - resources/framework/icons/names.gen.json  (PHP-readable allowlist + aliases)
+ *   - resources/framework/icons/svg.gen.json    (PHP-readable path data)
  *
  * Run via `pnpm gen:icons` (also auto-runs before `pnpm build`/`pnpm dev`).
  */
@@ -19,6 +20,10 @@ const TAGS_PATH = resolve( LUCIDE, 'tags.json' );
 const ICONS_DIR = resolve( LUCIDE, 'icons' );
 const OUT_TS    = resolve( ROOT, 'resources/framework/icons/lucide.gen.ts' );
 const OUT_JSON  = resolve( ROOT, 'resources/framework/icons/names.gen.json' );
+// The path data on its own, for code that has to reproduce an icon's markup outside JavaScript.
+// Kept apart from names.gen.json so the allowlist stays small for everything that only needs to
+// know whether a name is valid — this file is ~20× larger and is read only when rendering.
+const OUT_SVG   = resolve( ROOT, 'resources/framework/icons/svg.gen.json' );
 const LICENSE_PATH = resolve( LUCIDE, 'LICENSE' );
 
 if ( ! existsSync( LUCIDE ) ) {
@@ -117,5 +122,25 @@ writeFileSync( OUT_JSON, JSON.stringify( {
 	},
 }, null, '\t' ) + '\n' );
 
+// --- emit SVG JSON (consumed by PHP when it has to write an icon into saved block markup) ---
+//
+// `fallback` is part of the contract, not a convenience: `renderIcon()` falls back to `star` for an
+// unknown name, so anything reproducing its output has to fall back the same way or it writes
+// markup the editor will not validate against.
+// The ISC notice travels with the artifact. This is the file that carries the actual path data —
+// `lucide.gen.ts` and `names.gen.json` both carry it, and the copy holding the art itself is the
+// last one that should be missing it.
+writeFileSync( OUT_SVG, JSON.stringify( {
+	library:  'lucide',
+	fallback: 'star',
+	aliases,
+	license: {
+		source: 'lucide-static',
+		notice: lucideLicense,
+	},
+	icons:    Object.fromEntries( entries.map( ( e ) => [ e.name, e.svg ] ) ),
+}, null, '\t' ) + '\n' );
+
 console.log( `gen-icons: wrote ${ allNames.length } icons → ${ OUT_TS.replace( ROOT + '/', '' ) }` );
 console.log( `gen-icons: wrote ${ Object.keys( aliases ).length } aliases → ${ OUT_JSON.replace( ROOT + '/', '' ) }` );
+console.log( `gen-icons: wrote ${ allNames.length } svg bodies → ${ OUT_SVG.replace( ROOT + '/', '' ) }` );
