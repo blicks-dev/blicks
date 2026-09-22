@@ -1,0 +1,95 @@
+{
+	"_comment": "Shared parity table for the block control allow-list matcher. PHP runs every case through ControlCatalog::allowed(); JS runs the same cases through includesControl() in resources/framework/inspector/Inspector.tsx. The rule lived only in JS until the REST surface gained the ability to write the style tree, and a server that disagreed with the editor about what a block allows is the bug this table exists to prevent.",
+	"cases": [
+		{
+			"why": "an exact id matches itself",
+			"allow": [ "spacing.padding" ],
+			"id": "spacing.padding",
+			"allowed": true
+		},
+		{
+			"why": "a glob covers every id under its prefix",
+			"allow": [ "spacing.*" ],
+			"id": "spacing.padding",
+			"allowed": true
+		},
+		{
+			"why": "exact ids and globs coexist in one list",
+			"allow": [ "layout.gapRow", "spacing.*" ],
+			"id": "layout.gapRow",
+			"allowed": true
+		},
+		{
+			"why": "an exact id grants only itself, not its siblings",
+			"allow": [ "spacing.padding" ],
+			"id": "spacing.margin",
+			"allowed": false
+		},
+		{
+			"why": "a glob grants nothing outside its own prefix",
+			"allow": [ "spacing.*" ],
+			"id": "border.width",
+			"allowed": false
+		},
+		{
+			"why": "an empty allow-list grants nothing",
+			"allow": [],
+			"id": "spacing.padding",
+			"allowed": false
+		},
+		{
+			"why": "the split is on the FIRST dot, so a glob also covers deeper ids",
+			"allow": [ "spacing.*" ],
+			"id": "spacing.padding.top",
+			"allowed": true
+		},
+		{
+			"why": "a bare wildcard is not a wildcard — nothing opts a block into every control",
+			"allow": [ "*" ],
+			"id": "spacing.padding",
+			"allowed": false
+		},
+		{
+			"why": "an id with no dot can only match exactly",
+			"allow": [ "uniqueId" ],
+			"id": "uniqueId",
+			"allowed": true
+		},
+		{
+			"why": "a dotless id is its own prefix, so a glob does grant it (an artifact of the shared rule, unreachable while every control id has a dot)",
+			"allow": [ "spacing.*" ],
+			"id": "spacing",
+			"allowed": true
+		},
+		{
+			"why": "a bare prefix does not act as a glob",
+			"allow": [ "spacing" ],
+			"id": "spacing.padding",
+			"allowed": false
+		},
+		{
+			"why": "matching is exact, never a string prefix",
+			"allow": [ "spacing.padding" ],
+			"id": "spacing.paddingTop",
+			"allowed": false
+		},
+		{
+			"why": "matching is case-sensitive on the glob side",
+			"allow": [ "Spacing.*" ],
+			"id": "spacing.padding",
+			"allowed": false
+		},
+		{
+			"why": "matching is case-sensitive on the id side",
+			"allow": [ "spacing.*" ],
+			"id": "Spacing.padding",
+			"allowed": false
+		},
+		{
+			"why": "an empty id matches nothing",
+			"allow": [ "spacing.*" ],
+			"id": "",
+			"allowed": false
+		}
+	]
+}

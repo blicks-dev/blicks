@@ -17,6 +17,9 @@ import { COLUMNS_KEYWORDS, ColumnsControl } from '@/controls/columns/ColumnsCont
 import { AnimationControl, MOTION_KEYWORDS } from '@/controls/animation/AnimationControl';
 import { DecorationControl } from '@/controls/decoration/DecorationControl';
 import { StatesControl } from '@/controls/states/StatesControl';
+// The allow-list rule lives in its own module so PHP's mirror of it can be parity-tested
+// without loading the editor — see control-allow.ts.
+import { includesControl } from './control-allow';
 import { AdvancedControls } from './AdvancedControls';
 import { ContextBar } from './ContextBar';
 import { SearchField } from './SearchField';
@@ -305,8 +308,6 @@ interface Props {
 	Advanced?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 }
 
-const includesControl = ( controls: string[], id: string ): boolean =>
-	controls.includes( id ) || controls.includes( id.split( '.' )[ 0 ] + '.*' );
 
 const BREAKPOINT_TO_DEVICE: Record< string, string > = {
 	base: 'Desktop',

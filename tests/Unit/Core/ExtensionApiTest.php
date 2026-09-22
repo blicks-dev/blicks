@@ -32,8 +32,24 @@ final class ExtensionApiTest extends TestCase
             'RestRoute' => [\Blicks\Core\Http\RestRoute::class, ['permission', 'schema', 'toArgs']],
             'ElementStyle' => [
                 \Blicks\Style\ElementStyle::class,
-                ['blockProps', 'build', 'registerRule', 'registerCssValueBuilder'],
+                // `controls` and `allowsControl` describe the engine to Pro's AI layer: what can
+                // be styled, and what a given block is allowed to style. Pro validates against
+                // them before writing a style tree, so losing either turns a refusal into a
+                // silently ignored control.
+                ['blockProps', 'build', 'registerRule', 'registerCssValueBuilder', 'controls', 'allowsControl'],
             ],
+            // The three below are listed with ONLY the methods Pro actually calls. Every extra
+            // name here is a promise that constrains refactoring in this plugin, so the list
+            // tracks real consumption rather than the whole public surface of each class.
+            //
+            // Pro locates this plugin's own `resources/blocks/*/block.json` through Plugin::path();
+            // that metadata is where its block catalogue comes from.
+            'Plugin' => [\Blicks\Core\Plugin::class, ['path']],
+            // Resolves design-system slugs before deciding a value is literal CSS.
+            'Tokens' => [\Blicks\Style\Tokens::class, ['isToken']],
+            // The live, theme-projected design system. Pro hands its slugs and resolved values to
+            // the model so generated layouts reference tokens rather than hardcoded hex and px.
+            'Catalogue' => [\Blicks\DesignSystem\Catalogue::class, ['snapshot']],
             'CssValue' => [\Blicks\Style\CssValue::class, ['clean', 'url']],
             'Sanitize' => [\Blicks\Style\Sanitize::class, ['styleTagContent']],
             'Dimension' => [\Blicks\Style\Dimension::class, ['clean']],

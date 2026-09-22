@@ -662,6 +662,95 @@ final class ElementStyle {
 	}
 
 	/**
+	 * Every control the engine can emit, as a narrow, stable projection of the rule table.
+	 *
+	 * Deliberately not `styleMap()` itself. That table is an internal shape — `cls`, `v`,
+	 * `emptyValue` and the scoped descriptors are emission details that should stay free to
+	 * change. What a caller outside the engine needs to know is only: which control ids exist,
+	 * what shape of value each one takes, and which token category resolves its slugs. Committing
+	 * to that smaller surface is what lets the table keep evolving.
+	 *
+	 * Computed on every call rather than cached because {@see self::registerRule()} lets a
+	 * companion plugin add controls at runtime; a catalogue built once at boot would silently omit
+	 * them.
+	 *
+	 * `valueShape` collapses `kind` into what a value must look like:
+	 *  - `sides`   → `{ top, right, bottom, left }`, or a string meaning "the same on all four"
+	 *  - `corners` → `{ topLeft, topRight, bottomRight, bottomLeft }`, or that same string form
+	 *  - `scalar`  → a single value (`single` and `enum` rules alike)
+	 *
+	 * @return list<array{id: string, valueShape: string, category: string|null, scoped: bool}>
+	 */
+	public static function controls(): array {
+		$controls = [];
+
+		foreach ( self::styleMap() as $rule ) {
+			$kind = $rule['kind'] ?? 'single';
+
+			$shape = 'scalar';
+			if ( 'sides' === $kind || 'inset' === $kind ) {
+				$shape = 'sides';
+			} elseif ( 'corners' === $kind ) {
+				$shape = 'corners';
+			}
+
+			$controls[] = [
+				'id' => (string) ( $rule['attr'] ?? '' ),
+				'valueShape' => $shape,
+				'category' => isset( $rule['category'] ) ? (string) $rule['category'] : null,
+				// A scoped rule emits a real selector or an @property registration instead of a
+				// class plus inline var, which is what makes it tier-3.
+				'scoped' => isset( $rule['selectorSuffix'] )
+					|| isset( $rule['atRule'] )
+					|| isset( $rule['keyframes'] )
+					|| isset( $rule['registerProperty'] ),
+			];
+		}
+
+		return $controls;
+	}
+
+	/**
+	 * Does a block's `supports.blicks.controls` allow-list permit this control id?
+	 *
+	 * The list holds exact ids (`layout.gapRow`) and one-level globs (`spacing.*`). The prefix is
+	 * taken at the FIRST dot, so `spacing.*` covers `spacing.padding.top` as much as
+	 * `spacing.padding`, and a bare `*` is not a wildcard — nothing opts a block into every
+	 * control at once.
+	 *
+	 * This rule decides what the inspector offers, and it lived only in JavaScript until something
+	 * other than the inspector could write the style tree. `build()` emits whatever the tree
+	 * contains, so a caller reaching past the allow-list is not refused — its control is simply
+	 * ignored, which looks from the outside like a control that does not work. Anything writing
+	 * the tree from the server side has to check here first.
+	 *
+	 * One quirk is copied from the JavaScript deliberately: an id with no dot is its own prefix,
+	 * so `spacing` is allowed by `spacing.*`. That falls out of `split( '.' )[ 0 ]` rather than
+	 * being intended, and it is unreachable while every control id is `category.name` — but a
+	 * server *stricter* than the inspector is its own bug, where the user sets a control in the UI
+	 * and is refused on save. `tests/fixtures/control-glob-cases.json` is the table both
+	 * implementations run; change it in both places or neither.
+	 *
+	 * @param list<string> $allowList A block's `supports.blicks.controls`.
+	 */
+	public static function allowsControl( string $id, array $allowList ): bool {
+		if ( in_array( $id, $allowList, true ) ) {
+			return true;
+		}
+
+		$dot = strpos( $id, '.' );
+		$prefix = false === $dot ? $id : substr( $id, 0, $dot );
+
+		// A dotless id yields `.*` as its glob, which no sane allow-list holds; guarding on it
+		// keeps an empty id from being granted by a stray `.*` entry.
+		if ( '' === $prefix ) {
+			return false;
+		}
+
+		return in_array( $prefix . '.*', $allowList, true );
+	}
+
+	/**
 	 * Port of buildElementStyle() — turns the `blicks` attribute value tree into classes + vars,
 	 * plus scoped per-instance CSS rules (tier 3) when a rule needs a real selector / `@property`.
 	 *
