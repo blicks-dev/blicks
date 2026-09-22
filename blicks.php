@@ -3,7 +3,7 @@
  * Plugin Name: Blicks
  * Plugin URI:  https://blicks.dev
  * Description: Composable Gutenberg blocks with a theme-native design system.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Blicks
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'BLICKS_VERSION' ) ) {
-	define( 'BLICKS_VERSION', '1.0.0' );
+	define( 'BLICKS_VERSION', '1.0.1' );
 }
 
 /**

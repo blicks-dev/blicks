@@ -4,7 +4,7 @@ Tags: blocks, gutenberg, design system, full site editing
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,10 +120,19 @@ Blicks includes a curated icon registry generated from Lucide icons. Lucide is l
 
 == Changelog ==
 
+= 1.0.1 =
+* Each block now carries its own icon in the block metadata, so the blocks show their marks on the plugin page and under Plugins - Add New - Blocks.
+* Added Documentation, Report a bug and Request a feature links to the plugin's row on the Plugins screen and to the Blicks Overview screen.
+* Fixed the Overview screen: cards stopped short of the space available to them, and the panels sat flush against each other instead of being evenly spaced.
+* Fixed the front-end stylesheet being served from the browser cache after an update that changed only CSS.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Adds each block's icon to its metadata, and fixes a stale front-end stylesheet after CSS-only updates.
 
 = 1.0.0 =
 First public release.
