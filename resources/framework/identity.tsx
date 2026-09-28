@@ -128,6 +128,19 @@ const sampleBlicks = {
 	},
 };
 
+/**
+ * A scene item's placement, in the `blicks` value tree. Coordinates are design pixels against the
+ * scene's design size, so an example lands where its preview shows it.
+ */
+function sceneItemAt( x: string, y: string, anchor?: string ) {
+	const placement: Record< string, unknown > = {
+		'sceneChild.x': { default: { base: x } },
+		'sceneChild.y': { default: { base: y } },
+	};
+	if ( anchor ) placement[ 'sceneChild.anchor' ] = { default: { base: anchor } };
+	return placement;
+}
+
 const IDENTITIES: Record< string, Identity > = {
 	'blicks/box': {
 		title: __( 'Box', 'blicks' ),
@@ -260,6 +273,64 @@ const IDENTITIES: Record< string, Identity > = {
 		icon: glyph( 'blicks/divider' ),
 		example: {
 			attributes: { orientation: 'horizontal', thickness: '2px', lineStyle: 'solid' },
+		},
+	},
+	'blicks/scene-box': {
+		title: __( 'Scene box', 'blicks' ),
+		description: __( 'A region of the Scene grid. Items inside it are placed relative to the box.', 'blicks' ),
+		keywords: [ __( 'box', 'blicks' ), __( 'cell', 'blicks' ), __( 'region', 'blicks' ), __( 'grid', 'blicks' ) ],
+		icon: glyph( 'blicks/scene-box' ),
+		example: {
+			attributes: { col: 1, row: 5, colSpan: 7, rowSpan: 4 },
+			innerBlocks: [
+				{ name: 'blicks/scene-text', attributes: { content: 'We make things move', tag: 'h2' } },
+			],
+		},
+	},
+	'blicks/scene': {
+		title: __( 'Scene', 'blicks' ),
+		description: __( 'A fixed-size stage whose items are placed freely, overlap, and animate independently.', 'blicks' ),
+		keywords: [ __( 'canvas', 'blicks' ), __( 'stage', 'blicks' ), __( 'hero', 'blicks' ), __( 'animate', 'blicks' ) ],
+		icon: glyph( 'blicks/scene' ),
+		example: {
+			attributes: { designWidth: 1440, designHeight: 800, upscale: false, align: 'full', cols: 16, rows: 16 },
+			innerBlocks: [
+				{
+					name: 'blicks/scene-box',
+					attributes: { col: 1, row: 5, colSpan: 7, rowSpan: 3 },
+					innerBlocks: [
+						{
+							name: 'blicks/scene-text',
+							attributes: { content: 'We make things move', tag: 'h2', blicks: sceneItemAt( '0', '0' ) },
+						},
+					],
+				},
+				{
+					name: 'blicks/scene-box',
+					attributes: { col: 9, row: 4, colSpan: 6, rowSpan: 7 },
+					innerBlocks: [
+						{ name: 'blicks/scene-image', attributes: { objectFit: 'cover' } },
+					],
+				},
+			],
+		},
+	},
+	'blicks/scene-text': {
+		title: __( 'Scene text', 'blicks' ),
+		description: __( 'A text item placed freely on a Scene stage.', 'blicks' ),
+		keywords: [ __( 'scene', 'blicks' ), __( 'headline', 'blicks' ), __( 'caption', 'blicks' ) ],
+		icon: glyph( 'blicks/scene-text' ),
+		example: {
+			attributes: { content: 'We make things move', tag: 'h2', blicks: sceneItemAt( '0', '0' ) },
+		},
+	},
+	'blicks/scene-image': {
+		title: __( 'Scene image', 'blicks' ),
+		description: __( 'An image item placed freely on a Scene stage.', 'blicks' ),
+		keywords: [ __( 'scene', 'blicks' ), __( 'picture', 'blicks' ), __( 'media', 'blicks' ) ],
+		icon: glyph( 'blicks/scene-image' ),
+		example: {
+			attributes: { objectFit: 'cover' },
 		},
 	},
 };

@@ -95,6 +95,32 @@ export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 		},
 		tips: [ __( "Write alt text for meaningful images; leave it empty only when the image is decorative.", 'blicks' ), __( "Use aspect ratio for consistent card and grid layouts.", 'blicks' ), __( "Use Background controls on Section or Box for decorative imagery.", 'blicks' ) ],
 	},
+	"scene": {
+		description: __( "Scene is a fixed-size stage. Its items are placed at explicit coordinates instead of flowing one after another, so they can overlap, sit at any angle, and animate independently. Use it for hero bands, title cards, and any composition where the arrangement is the design.\n\nA scene is authored once, at its design size, and the whole stage scales to fit the width it is given. That is why there are no per-device positions to maintain: the composition holds together at every screen width because everything in it — type, spacing, shadows — scales together.", 'blicks' ),
+		controls: {
+			"Shape": __( "Picks a design size, which is the coordinate space items are placed in. It sets the stage's proportions, not how large it renders.", 'blicks' ),
+			"Design width": __( "The stage's width in design pixels. An item at x 120 sits 120 of these from the left edge, whatever the screen is actually doing.", 'blicks' ),
+			"Design height": __( "The stage's height in design pixels. It also fixes the band's aspect ratio, so the page reserves the right amount of room for it.", 'blicks' ),
+			"Beyond design width": __( "Cap, the default, renders the scene at exactly its design width and centres it, so the design size is a real width. Fill instead keeps enlarging the stage on monitors wider than that, for a band that should run edge to edge.\n\nEither way the scene shrinks proportionally once the screen is narrower than the design width.", 'blicks' )
+		},
+		tips: [ __( "Set the design size first. Moving it afterwards rescales where every item already sits.", 'blicks' ), __( "Only Scene text and Scene image can go inside a scene — an ordinary block has no way to be placed on the stage.", 'blicks' ), __( "Give each item its own animation delay to stagger a composition into view.", 'blicks' ), __( "A scene clips anything dragged past its edge, so an item that disappears has been moved off the stage rather than lost.", 'blicks' ), __( "Design width is the coordinate space items are placed in, not only a rendered size. Switching to Fill keeps those coordinates and just scales the stage past them.", 'blicks' ) ],
+	},
+	"scene-image": {
+		description: __( "Scene image is an image item placed freely on a Scene stage. It carries the border, effect and animation controls, plus the Scene item panel that positions it.", 'blicks' ),
+		controls: {
+			"Alt text": __( "Describes the picture for screen readers and for anyone whose image fails to load. Leave it empty only when the image is purely decorative and the surrounding text already says what it shows.", 'blicks' ),
+			"Fit": __( "How the picture fills its box when the item is given an explicit width and height. Cover crops to fill, Contain fits the whole picture inside, Fill stretches it.", 'blicks' )
+		},
+		tips: [ __( "An item with no explicit size takes the picture's own dimensions, so a dropped image looks like itself before you touch anything.", 'blicks' ), __( "Set a width only and the height follows the picture's aspect ratio; Fit matters once you have set both.", 'blicks' ), __( "Overlap images by giving them the same coordinates and different z-index values in the Position panel.", 'blicks' ), __( "The placeholder is draggable before an image is chosen, so a layout can be composed before the artwork exists.", 'blicks' ) ],
+	},
+	"scene-text": {
+		description: __( "Scene text is a text item placed freely on a Scene stage. It carries the full typography, colour and animation controls, plus the Scene item panel that positions it.", 'blicks' ),
+		controls: {
+			"content": __( "The editable text. Supports inline formatting such as bold, italic, and links.", 'blicks' ),
+			"Tag": __( "The heading level used for the document outline and for screen readers. It does not set the visual size — that lives in Typography, so a display headline can read as an H2 without being styled like one.", 'blicks' )
+		},
+		tips: [ __( "Drag the item on the canvas to place it; the X and Y fields update as you go and are there for exact numbers.", 'blicks' ), __( "A single click still places the cursor, so dragging never gets in the way of editing the words.", 'blicks' ), __( "Set the Origin to Centre before centring an item, so its middle lands on the coordinate rather than its top-left corner.", 'blicks' ), __( "Give the item an explicit width if you want the text to wrap at a particular measure; without one it sizes to its content.", 'blicks' ) ],
+	},
 	"section": {
 		description: __( "Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly.", 'blicks' ),
 		controls: {

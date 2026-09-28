@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/scene",
+	"title": "Scene",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.7 3.7L21.3 3.7L21.3 20.3L2.7 20.3ZM4.3 18.7L19.7 18.7L19.7 5.3L4.3 5.3ZM5.5 6.5L13.5 6.5L13.5 12.5L5.5 12.5ZM7.1 10.9L11.9 10.9L11.9 8.1L7.1 8.1Z\" fill=\"currentColor\"/><path d=\"M11.8 12.2L18.8 12.2L18.8 17.6L11.8 17.6Z\" fill=\"#002bff\"/></svg>",
+	"description": "A fixed-size stage whose items are placed freely, overlap, and animate independently.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"blicks": {
+			"controls": [ "spacing.*", "border.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"align":        { "type": "string", "default": "full" },
+		"designWidth":  { "type": "number", "default": 1440 },
+		"designHeight": { "type": "number", "default": 800 },
+		"cols":         { "type": "number", "default": 16 },
+		"rows":         { "type": "number", "default": 16 },
+		"upscale":      { "type": "boolean", "default": false }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

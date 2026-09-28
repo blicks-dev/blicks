@@ -455,6 +455,37 @@ final class ElementStyle {
 			'cls' => 'fco',
 			'var' => '--bl-fco',
 		],
+		// Scene-child — a free-positioned item inside a blicks/scene stage. Coordinates are DESIGN
+		// pixels against the scene's design size; the stage's scale transform maps them to every
+		// viewport, which is why these carry no per-breakpoint slots.
+		'sceneChild.x'              => [
+			'cls' => 'scx',
+			'var' => '--bl-scx',
+			'category' => 'spacing',
+		],
+		'sceneChild.y'              => [
+			'cls' => 'scy',
+			'var' => '--bl-scy',
+			'category' => 'spacing',
+		],
+		'sceneChild.width'          => [
+			'cls' => 'scw',
+			'var' => '--bl-scw',
+			'category' => 'width',
+		],
+		'sceneChild.height'         => [
+			'cls' => 'sch',
+			'var' => '--bl-sch',
+			'category' => 'width',
+		],
+		'sceneChild.rotate'         => [
+			'cls' => 'scrot',
+			'var' => '--bl-scrot',
+		],
+		'sceneChild.scale'          => [
+			'cls' => 'scsc',
+			'var' => '--bl-scsc',
+		],
 		// Wave G — layout completeness (align-content, grid auto tracks, box sizing, box
 		// behavior, scroll extras, direction).
 		'layout.alignContent'       => [
@@ -615,6 +646,14 @@ final class ElementStyle {
 			[
 				'attr' => 'typography.role',
 				'cls' => 'type',
+				'kind' => 'enum',
+				'v' => '',
+			],
+			// Scene child anchor — which point of the item its x/y address. A fixed nine-slug set
+			// whose translate offsets live in runtime.scss, so it emits the class alone.
+			[
+				'attr' => 'sceneChild.anchor',
+				'cls' => 'sca',
 				'kind' => 'enum',
 				'v' => '',
 			],

@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/scene-image",
+	"title": "Scene image",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M6.2 6.7L20.3 6.7L20.3 19.3L6.2 19.3ZM7.8 17.7L18.7 17.7L18.7 8.3L7.8 8.3ZM9.366 17.166L12 14.531L14.2 16.731L15.561 15.37L17.098 17.127L18.302 16.073L15.639 13.03L14.2 14.469L12 12.269L8.234 16.034Z\" fill=\"currentColor\"/><path d=\"M2.3 5.6a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0Z\" fill=\"#002bff\"/></svg>",
+	"description": "An image item placed freely on a Scene stage.",
+	"textdomain": "blicks",
+	"parent": [ "blicks/scene-box" ],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "sceneChild.*", "layout.objectFit", "layout.aspectRatio", "colors.background",
+				"spacing.*", "border.*", "effects.*", "animation.*", "decoration.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":    { "type": "string" },
+		"blicks":      { "type": "object", "default": {} },
+		"id":          { "type": "number" },
+		"url":         { "type": "string", "default": "" },
+		"alt":         { "type": "string", "default": "" },
+		"objectFit":   { "type": "string", "default": "cover" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

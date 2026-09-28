@@ -16,3 +16,7 @@ import './blocks/image';
 import './blocks/icon';
 import './blocks/spacer';
 import './blocks/divider';
+import './blocks/scene';
+import './blocks/scene-box';
+import './blocks/scene-text';
+import './blocks/scene-image';

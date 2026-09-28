@@ -1055,4 +1055,50 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('preserve-3d', $r['vars']['--bl-tfs']);
         $this->assertSame('800px',       $r['vars']['--bl-psp']);
     }
+
+    // ── scene child ──────────────────────────────────────────────────────────────
+
+    /**
+     * The expectations here are the exact output the JS engine produces for the same tree —
+     * see the committed golden markup in resources/blocks/__golden__/scene.html. Nothing
+     * compares the two maps automatically, so a scene item rendered by PHP on the front end and
+     * by JS in the editor only stays identical while this holds.
+     */
+    public function test_scene_child_emits_placement_vars(): void
+    {
+        $r = $this->build([
+            'sceneChild.x'      => ['default' => ['base' => '120px']],
+            'sceneChild.y'      => ['default' => ['base' => '300px']],
+            'sceneChild.width'  => ['default' => ['base' => '640px']],
+            'sceneChild.height' => ['default' => ['base' => '200px']],
+            'sceneChild.rotate' => ['default' => ['base' => '15deg']],
+            'sceneChild.scale'  => ['default' => ['base' => '1.5']],
+        ]);
+
+        foreach (['bl-scx', 'bl-scy', 'bl-scw', 'bl-sch', 'bl-scrot', 'bl-scsc'] as $class) {
+            $this->assertContains($class, $r['classes']);
+        }
+
+        $this->assertSame('120px', $r['vars']['--bl-scx']);
+        $this->assertSame('300px', $r['vars']['--bl-scy']);
+        $this->assertSame('640px', $r['vars']['--bl-scw']);
+        $this->assertSame('200px', $r['vars']['--bl-sch']);
+        $this->assertSame('15deg', $r['vars']['--bl-scrot']);
+        $this->assertSame('1.5',   $r['vars']['--bl-scsc']);
+    }
+
+    /** A percentage coordinate is a share of the stage, so it must survive untouched. */
+    public function test_scene_child_keeps_percentage_coordinates(): void
+    {
+        $r = $this->build(['sceneChild.x' => ['default' => ['base' => '50%']]]);
+        $this->assertSame('50%', $r['vars']['--bl-scx']);
+    }
+
+    /** The anchor is an enum: one class, no var — its offsets live in runtime.scss. */
+    public function test_scene_child_anchor_emits_class_without_var(): void
+    {
+        $r = $this->build(['sceneChild.anchor' => ['default' => ['base' => 'center-right']]]);
+        $this->assertSame(['bl-sca--center-right'], $r['classes']);
+        $this->assertSame([], $r['vars']);
+    }
 }

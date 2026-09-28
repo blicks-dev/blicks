@@ -1,0 +1,35 @@
+/* `.bl-scene-item` — the absolute placement, anchor offset, rotation and scale — lives in
+   resources/runtime/runtime.scss beside the style-engine consumer classes it reads. Only what is
+   specific to a TEXT item belongs here.
+
+   The block is a positioned BOX with the text element inside it, the same shape every scene child
+   has. Typography lands on the box and inherits inward, so the text still picks up every
+   typography control while the box keeps the placement. */
+
+@layer blicks.base {
+	.bl-scene-text {
+		// No explicit width → the box hugs its text, which is what makes "drop a headline and drag
+		// it" behave the way an author expects. Give the item a width and this yields to it.
+		width: max-content;
+
+		&__body {
+			margin: 0;
+
+			// Display copy on a stage is sized by its own box, so it must not inherit a theme's
+			// paragraph max-width and wrap somewhere the author did not choose.
+			max-width: none;
+		}
+	}
+}
+
+/* Editor only. Scoped to `.block-editor-block-list__block`, which WordPress adds only in the
+   canvas — an unscoped `cursor: grab` would tell a front-end visitor the text can be dragged.
+   A press that has not yet passed the drag threshold still places the caret, so while the item is
+   selected the cursor advertises typing instead. */
+.block-editor-block-list__block.bl-scene-text {
+	cursor: grab;
+
+	&.is-selected {
+		cursor: text;
+	}
+}

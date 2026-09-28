@@ -1,0 +1,58 @@
+/* Box resize grips — editor only. They are rendered only on the edit path, and hidden until the
+   box is selected. `.is-selected` never appears in saved markup. */
+
+.bl-scene-box-handles {
+	display: none;
+}
+
+.bl-scene-box.is-selected > .bl-scene-box-handles {
+	display: block;
+}
+
+/* A descendant selector, not a child one: the grip is a child of `.bl-scene-box-handles`, so
+   `>` from the box would look one level too high and match nothing. */
+.bl-scene-box.is-selected .bl-scene-box-handles__grip {
+	position: absolute;
+	z-index: 15;
+	width: 12px;
+	height: 12px;
+	margin: -6px 0 0 -6px;
+	border: 1px solid var(--bl-ui-paper);
+	background: var(--bl-ui-brand);
+
+	// Counter-scaled so a grip stays the same size on screen whatever the stage is scaled to.
+	scale: calc( 1 / var( --bl-scene-scale, 1 ) );
+
+	&.is-nw { top: 0; left: 0; cursor: nwse-resize; }
+	&.is-n { top: 0; left: 50%; cursor: ns-resize; }
+	&.is-ne { top: 0; left: 100%; cursor: nesw-resize; }
+	&.is-e { top: 50%; left: 100%; cursor: ew-resize; }
+	&.is-se { top: 100%; left: 100%; cursor: nwse-resize; }
+	&.is-s { top: 100%; left: 50%; cursor: ns-resize; }
+	&.is-sw { top: 100%; left: 0; cursor: nesw-resize; }
+	&.is-w { top: 50%; left: 0; cursor: ew-resize; }
+}
+
+/* The whole box is a move target in the editor, but only where it is not covered by an item. */
+.block-editor-block-list__block.bl-scene-box {
+	cursor: move;
+}
+
+/* The live box during a gesture. It follows the pointer freely, so it is lifted above its
+   neighbours and loses its transition — a transition would fight the pointer by animating toward
+   every frame it has already left. */
+.bl-scene-box.is-dragging {
+	z-index: 5;
+	transition: none;
+	opacity: 0.85;
+}
+
+/* Where the box will land on release. Drawn under the box being dragged, so the two read as
+   "this, going there" rather than as two boxes. */
+.bl-scene-ghost {
+	position: absolute;
+	z-index: 4;
+	border: 1px dashed var(--bl-ui-brand);
+	background: var(--bl-ui-brand-tint);
+	pointer-events: none;
+}

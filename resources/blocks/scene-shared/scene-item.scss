@@ -1,0 +1,80 @@
+/* Resize handles for a scene item.
+
+   Editor only by construction: the handles are rendered solely on the edit path, and the rules
+   below keep them hidden until the block is selected. `.is-selected` is an editor class and never
+   appears in saved markup, so nothing here can reach the front end. */
+
+.bl-scene-handles {
+	display: none;
+}
+
+.bl-scene-item.is-selected > .bl-scene-handles {
+	display: block;
+}
+
+/* Two hosts, one rule set. Grips are drawn either on a selected item in place, or on the
+   selection FRAME that stands in for an item clipped out of view by its box — and both need the
+   same geometry. Listing the frame here rather than duplicating the block is what stops the two
+   drifting apart.
+
+   Deliberately a DESCENDANT of the host rather than a child: a grip is a child of
+   `.bl-scene-handles`, so `> .bl-scene-handles__grip` looks one level too high and matches
+   nothing — which is exactly what happened the first time, leaving grips rendered but unstyled. */
+.bl-scene-item.is-selected .bl-scene-handles__grip,
+.bl-scene-item-frame .bl-scene-handles__grip {
+	position: absolute;
+	z-index: 10;
+	width: 10px;
+	height: 10px;
+	margin: -5px 0 0 -5px;
+	border: 1px solid var(--bl-ui-brand);
+	background: var(--bl-ui-paper);
+
+	// The item scales with the stage, which would shrink the grips along with it. This keeps them
+	// a constant, grabbable size whatever the stage is scaled to.
+	scale: calc( 1 / var( --bl-scene-scale, 1 ) );
+
+	&.is-nw { top: 0; left: 0; cursor: nwse-resize; }
+	&.is-n { top: 0; left: 50%; cursor: ns-resize; }
+	&.is-ne { top: 0; left: 100%; cursor: nesw-resize; }
+	&.is-e { top: 50%; left: 100%; cursor: ew-resize; }
+	&.is-se { top: 100%; left: 100%; cursor: nwse-resize; }
+	&.is-s { top: 100%; left: 50%; cursor: ns-resize; }
+	&.is-sw { top: 100%; left: 0; cursor: nesw-resize; }
+	&.is-w { top: 50%; left: 0; cursor: ew-resize; }
+}
+
+/* Alignment guides, drawn during a drag.
+
+   Sized in DESIGN pixels because they live inside the stage, which is laid out at its design size
+   and scaled as a whole — so a guide lines up with the coordinates the inspector shows. The
+   hairline is counter-scaled for the same reason the grips are: a 1px line scaled with the stage
+   would thicken or vanish depending on zoom. */
+.bl-scene-guides {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	pointer-events: none;
+
+	// Guides are painted in the editor accent, not an invented colour. They are full-bleed
+	// hairlines where a selection is an outline around a box, so the two read differently without
+	// needing a second hue that the design system does not define.
+	&__line {
+		position: absolute;
+		background: var(--bl-ui-brand);
+
+		&.is-v {
+			top: 0;
+			bottom: 0;
+			width: 1px;
+			scale: calc( 1 / var( --bl-scene-scale, 1 ) ) 1;
+		}
+
+		&.is-h {
+			right: 0;
+			left: 0;
+			height: 1px;
+			scale: 1 calc( 1 / var( --bl-scene-scale, 1 ) );
+		}
+	}
+}

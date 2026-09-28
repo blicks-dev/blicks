@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/scene-text",
+	"title": "Scene text",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M7.5 9.8L19 9.8L19 8.2L7.5 8.2ZM7.5 13.8L16 13.8L16 12.2L7.5 12.2ZM7.5 17.8L12.5 17.8L12.5 16.2L7.5 16.2Z\" fill=\"currentColor\"/><path d=\"M2.3 5.6a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0Z\" fill=\"#002bff\"/></svg>",
+	"description": "A text item placed freely on a Scene stage.",
+	"textdomain": "blicks",
+	"parent": [ "blicks/scene-box" ],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "sceneChild.*", "typography.*", "colors.text", "colors.background", "background.*",
+				"spacing.*", "border.*", "effects.*", "animation.*", "decoration.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks":   { "type": "object", "default": {} },
+		"content":  { "type": "string", "default": "" },
+		"tag":      { "type": "string", "default": "p" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

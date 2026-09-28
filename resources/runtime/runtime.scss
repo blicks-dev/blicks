@@ -367,6 +367,50 @@ $flex-child: (
 	}
 }
 
+// ---------- Scene Child (a free-positioned item inside a blicks/scene stage) ----------
+// Coordinates are DESIGN pixels against the scene's design size — `left: 60px` inside a 1440px
+// stage. The stage's own scale transform maps them to every viewport, which is why these need no
+// per-breakpoint authoring even though the generator still emits the slots.
+$scene-child: (
+	'scx': ( prop: left,   default: 0 ),
+	'scy': ( prop: top,    default: 0 ),
+	'scw': ( prop: width,  default: auto ),
+	'sch': ( prop: height, default: auto ),
+);
+
+@each $cls, $cfg in $scene-child {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: '#{$marker}#{$pseudo}';
+
+			@if $bpMax == null {
+				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+			} @else {
+				@media (max-width: $bpMax) {
+					#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+				}
+			}
+		}
+	}
+}
+
 // ---------- Effects ----------
 $effects: (
 	'op':  ( prop: opacity,          default: 1 ),
@@ -617,6 +661,143 @@ $multis: (
 		.bl-anim-range {
 			animation-range: var(--bl-anim-range, normal);
 		}
+	}
+}
+
+// ---------- Scene (blicks/scene) ----------
+// A fixed-size stage whose children sit at explicit coordinates. The stage is laid out at its
+// DESIGN size and scaled to whatever width it is given, so a composition authored at 1440×800
+// stays pixel-proportional everywhere — type, shadows and borders scale with the geometry, which
+// is the point of a stage as opposed to a layout container.
+//
+// The scale factor is the ratio of two lengths (available width ÷ design width). `calc()` cannot
+// divide a length by a length, but `tan(atan2(a, b))` yields exactly that ratio as a number — the
+// standard CSS spelling for the operation. It keeps the stage entirely JS-free: no ResizeObserver,
+// no layout thrash, and correct on first paint rather than one frame late.
+.bl-scene {
+	position: relative;
+	container-type: inline-size;
+
+	// Unitless twins of --bl-scene-w/h. The wrapper has to reserve the right flow height before
+	// the stage inside it lays out, and a scaled child contributes nothing to its parent's height.
+	aspect-ratio: var(--bl-scene-wn, 1440) / var(--bl-scene-hn, 800);
+}
+
+.bl-scene__stage {
+	position: relative;
+	width: var(--bl-scene-w, 1440px);
+	height: var(--bl-scene-h, 800px);
+	transform: scale(var(--bl-scene-scale, 1));
+	transform-origin: top left;
+}
+
+// Without trig support the factor stays 1 and the stage renders at its design size. The block's
+// own `overflow: hidden` then clips it, which is a better failure than pushing the page sideways.
+@supports (width: calc(1px * tan(atan2(1px, 1px)))) {
+	.bl-scene__stage {
+		--bl-scene-scale: tan(atan2(100cqw, var(--bl-scene-w, 1440px)));
+	}
+
+	// `upscale: false` → the stage stops growing once it has its design width, instead of
+	// magnifying a 1440px composition on a 2560px monitor.
+	.bl-scene--fixed > .bl-scene__stage {
+		--bl-scene-scale: min(1, tan(atan2(100cqw, var(--bl-scene-w, 1440px))));
+	}
+}
+
+// Cap mode constrains the WRAPPER, not just the stage's scale.
+//
+// Capping only the scale left the wrapper full width, and the wrapper's aspect-ratio is computed
+// from its own width — so a 1900px viewport reserved 1056px of height for an 800px stage, leaving
+// a dead band under the composition. Constraining the wrapper makes the ratio resolve against the
+// design width instead.
+//
+// `!important` on the margin, for the same reason the visibility rules above use it. A Scene
+// carries `alignfull` by default, and WordPress's `.has-global-padding > .alignfull` negative
+// margins have the SAME specificity (0,2,0) as anything reasonable written here — so the winner is
+// decided by stylesheet order, which is not guaranteed. Measured losing that race: the capped
+// stage pinned hard left with all the slack on the right. Specificity cannot settle a tie.
+.bl-scene--fixed {
+	max-width: var(--bl-scene-w, 1440px);
+	margin-inline: auto !important;
+}
+
+// Every scene child.
+//
+// The descendant selector is NOT decoration. WordPress's editor stylesheet carries
+// `.block-editor-block-list__block { position: relative }`, which is the same specificity as a
+// bare `.bl-scene-item` and loads after it — so in the canvas every item fell back to relative and
+// sat in normal flow, unable to overlap. Qualifying by the stage makes this 0,2,0 and wins in both
+// the editor and the front end, where the item is a direct child of the stage either way.
+//
+// The STANDALONE `translate`/`rotate`/`scale` properties are also deliberate, rather than the
+// `transform` shorthand: the browser composes them ahead of `transform`, so an item can still
+// carry an `effects.transform` (a skew, a 3D tilt) without the two overwriting each other.
+// A box: one region of the scene grid.
+//
+// Placement is stored as whole CELLS and turned into a percentage here, so the same four numbers
+// describe the box at any stage size, and changing the grid re-lays-out every box without
+// rewriting a single attribute. `--bl-scene-cols`/`--bl-scene-rows` are inherited from the stage.
+//
+// The descendant selector is load-bearing for the same reason as the item rule below: WordPress's
+// editor CSS sets `.block-editor-block-list__block { position: relative }` at equal specificity.
+.bl-scene__stage > .bl-scene-box {
+	position: absolute;
+	left: calc( var( --bl-box-col, 0 ) / var( --bl-scene-cols, 16 ) * 100% );
+	top: calc( var( --bl-box-row, 0 ) / var( --bl-scene-rows, 16 ) * 100% );
+	width: calc( var( --bl-box-cw, 4 ) / var( --bl-scene-cols, 16 ) * 100% );
+	height: calc( var( --bl-box-rh, 4 ) / var( --bl-scene-rows, 16 ) * 100% );
+}
+
+// The box's content layer: everything the author places, clipped to the box.
+//
+// A separate element rather than `overflow: hidden` on the box, because the box also carries
+// editor chrome that must NOT be clipped — the resize grips straddle its edges and the "Add
+// element" bar sits above it. This layer holds only the items.
+//
+// It is also the containing block for them, so an item's `left: 0` is the box's inside edge.
+// Same geometry as the box (inset 0), so every coordinate the inspector shows is unchanged.
+.bl-scene-box > .bl-scene-box__content {
+	position: absolute;
+	inset: 0;
+
+	// `clip`, NOT `hidden`. `overflow: hidden` still creates a SCROLL container — it only hides
+	// the scrollbars — so anything that scrolls a descendant into view scrolls this layer instead.
+	// Selecting an out-of-box item from the layers panel did exactly that: the editor scrolled it
+	// into view, shifting every item sideways while the selection frame (which lives outside this
+	// layer) stayed put, and the two visibly came apart.
+	//
+	// `overflow: clip` clips without ever becoming scrollable, which is the behaviour a stage
+	// wants: content outside the box is gone, not merely out of view.
+	overflow: clip;
+}
+
+.bl-scene-box__content > .bl-scene-item {
+	position: absolute;
+	margin: 0;
+	translate: var(--bl-scax, 0) var(--bl-scay, 0);
+	rotate: var(--bl-scrot, 0deg);
+	scale: var(--bl-scsc, 1);
+}
+
+// Anchor — which point of the item its x/y address. `top-left` is the CSS default and needs no
+// offset; the rest pull the box back by half or all of its own size.
+$scene-anchors: (
+	'top-left':      ( x: 0,     y: 0 ),
+	'top-center':    ( x: -50%,  y: 0 ),
+	'top-right':     ( x: -100%, y: 0 ),
+	'center-left':   ( x: 0,     y: -50% ),
+	'center':        ( x: -50%,  y: -50% ),
+	'center-right':  ( x: -100%, y: -50% ),
+	'bottom-left':   ( x: 0,     y: -100% ),
+	'bottom-center': ( x: -50%,  y: -100% ),
+	'bottom-right':  ( x: -100%, y: -100% ),
+);
+
+@each $slug, $offset in $scene-anchors {
+	.bl-sca--#{$slug} {
+		--bl-scax: #{map.get( $offset, x )};
+		--bl-scay: #{map.get( $offset, y )};
 	}
 }
 

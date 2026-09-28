@@ -103,6 +103,33 @@
 	--bl-ui-code-prop: #8fb0ff; /* 8.9 */
 	--bl-ui-code-val: #9fe0b0; /* 12.4 */
 
+	/* ---------- dark chrome ----------
+	   A second full surface family, for Blicks' own chrome when it goes dark: the
+	   Scene editor today, and whatever a future dark mode re-points onto it.
+
+	   Separate from the `code-*` ramp above, which is deliberately narrow — that is
+	   ONE panel showing syntax-highlighted output, and its ink names (`-prop`,
+	   `-val`) mean nothing outside it. Reusing it for a whole editor surface would
+	   put a general chrome on tokens named for a special case, which is how the two
+	   light palettes drifted in the first place.
+
+	   Three grounds, darkest first, so a panel can sit on the canvas and a control
+	   can sit on the panel. Ink is measured against `--bl-ui-dark-canvas`, the
+	   darkest of them, for the same reason the light ramp is measured against the
+	   sunk surface: a token that only passes on the lightest ground fails the
+	   moment it is used on the darkest.
+
+	   Measured worst case: 13.9 · 7.8 · 4.7. As with the light ramp the last step
+	   carries the AA floor for small text and MUST NOT be darkened. */
+	--bl-ui-dark-canvas: #18181b;
+	--bl-ui-dark-surface: #232326;
+	--bl-ui-dark-raised: #2f2f33;
+	--bl-ui-dark-fg: #ededf0; /* 13.9 */
+	--bl-ui-dark-fg-muted: #a8a8b0; /* 7.8 */
+	--bl-ui-dark-fg-subtle: #8a8a93; /* 4.7 — smallest thing still made of words */
+	--bl-ui-dark-border: #35353a;
+	--bl-ui-dark-border-strong: #4a4a52;
+
 	/* ---------- transparency checkerboard ----------
 	   The square painted behind any swatch so a translucent token reads as
 	   translucent. There were four of these in three different greys (#eef1f5,

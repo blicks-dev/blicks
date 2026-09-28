@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/scene-box",
+	"title": "Scene box",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.7 3.7L21.3 3.7L21.3 20.3L2.7 20.3ZM4.3 18.7L19.7 18.7L19.7 5.3L4.3 5.3Z\" fill=\"currentColor\"/><path d=\"M6.2 7.2L16.8 7.2L16.8 15.8L6.2 15.8Z\" fill=\"#002bff\"/></svg>",
+	"description": "A region of the Scene grid. Items inside it are placed relative to the box.",
+	"textdomain": "blicks",
+	"parent": [ "blicks/scene" ],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "colors.*", "background.*", "border.*", "spacing.*", "effects.*", "animation.*", "decoration.*" ],
+			"states": [ "default", "hover", "focus", "active" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks":   { "type": "object", "default": {} },
+		"col":      { "type": "number", "default": 0 },
+		"row":      { "type": "number", "default": 0 },
+		"colSpan":  { "type": "number", "default": 4 },
+		"rowSpan":  { "type": "number", "default": 4 }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

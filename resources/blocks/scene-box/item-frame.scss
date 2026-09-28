@@ -1,0 +1,35 @@
+/* The selection frame for an item inside a box — editor only.
+
+   Rendered as a sibling of `.bl-scene-box__content`, deliberately OUTSIDE the element that clips
+   the box's contents: an item dragged past the box edge is clipped away, and the frame is the only
+   thing left to grab it by. */
+
+.bl-scene-item-frame__host {
+	position: absolute;
+	inset: 0;
+	z-index: 12;
+
+	// The host covers the box, so it must not swallow clicks meant for the box or its items.
+	// Only the frame itself is interactive.
+	pointer-events: none;
+}
+
+.bl-scene-item-frame {
+	position: absolute;
+	outline: 1px solid var(--bl-ui-brand);
+	outline-offset: 0;
+	pointer-events: auto;
+	cursor: move;
+
+	// The grips are positioned against this frame exactly as they would be against the item, so
+	// the existing handle rules apply unchanged.
+	.bl-scene-handles {
+		display: block;
+	}
+}
+
+/* The item's own in-place handles are redundant once the frame draws them, and would be clipped
+   anyway. Hidden rather than removed so the item keeps rendering identically on the save path. */
+.bl-scene-box__content .bl-scene-item.is-selected > .bl-scene-handles {
+	display: none;
+}

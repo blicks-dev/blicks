@@ -1,0 +1,67 @@
+/* The per-box element inserter — editor only. Rendered solely on the edit path and revealed only
+   when the box is selected, so it can never reach the front end. */
+
+.bl-scene-box-inserter {
+	display: none;
+
+	&__label {
+		padding-inline-end: 6px;
+		color: var(--bl-ui-dark-fg-subtle);
+		font-family: var(--bl-ui-font-sans);
+		font-size: var(--bl-ui-text-sm);
+	}
+
+	&__btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+
+		&:hover {
+			background: var(--bl-ui-dark-raised);
+		}
+
+		svg {
+			width: 18px;
+			height: 18px;
+			fill: currentcolor;
+		}
+	}
+}
+
+.bl-scene-box.is-selected > .bl-scene-box-inserter,
+.bl-scene-box.has-child-selected > .bl-scene-box-inserter {
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	margin-bottom: 8px;
+	padding: 5px 6px 5px 12px;
+	background: var(--bl-ui-dark-surface);
+	color: var(--bl-ui-dark-fg);
+	white-space: nowrap;
+
+	// The box scales with the stage; the bar is chrome and must not. Anchored bottom-left so it
+	// grows away from the box rather than over it.
+	scale: calc(1 / var(--bl-scene-scale, 1));
+	transform-origin: bottom left;
+
+	/* A box on the top row has nothing above it inside the clipped stage, so the bar drops inside
+	   rather than being cut off. Deterministic from the row number — no measuring needed. */
+	&.is-inside {
+		top: 0;
+		bottom: auto;
+		margin-top: 8px;
+		margin-bottom: 0;
+		transform-origin: top left;
+	}
+}

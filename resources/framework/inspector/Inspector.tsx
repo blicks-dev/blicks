@@ -13,6 +13,7 @@ import { TYPOGRAPHY_KEYWORDS, TypographyControl } from '@/controls/typography/Ty
 import { EFFECTS_KEYWORDS, EffectsControl } from '@/controls/effects/EffectsControl';
 import { GridChildControl } from '@/controls/grid-child/GridChildControl';
 import { FlexChildControl } from '@/controls/flex-child/FlexChildControl';
+import { SceneChildControl } from '@/controls/scene-child/SceneChildControl';
 import { COLUMNS_KEYWORDS, ColumnsControl } from '@/controls/columns/ColumnsControl';
 import { AnimationControl, MOTION_KEYWORDS } from '@/controls/animation/AnimationControl';
 import { DecorationControl } from '@/controls/decoration/DecorationControl';
@@ -25,6 +26,7 @@ import { ContextBar } from './ContextBar';
 import { SearchField } from './SearchField';
 import { Tabs, type TabId } from './Tabs';
 import { Rail, facetPanelId, facetTabId, type Facet } from './Rail';
+import { ScenePanel } from './ScenePanel';
 import './inspector.scss';
 
 const ico = ( path: JSX.Element ): JSX.Element => (
@@ -46,6 +48,7 @@ const FACET_ICONS: Record< string, JSX.Element > = {
 	states: ico( <><path d="M5 3.5 19 10l-5.5 2L11.5 17z" /><path d="m13.5 15 5 5" /></> ),
 	gridChild: ico( <><rect x="3" y="3" width="18" height="18" rx="1" /><rect x="3" y="3" width="10" height="10" /></> ),
 	flexChild: ico( <><rect x="3" y="3" width="18" height="18" rx="1" /><path d="M8 3v18M14 3v18" /></> ),
+	sceneChild: ico( <><rect x="3" y="4" width="18" height="16" rx="1" /><rect x="7" y="8" width="7" height="6" rx="1" /><path d="M5 4v2M5 18v2" /></> ),
 	effects: ico( <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1" /> ),
 	animation: ico( <path d="M5 3l14 9-14 9z" /> ),
 	decoration: ico( <><rect x="8" y="8" width="12" height="12" rx="1" /><rect x="3" y="3" width="8" height="8" rx="1" strokeDasharray="2.5 2" /></> ),
@@ -71,7 +74,7 @@ const FACET_ICONS: Record< string, JSX.Element > = {
  * "fill", "motion" and "decoration" are all in their facets' `keywords`.
  */
 
-interface StyleSection {
+export interface StyleSection {
 	id: string;
 	title: string;
 	controlIds: string[];
@@ -250,6 +253,22 @@ const SECTIONS: StyleSection[] = [
 		context: 'flex-parent',
 	},
 	{
+		id: 'sceneChild',
+		title: __( 'Scene item', 'blicks' ),
+		keywords: [ 'scene', 'item', 'position', 'coordinate', 'x', 'y', 'anchor', 'origin', 'align', 'rotate', 'scale', 'stage', 'layer' ],
+		controlIds: [
+			'sceneChild.x',
+			'sceneChild.y',
+			'sceneChild.width',
+			'sceneChild.height',
+			'sceneChild.anchor',
+			'sceneChild.rotate',
+			'sceneChild.scale',
+		],
+		Control: SceneChildControl,
+		context: 'scene-parent',
+	},
+	{
 		id: 'effects',
 		title: __( 'Effects', 'blicks' ),
 		keywords: EFFECTS_KEYWORDS,
@@ -411,14 +430,52 @@ function useHasFlexParent( clientId?: string ): boolean {
 }
 
 /**
+ * Unlike the grid/flex checks there is no `display` fallback here: a scene is a specific block
+ * with a scaled stage, not a display mode any container can opt into. Nothing else can parent a
+ * scene item, so the block name is the whole test.
+ */
+function useHasSceneParent( clientId?: string ): boolean {
+	return useSelect(
+		( select: any ) => {
+			if ( ! clientId ) return false;
+			const store = select( 'core/block-editor' );
+			const parentId = store?.getBlockRootClientId?.( clientId );
+			if ( ! parentId ) return false;
+			return store?.getBlockName?.( parentId ) === 'blicks/scene';
+		},
+		[ clientId ]
+	);
+}
+
+/**
+ * What the selected block calls itself, for the scene panel's header.
+ *
+ * Read from the block type rather than the block name so it is the translated, human title the
+ * inserter shows — "Scene text", not `blicks/scene-text`. Falls back to the raw name, which is
+ * still more use than an empty chip if a block type has somehow not registered.
+ */
+function useBlockLabel( clientId?: string ): string {
+	return useSelect(
+		( select: any ) => {
+			if ( ! clientId ) return '';
+			const name = select( 'core/block-editor' )?.getBlockName?.( clientId );
+			if ( ! name ) return '';
+			return select( 'core/blocks' )?.getBlockType?.( name )?.title ?? name;
+		},
+		[ clientId ]
+	);
+}
+
+/**
  * TEMP: force every section/control on for all blocks, ignoring each block's
  * `supports.blicks.controls` allow-list. Lets us audit the full inspector and
  * filter per-block afterward. Remove this and restore `manifest?.controls` to
  * honor each block's manifest again.
  */
 const ALL_CONTROLS = [
-	'layout.*', 'gridChild.*', 'flexChild.*', 'columns.*', 'spacing.*', 'border.*', 'position.*',
-	'colors.*', 'background.*', 'typography.*', 'effects.*', 'animation.*', 'decoration.*',
+	'layout.*', 'gridChild.*', 'flexChild.*', 'sceneChild.*', 'columns.*', 'spacing.*', 'border.*',
+	'position.*', 'colors.*', 'background.*', 'typography.*', 'effects.*', 'animation.*',
+	'decoration.*',
 ];
 
 export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
@@ -432,7 +489,13 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 	const [ breakpoint, setBreakpoint ] = useNativeResponsiveBreakpoint();
 	const hasGridParent = useHasGridParent( clientId );
 	const hasFlexParent = useHasFlexParent( clientId );
-	const CONTEXT_MET: Record< string, boolean > = { 'grid-parent': hasGridParent, 'flex-parent': hasFlexParent };
+	const hasSceneParent = useHasSceneParent( clientId );
+	const blockLabel = useBlockLabel( clientId );
+	const CONTEXT_MET: Record< string, boolean > = {
+		'grid-parent': hasGridParent,
+		'flex-parent': hasFlexParent,
+		'scene-parent': hasSceneParent,
+	};
 
 	const allow = ( controlId: string ) => includesControl( controls, controlId );
 
@@ -565,10 +628,34 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 				/>
 			);
 		}
+		if ( hasSceneParent ) {
+			return (
+				<ScenePanel
+					sections={ matchedSections }
+					blockLabel={ blockLabel }
+					controlProps={ {
+						attributes,
+						setAttributes,
+						state,
+						breakpoint,
+						isAllowed: allow,
+						states,
+						setState,
+						query,
+					} }
+					facetHasValue={ facetHasValue }
+					resetFacet={ resetFacet }
+				/>
+			);
+		}
+
 		return renderStyleFacet();
 	};
 
 	const isStyle = tab === 'style';
+	// The rail is the facet picker. A scene child shows every group at once instead, so there is
+	// nothing to pick and no 44px column to leave room for.
+	const showRail = isStyle && ! hasSceneParent;
 	const bpLabel = DEFAULT_BREAKPOINTS.find( ( b ) => b.id === breakpoint )?.label ?? breakpoint;
 
 	return (
@@ -576,10 +663,10 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 			<div className="bl-ins">
 				<Tabs tabs={ TABS } active={ tab } onSelect={ setTab } />
 				<div className="ins-body">
-					{ isStyle && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
+					{ showRail && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
 					{ /* Without the rail there is no 44px column to leave room for, so the pane takes
 					     the whole sidebar. */ }
-					<div className={ `ins-pane ${ isStyle ? '' : 'is-full' }` }>
+					<div className={ `ins-pane ${ showRail ? '' : 'is-full' }` }>
 						{ isStyle && (
 							<>
 								<ContextBar

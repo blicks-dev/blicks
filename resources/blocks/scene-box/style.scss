@@ -1,0 +1,15 @@
+/* The box's placement — absolute, sized in percentages of the scene grid — lives in
+   resources/runtime/runtime.scss beside the style-engine consumer classes it reads. Only what is
+   specific to the box as a container belongs here. */
+
+@layer blicks.base {
+	.bl-scene-box {
+		box-sizing: border-box;
+
+		// A box is a stage in miniature: its items are positioned against it, so it has to be the
+		// containing block for them. `position` comes from runtime.scss, which needs the higher
+		// specificity to beat the editor's own rule.
+		min-width: 0;
+		min-height: 0;
+	}
+}

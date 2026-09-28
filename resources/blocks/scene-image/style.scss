@@ -1,0 +1,29 @@
+/* `.bl-scene-item` — the absolute placement, anchor offset, rotation and scale — lives in
+   resources/runtime/runtime.scss beside the style-engine consumer classes it reads. Only what is
+   specific to an IMAGE item belongs here. */
+
+@layer blicks.base {
+	.bl-scene-image {
+		line-height: 0;
+
+		// No explicit size → the box is the picture's natural size, so a dropped image looks like
+		// itself. Give the item a width or height and the box takes it, and the percentages below
+		// hand it straight to the picture.
+		width: fit-content;
+
+		// `height: 100%` against an auto-height parent resolves to auto, so a width-only item keeps
+		// the picture's aspect ratio instead of collapsing it.
+		> img {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+	}
+}
+
+/* Editor only. Scoped to `.block-editor-block-list__block`, which WordPress adds only in the
+   canvas — an unscoped `cursor: grab` would tell a front-end visitor the image can be dragged.
+   The whole item is a drag target, with no text underneath to type into. */
+.block-editor-block-list__block.bl-scene-image {
+	cursor: grab;
+}

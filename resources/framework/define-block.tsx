@@ -121,7 +121,7 @@ export interface BlockConfig {
 	/** Block-specific inspector controls — rendered in the inspector's **Settings** tab. */
 	Controls?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	/** Block-specific toolbar items — wrapped in `<BlockControls>` (editor only). */
-	Toolbar?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
+	Toolbar?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void; clientId?: string } >;
 	/** Block-specific controls for the inspector's **Advanced** tab (above the shared advanced panel). */
 	Advanced?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	innerBlocks?: boolean | InnerBlocksConfig;
@@ -641,7 +641,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 					/>
 					{ Toolbar && (
 						<BlockControls>
-							<Toolbar attributes={ attributes } setAttributes={ setAttributes } />
+							<Toolbar attributes={ attributes } setAttributes={ setAttributes } clientId={ clientId } />
 						</BlockControls>
 					) }
 					{ config.render( {

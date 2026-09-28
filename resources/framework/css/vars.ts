@@ -229,6 +229,18 @@ const SINGLES: Array< [ string, string, string, string? ] > = [
 	[ 'flexChild.basis',     'fb',  '--bl-fb',  'width' ],
 	[ 'flexChild.alignSelf', 'fas', '--bl-fas' ],
 	[ 'flexChild.order',     'fco', '--bl-fco' ],
+	// Scene-child — a free-positioned item inside a blicks/scene stage. Coordinates are DESIGN
+	// pixels measured against the scene's own design size; the stage's scale transform maps them
+	// to every viewport, which is why these carry no per-breakpoint slots.
+	//
+	// The `sc` prefix is deliberate: `cw`/`cc` are already columns.columnWidth/columnCount, so the
+	// obvious `c*` abbreviations would have had two controls writing one var.
+	[ 'sceneChild.x',      'scx',   '--bl-scx',   'spacing' ],
+	[ 'sceneChild.y',      'scy',   '--bl-scy',   'spacing' ],
+	[ 'sceneChild.width',  'scw',   '--bl-scw',   'width'   ],
+	[ 'sceneChild.height', 'sch',   '--bl-sch',   'width'   ],
+	[ 'sceneChild.rotate', 'scrot', '--bl-scrot' ],
+	[ 'sceneChild.scale',  'scsc',  '--bl-scsc'  ],
 ];
 
 /**
@@ -258,6 +270,10 @@ export const STYLE_MAP: StyleMapRule[] = [
 	// Wave F: pseudo-element decoration — builder returns the full body, no `prop`.
 	{ attr: 'decoration.before', cls: 'deco-b', kind: 'single', v: '--bl-deco-b', category: 'decoration', selectorSuffix: '::before' },
 	{ attr: 'decoration.after',  cls: 'deco-a', kind: 'single', v: '--bl-deco-a', category: 'decoration', selectorSuffix: '::after' },
+	// Scene child anchor — which point of the item its x/y address (`top-left` … `bottom-right`).
+	// A fixed nine-slug set, so the translate offsets live in runtime.scss as `.bl-sca--{slug}`
+	// rules and this emits the class alone, exactly like a type role.
+	{ attr: 'sceneChild.anchor', cls: 'sca', kind: 'enum', v: '' },
 ];
 
 /**

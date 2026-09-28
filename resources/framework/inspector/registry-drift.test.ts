@@ -23,7 +23,7 @@ const INSPECTOR = resolve( __dirname, 'Inspector.tsx' );
 const CONTROL_ID = /'([a-z][a-zA-Z]*\.[a-zA-Z]+)'/g;
 
 const SECTION_PREFIXES = [
-	'layout', 'gridChild', 'flexChild', 'columns', 'spacing', 'border', 'position',
+	'layout', 'gridChild', 'flexChild', 'sceneChild', 'columns', 'spacing', 'border', 'position',
 	'colors', 'background', 'typography', 'effects', 'animation', 'decoration',
 ];
 
@@ -48,6 +48,7 @@ const FACET_SOURCES: Record< string, string[] > = {
 	columns: [ 'columns/ColumnsControl.tsx' ],
 	gridChild: [ 'grid-child/GridChildControl.tsx' ],
 	flexChild: [ 'flex-child/FlexChildControl.tsx' ],
+	sceneChild: [ 'scene-child/SceneChildControl.tsx' ],
 	effects: [ 'effects/EffectsControl.tsx' ],
 	animation: [ 'animation/AnimationControl.tsx' ],
 	decoration: [ 'decoration/DecorationControl.tsx' ],

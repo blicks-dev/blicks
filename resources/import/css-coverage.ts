@@ -21,6 +21,7 @@ export type Section =
 	| 'animation'
 	| 'gridChild'
 	| 'flexChild'
+	| 'sceneChild'
 	| 'columns'
 	| 'decoration';
 
@@ -160,6 +161,12 @@ export const PROPERTY_MAP: Record< string, ControlRef > = {
 	'flex-grow': { section: 'flexChild', attr: 'flexChild.grow' },
 	'flex-shrink': { section: 'flexChild', attr: 'flexChild.shrink' },
 	'flex-basis': { section: 'flexChild', attr: 'flexChild.basis' },
+
+	// Scene child — only the STANDALONE transform properties land here. `left`/`top`/`width`/
+	// `height` are what a scene item's x/y/size emit too, but a raw CSS paste cannot tell a scene
+	// item from any other positioned box, so those stay mapped to Position and Layout above.
+	rotate: { section: 'sceneChild', attr: 'sceneChild.rotate' },
+	scale: { section: 'sceneChild', attr: 'sceneChild.scale' },
 
 	// Multi-column
 	'column-count': { section: 'columns', attr: 'columns.columnCount' },
