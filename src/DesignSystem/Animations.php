@@ -184,6 +184,66 @@ final class Animations {
 					'fillMode' => 'forwards',
 				]
 			),
+			$make(
+				'fade-in',
+				__( 'Fade in', 'blicks' ),
+				__( 'Fades up from transparent.', 'blicks' ),
+				[
+					'duration' => '600ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'slide-up',
+				__( 'Slide up', 'blicks' ),
+				__( 'Rises into place while fading in.', 'blicks' ),
+				[
+					'duration' => '700ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'slide-down',
+				__( 'Slide down', 'blicks' ),
+				__( 'Drops into place while fading in.', 'blicks' ),
+				[
+					'duration' => '700ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'slide-left',
+				__( 'Slide left', 'blicks' ),
+				__( 'Enters from the right while fading in.', 'blicks' ),
+				[
+					'duration' => '700ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'slide-right',
+				__( 'Slide right', 'blicks' ),
+				__( 'Enters from the left while fading in.', 'blicks' ),
+				[
+					'duration' => '700ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'zoom-in',
+				__( 'Zoom in', 'blicks' ),
+				__( 'Scales up slightly while fading in.', 'blicks' ),
+				[
+					'duration' => '650ms',
+					'easing' => 'cubic-bezier(0.16, 1, 0.3, 1)',
+					'fillMode' => 'both',
+				]
+			),
 		];
 	}
 

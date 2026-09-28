@@ -25,4 +25,19 @@
 	@keyframes bl-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 	@keyframes bl-fill   { from { --bl-p: 0; } to { --bl-p: var(--bl-p-target, 1); } }
+
+	// Entrances. These exist so a box can be given an "Enter" without an author having to assemble
+	// one from a name, a timeline and a fill mode. Each ends at the element's own resting state, so
+	// `animation-fill-mode: both` leaves it exactly where the layout put it.
+	@keyframes bl-fade-in    { from { opacity: 0; } to { opacity: 1; } }
+
+	@keyframes bl-slide-up   { from { opacity: 0; translate: 0 32px; } to { opacity: 1; translate: 0 0; } }
+
+	@keyframes bl-slide-down { from { opacity: 0; translate: 0 -32px; } to { opacity: 1; translate: 0 0; } }
+
+	@keyframes bl-slide-left { from { opacity: 0; translate: 32px 0; } to { opacity: 1; translate: 0 0; } }
+
+	@keyframes bl-slide-right { from { opacity: 0; translate: -32px 0; } to { opacity: 1; translate: 0 0; } }
+
+	@keyframes bl-zoom-in    { from { opacity: 0; scale: 0.88; } to { opacity: 1; scale: 1; } }
 }
