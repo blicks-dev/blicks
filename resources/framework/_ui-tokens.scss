@@ -146,6 +146,27 @@
 	--bl-ui-acc-magenta: #e31957;
 	--bl-ui-acc-violet: #a440ce;
 
+	/* ---------- motion ----------
+	   Blicks' own chrome had no motion vocabulary at all: every state change was instant, which
+	   reads as cheap next to any tool people compose in. Three durations and two curves, so a
+	   hover, a panel and a reveal are recognisably the same system rather than three guesses.
+
+	   `--bl-ui-ease` is the workhorse: fast out of the gate, long settle. It suits state changes
+	   an author triggers and is waiting on. `--bl-ui-ease-out` is for things LEAVING, where the
+	   eye does not need to track the end of the curve.
+
+	   NEVER transition a property a pointer is currently driving. A drag that animates toward
+	   each frame is animating toward positions the pointer has already left, which is lag wearing
+	   a nicer coat. Motion belongs on state, not on direct manipulation.
+
+	   Consumers must wrap these in `@media (prefers-reduced-motion: no-preference)`; the tokens
+	   themselves carry no such guard because a duration cannot. */
+	--bl-ui-dur-fast: 120ms; /* hover, focus, small affordances */
+	--bl-ui-dur-base: 200ms; /* panels, selection, reveals */
+	--bl-ui-dur-slow: 320ms; /* full-surface entrances */
+	--bl-ui-ease: cubic-bezier(0.2, 0, 0, 1);
+	--bl-ui-ease-out: cubic-bezier(0.2, 0, 0.4, 1);
+
 	/* ---------- type ----------
 	   Neither webfont is bundled or enqueued, so both stacks resolve to system
 	   fonts today; the names are here so that if the faces are ever enqueued BOTH
@@ -236,5 +257,4 @@
 	   outside the scoped root, and a `var(--x, 2px)` fallback would quietly round
 	   43 rules the moment the wrapper class is forgotten. */
 	--bl-ui-radius: 0;
-	--bl-ui-ease: cubic-bezier(0.2, 0, 0, 1);
 }
