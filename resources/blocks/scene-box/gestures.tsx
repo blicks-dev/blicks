@@ -2,6 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { cleanCell, cleanSpan } from './controls';
 import { fits, sceneOf, siblingFrames, type Frame } from './occupancy';
 import { wasRedirected } from '@/blocks/scene-shared/drill-down';
+import { hideReadout, showReadout } from '@/blocks/scene-shared/readout';
 import './gestures.scss';
 
 /**
@@ -97,7 +98,12 @@ function trackGesture(
 	element: HTMLElement,
 	grid: Grid,
 	start: { x: number; y: number },
-	apply: ( raw: { dx: number; dy: number }, cells: { dCol: number; dRow: number }, persistent: boolean ) => void
+	apply: (
+		raw: { dx: number; dy: number },
+		cells: { dCol: number; dRow: number },
+		persistent: boolean,
+		pointer: { x: number; y: number }
+	) => void
 ): void {
 	const doc = element.ownerDocument;
 	let dragging = false;
@@ -123,7 +129,7 @@ function trackGesture(
 		}
 		event.preventDefault();
 		const { raw, cells } = measure( event );
-		apply( raw, cells, false );
+		apply( raw, cells, false, { x: event.clientX, y: event.clientY } );
 	};
 
 	const up = ( event: PointerEvent ) => {
@@ -132,11 +138,11 @@ function trackGesture(
 		doc.removeEventListener( 'pointercancel', up );
 		if ( ! dragging ) {
 			// A press that never moved still has to undo any live styling it applied.
-			apply( { dx: 0, dy: 0 }, { dCol: 0, dRow: 0 }, true );
+			apply( { dx: 0, dy: 0 }, { dCol: 0, dRow: 0 }, true, { x: event.clientX, y: event.clientY } );
 			return;
 		}
 		const { raw, cells } = measure( event );
-		apply( raw, cells, true );
+		apply( raw, cells, true, { x: event.clientX, y: event.clientY } );
 	};
 
 	doc.addEventListener( 'pointermove', move );
@@ -205,7 +211,7 @@ export function sceneBoxDragProps( { attributes, setAttributes, isEdit, clientId
 		// the start, so pushing a box against a neighbour parks it flush instead of undoing it.
 		let settled: Frame = { col: startCol, row: startRow, colSpan, rowSpan };
 
-		trackGesture( element, grid, { x: event.clientX, y: event.clientY }, ( raw, cells, persistent ) => {
+		trackGesture( element, grid, { x: event.clientX, y: event.clientY }, ( raw, cells, persistent, pointer ) => {
 			const candidate: Frame = {
 				// A box cannot leave the grid, and its far edge is what would go over — so the
 				// ceiling is the grid size minus the box's own span, not the grid size.
@@ -223,12 +229,14 @@ export function sceneBoxDragProps( { attributes, setAttributes, isEdit, clientId
 				element.style.translate = `${ raw.dx }px ${ raw.dy }px`;
 				element.classList.add( 'is-dragging' );
 				drawGhost( grid, settled );
+				showReadout( `${ settled.col }, ${ settled.row }`, pointer.x, pointer.y );
 				return;
 			}
 
 			element.style.translate = '';
 			element.classList.remove( 'is-dragging' );
 			clearGhost( grid.stage );
+			hideReadout();
 			// One write, on release — so one undo step, and no cell-by-cell jumping on the way.
 			setAttributes( { col: settled.col, row: settled.row } );
 		} );
@@ -277,7 +285,7 @@ export function SceneBoxHandles( { attributes, setAttributes, isEdit, clientId }
 		const others = siblingFrames( sceneOf( clientId ), clientId );
 		let settled: Frame = { col: startCol, row: startRow, colSpan: startCW, rowSpan: startRH };
 
-		trackGesture( element, grid, { x: event.clientX, y: event.clientY }, ( raw, cells, persistent ) => {
+		trackGesture( element, grid, { x: event.clientX, y: event.clientY }, ( raw, cells, persistent, pointer ) => {
 			let col = startCol;
 			let row = startRow;
 			let colSpan = startCW;
@@ -302,6 +310,7 @@ export function SceneBoxHandles( { attributes, setAttributes, isEdit, clientId }
 			if ( fits( candidate, others ) ) settled = candidate;
 
 			if ( ! persistent ) {
+				showReadout( `${ settled.colSpan } x ${ settled.rowSpan }`, pointer.x, pointer.y );
 				// Live edges follow the pointer in unrounded cell fractions, so the box stretches
 				// under the cursor instead of stepping a cell at a time.
 				const fCol = raw.dx / grid.cellW;
@@ -329,6 +338,7 @@ export function SceneBoxHandles( { attributes, setAttributes, isEdit, clientId }
 			element.style.height = '';
 			element.classList.remove( 'is-dragging' );
 			clearGhost( grid.stage );
+			hideReadout();
 			setAttributes( { ...settled } );
 		} );
 	};

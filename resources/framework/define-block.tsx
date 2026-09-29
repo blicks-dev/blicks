@@ -58,7 +58,18 @@ export interface InnerBlocksConfig {
 	 * focuses the first editable of the newly selected block) instead of leaving the wrapper selected.
 	 */
 	templateInsertUpdatesSelection?: boolean;
-	templateLock?: 'all' | 'insert' | 'contentOnly' | false;
+	/**
+	 * A function when the lock depends on the INSTANCE rather than the block type — a Scene is
+	 * read-only in the canvas and editable in its own full-screen editor, which is the same block
+	 * type in two states. Re-evaluated on every `edit()` render, so the block must also re-render
+	 * when whatever it keys off changes.
+	 */
+	templateLock?:
+		| 'all'
+		| 'insert'
+		| 'contentOnly'
+		| false
+		| ( ( attributes: any, clientId: string ) => 'all' | 'insert' | 'contentOnly' | false );
 	allowedBlocks?: string[];
 	orientation?: 'horizontal' | 'vertical' | ( ( attributes: any ) => 'horizontal' | 'vertical' );
 	renderAppender?: any;
@@ -484,10 +495,13 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 
 	const innerWrapperClassName = innerBlocksProps.wrapperClassName;
 
-	function resolveInnerBlocksProps( attributes: any ): any {
+	function resolveInnerBlocksProps( attributes: any, clientId: string ): any {
 		const { wrapperClassName: _wrapperClassName, ...props } = innerBlocksProps;
 		if ( typeof props.orientation === 'function' ) {
 			props.orientation = props.orientation( attributes );
+		}
+		if ( typeof props.templateLock === 'function' ) {
+			props.templateLock = props.templateLock( attributes, clientId );
 		}
 		return props;
 	}
@@ -589,7 +603,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 			let children: React.ReactNode = null;
 			let innerWrap: any = null;
 			if ( innerBlocksEnabled ) {
-				const innerCfg = resolveInnerBlocksProps( attributes );
+				const innerCfg = resolveInnerBlocksProps( attributes, clientId );
 				if (
 					( config.placeholder || config.repeater || config.appender === 'ghost' ) &&
 					innerCfg.renderAppender == null

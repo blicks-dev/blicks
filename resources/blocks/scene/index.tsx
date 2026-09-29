@@ -1,11 +1,16 @@
 import { createBlock } from '@wordpress/blocks';
-import { ToolbarButton } from '@wordpress/components';
+import { ToolbarButton, Disabled } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
 import { SceneSurface } from '@/blocks/scene-shared/SceneSurface';
-import { sceneMarqueeProps } from '@/blocks/scene-shared/scene-marquee';
-import { setSceneEditorOpen, useSceneEditorOpen } from '@/blocks/scene-shared/editor-state';
+import {
+	isInOpenScene,
+	setSceneEditorOpen,
+	useSceneEditorOpen,
+	useSceneEditorRevision,
+} from '@/blocks/scene-shared/editor-state';
 import { SceneControls, cleanDesignSize, cleanGrid } from './controls';
 
 const sceneGlyph = (
@@ -53,7 +58,10 @@ defineBlock( metadata, {
 		// Only boxes. An item has to belong to a region of the grid, because that region is
 		// what its coordinates are measured against.
 		allowedBlocks: [ 'blicks/scene-box' ],
-		templateLock: false,
+		// Read-only in the canvas, editable in the full-screen editor. The lock has to be per
+		// INSTANCE because both states are the same block type: locking the type would disable the
+		// scene's own editor along with the canvas, which is exactly what it did.
+		templateLock: ( _attributes: any, clientId: string ) => ( isInOpenScene( clientId ) ? false : 'all' ),
 		wrapperClassName: 'bl-scene__stage',
 	},
 	placeholder: {
@@ -90,6 +98,9 @@ defineBlock( metadata, {
 	},
 	Controls: SceneControls,
 	Toolbar: SceneToolbar,
+	// `templateLock` above is read while `edit()` computes its inner-blocks props, so `edit()` must
+	// re-run when the surface opens or closes — subscribing here is what makes that happen.
+	useEdit: () => useSceneEditorRevision(),
 	render( { attributes, blockProps, innerBlocksProps, isEdit, clientId } ) {
 		const className = [
 			blockProps.className,
@@ -144,6 +155,10 @@ function SceneToolbar( { clientId }: { attributes: any; setAttributes: ( a: any 
  *
  * Only one of the two mounts `innerBlocksProps` at a time. Mounting it twice would put the same
  * blocks on screen in two places, and every click would be ambiguous.
+ *
+ * In the canvas, the stage and its inner blocks are read-only (`<Disabled>`), presenting the
+ * composition as rendered on the front end. Authoring happens in the full-screen Scene editor,
+ * opened from the toolbar or by double-clicking the stage.
  */
 function SceneStage( {
 	clientId,
@@ -161,6 +176,10 @@ function SceneStage( {
 	innerBlocksProps: any;
 } ) {
 	const open = useSceneEditorOpen( clientId );
+	const isEmpty = useSelect(
+		( select: any ) => select( 'core/block-editor' ).getBlockCount( clientId ) === 0,
+		[ clientId ]
+	);
 
 	if ( open ) {
 		return (
@@ -180,9 +199,26 @@ function SceneStage( {
 		);
 	}
 
+	// An un-seeded container shows its placeholder so the author can pick a starting layout.
+	// Once blocks exist (or the author opted for blank), the stage is read-only in the canvas.
+	if ( isEmpty && ! attributes.blicksBlank ) {
+		return (
+			<div { ...blockProps } className={ className } style={ style }>
+				<div { ...innerBlocksProps } />
+			</div>
+		);
+	}
+
 	return (
-		<div { ...blockProps } className={ className } style={ style }>
-			<div { ...innerBlocksProps } { ...sceneMarqueeProps( { clientId, isEdit: true } ) } />
+		<div
+			{ ...blockProps }
+			className={ className }
+			style={ style }
+			onDoubleClick={ () => setSceneEditorOpen( clientId, true ) }
+		>
+			<Disabled>
+				<div { ...innerBlocksProps } />
+			</Disabled>
 		</div>
 	);
 }

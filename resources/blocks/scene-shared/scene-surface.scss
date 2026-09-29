@@ -10,6 +10,77 @@
 
 @use "../../framework/ui-tokens";
 
+/* ── Motion ────────────────────────────────────────────────────────────────────────────────
+   The surface had no transitions at all, which is what made building in it feel abrupt: every
+   hover, selection and panel change happened between one frame and the next.
+
+   Scoped to state changes only. Nothing here touches a property a pointer is driving — a dragged
+   box, a resizing frame, a guide — because a transition there animates toward positions the
+   pointer has already left. That is why the dragging box explicitly clears its transition.
+
+   One media query around the lot: under `reduce`, none of these rules exist and every state
+   change lands instantly, which is the correct behaviour rather than a degraded one. */
+@media ( prefers-reduced-motion: no-preference ) {
+	.bl-scene-surface {
+		// The surface itself arrives rather than appearing. Short, and only on the way in — a
+		// full-screen editor that faded out would delay the author getting back to the page.
+		animation: bl-scene-surface-in var(--bl-ui-dur-base) var(--bl-ui-ease) both;
+
+		button,
+		.bl-scene-layers__row,
+		.bl-scene-selection__chip {
+			transition:
+				background-color var(--bl-ui-dur-fast) var(--bl-ui-ease),
+				border-color var(--bl-ui-dur-fast) var(--bl-ui-ease),
+				color var(--bl-ui-dur-fast) var(--bl-ui-ease),
+				opacity var(--bl-ui-dur-fast) var(--bl-ui-ease);
+		}
+
+		// Row actions fade rather than snap in, so a pointer moving down the layer list does not
+		// flash a column of buttons at every row it crosses.
+		.bl-scene-layers__actions {
+			transition: opacity var(--bl-ui-dur-base) var(--bl-ui-ease-out);
+		}
+	}
+
+	.bl-scene-surface__scene {
+		transition: box-shadow var(--bl-ui-dur-base) var(--bl-ui-ease);
+	}
+
+	// Selection and hover on the stage. `outline-color` only: animating `outline-width` would
+	// shift nothing but still cost a paint on every hover.
+	.bl-scene-box,
+	.bl-scene-item {
+		transition: outline-color var(--bl-ui-dur-fast) var(--bl-ui-ease);
+	}
+
+	@keyframes bl-scene-surface-in {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+}
+
+/* The measurement readout shown while a box or item is being moved or resized. Numbers rather
+   than a bare ghost: "where will this land" is the question a drag is asking, and an outline
+   alone answers it only approximately. */
+.bl-scene-readout {
+	position: fixed;
+	z-index: 100001;
+	padding: 3px 7px;
+	background: var(--bl-ui-brand);
+	color: var(--bl-ui-paper);
+	font-family: var(--bl-ui-font-mono);
+	font-size: var(--bl-ui-text-xs);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
 .bl-scene-surface__anchor {
 	display: none;
 }
@@ -360,5 +431,97 @@
 		font-size: var(--bl-ui-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
+	}
+}
+
+.bl-scene-inspector {
+	display: flex;
+	flex: 0 0 280px;
+	flex-direction: column;
+	min-height: 0;
+	overflow-y: auto;
+	border-inline-start: 1px solid var(--line);
+	background: var(--panel);
+
+	.bl-ins {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+		border-left: 0;
+		background: var(--panel);
+		color: var(--fg);
+
+		/* Remap local aliases onto dark surface tokens */
+		--bg: var(--bl-ui-dark-canvas);
+		--paper: var(--bl-ui-dark-surface);
+		--surface-alt: var(--bl-ui-dark-raised);
+		--surface-sunk: var(--bl-ui-dark-canvas);
+		--fg: var(--bl-ui-dark-fg);
+		--fg-2: var(--bl-ui-dark-fg-muted);
+		--fg-muted: var(--bl-ui-dark-fg-muted);
+		--fg-subtle: var(--bl-ui-dark-fg-subtle);
+		--border: var(--bl-ui-dark-border);
+		--border-strong: var(--bl-ui-dark-border-strong);
+		--divider: var(--bl-ui-dark-border);
+
+		/* Settings UI elements */
+		.bl-settings-card {
+			background: var(--panel);
+			border-bottom: 1px solid var(--line);
+		}
+
+		.bl-settings-card__title {
+			color: var(--fg);
+		}
+
+		.bl-setting__label,
+		.bl-field-row__label {
+			color: var(--fg-subtle);
+		}
+
+		.bl-segmented-setting {
+			background: var(--surface);
+
+			button {
+				color: var(--fg-subtle);
+
+				&.is-active {
+					background: var(--raised);
+					color: var(--fg);
+				}
+			}
+		}
+
+		.bl-field-row input,
+		.bl-field-row select {
+			border-color: var(--line);
+			background: var(--surface);
+			color: var(--fg);
+
+			&:focus {
+				border-color: var(--bl-ui-brand);
+			}
+		}
+
+		.bl-option-card {
+			border-color: var(--line);
+			background: var(--surface);
+			color: var(--fg);
+
+			&:hover {
+				border-color: var(--line-strong);
+				background: var(--raised);
+			}
+
+			&.is-active {
+				border-color: var(--bl-ui-brand);
+				background: var(--bl-ui-brand-tint);
+				color: var(--bl-ui-brand);
+			}
+		}
+	}
+
+	.ins-body {
+		flex: 1 1 auto;
 	}
 }

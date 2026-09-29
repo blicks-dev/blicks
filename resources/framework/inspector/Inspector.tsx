@@ -439,9 +439,12 @@ function useHasSceneParent( clientId?: string ): boolean {
 		( select: any ) => {
 			if ( ! clientId ) return false;
 			const store = select( 'core/block-editor' );
-			const parentId = store?.getBlockRootClientId?.( clientId );
-			if ( ! parentId ) return false;
-			return store?.getBlockName?.( parentId ) === 'blicks/scene';
+			let cur = store?.getBlockRootClientId?.( clientId );
+			while ( cur ) {
+				if ( store?.getBlockName?.( cur ) === 'blicks/scene' ) return true;
+				cur = store?.getBlockRootClientId?.( cur );
+			}
+			return false;
 		},
 		[ clientId ]
 	);
@@ -478,7 +481,7 @@ const ALL_CONTROLS = [
 	'decoration.*',
 ];
 
-export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
+export function InspectorContent( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
 	const controls = ALL_CONTROLS; // TEMP override — see ALL_CONTROLS note above
 	const states = manifest?.states ?? [ 'default' ];
 
@@ -659,52 +662,58 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 	const bpLabel = DEFAULT_BREAKPOINTS.find( ( b ) => b.id === breakpoint )?.label ?? breakpoint;
 
 	return (
-		<InspectorControls>
-			<div className="bl-ins">
-				<Tabs tabs={ TABS } active={ tab } onSelect={ setTab } />
-				<div className="ins-body">
-					{ showRail && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
-					{ /* Without the rail there is no 44px column to leave room for, so the pane takes
-					     the whole sidebar. */ }
-					<div className={ `ins-pane ${ showRail ? '' : 'is-full' }` }>
-						{ isStyle && (
-							<>
-								<ContextBar
-									states={ states }
-									state={ state }
-									setState={ setState }
-									breakpoint={ breakpoint }
-									setBreakpoint={ setBreakpoint }
-								/>
-								<SearchField value={ query } onChange={ setQuery } />
-							</>
-						) }
-						{ /* The other half of the rail's tab pattern. Only a Style facet is a real
-						     tabpanel — the Settings/Advanced tabs are not in that tablist, so
-						     labelling them as its panels would be a lie. */ }
-						<div
-							className="ins-facet"
-							key={ `${ tab }:${ activeFacet?.id ?? '' }` }
-							{ ...( isStyle && activeFacet
-								? {
-										role: 'tabpanel',
-										id: facetPanelId( activeFacet.id ),
-										'aria-labelledby': facetTabId( activeFacet.id ),
-										tabIndex: 0,
-								  }
-								: {} ) }
-						>
-							{ renderTab() }
-						</div>
-						{ isStyle && (
-							<div className="ins-footer">
-								{ /* translators: %s: the current breakpoint, e.g. Desktop */
-								  __( 'Editing %s — cascades down', 'blicks' ).replace( '%s', bpLabel ) }
-							</div>
-						) }
+		<div className="bl-ins">
+			<Tabs tabs={ TABS } active={ tab } onSelect={ setTab } />
+			<div className="ins-body">
+				{ showRail && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
+				{ /* Without the rail there is no 44px column to leave room for, so the pane takes
+				     the whole sidebar. */ }
+				<div className={ `ins-pane ${ showRail ? '' : 'is-full' }` }>
+					{ isStyle && (
+						<>
+							<ContextBar
+								states={ states }
+								state={ state }
+								setState={ setState }
+								breakpoint={ breakpoint }
+								setBreakpoint={ setBreakpoint }
+							/>
+							<SearchField value={ query } onChange={ setQuery } />
+						</>
+					) }
+					{ /* The other half of the rail's tab pattern. Only a Style facet is a real
+					     tabpanel — the Settings/Advanced tabs are not in that tablist, so
+					     labelling them as its panels would be a lie. */ }
+					<div
+						className="ins-facet"
+						key={ `${ tab }:${ activeFacet?.id ?? '' }` }
+						{ ...( isStyle && activeFacet
+							? {
+									role: 'tabpanel',
+									id: facetPanelId( activeFacet.id ),
+									'aria-labelledby': facetTabId( activeFacet.id ),
+									tabIndex: 0,
+							  }
+							: {} ) }
+					>
+						{ renderTab() }
 					</div>
+					{ isStyle && (
+						<div className="ins-footer">
+							{ /* translators: %s: the current breakpoint, e.g. Desktop */
+							  __( 'Editing %s — cascades down', 'blicks' ).replace( '%s', bpLabel ) }
+						</div>
+					) }
 				</div>
 			</div>
+		</div>
+	);
+}
+
+export function Inspector( props: Props ) {
+	return (
+		<InspectorControls>
+			<InspectorContent { ...props } />
 		</InspectorControls>
 	);
 }

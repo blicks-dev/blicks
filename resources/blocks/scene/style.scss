@@ -77,7 +77,9 @@
 	&.has-child-selected {
 		outline-width: 2px;
 	}
+}
 
+.bl-scene-surface__scene {
 	> .bl-scene__stage {
 		// The actual authoring grid, one line per cell — drawn from the same numbers the boxes
 		// divide by, so what an author sees is exactly where a box can land. A fixed pixel grid

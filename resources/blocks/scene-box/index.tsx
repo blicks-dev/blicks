@@ -2,6 +2,7 @@ import { createBlock } from '@wordpress/blocks';
 import { useSelect } from '@wordpress/data';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
+import { isInOpenScene, useSceneEditorRevision } from '@/blocks/scene-shared/editor-state';
 import { SceneBoxControls, SceneBoxEnter, cleanCell, cleanSpan } from './controls';
 import { SceneBoxHandles, sceneBoxDragProps } from './gestures';
 import { SceneBoxInserter } from './Inserter';
@@ -56,7 +57,8 @@ function BoxControls( props: any ) {
 defineBlock( metadata, {
 	innerBlocks: {
 		allowedBlocks: [ 'blicks/scene-text', 'blicks/scene-image' ],
-		templateLock: false,
+		// Unlocked only while the scene this box belongs to is open in the full-screen editor.
+		templateLock: ( _attributes: any, clientId: string ) => ( isInOpenScene( clientId ) ? false : 'all' ),
 		// Items live in their own layer so the box can clip THEM without clipping its editor
 		// chrome. The resize grips sit on the box's edges and the "Add element" bar above it —
 		// `overflow: hidden` on the box itself would cut both off.
@@ -64,6 +66,7 @@ defineBlock( metadata, {
 	},
 	appender: 'ghost',
 	Controls: BoxControls,
+	useEdit: () => useSceneEditorRevision(),
 	render( { attributes, setAttributes, blockProps, innerBlocksProps, isEdit, clientId } ) {
 		// No className concat: the factory already emits `bl-{slug}`, which for this block IS
 		// `bl-scene-box`. Appending it again only duplicated the class in saved markup.

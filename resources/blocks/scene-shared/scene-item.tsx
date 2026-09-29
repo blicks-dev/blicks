@@ -2,6 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { dispatch } from '@wordpress/data';
 import { getValue, setValues } from '@/framework/values';
 import { redirectToBox } from './drill-down';
+import { hideReadout, showReadout } from './readout';
 import './scene-item.scss';
 
 /**
@@ -320,8 +321,17 @@ export function sceneDragProps( { attributes, setAttributes, isEdit, itemFor }: 
 				guideY = snapY.line;
 			}
 
-			if ( persistent ) clearGuides( stage );
-			else drawGuides( stage, guideX, guideY );
+			if ( persistent ) {
+				clearGuides( stage );
+				hideReadout();
+			} else {
+				drawGuides( stage, guideX, guideY );
+				showReadout(
+					`${ Math.round( nextX ) }, ${ Math.round( nextY ) }`,
+					moveEvent.clientX,
+					moveEvent.clientY
+				);
+			}
 
 			if ( ! persistent ) markTransient();
 			// x and y go in ONE write — see `setValues`. Two `setValue` calls from this handler
@@ -420,7 +430,7 @@ export function SceneHandles( { attributes, setAttributes, isEdit, itemFor }: Op
 
 		const { ax, ay } = anchorFractions( getValue( attributes, 'sceneChild.anchor', 'default', 'base' ) );
 
-		trackPointer( element, { x: event.clientX, y: event.clientY }, ( dxRaw, dyRaw, persistent ) => {
+		trackPointer( element, { x: event.clientX, y: event.clientY }, ( dxRaw, dyRaw, persistent, moveEvent ) => {
 			const dx = dxRaw / scale;
 			const dy = dyRaw / scale;
 
@@ -444,6 +454,9 @@ export function SceneHandles( { attributes, setAttributes, isEdit, itemFor }: Op
 				h = Math.max( MIN_SIZE, startH - dy );
 				y = startY + ( 1 - ay ) * ( startH - h );
 			}
+
+			if ( persistent ) hideReadout();
+			else showReadout( `${ Math.round( w ) } x ${ Math.round( h ) }`, moveEvent.clientX, moveEvent.clientY );
 
 			// Up to four controls move together here, so they must land in one write.
 			const changes: Record< string, string > = {};

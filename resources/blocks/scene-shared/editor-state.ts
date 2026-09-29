@@ -1,3 +1,4 @@
+import { select } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
 
 /**
@@ -28,7 +29,15 @@ export function setSceneEditorOpen( clientId: string, open: boolean ): void {
 	notify();
 }
 
-export function useSceneEditorOpen( clientId?: string ): boolean {
+/**
+ * Re-render whenever ANY scene opens or closes, without caring which.
+ *
+ * The canvas locks a scene's inner blocks and the full-screen editor unlocks them, which means the
+ * lock is a property of the instance, not of the block type — and `useInnerBlocksProps` reads it
+ * during `edit()`. So `edit()` itself has to re-run when the surface opens, not just the component
+ * that draws the stage.
+ */
+export function useSceneEditorRevision(): void {
 	const [ , force ] = useState( 0 );
 
 	useEffect( () => {
@@ -38,6 +47,22 @@ export function useSceneEditorOpen( clientId?: string ): boolean {
 			listeners.delete( listener );
 		};
 	}, [] );
+}
 
+export function useSceneEditorOpen( clientId?: string ): boolean {
+	useSceneEditorRevision();
 	return !! clientId && openClientId === clientId;
+}
+
+/**
+ * Is this block the scene currently being edited, or inside it?
+ *
+ * Plain function, not a hook: it is called from a block's `innerBlocks` config while `edit()`
+ * computes its props, which is not a place a hook can run.
+ */
+export function isInOpenScene( clientId?: string ): boolean {
+	if ( ! openClientId || ! clientId ) return false;
+	if ( clientId === openClientId ) return true;
+	const parents = ( select( 'core/block-editor' ) as any )?.getBlockParents?.( clientId ) ?? [];
+	return parents.includes( openClientId );
 }

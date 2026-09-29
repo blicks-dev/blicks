@@ -1,5 +1,5 @@
 import { __, sprintf } from '@wordpress/i18n';
-import { useDispatch, useSelect } from '@wordpress/data';
+import { dispatch, select, useDispatch, useSelect } from '@wordpress/data';
 import { createPortal, useCallback, useEffect, useRef, useState } from '@wordpress/element';
 import { createSceneBox } from '@/blocks/scene-box';
 import { firstFreeFrame, frameOf } from '@/blocks/scene-box/occupancy';
@@ -8,6 +8,7 @@ import { createCentredItem } from './new-item';
 import { setSceneEditorOpen } from './editor-state';
 import { SceneLayers } from './SceneLayers';
 import { SceneSelection } from './SceneSelection';
+import { SceneInspector } from './SceneInspector';
 import './scene-surface.scss';
 
 interface Props {
@@ -195,9 +196,37 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 				close();
 				return;
 			}
-			// The usual zoom shortcuts, but only when the key is not going into text.
 			const target = event.target as HTMLElement | null;
 			if ( target?.isContentEditable || target?.closest?.( 'input, textarea, [contenteditable="true"]' ) ) return;
+
+			const store = select( 'core/block-editor' ) as any;
+			const dispatchEditor = dispatch( 'core/block-editor' ) as any;
+			const selected = store?.getSelectedBlockClientId?.();
+			const inThisScene = selected && selected !== clientId
+				&& ( store?.getBlockParents?.( selected ) ?? [] ).includes( clientId );
+
+			// Delete removes what is selected. Guarded on the selection being INSIDE this scene so
+			// the key never reaches past the surface and deletes something on the page behind it.
+			if ( ( event.key === 'Delete' || event.key === 'Backspace' ) && inThisScene ) {
+				event.preventDefault();
+				// Measured: without this the block is removed TWICE — once here and once by the
+				// editor's own delete handling — so deleting one box emptied the whole scene.
+				// Capture phase plus `stopPropagation` means this runs first and is the only one.
+				event.stopPropagation();
+				dispatchEditor.removeBlock( selected );
+				return;
+			}
+
+			// Duplicate in place. The copy lands on top of the original, which is what makes the
+			// next drag feel like pulling a second one off the stack.
+			if ( ( event.metaKey || event.ctrlKey ) && event.key.toLowerCase() === 'd' && inThisScene ) {
+				event.preventDefault();
+				event.stopPropagation();
+				dispatchEditor.duplicateBlocks( [ selected ] );
+				return;
+			}
+
+			// The usual zoom shortcuts.
 			if ( ! ( event.metaKey || event.ctrlKey ) ) return;
 			if ( event.key === '=' || event.key === '+' ) {
 				event.preventDefault();
@@ -211,9 +240,11 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 			}
 		};
 
-		doc.addEventListener( 'keydown', onKeyDown );
-		return () => doc.removeEventListener( 'keydown', onKeyDown );
-	}, [ close, doc ] );
+		// Capture, so the surface's own shortcuts resolve before the editor's global ones see the
+		// key at all. Anything this handler does not claim still bubbles on untouched.
+		doc.addEventListener( 'keydown', onKeyDown, true );
+		return () => doc.removeEventListener( 'keydown', onKeyDown, true );
+	}, [ close, doc, clientId ] );
 
 	const surface = (
 		<div className="bl-scene-surface" role="region" aria-label={ __( 'Scene editor', 'blicks' ) }>
@@ -221,7 +252,7 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 				<span className="bl-scene-surface__title">{ __( 'Scene', 'blicks' ) }</span>
 
 				<span className="bl-scene-surface__add">
-					<button type="button" onClick={ addBox }>
+					<button type="button" onClick={ addBox } title={ __( 'Add a box to the grid', 'blicks' ) }>
 						{ icon( <><rect x="3" y="4" width="18" height="16" rx="1" /><rect x="6.5" y="7.5" width="8" height="6" rx="1" /></> ) }
 						{ __( 'Box', 'blicks' ) }
 					</button>
@@ -242,6 +273,7 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 						type="button"
 						onClick={ () => setZoom( ( z ) => clampZoom( z / 1.2 ) ) }
 						aria-label={ __( 'Zoom out', 'blicks' ) }
+						title={ __( 'Zoom out  ⌘−', 'blicks' ) }
 					>
 						{ icon( <path d="M5 12h14" /> ) }
 					</button>
@@ -257,6 +289,7 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 						type="button"
 						onClick={ () => setZoom( ( z ) => clampZoom( z * 1.2 ) ) }
 						aria-label={ __( 'Zoom in', 'blicks' ) }
+						title={ __( 'Zoom in  ⌘+', 'blicks' ) }
 					>
 						{ icon( <path d="M12 5v14M5 12h14" /> ) }
 					</button>
@@ -264,7 +297,7 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 						type="button"
 						onClick={ () => setZoom( 1 ) }
 						aria-label={ __( 'Actual size', 'blicks' ) }
-						title={ __( 'Actual size', 'blicks' ) }
+						title={ __( 'Actual size  ⌘0', 'blicks' ) }
 					>
 						{ icon( <><rect x="4" y="6" width="16" height="12" rx="1" /><path d="M9 12h6" /></> ) }
 					</button>
@@ -306,6 +339,8 @@ export function SceneSurface( { clientId, designWidth, designHeight, innerBlocks
 						</div>
 					</div>
 				</div>
+
+				<SceneInspector rootClientId={ clientId } />
 			</div>
 		</div>
 	);
