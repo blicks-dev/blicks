@@ -16,6 +16,7 @@ export default tseslint.config(
 	{
 		ignores: [
 			'build/**',
+			'dist/**',
 			'**/vendor/**',
 			// Both recursive: docs/, tests/e2e/ and tests/integration/ install their own
 			// dependencies, and a bare `vendor/**` or `node_modules/**` only matches the root.
