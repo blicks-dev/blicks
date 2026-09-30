@@ -670,10 +670,22 @@ $multis: (
 // stays pixel-proportional everywhere — type, shadows and borders scale with the geometry, which
 // is the point of a stage as opposed to a layout container.
 //
-// The scale factor is the ratio of two lengths (available width ÷ design width). `calc()` cannot
-// divide a length by a length, but `tan(atan2(a, b))` yields exactly that ratio as a number — the
-// standard CSS spelling for the operation. It keeps the stage entirely JS-free: no ResizeObserver,
-// no layout thrash, and correct on first paint rather than one frame late.
+// The scale factor is the ratio of two lengths (available width ÷ design width), which `calc()`
+// divides directly: `<length> / <length>` resolves to a number. It keeps the stage entirely
+// JS-free — no ResizeObserver, no layout thrash, and correct on first paint rather than one frame
+// late.
+//
+// This used to be spelled `tan(atan2(available, design))`, the old workaround from before length
+// division landed. Do not go back to it. SAFARI EVALUATES THE NESTED FORM WRONG: measured on
+// Safari 26.6.2, `atan2(100cqw, 1440px)` correctly returns `26.565deg` and `tan(atan2(720, 1440))`
+// correctly returns `0.5`, but `tan(atan2(100cqw, var(--w)))` returns `7.17` — `tan()` of the
+// degree value taken as RADIANS. Depending on the container width that is a wildly magnified or a
+// NEGATIVE scale, and a negative one renders the stage flipped and translated off-screen, leaving
+// nothing on the page but the scene's own background.
+//
+// `@supports` cannot defend against it, because Safari reports the trig form as supported and then
+// computes it incorrectly — a wrong answer, not a missing feature. Length division is both simpler
+// and correct in Safari and Chromium alike.
 .bl-scene {
 	position: relative;
 	container-type: inline-size;
@@ -691,17 +703,19 @@ $multis: (
 	transform-origin: top left;
 }
 
-// Without trig support the factor stays 1 and the stage renders at its design size. The block's
-// own `overflow: hidden` then clips it, which is a better failure than pushing the page sideways.
-@supports (width: calc(1px * tan(atan2(1px, 1px)))) {
+// Without length-division support the factor stays 1 and the stage renders at its design size. The
+// block's own `overflow: hidden` then clips it, which is a better failure than pushing the page
+// sideways. Unlike the trig form this guard is honest: a browser that cannot divide two lengths
+// says so, rather than claiming support and returning the wrong number.
+@supports (scale: calc(1px / 1px)) {
 	.bl-scene__stage {
-		--bl-scene-scale: tan(atan2(100cqw, var(--bl-scene-w, 1440px)));
+		--bl-scene-scale: calc(100cqw / var(--bl-scene-w, 1440px));
 	}
 
 	// `upscale: false` → the stage stops growing once it has its design width, instead of
 	// magnifying a 1440px composition on a 2560px monitor.
 	.bl-scene--fixed > .bl-scene__stage {
-		--bl-scene-scale: min(1, tan(atan2(100cqw, var(--bl-scene-w, 1440px))));
+		--bl-scene-scale: min(1, calc(100cqw / var(--bl-scene-w, 1440px)));
 	}
 }
 
