@@ -12,14 +12,37 @@
 		// it" behave the way an author expects. Give the item a width and this yields to it.
 		width: max-content;
 
-		&__body {
-			margin: 0;
-
-			// Display copy on a stage is sized by its own box, so it must not inherit a theme's
-			// paragraph max-width and wrap somewhere the author did not choose.
-			max-width: none;
-		}
 	}
+}
+
+/* DELIBERATELY UNLAYERED, and it has to stay that way.
+
+   Typography lands on the item box and inherits inward — that is the whole contract above. What
+   defeats it is that WordPress's base stylesheet styles the tags themselves (`h1 { font-size: 2em;
+   margin: 0.67em 0; color: … }`) with UNLAYERED rules, and an unlayered rule beats every cascade
+   layer no matter how specific the layered one is. Inside `@layer blicks.base` this reset lost:
+   a 110px heading computed to 220px, `colors.text` never reached the text, and the 0.67em margins
+   inflated the item's box until neighbouring items overlapped.
+
+   So the tag's own typography is handed back to the box, which is where the controls write. */
+.bl-scene-text__body {
+	margin: 0;
+
+	// Display copy on a stage is sized by its own box, so it must not inherit a theme's
+	// paragraph max-width and wrap somewhere the author did not choose.
+	max-width: none;
+
+	// The tag's own typography, handed back to the box.
+	font: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	font-style: inherit;
+	font-family: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	text-align: inherit;
+	color: inherit;
 }
 
 /* Editor only. Scoped to `.block-editor-block-list__block`, which WordPress adds only in the
