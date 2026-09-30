@@ -1,6 +1,6 @@
 import { useSelect, useDispatch } from '@wordpress/data';
 import { InspectorContent } from '@/framework/inspector/Inspector';
-import { SceneControls } from '@/blocks/scene/controls';
+import { SceneControls, gridOf } from '@/blocks/scene/controls';
 import { SceneTextControls } from '@/blocks/scene-text/controls';
 import { SceneImageControls } from '@/blocks/scene-image/controls';
 import { SceneBoxControls, SceneBoxEnter } from '@/blocks/scene-box/controls';
@@ -11,7 +11,7 @@ function BoxControls( props: any ) {
 			const store = select( 'core/block-editor' );
 			const parentId = props.clientId ? store?.getBlockRootClientId?.( props.clientId ) : null;
 			const parent = parentId ? store?.getBlockAttributes?.( parentId ) : null;
-			return Number( parent?.cols ) || 16;
+			return gridOf( parent ).cols;
 		},
 		[ props.clientId ]
 	);
@@ -21,7 +21,7 @@ function BoxControls( props: any ) {
 			const store = select( 'core/block-editor' );
 			const parentId = props.clientId ? store?.getBlockRootClientId?.( props.clientId ) : null;
 			const parent = parentId ? store?.getBlockAttributes?.( parentId ) : null;
-			return Number( parent?.rows ) || 16;
+			return gridOf( parent ).rows;
 		},
 		[ props.clientId ]
 	);

@@ -11,7 +11,7 @@ import {
 	useSceneEditorOpen,
 	useSceneEditorRevision,
 } from '@/blocks/scene-shared/editor-state';
-import { SceneControls, cleanDesignSize, cleanGrid } from './controls';
+import { SceneControls, cleanDesignSize, cleanGrid, cleanEntrance, cleanGridSpace, cleanTracks, gridOf, ENTRANCE_DEFAULT } from './controls';
 
 const sceneGlyph = (
 	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -37,6 +37,13 @@ function item( block: string, attrs: Record< string, unknown >, x: string, y: st
 function stageVars( attributes: any ): Record< string, string > {
 	const width = cleanDesignSize( attributes.designWidth, 1440 );
 	const height = cleanDesignSize( attributes.designHeight, 800 );
+	const entrance = cleanEntrance( attributes.entrance );
+	const gutter = cleanGridSpace( attributes.gutter );
+	const gridMargin = cleanGridSpace( attributes.gridMargin );
+	const grid = gridOf( attributes );
+	const colTracks = cleanTracks( attributes.colTracks );
+	const rowTracks = cleanTracks( attributes.rowTracks );
+
 	return {
 		'--bl-scene-w': `${ width }px`,
 		'--bl-scene-h': `${ height }px`,
@@ -46,8 +53,24 @@ function stageVars( attributes: any ): Record< string, string > {
 		'--bl-scene-hn': String( height ),
 		// Published for the boxes inside to divide by. Custom properties inherit, so a box needs
 		// no context and no copy of the grid size — see `boxVars` in scene-box.
-		'--bl-scene-cols': String( cleanGrid( attributes.cols ) ),
-		'--bl-scene-rows': String( cleanGrid( attributes.rows ) ),
+		// A custom track list overrides the count, so the count published here is what is actually
+		// drawn — the entrance spread and every editor overlay divide by it.
+		'--bl-scene-cols': String( grid.cols ),
+		'--bl-scene-rows': String( grid.rows ),
+
+		// All four omitted at their defaults, so a scene that never touched them keeps the markup
+		// it already had.
+		...( gutter > 0 ? { '--bl-scene-gutter': `${ gutter }px` } : {} ),
+		...( gridMargin > 0 ? { '--bl-scene-margin': `${ gridMargin }px` } : {} ),
+		...( colTracks ? { '--bl-scene-col-tracks': colTracks } : {} ),
+		...( rowTracks ? { '--bl-scene-row-tracks': rowTracks } : {} ),
+		// The window the whole entrance sequence fits inside. Every box and item divides its own
+		// position on the grid diagonal by the grid's span and multiplies by this.
+		//
+		// Omitted when it matches the runtime's own fallback, rather than written out: the
+		// declaration would be a no-op, and emitting it would put a new property into the saved
+		// markup of every scene that never touched the setting.
+		...( entrance !== ENTRANCE_DEFAULT ? { '--bl-scene-entrance': `${ entrance }ms` } : {} ),
 	};
 }
 

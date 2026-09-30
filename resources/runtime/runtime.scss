@@ -696,9 +696,29 @@ $multis: (
 }
 
 .bl-scene__stage {
+	// A REAL grid, not percentage arithmetic.
+	//
+	// Boxes used to be absolutely positioned at `col / cols * 100%`, which only holds while every
+	// track is the same width and nothing sits between them. Gutters, an outer margin and unequal
+	// tracks all break that formula, and all three fall out of CSS Grid for free.
+	//
+	// `repeat( var( … ), 1fr )` and `calc( var( … ) + 1 )` in a grid line both resolve — custom
+	// properties substitute before the value is parsed — so the boxes keep emitting the same
+	// 0-based `--bl-box-col`/`--bl-box-row` they always have and no saved markup changes.
+	display: grid;
 	position: relative;
+	grid-template-columns: var(--bl-scene-col-tracks, repeat(var(--bl-scene-cols, 16), 1fr));
+	grid-template-rows: var(--bl-scene-row-tracks, repeat(var(--bl-scene-rows, 16), 1fr));
+	gap: var(--bl-scene-gutter, 0);
+
+	// The margin is an INSET, never an addition. The scale divides `100cqw` by `--bl-scene-w`, so
+	// a stage whose real width were 1440 + 2 × margin would be scaled by a ratio computed against
+	// a width it does not have, and the composition would creep progressively out of its frame as
+	// the margin grew.
+	box-sizing: border-box;
 	width: var(--bl-scene-w, 1440px);
 	height: var(--bl-scene-h, 800px);
+	padding: var(--bl-scene-margin, 0);
 	transform: scale(var(--bl-scene-scale, 1));
 	transform-origin: top left;
 }
@@ -736,6 +756,49 @@ $multis: (
 	margin-inline: auto !important;
 }
 
+// Entrance: every element is delayed by how far it sits along the stage's diagonal, so the whole
+// composition arrives top-left to bottom-right inside one window the author sets.
+//
+// `--bl-anim-delay` is the same variable the Animation control writes INLINE, and an inline custom
+// property beats a stylesheet one — so an element that sets its own delay keeps it and the rest
+// inherit the scene's rhythm. That precedence is the whole mechanism; there is no JavaScript and
+// no per-element attribute.
+//
+// The position comes from the GRID, not from `nth-child`. Two reasons. It is what makes the window
+// exact: `col + row` runs from 0 to `cols + rows`, so dividing by that spread lands the furthest
+// element on the full duration however many elements there are — no counting, and nothing to keep
+// in sync. And it is what an author means by a staggered composition: things arrive by where they
+// sit, not by the order they happened to be inserted.
+//
+// An item continues its box's diagonal by its own index, so items inside one box cascade instead
+// of firing together. Twenty-four is far past the point a single box stays readable.
+@for $i from 1 through 24 {
+	.bl-scene-box__content > .bl-scene-item:nth-child(#{$i}) {
+		--bl-item-i: #{$i - 1};
+	}
+}
+
+// The shared spread. `--bl-box-col`/`--bl-box-row` are set on the box and INHERIT to its items,
+// which is what lets one formula serve both.
+//
+// `$ordinal` arrives QUOTED, and that is not a style choice. Passed bare, Sass reads
+// `var( … ) + var( … )` as its own addition of two unquoted strings, concatenates them and drops
+// the `+` — the built CSS came out as `var(--bl-box-col,0)var(--bl-box-row,0)`, an invalid sum
+// that made every `calc()` fall back to zero. Interpolating a quoted string emits it verbatim.
+@mixin scene-entrance-delay( $ordinal ) {
+	// One line because stylelint rejects a newline on either side of a `/` or `*`.
+	// stylelint-disable-next-line scss/operator-no-unspaced
+	--bl-anim-delay: calc( ( #{ $ordinal } ) / ( var( --bl-scene-cols, 16 ) + var( --bl-scene-rows, 16 ) ) * var( --bl-scene-entrance, 2000ms ) );
+
+	// Applied here, not left to `.bl-anim-delay`. That consumer class is only put on an element
+	// whose author set a delay by hand, so setting the variable alone reached nothing — every
+	// element computed `animation-delay: 0s` and the whole composition still arrived at once.
+	//
+	// An author's own delay still wins: the Animation control writes `--bl-anim-delay` INLINE, and
+	// an inline custom property beats the one this mixin sets, so the value read here is theirs.
+	animation-delay: var( --bl-anim-delay, 0ms );
+}
+
 // Every scene child.
 //
 // The descendant selector is NOT decoration. WordPress's editor stylesheet carries
@@ -756,11 +819,18 @@ $multis: (
 // The descendant selector is load-bearing for the same reason as the item rule below: WordPress's
 // editor CSS sets `.block-editor-block-list__block { position: relative }` at equal specificity.
 .bl-scene__stage > .bl-scene-box {
-	position: absolute;
-	left: calc( var( --bl-box-col, 0 ) / var( --bl-scene-cols, 16 ) * 100% );
-	top: calc( var( --bl-box-row, 0 ) / var( --bl-scene-rows, 16 ) * 100% );
-	width: calc( var( --bl-box-cw, 4 ) / var( --bl-scene-cols, 16 ) * 100% );
-	height: calc( var( --bl-box-rh, 4 ) / var( --bl-scene-rows, 16 ) * 100% );
+	// See the entrance note above: an inline `--bl-anim-delay` from the Animation control beats
+	// this, so a box with its own delay keeps it and the rest inherit the scene's rhythm.
+	@include scene-entrance-delay( "var( --bl-box-col, 0 ) + var( --bl-box-row, 0 )" );
+
+	// Placed on the grid rather than measured against it. `position: relative` is still explicit:
+	// it is the containing block for the items inside, and it has to beat WordPress's editor CSS
+	// at equal specificity, which is what the descendant selector above is for.
+	position: relative;
+	grid-column: calc( var( --bl-box-col, 0 ) + 1 ) / span var( --bl-box-cw, 4 );
+	grid-row: calc( var( --bl-box-row, 0 ) + 1 ) / span var( --bl-box-rh, 4 );
+	min-width: 0;
+	min-height: 0;
 }
 
 // The box's content layer: everything the author places, clipped to the box.
@@ -787,6 +857,11 @@ $multis: (
 }
 
 .bl-scene-box__content > .bl-scene-item {
+	// Picks up where the box sits on the diagonal and carries on by the item's own index.
+	@include scene-entrance-delay(
+		"var( --bl-box-col, 0 ) + var( --bl-box-row, 0 ) + var( --bl-item-i, 0 )"
+	);
+
 	position: absolute;
 	margin: 0;
 	translate: var(--bl-scax, 0) var(--bl-scay, 0);

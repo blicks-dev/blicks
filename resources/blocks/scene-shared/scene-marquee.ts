@@ -29,6 +29,31 @@ interface Frame {
 
 const clamp = ( n: number, min: number, max: number ) => Math.min( max, Math.max( min, n ) );
 
+/**
+ * Which track a position falls in, given the track sizes the browser resolved.
+ *
+ * Walks the tracks accumulating their widths plus the gap between them, rather than dividing the
+ * stage by a count. Dividing only works while every track is identical and nothing sits between
+ * them — with a gutter, an outer margin or an uneven list it puts the pointer in the wrong cell,
+ * and the further along the axis it is the further out it lands.
+ */
+function trackAt( sizes: number[], gap: number, start: number, position: number ): number {
+	let edge = start;
+	for ( let i = 0; i < sizes.length; i++ ) {
+		edge += sizes[ i ];
+		// Inside the gutter AFTER a track still belongs to that track: there is no cell to land in
+		// between two, and the alternative is a sweep that skips.
+		if ( position < edge + gap / 2 ) return i;
+		edge += gap;
+	}
+	return Math.max( 0, sizes.length - 1 );
+}
+
+/** The px sizes of a resolved `grid-template-*`, which is always a plain list of lengths. */
+function resolvedTracks( value: string ): number[] {
+	return value.split( /\s+/ ).map( parseFloat ).filter( ( n ) => Number.isFinite( n ) );
+}
+
 /** The cell under a pointer position, as whole indices clamped to the grid. */
 function cellAt(
 	stage: HTMLElement,
@@ -41,9 +66,27 @@ function cellAt(
 	const rect = stage.getBoundingClientRect();
 	const x = ( clientX - rect.left ) / scale;
 	const y = ( clientY - rect.top ) / scale;
+
+	const style = getComputedStyle( stage );
+	const colSizes = resolvedTracks( style.gridTemplateColumns );
+	const rowSizes = resolvedTracks( style.gridTemplateRows );
+	const colGap = parseFloat( style.columnGap ) || 0;
+	const rowGap = parseFloat( style.rowGap ) || 0;
+	const padLeft = parseFloat( style.paddingLeft ) || 0;
+	const padTop = parseFloat( style.paddingTop ) || 0;
+
+	// The resolved template is the source of truth; the counts are only a fallback for the frame
+	// before the grid has laid out.
+	if ( ! colSizes.length || ! rowSizes.length ) {
+		return {
+			col: clamp( Math.floor( x / ( stage.offsetWidth / cols ) ), 0, cols - 1 ),
+			row: clamp( Math.floor( y / ( stage.offsetHeight / rows ) ), 0, rows - 1 ),
+		};
+	}
+
 	return {
-		col: clamp( Math.floor( x / ( stage.offsetWidth / cols ) ), 0, cols - 1 ),
-		row: clamp( Math.floor( y / ( stage.offsetHeight / rows ) ), 0, rows - 1 ),
+		col: clamp( trackAt( colSizes, colGap, padLeft, x ), 0, colSizes.length - 1 ),
+		row: clamp( trackAt( rowSizes, rowGap, padTop, y ), 0, rowSizes.length - 1 ),
 	};
 }
 

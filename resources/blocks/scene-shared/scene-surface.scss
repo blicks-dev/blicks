@@ -41,6 +41,16 @@
 		.bl-scene-layers__actions {
 			transition: opacity var(--bl-ui-dur-base) var(--bl-ui-ease-out);
 		}
+
+		// A rail leaves and returns rather than blinking, so it is obvious WHERE it went and that
+		// the same panel is coming back. Transform and opacity only — the rail is positioned, so
+		// animating its edge would relayout the canvas underneath on every frame.
+		.bl-scene-rail {
+			transition:
+				transform var(--bl-ui-dur-base) var(--bl-ui-ease),
+				opacity var(--bl-ui-dur-base) var(--bl-ui-ease),
+				visibility 0s;
+		}
 	}
 
 	.bl-scene-surface__scene {
@@ -101,6 +111,10 @@
 	/* lines */
 	--line: var(--bl-ui-dark-border);
 	--line-strong: var(--bl-ui-dark-border-strong);
+
+	/* The layers rail. A token because the shortcut panel has to clear it, and two copies of a
+	   magic 248 would drift the moment the rail was resized. */
+	--bl-scene-rail: 248px;
 
 	position: fixed;
 	inset: 0;
@@ -180,6 +194,35 @@
 		font-variant-numeric: tabular-nums;
 	}
 
+	&__play {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 30px;
+		padding: 0;
+		border: 1px solid var(--line);
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+
+		&:hover {
+			border-color: var(--line-strong);
+			background: var(--raised);
+		}
+
+		&.is-on {
+			border-color: transparent;
+			background: var(--bl-ui-brand);
+			color: var(--bl-ui-paper);
+		}
+
+		svg {
+			fill: currentcolor;
+			stroke: none;
+		}
+	}
+
 	&__done {
 		height: 30px;
 		padding: 0 14px;
@@ -191,28 +234,53 @@
 	}
 
 	&__body {
+		// Positioning context for the shortcut panel, which pins itself past the layers rail.
+		position: relative;
 		display: flex;
 		flex: 1 1 auto;
 		min-height: 0;
 	}
 
 	// The pasteboard is larger than the stage at high zoom, so the viewport is what scrolls.
+
+	/* The canvas. Fills the whole body and runs UNDER the floating panels, so the composition is
+	   never boxed into the gap between two rails — which is what made the old layout feel like a
+	   form rather than a canvas.
+
+	   `overflow: hidden` and no scroll container at all: an infinite canvas has no content box to
+	   scroll, so position is carried entirely by the world's translate. That is also what removes
+	   the scrollbars — there is nothing left for them to measure. */
 	&__viewport {
-		display: grid;
-		flex: 1 1 auto;
-		place-items: center;
-		overflow: auto;
-		padding: 48px;
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+
+		// Held so the browser never claims a two-finger swipe as a page gesture mid-pan.
+		touch-action: none;
+		overscroll-behavior: none;
 
 		// The dotted field that marks "outside the composition".
+		//
+		// The dots travel WITH the canvas. Left fixed to the viewport they stayed put while the
+		// stage slid across them, which reads as the composition moving rather than the canvas —
+		// and that cue is the whole difference between panning a surface and dragging an object.
 		background-color: var(--surface);
 		background-image: radial-gradient(var(--raised) 1px, transparent 1px);
+		background-position: var(--bl-scene-pan-x, 0) var(--bl-scene-pan-y, 0);
 		background-size: 16px 16px;
 	}
 
-	&__pasteboard {
-		position: relative;
-		flex: 0 0 auto;
+	/* Carries the pan only. Sizeless and origin-less: it is a coordinate frame, not a box. */
+	&__viewport.is-panning {
+		cursor: grabbing;
+	}
+
+	&__world {
+		position: absolute;
+		top: 0;
+		left: 0;
+		transform-origin: 0 0;
+		will-change: transform;
 	}
 
 	/* The stage. `transform-origin` is top-left so the box the pasteboard reserves (design size x
@@ -252,13 +320,62 @@
 	}
 }
 
-.bl-scene-layers {
+/* Floating rails.
+
+   Both panels sit OVER the canvas rather than beside it. Two reasons: the canvas is infinite, so
+   giving it only the gap between two rails is arbitrary; and a rail that overlays can be dismissed
+   without the composition reflowing underneath it — which is what makes collapsing one free.
+
+   The wrapper owns the placement so the panel inside it stays a plain box. Collapsing moves the
+   wrapper OUT rather than removing it: `clearArea()` measures both rails from the DOM, and a rail
+   translated past the viewport edge no longer clips the clear region, so the space comes back with
+   no extra bookkeeping. */
+.bl-scene-rail {
 	display: flex;
-	flex: 0 0 248px;
+	position: absolute;
+	top: 12px;
+	bottom: 12px;
+	z-index: 6;
 	flex-direction: column;
 	min-height: 0;
-	border-inline-end: 1px solid var(--line);
+
+	&.is-left {
+		left: 12px;
+		width: var(--bl-scene-rail);
+	}
+
+	&.is-right {
+		right: 12px;
+		width: 300px;
+	}
+
+	// Out of the way, out of the tab order, and not a click target. `visibility` is what takes it
+	// off the tab order; it is delayed so it lands after the slide rather than blanking the panel
+	// on the first frame.
+	&.is-collapsed {
+		opacity: 0;
+		pointer-events: none;
+		visibility: hidden;
+		transition-delay: 0s, 0s, var(--bl-ui-dur-base);
+	}
+
+	&.is-left.is-collapsed {
+		transform: translateX( calc( -100% - 16px ) );
+	}
+
+	&.is-right.is-collapsed {
+		transform: translateX( calc( 100% + 16px ) );
+	}
+}
+
+.bl-scene-layers {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+	border: 1px solid var(--line-strong);
 	background: var(--panel);
+	box-shadow: 0 12px 40px rgb(0 0 0 / 45%);
 
 	&__head {
 		flex: 0 0 auto;
@@ -436,12 +553,13 @@
 
 .bl-scene-inspector {
 	display: flex;
-	flex: 0 0 280px;
+	flex: 1 1 auto;
 	flex-direction: column;
 	min-height: 0;
 	overflow-y: auto;
-	border-inline-start: 1px solid var(--line);
+	border: 1px solid var(--line-strong);
 	background: var(--panel);
+	box-shadow: 0 12px 40px rgb(0 0 0 / 45%);
 
 	.bl-ins {
 		display: flex;
@@ -524,4 +642,317 @@
 	.ins-body {
 		flex: 1 1 auto;
 	}
+}
+
+/* ── Preview ───────────────────────────────────────────────────────────────────────────────
+   Playing the composition means seeing it as a visitor will, so every editor affordance goes:
+   the grid, the box outlines, the selection frame, the handles, the inserter and the guides. What
+   is left is the stage and its content.
+
+   Entrances are authored on a `view()` timeline, which is driven by scroll position — and nothing
+   scrolls in the editor, so they would sit frozen at their first frame. Forcing the timeline back
+   to `auto` puts them on the clock, which is what "play" has to mean here. `!important` because
+   the timeline is set from an inline custom property the style engine wrote. */
+// While AUTHORING, every item sits at rest.
+//
+// Entrances are written with `animation-fill-mode: both`, so an animation that has not run yet
+// holds its FIRST keyframe. `bl-ping` starts at `opacity: 0`, `bl-rise` starts translated away —
+// so the moment an author picks an entrance preset, the item they are arranging disappears from
+// the stage. That is correct on the front end and useless in an editor.
+//
+// Suppressing `animation-name` returns the element to its untransformed, fully opaque self, which
+// is what the composition looks like once it has played. Play is the only thing that runs it.
+.bl-scene-surface:not( .is-previewing ) {
+	.bl-anim-name,
+	.bl-anim-name::before,
+	.bl-anim-name::after {
+		animation-name: none !important;
+	}
+}
+
+.bl-scene-surface.is-previewing {
+	.bl-scene-box,
+	.bl-scene-item {
+		outline: none !important;
+	}
+
+	.bl-scene__stage {
+		background-image: none !important;
+	}
+
+	.bl-scene-box-inserter,
+	.bl-scene-box-handles,
+	.bl-scene-handles,
+	.bl-scene-item-frame,
+	.bl-scene-item-frame__host,
+	.bl-scene-guides,
+	.bl-scene-ghost {
+		display: none !important;
+	}
+
+	@media ( prefers-reduced-motion: no-preference ) {
+		.bl-anim-tl {
+			animation-timeline: auto !important;
+		}
+	}
+}
+
+/* ── The empty stage ───────────────────────────────────────────────────────────────────────
+   Sits in the VIEWPORT, over the stage, rather than inside it: the stage carries the zoom
+   transform, so anything parented to it would be scaled with the composition and become
+   unreadable the moment an author zoomed out to fit.
+
+   Left-aligned and unboxed. A bordered panel floating over the stage — which is itself a bordered
+   panel on a dark field — would be two frames doing one job. */
+.bl-scene-empty {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+
+	// Everything here is explanation; only the panel is a target. Without this the overlay would
+	// swallow clicks meant for the stage underneath the moment the first box existed.
+	pointer-events: none;
+
+	// The chrome the copy sits on. See the note in SceneEmpty.tsx: the stage carries the author's
+	// own background, so this cannot be text on the canvas and stay legible.
+	&__panel {
+		pointer-events: auto;
+		max-width: 42ch;
+		padding: 28px 30px 26px;
+		border: 1px solid var(--line-strong);
+		background: var(--panel);
+		box-shadow: 0 16px 48px rgb(0 0 0 / 45%);
+	}
+
+	&__figure {
+		margin-bottom: 20px;
+		color: var(--bl-ui-brand);
+	}
+
+	&__lead {
+		margin: 0 0 6px;
+		color: var(--fg);
+		font-size: var(--bl-ui-text-md);
+		font-weight: 600;
+	}
+
+	&__note {
+		margin: 0 0 20px;
+		color: var(--fg-muted);
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.55;
+	}
+
+	&__action {
+		padding: 8px 14px;
+		border: 1px solid var(--bl-ui-brand);
+		background: var(--bl-ui-brand);
+		color: #fff;
+		font-size: var(--bl-ui-text-sm);
+		font-weight: 600;
+		cursor: pointer;
+
+		&:hover {
+			background: transparent;
+			color: var(--fg);
+		}
+	}
+
+	&__hint {
+		margin: 14px 0 0;
+		color: var(--fg-subtle);
+		font-size: var(--bl-ui-text-xs);
+	}
+}
+
+/* ── The shortcut reference ────────────────────────────────────────────────────────────────
+   A corner panel rather than a modal: an author should be able to read a shortcut and try it on
+   the composition still visible beside it, which a dimmed backdrop would prevent. */
+.bl-scene-shortcuts {
+	position: absolute;
+	left: calc( var( --bl-scene-rail-l, var( --bl-scene-rail ) ) + 28px );
+	bottom: 16px;
+	z-index: 20;
+	width: 340px;
+	max-height: min( 560px, calc( 100% - 32px ) );
+	overflow-y: auto;
+	border: 1px solid var(--line-strong);
+	background: var(--panel);
+	box-shadow: 0 16px 48px rgb(0 0 0 / 55%);
+
+	&__head {
+		display: flex;
+		position: sticky;
+		top: 0;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 14px;
+		border-bottom: 1px solid var(--line);
+		background: var(--panel);
+		color: var(--fg-subtle);
+		font-family: var(--bl-ui-font-mono);
+		font-size: var(--bl-ui-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+
+		button {
+			padding: 2px;
+			border: 0;
+			background: none;
+			color: var(--fg-subtle);
+			cursor: pointer;
+
+			&:hover {
+				color: var(--fg);
+			}
+		}
+	}
+
+	&__body {
+		padding: 6px 14px 14px;
+	}
+
+	section + section {
+		margin-top: 14px;
+	}
+
+	h3 {
+		margin: 10px 0 6px;
+		color: var(--fg-subtle);
+		font-size: var(--bl-ui-text-xs);
+		font-weight: 600;
+	}
+
+	dl {
+		margin: 0;
+	}
+
+	// Keys in a fixed column so the descriptions start on one line down the whole list — the
+	// thing that makes a reference scannable rather than merely present.
+	dl > div {
+		display: grid;
+		grid-template-columns: 116px 1fr;
+		gap: 10px;
+		align-items: baseline;
+		padding: 3px 0;
+	}
+
+	dt {
+		display: flex;
+		gap: 3px;
+		flex-wrap: wrap;
+	}
+
+	dd {
+		margin: 0;
+		color: var(--fg-muted);
+		font-size: var(--bl-ui-text-sm);
+		line-height: 1.4;
+	}
+
+	kbd {
+		padding: 2px 5px;
+		border: 1px solid var(--line-strong);
+		background: var(--raised);
+		color: var(--fg);
+		font-family: var(--bl-ui-font-mono);
+		font-size: var(--bl-ui-text-xs);
+		line-height: 1.3;
+	}
+}
+
+/* The shortcuts button. Sits with the zoom controls in weight — it is a way IN to a reference, not
+   an action on the composition, so it must not read as loud as Play or Done. */
+.bl-scene-surface__help {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	border: 1px solid transparent;
+	background: none;
+	color: var(--fg-subtle);
+	cursor: pointer;
+
+	&:hover {
+		color: var(--fg);
+	}
+
+	// Open is a held state, not a hover, so it gets the accent rather than more grey.
+	&.is-on {
+		border-color: var(--bl-ui-brand);
+		color: var(--bl-ui-brand);
+	}
+}
+
+/* Space is held: the whole canvas advertises that a drag will move it rather than select. Set on
+   the body because the modifier is global to the surface, not to whatever the pointer is over. */
+.bl-scene-panready .bl-scene-surface__viewport,
+.bl-scene-panready .bl-scene-surface__viewport * {
+	cursor: grab;
+}
+
+.bl-scene-panready .bl-scene-surface__viewport.is-panning,
+.bl-scene-panready .bl-scene-surface__viewport.is-panning * {
+	cursor: grabbing;
+}
+
+/* The rail toggles. Same quiet weight as the shortcuts button — they change what the chrome shows,
+   not the composition. Accent when the rail is out, so the bar reads as the state of the editor. */
+.bl-scene-surface__rail-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	border: 1px solid transparent;
+	background: none;
+	color: var(--fg-subtle);
+	cursor: pointer;
+
+	&:hover {
+		color: var(--fg);
+	}
+
+	&.is-on {
+		color: var(--fg);
+	}
+}
+
+/* A free grid cell, waiting to be filled.
+
+   Paired ink for the same reason the old painted grid used it: a cell sits directly on the stage,
+   which carries the author's own background and is white by default. An inset light hairline over
+   a dark border reads on both without knowing which it is on.
+
+   Behind the boxes in paint order and never a scroll target, so a placeholder can never come
+   between an author and the composition. */
+.bl-scene-cell {
+	z-index: 0;
+	margin: 0;
+	border: 1px solid rgb( 0 0 0 / 11% );
+	box-shadow: inset 0 0 0 1px rgb( 255 255 255 / 9% );
+	background: none;
+	cursor: cell;
+	appearance: none;
+
+	&:hover {
+		border-color: color-mix( in srgb, var(--bl-ui-brand) 55%, transparent );
+		background: color-mix( in srgb, var(--bl-ui-brand) 12%, transparent );
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--bl-ui-brand);
+		outline-offset: -2px;
+	}
+}
+
+/* Grid lines off. The cells stay in place and stay clickable — hiding the grid is about seeing the
+   composition clean, not about giving up the ability to fill a cell. */
+.bl-scene-surface.is-gridless .bl-scene-cell {
+	border-color: transparent;
+	box-shadow: none;
 }

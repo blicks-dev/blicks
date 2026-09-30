@@ -80,26 +80,28 @@
 }
 
 .bl-scene-surface__scene {
-	> .bl-scene__stage {
-		// The actual authoring grid, one line per cell — drawn from the same numbers the boxes
-		// divide by, so what an author sees is exactly where a box can land. A fixed pixel grid
-		// would drift out of step the moment the grid size or the design size changed.
-		background-image:
-			linear-gradient( to right, rgb( 0 0 0 / 8% ) 1px, transparent 1px ),
-			linear-gradient( to bottom, rgb( 0 0 0 / 8% ) 1px, transparent 1px );
-		background-size:
-			calc( 100% / var( --bl-scene-cols, 16 ) ) 100%,
-			100% calc( 100% / var( --bl-scene-rows, 16 ) );
-	}
+	// The two grid inks. Kept as tokens so the pair is tuned in one place.
+	--bl-scene-grid-hi: rgb( 255 255 255 / 11% );
+	--bl-scene-grid-lo: rgb( 0 0 0 / 11% );
+
+	/* The visible grid is drawn by the CELLS now, not by a pair of repeating gradients behind the
+	   stage. The gradients assumed every track was the same width and that nothing sat between
+	   them, so the moment a gutter, an outer margin or an uneven track list existed, the grid an
+	   author could see disagreed with the one boxes actually snapped to. A placeholder is a real
+	   grid item, so it cannot disagree. See SceneCells.tsx. */
 
 	// A box reads as a region even when it is empty and transparent, which is most of the time
 	// while a composition is being blocked out.
 	.bl-scene-box {
-		outline: 1px dashed rgb( 0 0 0 / 22% );
+		// Brand rather than black for the same reason the grid is paired: a box is most often
+		// outlined against the author's own background, and a black dash vanished on a dark one.
+		// The accent is legible on light, dark and saturated stages alike, and it is already the
+		// colour a selected box uses — so hovering reads as the same object getting louder.
+		outline: 1px dashed color-mix( in srgb, var(--bl-ui-brand) 42%, transparent );
 		outline-offset: -1px;
 
 		&:hover {
-			outline-color: rgb( 0 0 0 / 40% );
+			outline-color: color-mix( in srgb, var(--bl-ui-brand) 75%, transparent );
 		}
 
 		&.is-selected,
@@ -123,4 +125,10 @@
 			outline: 1px solid var(--bl-ui-brand);
 		}
 	}
+}
+
+/* Grid lines off. Editor-only chrome driven from the surface root, so nothing about it reaches
+   saved markup — the grid a box snaps to is unchanged, only its drawing. */
+.bl-scene-surface.is-gridless .bl-scene-surface__scene > .bl-scene__stage {
+	background-image: none;
 }

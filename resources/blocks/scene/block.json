@@ -24,7 +24,13 @@
 		"designHeight": { "type": "number", "default": 800 },
 		"cols":         { "type": "number", "default": 16 },
 		"rows":         { "type": "number", "default": 16 },
-		"upscale":      { "type": "boolean", "default": false }
+		"upscale":      { "type": "boolean", "default": false },
+		"entrance":     { "type": "number", "default": 2000 },
+		"showGrid":     { "type": "boolean", "default": true },
+		"gutter":       { "type": "number", "default": 0 },
+		"gridMargin":   { "type": "number", "default": 0 },
+		"colTracks":    { "type": "string", "default": "" },
+		"rowTracks":    { "type": "string", "default": "" }
 	},
 	"editorScript": "blicks-editor",
 	"style":        "file:./index.css"

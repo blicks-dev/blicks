@@ -150,7 +150,10 @@ export function SceneLayers( { clientId }: Props ) {
 
 			{ front.length === 0 && (
 				<p className="bl-scene-layers__empty">
-					{ __( 'Nothing on the stage yet.', 'blicks' ) }
+					{ __(
+						'Boxes appear here as you add them, nearest the front at the top. Drag one over another on the stage and this is where you sort out which sits on top.',
+						'blicks'
+					) }
 				</p>
 			) }
 
