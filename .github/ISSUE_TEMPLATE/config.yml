@@ -6,7 +6,7 @@ contact_links:
       Not sure whether it is a bug? Ask in Discussions. Setup, theme integration and "how do I
       build this layout" questions get better answers there than in the issue tracker.
   - name: Documentation
-    url: https://docs.blicks.dev
+    url: https://docs.blicks.dev/?utm_source=github&utm_medium=referral&utm_campaign=evergreen&utm_content=github-issues-docs
     about: Block references, design system guide and developer docs.
   - name: Security vulnerability
     url: https://github.com/blicks-dev/blicks/security/advisories/new

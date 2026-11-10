@@ -13,7 +13,7 @@ styles. Built for block themes and full site editing.
 
 - **Requires:** WordPress 6.5+, PHP 8.1+
 - **Licence:** GPL-2.0-or-later
-- **Website:** https://blicks.dev
+- **Website:** [blicks.dev](https://blicks.dev/?utm_source=github&utm_medium=referral&utm_campaign=evergreen&utm_content=github-readme-website)
 
 ## Install
 

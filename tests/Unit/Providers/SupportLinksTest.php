@@ -74,6 +74,24 @@ final class SupportLinksTest extends TestCase
         }
     }
 
+    public function test_the_docs_link_carries_only_the_fixed_campaign_tags(): void
+    {
+        // The UTM convention: four fixed values, nothing about the site or its user.
+        $url = AdminServiceProvider::supportLinks()['docs']['url'];
+
+        $this->assertStringStartsWith(BLICKS_DOCS_URI . '/?', $url);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+        $this->assertSame(
+            [
+                'utm_source'   => 'plugin',
+                'utm_medium'   => 'referral',
+                'utm_campaign' => 'evergreen',
+                'utm_content'  => 'admin-support-docs',
+            ],
+            $query
+        );
+    }
+
     public function test_a_filter_can_add_a_destination(): void
     {
         blicks_test_add_filter('blicks_support_links', static function (array $links): array {

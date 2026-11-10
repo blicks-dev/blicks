@@ -7,14 +7,27 @@ import { useToast } from './Toast';
 import type { AdminSettingsSnapshot } from '../types';
 
 // The developer references point at the hosted docs site. `docsUrl` comes from the plugin's
-// BLICKS_DOCS_URI constant, so a fork keeps its own links. `path` is a repo-relative doc path
-// (e.g. "docs/architecture/style-generation.md"); map it to the docs site's own routing by
-// dropping the leading "docs/" and the ".md" extension.
-function docsLink( path: string ): string {
+// BLICKS_DOCS_URI constant, so a fork keeps its own links. `slug` is a page route on the docs
+// site; `content` names the placement in the UTM tags that let blicks.dev's analytics tell a
+// visit from the plugin's admin apart. The tags are fixed strings and only go on our own host.
+function docsLink( slug: string, content: string ): string {
 	const { docsUrl } = bootstrap();
 	if ( ! docsUrl ) return '';
-	const slug = path.replace( /^docs\//, '' ).replace( /\.md$/, '' );
-	return `${ docsUrl.replace( /\/$/, '' ) }/${ slug }`;
+	const url = `${ docsUrl.replace( /\/$/, '' ) }/${ slug }`;
+	let host = '';
+	try {
+		host = new URL( url ).hostname;
+	} catch {
+		return url;
+	}
+	if ( host !== 'blicks.dev' && ! host.endsWith( '.blicks.dev' ) ) return url;
+	const tags = new URLSearchParams( {
+		utm_source: 'plugin',
+		utm_medium: 'referral',
+		utm_campaign: 'evergreen',
+		utm_content: content,
+	} );
+	return `${ url }?${ tags.toString() }`;
 }
 
 const UNDO = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.5 8c-2.6 0-5 1-6.9 2.6L2 7v9h9l-3.6-3.6A8 8 0 0 1 20.1 16l2.4-.8A10.5 10.5 0 0 0 12.5 8Z" /></svg>;
@@ -203,9 +216,9 @@ export function SettingsPanel( {
 					<section className="sp-sec" aria-labelledby="sp-dev">
 						<header><h2 id="sp-dev">{ __( 'For developers', 'blicks' ) }</h2><p>{ __( 'Reference for building with Blicks.', 'blicks' ) }</p></header>
 						<div className="docs">
-							<a className="doc" href={ docsLink( 'docs/README.md' ) } target="_blank" rel="noreferrer"><b>{ __( 'Block reference', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Attributes and controls for every block.', 'blicks' ) }</span><code>docs/README.md</code></a>
-							<a className="doc" href={ docsLink( 'docs/architecture/design-system-fse.md' ) } target="_blank" rel="noreferrer"><b>{ __( 'Design tokens', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Tokens, text styles and the theme.json bridge.', 'blicks' ) }</span><code>--blicks-*</code></a>
-							<a className="doc" href={ docsLink( 'docs/architecture/style-generation.md' ) } target="_blank" rel="noreferrer"><b>{ __( 'Style engine', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Class tiers and per-block CSS rules.', 'blicks' ) }</span><code>.bl-*</code></a>
+							<a className="doc" href={ docsLink( 'reference/blocks', 'admin-settings-docs-blocks' ) } target="_blank" rel="noreferrer"><b>{ __( 'Block reference', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Attributes and controls for every block.', 'blicks' ) }</span><code>reference/blocks</code></a>
+							<a className="doc" href={ docsLink( 'reference/design-system/global-tokens', 'admin-settings-docs-tokens' ) } target="_blank" rel="noreferrer"><b>{ __( 'Design tokens', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Tokens, text styles and the theme.json bridge.', 'blicks' ) }</span><code>--blicks-*</code></a>
+							<a className="doc" href={ docsLink( 'developers/engine-api', 'admin-settings-docs-engine' ) } target="_blank" rel="noreferrer"><b>{ __( 'Style engine', 'blicks' ) } <span aria-hidden="true">↗</span></b><span>{ __( 'Class tiers and per-block CSS rules.', 'blicks' ) }</span><code>.bl-*</code></a>
 						</div>
 					</section>
 				) }

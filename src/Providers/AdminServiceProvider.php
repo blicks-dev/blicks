@@ -214,7 +214,7 @@ final class AdminServiceProvider extends ServiceProvider {
 		if ( '' !== $docs ) {
 			$links['docs'] = [
 				'label' => __( 'Documentation', 'blicks' ),
-				'url' => $docs,
+				'url' => self::campaignUrl( untrailingslashit( $docs ) . '/', 'admin-support-docs' ),
 			];
 		}
 
@@ -235,6 +235,28 @@ final class AdminServiceProvider extends ServiceProvider {
 		 * @param array<string, array{label: string, url: string}> $links key => label and url.
 		 */
 		return apply_filters( 'blicks_support_links', $links );
+	}
+
+	/**
+	 * Adds the UTM tags that tell blicks.dev's analytics a visit came from the plugin's admin.
+	 *
+	 * The values are fixed strings: nothing about the site or the user goes into them. A fork that
+	 * points BLICKS_DOCS_URI at its own host gets the URL back untouched.
+	 */
+	private static function campaignUrl( string $url, string $content ): string {
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+		if ( 'blicks.dev' !== $host && ! str_ends_with( $host, '.blicks.dev' ) ) {
+			return $url;
+		}
+
+		return $url . '?' . http_build_query(
+			[
+				'utm_source'   => 'plugin',
+				'utm_medium'   => 'referral',
+				'utm_campaign' => 'evergreen',
+				'utm_content'  => $content,
+			]
+		);
 	}
 
 	/** The view a slug maps to, or an empty string when the slug is not ours. */

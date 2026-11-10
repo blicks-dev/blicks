@@ -20,7 +20,7 @@ Every block draws from one design system. Instead of a color or a font size bake
 
 Blicks is free and GPL-2.0-or-later. It ships no license key, adds no telemetry, and contacts no external server unless you turn on a service that needs one (see External Services).
 
-**Upgrading from 1.x?** Blicks 2.0 is a clean break: it does not convert layouts built with 1.x. Read the Upgrade Notice and [docs.blicks.dev/upgrading](https://docs.blicks.dev/upgrading) before you update a site with Blicks pages on it.
+**Upgrading from 1.x?** Blicks 2.0 is a clean break: it does not convert layouts built with 1.x. Read the Upgrade Notice and [docs.blicks.dev/upgrading](https://docs.blicks.dev/upgrading?utm_source=wporg&utm_medium=referral&utm_campaign=evergreen&utm_content=readme-intro-upgrade) before you update a site with Blicks pages on it.
 
 ### 🧱 The blocks
 
@@ -89,7 +89,7 @@ Blicks is fully internationalized and ships a `.pot` file. To contribute a trans
 
 = 🧑‍💻 Open source =
 
-The full source — TypeScript, SCSS, block definitions and build configuration — is public at [github.com/blicks-dev/blicks](https://github.com/blicks-dev/blicks), and the documentation is generated from it at [docs.blicks.dev](https://docs.blicks.dev).
+The full source — TypeScript, SCSS, block definitions and build configuration — is public at [github.com/blicks-dev/blicks](https://github.com/blicks-dev/blicks), and the documentation is generated from it at [docs.blicks.dev](https://docs.blicks.dev/?utm_source=wporg&utm_medium=referral&utm_campaign=evergreen&utm_content=readme-open-source).
 
 = 💬 Support, feedback and security =
 
@@ -126,7 +126,7 @@ Security issues should never be filed as a public issue. Report them privately a
 4. Open the inserter and pick a block from the **Blicks** category.
 5. Optional: visit **Blicks → Design System** to pick a design language, a palette and type roles.
 
-For guides and the generated block reference, visit [docs.blicks.dev](https://docs.blicks.dev).
+For guides and the generated block reference, visit [docs.blicks.dev](https://docs.blicks.dev/?utm_source=wporg&utm_medium=referral&utm_campaign=evergreen&utm_content=readme-install).
 
 == Frequently Asked Questions ==
 
@@ -136,7 +136,7 @@ No. Blicks lives inside the native block editor and adds layout and content prim
 
 = I use Blicks 1.x. What happens when I update to 2.0? =
 
-Blicks 2.0 is a clean break. It does not convert layouts built with 1.x: Stack, Grid, Spacer and Divider are gone (they are now kinds and arrangements of Box), and the blocks that carry on save different markup. Pages built with 1.x keep their saved HTML, but the editor shows the removed blocks as blocks it does not recognize and may report the others as invalid. Try 2.0 on a staging copy first, and see [docs.blicks.dev/upgrading](https://docs.blicks.dev/upgrading) for how each 1.x layout maps onto 2.0.
+Blicks 2.0 is a clean break. It does not convert layouts built with 1.x: Stack, Grid, Spacer and Divider are gone (they are now kinds and arrangements of Box), and the blocks that carry on save different markup. Pages built with 1.x keep their saved HTML, but the editor shows the removed blocks as blocks it does not recognize and may report the others as invalid. Try 2.0 on a staging copy first, and see [docs.blicks.dev/upgrading](https://docs.blicks.dev/upgrading?utm_source=wporg&utm_medium=referral&utm_campaign=evergreen&utm_content=readme-faq-upgrade) for how each 1.x layout maps onto 2.0.
 
 = Does Blicks work with my theme? =
 
