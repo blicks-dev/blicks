@@ -154,8 +154,21 @@ async function settledBox( page: Page, id: string ) {
 		last = now;
 		return same;
 	}, { intervals: [ 100 ] } ).toBe( true );
-	const [ vw, vh ] = await page.evaluate( () => [ innerWidth, innerHeight ] );
-	return { box: box!, vw, vh };
+	// The viewport is the area a fixed box, a dialog and its ::backdrop are laid out in, not
+	// innerWidth: with classic scrollbars (Windows, Linux) a modal's scroll lock keeps the page's
+	// scrollbar gutter (scrollbar-gutter: stable), so innerWidth counts 15px no dialog can reach,
+	// and while the root is overflow: hidden clientWidth does not subtract it either. Measured
+	// with a fixed box; the dialog's x is taken from its left edge, wherever the gutter sits.
+	const viewport = await page.evaluate( () => {
+		const probe = document.createElement( 'div' );
+		probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none';
+		document.body.append( probe );
+		const { left, top, width, height } = probe.getBoundingClientRect();
+		probe.remove();
+		return { left, top, width, height };
+	} );
+	const { x, y, width, height } = box!;
+	return { box: { x: x - viewport.left, y: y - viewport.top, width, height }, vw: viewport.width, vh: viewport.height };
 }
 
 const isOpen = ( page: Page, id: string ) => page.locator( `#${ id }` ).evaluate( ( d: HTMLDialogElement ) => d.open );

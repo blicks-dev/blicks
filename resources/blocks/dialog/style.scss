@@ -26,8 +26,13 @@ $ease: cubic-bezier(0.2, 0, 0, 1);
 
 		box-sizing: border-box;
 
-		/* A max width from Settings › Size (the engine's --bl-maw) sets the width too, so it can widen. */
-		width: min(var(--bl-maw, var(--bl-dialog-w)), calc(100vw - 32px));
+		/*
+		 * A max width from Settings › Size (the engine's --bl-maw) sets the width too, so it can widen.
+		 * Percentages, not vw: an open dialog is in the top layer, so 100% is the viewport it is laid
+		 * out in. 100vw also counts the scrollbar gutter a modal's scroll lock keeps (classic
+		 * scrollbars, Windows and Linux), which would eat into the 16px margins on a narrow window.
+		 */
+		width: min(var(--bl-maw, var(--bl-dialog-w)), calc(100% - 32px));
 		max-height: calc(100dvh - 32px);
 		padding: var(--blicks-spacing-lg, 1.5rem);
 		border: 0;
@@ -69,7 +74,7 @@ $ease: cubic-bezier(0.2, 0, 0, 1);
 	/* Drawer: the full height of the screen, from one side. */
 	dialog.bl-dialog--drawer {
 		inset-block: 0;
-		width: min(var(--bl-maw, var(--bl-dialog-drawer)), 86vw);
+		width: min(var(--bl-maw, var(--bl-dialog-drawer)), 86%);
 		height: 100dvh;
 		max-height: 100dvh;
 		border-radius: 0;
@@ -388,7 +393,7 @@ $ease: cubic-bezier(0.2, 0, 0, 1);
  */
 dialog.bl-dialog.bl-dialog {
 	margin: auto;
-	max-width: var(--bl-maw, calc(100vw - 32px));
+	max-width: var(--bl-maw, calc(100% - 32px));
 }
 
 dialog.bl-dialog.bl-dialog--top {
@@ -396,7 +401,7 @@ dialog.bl-dialog.bl-dialog--top {
 }
 
 dialog.bl-dialog.bl-dialog--drawer {
-	max-width: var(--bl-maw, 86vw);
+	max-width: var(--bl-maw, 86%);
 }
 
 dialog.bl-dialog.bl-dialog--sheet,
