@@ -12,6 +12,7 @@ namespace Blicks\Tests\Integration;
 
 use Blicks\Behaviours\Behaviours;
 use Blicks\Blocks\Dialogs;
+use WP_HTML_Tag_Processor;
 use WP_UnitTestCase;
 
 final class DialogsTest extends WP_UnitTestCase {
@@ -69,7 +70,13 @@ final class DialogsTest extends WP_UnitTestCase {
 	public function test_saved_dialog_markup_survives_kses_and_renders_as_a_region(): void {
 		$markup = '<!-- wp:blicks/dialog {"anchor":"guide"} --><dialog class="bl-dialog bl-dialog--modal is-modal" id="dialog-guide" closedby="any"><button type="button" class="bl-dialog__close" commandfor="dialog-guide" command="close" aria-label="Close" autofocus></button></dialog><!-- /wp:blicks/dialog -->';
 
-		$this->assertSame( $markup, wp_kses_post( $markup ) );
+		// Compared as tokens, not as a string: newer cores re-serialize attributes in their own
+		// order (WordPress 7.2 sorts them), which is harmless. What must survive is every tag and
+		// every attribute with its value, commandfor, command and closedby included.
+		$expected = self::tokens( $markup );
+
+		$this->assertCount( 6, $expected, 'Both block comments, both tags and both closers.' );
+		$this->assertSame( $expected, self::tokens( wp_kses_post( $markup ) ) );
 
 		$html = do_blocks( $markup );
 
@@ -147,5 +154,36 @@ final class DialogsTest extends WP_UnitTestCase {
 		$guide = Dialogs::dialog( '<dialog class="bl-dialog bl-dialog--modal is-modal" id="dialog-guide" closedby="any"></dialog>' );
 		$this->assertStringNotContainsString( 'popover', $guide );
 		$this->assertStringContainsString( 'closedby="any"', $guide );
+	}
+
+	/**
+	 * The markup as a list of tokens, each tag with its attributes sorted by name, so two
+	 * serializations of the same markup compare equal whatever order they write attributes in.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function tokens( string $html ): array {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$tokens    = [];
+
+		while ( $processor->next_token() ) {
+			$type = $processor->get_token_type();
+
+			if ( '#tag' !== $type ) {
+				$tokens[] = [ $type, $processor->get_modifiable_text() ];
+				continue;
+			}
+
+			$attributes = [];
+
+			foreach ( $processor->get_attribute_names_with_prefix( '' ) ?? [] as $name ) {
+				$attributes[ $name ] = $processor->get_attribute( $name );
+			}
+
+			ksort( $attributes );
+			$tokens[] = [ $processor->get_tag(), $processor->is_tag_closer(), $attributes ];
+		}
+
+		return $tokens;
 	}
 }
