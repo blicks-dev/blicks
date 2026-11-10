@@ -169,8 +169,12 @@ final class Access {
 		];
 	}
 
-	/** Rename one of this account's agent passwords. */
-	public static function renameAgent( int $userId, string $uuid, string $name ): true|WP_Error {
+	/**
+	 * Rename one of this account's agent passwords.
+	 *
+	 * @return true|WP_Error True on success. Declared `bool` natively: a standalone `true` type needs PHP 8.2.
+	 */
+	public static function renameAgent( int $userId, string $uuid, string $name ): bool|WP_Error {
 		$name = trim( sanitize_text_field( $name ) );
 
 		if ( '' === $name || mb_strlen( $name ) > 100 ) {
@@ -188,8 +192,12 @@ final class Access {
 		return is_wp_error( $result ) ? $result : true;
 	}
 
-	/** Revoke one of this account's agent passwords. It stops working on the next request. */
-	public static function revokeAgent( int $userId, string $uuid ): true|WP_Error {
+	/**
+	 * Revoke one of this account's agent passwords. It stops working on the next request.
+	 *
+	 * @return true|WP_Error True on success. Declared `bool` natively: a standalone `true` type needs PHP 8.2.
+	 */
+	public static function revokeAgent( int $userId, string $uuid ): bool|WP_Error {
 		$owned = self::owned( $userId, $uuid );
 
 		if ( is_wp_error( $owned ) ) {
@@ -204,8 +212,10 @@ final class Access {
 	/**
 	 * Is this one of the account's Blicks agent passwords? Anything else — another plugin's
 	 * password, another account's — is answered as "not found", never touched.
+	 *
+	 * @return true|WP_Error True when owned. Declared `bool` natively: a standalone `true` type needs PHP 8.2.
 	 */
-	private static function owned( int $userId, string $uuid ): true|WP_Error {
+	private static function owned( int $userId, string $uuid ): bool|WP_Error {
 		$item = WP_Application_Passwords::get_user_application_password( $userId, $uuid );
 
 		if ( ! is_array( $item ) || null === self::clientFor( (string) ( $item['app_id'] ?? '' ) ) ) {

@@ -77,6 +77,8 @@
 		</properties>
 	</rule>
 
-	<!-- Runtime compatibility with the declared PHP floor. -->
+	<!-- Runtime compatibility with the declared PHP floor. Needs PHPCompatibility 10+ (pinned in
+	     composer.json at its alpha): 9.3.5 has no PHP 8.x sniffs, so testVersion 8.1- silently
+	     passed 8.2-only syntax such as a standalone `true` return type. -->
 	<rule ref="PHPCompatibilityWP"/>
 </ruleset>

@@ -57,6 +57,8 @@ jobs:
 
       # PHPCS itself runs on a modern PHP; the ruleset's PHPCompatibilityWP sniff
       # with testVersion 8.1- is what actually enforces the 8.1 floor, statically.
+      # That needs PHPCompatibility 10+: 9.3.5 has no PHP 8.x sniffs, so it passed a
+      # standalone `true` return type that php-8.1-prod then rejected.
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -137,9 +139,10 @@ jobs:
       - name: Check platform requirements
         run: composer check-platform-reqs --no-dev
 
-      # Catches parse errors that only a real PHP of this version would reject.
+      # Catches parse errors that only a real PHP of this version would reject. The block
+      # render.php files ship too, copied into build/blocks/, so they are linted from source.
       - name: Lint every shipped PHP file
-        run: find blicks.php src -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+        run: find blicks.php src resources/blocks -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
 
   integration:
     name: wp-${{ matrix.wp }}-integration
