@@ -67,7 +67,8 @@
 						"group": "Get started",
 						"pages": [
 							"index",
-							"getting-started"
+							"getting-started",
+							"upgrading"
 						]
 					},
 					{
