@@ -1,0 +1,143 @@
+---
+title: "Field"
+description: "One question in a Form — its label, control and help as blocks: short or long text, email, phone, number, date, dropdown, choices, consent or hidden."
+---
+
+<Info>
+Generated from `resources/blocks/field/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/field` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `file:./render.php` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default` |
+
+## Blicks controls
+
+`spacing.*` · `typography.*` · `colors.*` · `border.*` · `effects.*` · `animation.*` · `background.*` · `layout.gapRow` · `layout.gapColumn` · `layout.alignItems` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `appearance` | `string` | `""` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `defaultValue` | `string` | `""` |
+| `errorMessage` | `string` | `""` |
+| `extensions` | `object` | `&#123;&#125;` |
+| `help` | `string` | `""` |
+| `label` | `string` | `""` |
+| `max` | `string` | `""` |
+| `maxLength` | `string` | `""` |
+| `min` | `string` | `""` |
+| `multiple` | `boolean` | `false` |
+| `name` | `string` | `""` |
+| `optionNotes` | `array` | `[]` |
+| `options` | `array` | `[]` |
+| `placeholder` | `string` | `""` |
+| `prefix` | `string` | `""` |
+| `required` | `boolean` | `false` |
+| `step` | `string` | `""` |
+| `suffix` | `string` | `""` |
+| `type` | `string` | `"text"` |
+| `uniqueId` | `string` | — |
+| `width` | `string` | `"full"` |
+
+## Help
+
+## Description
+
+Field is one input in a Form: short text, long text, email, phone, number, date, time, a slider, a dropdown, a set of choices, a consent box, or a hidden value sent with every entry. It goes anywhere inside a Form, directly or inside a Stack, Grid or Box in it, and nowhere else.
+
+A Field is made of blocks: its label is a **Text** block, its control an **Input** block and its help another Text, so each can be styled on its own. Write the label and help in place, in the canvas. The Field holds what the question is (its type, name and rules); the Input draws the control for it. The control is drawn on the page by the server, not saved as HTML in the post, so every author can add a Field whatever their role.
+
+## Controls
+
+### type
+
+What it asks for. **Short text** is one line, **Long text** a message box, **Email** is checked as an address, **Phone** takes any country's format, **Number** and **Date** have a lowest, highest and step, **Time** takes hours and minutes, **Slider** picks a value on a scale, **Dropdown** picks one from a list, **Choices** shows the list as buttons to pick one or several, **Consent** is one box to tick beside a sentence, and **Hidden** sends a value the visitor never sees.
+
+### label
+
+The **Label** switch adds or removes the label Text, before the control (after the box for Consent, where it is the sentence beside it). Its words are the field's label in entries and emails, and what screen readers read. Switched off, write the name screen readers read out instead. The Form's **Mark fields** decides what follows a label: "(optional)" on fields that can be left empty (the default), a red `*` on required ones, both (`*` and "Optional"), or nothing. Consent never gets a mark: its label is its own sentence.
+
+### name
+
+The field's column in entries, the CSV export and emails. Made from the label when the field is added (`Wedding date` → `wedding_date`) and then kept, so renaming the label later does not move answers already received. Lower-case letters, digits and `_`, starting with a letter. Two fields in one form never share a name: a pasted copy becomes `name_2`. A field with no name is not sent.
+
+### placeholder
+
+Gray text shown while the field is empty. For a Dropdown it is the empty first choice; left empty, that reads "Choose one".
+
+### options
+
+The list for a Dropdown or Choices: add, remove and reorder rows. The answer sent must be one of them exactly.
+
+### optionNotes
+
+For Choices: a line under each option, such as a short description or a price. It moves and is removed with its option, and is shown, not sent.
+
+### multiple
+
+For Choices: **Several answers** turns the round buttons (one answer) into boxes to tick (any number).
+
+### min, max, step
+
+For Number and Slider: the lowest and highest allowed and the step between values (a Slider runs 0 to 100 by 1 when they are empty). For Date: dates as `YYYY-MM-DD`, or `today` for the day the page is shown in the site's timezone, and a step in days. For Time: times as `HH:MM` on the 24-hour clock, e.g. `09:00` and `17:30`.
+
+### maxLength
+
+**Most characters** for Short text, Long text, Email and Phone. Long text shows a counter under the box (`0 / 400`); the others stop at the limit without one.
+
+### appearance
+
+How the field is drawn. Choices: **List** (one option per line), **Chips** (rounded pills; the picked ones fill in), **Cards** (a card per option, with room for its note) or **Segments** (one joined bar, for two to five short options). Consent: **Box** or **Switch**. Number: **Field** or **Stepper** (the number between − and + buttons). Each is styled further by the Input: its Style tab styles every option, chip, card or segment.
+
+### prefix, suffix
+
+For Slider: the text before and after its numbers, such as `£` and `+`, shown on its value, its lowest and its highest.
+
+### defaultValue
+
+For Slider: the **Start value**, where the handle starts (empty: the middle of the scale). For Hidden: a fixed value, or one filled in for you. `&#123;page&#125;` is the id of the post the form is on, `&#123;url&#125;` its address and `&#123;title&#125;` its title, filled when the page is drawn. `&#123;referrer&#125;` (where the visitor came from) and the campaign tags `&#123;utm_source&#125;`, `&#123;utm_medium&#125;`, `&#123;utm_campaign&#125;`, `&#123;utm_term&#125;` and `&#123;utm_content&#125;` are filled by the visitor's browser, so they stay right on a cached page.
+
+### help
+
+The **Help text** switch adds or removes a Text under the field, read out with it by screen readers.
+
+### required
+
+The form will not send until it is filled in (for Choices with several answers, until at least one is ticked; for Consent, until the box is ticked). Hidden fields are never required.
+
+### width
+
+**Full**, **2/3**, **Half** or **1/3** of the form's width, so two or three fields can share a row. Phones, and any form narrower than 480px, always use the full width. Consent always takes the full width.
+
+### errorMessage
+
+**When it is missing or wrong**: the message shown under the field. Left empty, a message that fits the type is used, such as "Enter an email address like name@example.com."
+
+## Look
+
+How fields are drawn, filled, outlined or as a line, and where labels sit, above, inside the box or hidden (still read by screen readers), is set once on the Form, in its **Fields** section. The Field's own Style tab styles the field around its parts (spacing, background, borders, the gap between them); select the label, help or Input to style that part alone. What you set on a part always wins over the Form's look.
+
+## Tips
+
+- Keep labels short and put instructions in **help**: a label is read every time the field is reached.
+- Use **Email** and **Phone** rather than Short text: phones show the right keyboard and browsers can fill them in.
+- Name hidden fields for what they hold (`source`, `campaign`), since the name is the column you will read them by.

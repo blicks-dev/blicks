@@ -4,7 +4,7 @@ description: "A full-bleed page band with outer section sizing and independent c
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/section/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/section/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,11 +25,11 @@ Generated from `packages/blicks/resources/blocks/section/block.json` and `readme
 | HTML editing | `false` |
 | Anchor | `true` |
 | Align | `full` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `typography.*` · `effects.*` · `animation.*` · `decoration.*`
+`layout.group` · `spacing.*` · `border.*` · `position.*` · `colors.*` · `background.*` · `typography.*` · `effects.*` · `animation.*` · `decoration.*` · `flexChild.*` · `gridChild.*`
 
 ## Attributes
 
@@ -50,40 +50,45 @@ Generated from `packages/blicks/resources/blocks/section/block.json` and `readme
 
 ## Description
 
-Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly.
+Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly. Its inspector has three tabs: **Settings** (the band and its content width), **Style** (the shared Style panel: fill, border, corners, shadow, space) and **Motion** (entrance, scroll and hover effects).
 
 ## Controls
 
+### align
+
+Settings ▸ Band. **Edge to edge** (`full`, the default) runs the band across the whole page; **In the column** sits it in the content column like any other block.
+
 ### sectionWidth
 
-Sets the outer section width. Keep `auto` for normal WordPress full-width alignment behavior, or use a CSS length when the section itself needs a specific width.
+Settings ▸ Band ▸ Width. Sets the outer section width. Keep `auto` for normal WordPress full-width alignment behavior, or type a CSS length when the section itself needs a specific width.
 
 ### sectionHeight
 
-Sets the outer section minimum height. Keep `auto` for content-driven height, or use values like `80vh`, `600px`, or `100svh` for viewport-based bands without clipping wrapped content.
+Settings ▸ Height, at least. Sets the outer section minimum height. Keep `auto` for content-driven height, or use values like `80vh`, `600px`, or `100svh` for viewport-based bands without clipping wrapped content.
 
 ### contentWidth
 
-Sets the inner content wrapper width.
+Settings ▸ Content width ▸ Width. Sets the inner content wrapper width.
 
 ### contentMinWidth
 
-Sets the inner content wrapper minimum width.
+Settings ▸ Content width ▸ At least. Sets the inner content wrapper minimum width.
 
 ### contentMaxWidth
 
-Sets the inner content wrapper maximum width. The default follows `var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))` so the section stays aligned with the active design system or the active WordPress theme layout.
+Settings ▸ Content width ▸ At most. Sets the inner content wrapper maximum width. The default, **Theme**, follows `var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))` so the section stays aligned with the active design system or the active WordPress theme layout.
 
 ### surface
 
-Applies a preset treatment to the full-bleed outer section. Use `plain` for invisible structure, `muted` for soft bands, `card` for elevated panels, and `outline` for bordered groups.
+Settings ▸ Surface. Applies a preset treatment to the full-bleed outer section. Use `plain` for invisible structure, `muted` for soft bands, `card` for elevated panels, and `outline` for bordered groups.
 
 ### sectionSpace
 
-Applies vertical padding to the outer section. Use it for page rhythm before reaching for manual spacing controls.
+Settings ▸ Space above and below. Applies vertical padding to the outer section. Use it for page rhythm before reaching for the Style tab's space controls.
 
 ## Tips
 
 - Prefer Section for root-level page bands and major layout areas.
-- Put Stack or Grid inside Section for content layout.
+- Put a Box inside Section for content layout; the starting layouts add a stacked Box for you.
 - The outer section owns the background; the inner wrapper owns content sizing.
+- Every size field takes a CSS length, a keyword such as `auto` or `none`, or a function such as `clamp()` or `var()`.

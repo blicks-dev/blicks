@@ -1,0 +1,146 @@
+{
+	"_comment": "Cases the Loop's data steps must agree on in PHP (src/Data) and in the editor (resources/blocks/loop/data.ts). The page and the editor preview run the same steps; when they disagree, the editor shows items or text the page will not. Add a case here before changing either side.",
+	"format": [
+		{ "value": "Arc floor lamp", "format": "none", "arg": "", "out": "Arc floor lamp" },
+		{ "value": "Lighting", "format": "upper", "arg": "", "out": "LIGHTING" },
+		{ "value": "café", "format": "upper", "arg": "", "out": "CAFÉ" },
+		{ "value": "A slim brass arc that reaches over a sofa", "format": "truncate", "arg": "20", "out": "A slim brass arc…" },
+		{ "value": "Short", "format": "truncate", "arg": "20", "out": "Short" },
+		{ "value": 1234.5, "format": "number", "arg": "2", "out": "1,234.50" },
+		{ "value": 1234.5, "format": "number", "arg": "0", "out": "1,235" },
+		{ "value": "n/a", "format": "number", "arg": "0", "out": "n/a" },
+		{ "value": 189, "format": "currency", "arg": "$", "out": "$189" },
+		{ "value": 19.5, "format": "currency", "arg": "€", "out": "€19.50" },
+		{ "value": 4200, "format": "currency", "arg": "", "out": "$4,200" },
+		{ "value": "2026-11-03", "format": "date", "arg": "short", "out": "3 Nov 2026" },
+		{ "value": "2026-11-03T10:00:00+00:00", "format": "date", "arg": "long", "out": "3 November 2026" },
+		{ "value": "not a date", "format": "date", "arg": "short", "out": "not a date" },
+		{ "value": "42", "format": "prefix", "arg": "#", "out": "#42" },
+		{ "value": "8", "format": "suffix", "arg": " left", "out": "8 left" },
+		{ "value": ["brass", "living room"], "format": "join", "arg": " · ", "out": "brass · living room" },
+		{ "value": true, "format": "none", "arg": "", "out": "true" }
+	],
+	"resolve": [
+		{ "name": "a field's value", "item": { "title": "Oak table" }, "args": { "key": "title" }, "kind": "text", "out": { "text": "Oak table", "from": "field" } },
+		{ "name": "a missing field falls back", "item": {}, "args": { "key": "title", "fallback": "Untitled" }, "kind": "text", "out": { "text": "Untitled", "from": "fallback" } },
+		{ "name": "an empty string falls back", "item": { "excerpt": "" }, "args": { "key": "excerpt", "fallback": "No description yet." }, "kind": "text", "out": { "text": "No description yet.", "from": "fallback" } },
+		{ "name": "zero is a value, not empty", "item": { "stock": 0 }, "args": { "key": "stock" }, "kind": "text", "out": { "text": "0", "from": "field" } },
+		{ "name": "an empty list falls back", "item": { "tags": [] }, "args": { "key": "tags", "fallback": "—" }, "kind": "text", "out": { "text": "—", "from": "fallback" } },
+		{ "name": "a list reads as its items", "item": { "tags": ["oak", "walnut"] }, "args": { "key": "tags" }, "kind": "text", "out": { "text": "oak, walnut", "from": "field" } },
+		{ "name": "an object is not a value", "item": { "price": { "amount": 5 } }, "args": { "key": "price", "fallback": "?" }, "kind": "text", "out": { "text": "?", "from": "fallback" } },
+		{ "name": "markup stays text", "item": { "title": "<b>Bold</b> & co" }, "args": { "key": "title" }, "kind": "text", "out": { "text": "<b>Bold</b> & co", "from": "field" } },
+		{ "name": "an https link", "item": { "url": "https://shop.example/oak" }, "args": { "key": "url" }, "kind": "url", "out": { "text": "https://shop.example/oak", "from": "field" } },
+		{ "name": "a site-relative link", "item": { "url": "/team/ada" }, "args": { "key": "url" }, "kind": "url", "out": { "text": "/team/ada", "from": "field" } },
+		{ "name": "javascript: is dropped", "item": { "url": "javascript:alert(1)" }, "args": { "key": "url", "fallback": "#" }, "kind": "url", "out": { "text": "#", "from": "fallback" } },
+		{ "name": "a protocol-relative link is dropped", "item": { "url": "//evil.example/x" }, "args": { "key": "url" }, "kind": "url", "out": { "text": "", "from": "fallback" } },
+		{ "name": "an unsafe fallback address is dropped", "item": {}, "args": { "key": "link", "fallback": "javascript:alert(1)" }, "kind": "url", "out": { "text": "", "from": "fallback" } },
+		{ "name": "an unsafe field falls back to a safe address", "item": { "link": "javascript:alert(1)" }, "args": { "key": "link", "fallback": "/shop" }, "kind": "url", "out": { "text": "/shop", "from": "fallback" } },
+		{ "name": "an image fallback must be an address too", "item": {}, "args": { "key": "photo", "fallback": "data:image/svg+xml,<svg onload=alert(1)>" }, "kind": "image", "out": { "text": "", "from": "fallback" } },
+		{ "name": "a data: image is dropped", "item": { "image": "data:image/svg+xml,<svg onload=alert(1)>" }, "args": { "key": "image" }, "kind": "image", "out": { "text": "", "from": "fallback" } },
+		{ "name": "a format applies to the value", "item": { "price": 72 }, "args": { "key": "price", "format": "currency", "formatArg": "£" }, "kind": "text", "out": { "text": "£72", "from": "field" } },
+		{ "name": "an unknown format is ignored", "item": { "title": "Vase" }, "args": { "key": "title", "format": "eval" }, "kind": "text", "out": { "text": "Vase", "from": "field" } }
+	],
+	"match": [
+		{ "value": "Lighting", "op": "is", "want": "lighting", "out": true },
+		{ "value": "Lighting", "op": "not", "want": "Decor", "out": true },
+		{ "value": "A slim brass arc", "op": "has", "want": "BRASS", "out": true },
+		{ "value": 189, "op": "gt", "want": "100", "out": true },
+		{ "value": 48, "op": "gt", "want": "100", "out": false },
+		{ "value": "cheap", "op": "gt", "want": "1", "out": false },
+		{ "value": 48, "op": "lt", "want": "100", "out": true },
+		{ "value": true, "op": "is", "want": "true", "out": true },
+		{ "value": false, "op": "is", "want": "true", "out": false },
+		{ "value": 0, "op": "is", "want": "0", "out": true },
+		{ "value": "", "op": "set", "want": "", "out": false },
+		{ "value": null, "op": "empty", "want": "", "out": true },
+		{ "value": ["oak", "walnut"], "op": "has", "want": "walnut", "out": true },
+		{ "value": "x", "op": "regex", "want": ".*", "out": false }
+	],
+	"pipeline": [
+		{
+			"name": "filter, sort by price descending, skip one, keep two",
+			"items": [
+				{ "id": 1, "cat": "Lighting", "price": 189 },
+				{ "id": 2, "cat": "Furniture", "price": 240 },
+				{ "id": 3, "cat": "Lighting", "price": 95 },
+				{ "id": 4, "cat": "Lighting", "price": 310 }
+			],
+			"config": { "filter": { "field": "cat", "op": "is", "value": "lighting" }, "sort": { "field": "price", "dir": "desc" }, "offset": 1, "limit": 2 },
+			"out": { "ids": [1, 3], "total": 4, "matched": 3 }
+		},
+		{
+			"name": "text sorts naturally, missing values last",
+			"items": [ { "id": 1, "name": "Item 10" }, { "id": 2 }, { "id": 3, "name": "Item 2" } ],
+			"config": { "sort": { "field": "name", "dir": "asc" } },
+			"out": { "ids": [3, 1, 2], "total": 3, "matched": 3 }
+		},
+		{
+			"name": "ties keep their order",
+			"items": [ { "id": 1, "p": 5 }, { "id": 2, "p": 5 }, { "id": 3, "p": 1 } ],
+			"config": { "sort": { "field": "p", "dir": "asc" } },
+			"out": { "ids": [3, 1, 2], "total": 3, "matched": 3 }
+		},
+		{
+			"name": "no limit shows everything",
+			"items": [ { "id": 1 }, { "id": 2 }, { "id": 3 } ],
+			"config": { "limit": 0, "offset": 0 },
+			"out": { "ids": [1, 2, 3], "total": 3, "matched": 3 }
+		}
+	],
+	"rules": [
+		{
+			"name": "a featured item gets a big highlighted tile",
+			"rules": [ { "when": { "field": "featured", "op": "is", "value": "true" }, "then": [ { "size": "2x2" }, { "card": "highlight" } ] } ],
+			"item": { "featured": true }, "position": 5, "span": [1, 1],
+			"out": { "span": [2, 2], "card": "highlight", "hide": [], "badge": "", "heading": "", "rules": [1] }
+		},
+		{
+			"name": "a later rule wins, hides add up",
+			"rules": [
+				{ "when": { "field": "stock", "op": "lt", "value": "5" }, "then": [ { "badge": "warn" }, { "hide": "btn" } ] },
+				{ "when": { "field": "stock", "op": "is", "value": "0" }, "then": [ { "badge": "danger" }, { "hide": "price" }, { "card": "muted" } ] }
+			],
+			"item": { "stock": 0 }, "position": 1, "span": [2, 2],
+			"out": { "span": [2, 2], "card": "muted", "hide": ["btn", "price"], "badge": "danger", "heading": "", "rules": [1, 2] }
+		},
+		{
+			"name": "every third position",
+			"rules": [ { "when": { "position": "every", "value": 3 }, "then": [ { "card": "dark" } ] } ],
+			"item": {}, "position": 6, "span": [1, 1],
+			"out": { "span": [1, 1], "card": "dark", "hide": [], "badge": "", "heading": "", "rules": [1] }
+		},
+		{
+			"name": "the first two positions only",
+			"rules": [ { "when": { "position": "first", "value": 2 }, "then": [ { "heading": "xl" } ] } ],
+			"item": {}, "position": 3, "span": [1, 1],
+			"out": { "span": [1, 1], "card": "", "hide": [], "badge": "", "heading": "", "rules": [] }
+		},
+		{
+			"name": "values outside the allowed lists are ignored",
+			"rules": [ { "when": { "field": "x", "op": "set" }, "then": [ { "card": "red; background: url(x)" }, { "size": "9x9" }, { "style": "anything" }, { "badge": "brand" } ] } ],
+			"item": { "x": "y" }, "position": 1, "span": [1, 1],
+			"out": { "span": [1, 1], "card": "", "hide": [], "badge": "brand", "heading": "", "rules": [1] }
+		}
+	],
+	"slotSpan": [
+		{ "tiles": ["2x2", "1x1", "1x1"], "slot": 0, "repeat": true, "out": [2, 2] },
+		{ "tiles": ["2x2", "1x1", "1x1"], "slot": 3, "repeat": true, "out": [2, 2] },
+		{ "tiles": ["2x2", "1x1", "1x1"], "slot": 3, "repeat": false, "out": [1, 1] },
+		{ "tiles": ["5x5", "bad"], "slot": 0, "repeat": true, "out": [1, 1] },
+		{ "tiles": [], "slot": 4, "repeat": true, "out": [1, 1] }
+	],
+	"lists": [
+		{ "name": "a root list", "value": [ { "a": 1 }, { "a": 2 } ], "out": [ { "path": "", "count": 2 } ] },
+		{ "name": "nested lists in document order", "value": { "store": "S", "data": { "items": [ { "id": 1 } ], "tags": ["x"] }, "people": [ { "n": 1 }, { "n": 2 } ] }, "out": [ { "path": "data.items", "count": 1 }, { "path": "people", "count": 2 } ] },
+		{ "name": "lists of scalars are not item lists", "value": { "ids": [1, 2, 3] }, "out": [] }
+	],
+	"pages": [
+		{ "name": "one page", "current": 1, "count": 1, "out": [ {"n":1,"after":1,"wide":true,"narrow":true} ] },
+		{ "name": "first of five", "current": 1, "count": 5, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":2,"after":2,"wide":true,"narrow":true}, {"n":null,"after":2,"wide":false,"narrow":true}, {"n":3,"after":3,"wide":true,"narrow":false}, {"n":null,"after":3,"wide":true,"narrow":false}, {"n":5,"after":5,"wide":true,"narrow":true} ] },
+		{ "name": "middle, no gap wide", "current": 3, "count": 6, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":2,"after":2,"wide":true,"narrow":true}, {"n":3,"after":3,"wide":true,"narrow":true}, {"n":4,"after":4,"wide":true,"narrow":true}, {"n":null,"after":4,"wide":false,"narrow":true}, {"n":5,"after":5,"wide":true,"narrow":false}, {"n":6,"after":6,"wide":true,"narrow":true} ] },
+		{ "name": "middle of nine", "current": 5, "count": 9, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":null,"after":1,"wide":true,"narrow":true}, {"n":3,"after":3,"wide":true,"narrow":false}, {"n":4,"after":4,"wide":true,"narrow":true}, {"n":5,"after":5,"wide":true,"narrow":true}, {"n":6,"after":6,"wide":true,"narrow":true}, {"n":null,"after":6,"wide":false,"narrow":true}, {"n":7,"after":7,"wide":true,"narrow":false}, {"n":null,"after":7,"wide":true,"narrow":false}, {"n":9,"after":9,"wide":true,"narrow":true} ] },
+		{ "name": "last of nine", "current": 9, "count": 9, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":null,"after":1,"wide":true,"narrow":true}, {"n":7,"after":7,"wide":true,"narrow":false}, {"n":8,"after":8,"wide":true,"narrow":true}, {"n":9,"after":9,"wide":true,"narrow":true} ] },
+		{ "name": "phone-only gaps", "current": 4, "count": 9, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":null,"after":1,"wide":false,"narrow":true}, {"n":2,"after":2,"wide":true,"narrow":false}, {"n":3,"after":3,"wide":true,"narrow":true}, {"n":4,"after":4,"wide":true,"narrow":true}, {"n":5,"after":5,"wide":true,"narrow":true}, {"n":null,"after":5,"wide":false,"narrow":true}, {"n":6,"after":6,"wide":true,"narrow":false}, {"n":null,"after":6,"wide":true,"narrow":false}, {"n":9,"after":9,"wide":true,"narrow":true} ] },
+		{ "name": "past the end clamps", "current": 12, "count": 5, "out": [ {"n":1,"after":1,"wide":true,"narrow":true}, {"n":null,"after":1,"wide":true,"narrow":true}, {"n":3,"after":3,"wide":true,"narrow":false}, {"n":4,"after":4,"wide":true,"narrow":true}, {"n":5,"after":5,"wide":true,"narrow":true} ] }
+	]
+}

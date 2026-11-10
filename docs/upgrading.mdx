@@ -1,0 +1,69 @@
+---
+title: "Upgrading from 1.x"
+description: "Blicks 2.0 is a clean break: layouts built with 1.x are not carried over. What changes, and what to do before you update."
+---
+
+<Warning>
+**Blicks 2.0 does not migrate 1.x content.** Pages built with Blicks 1.x keep their saved HTML in
+the post, but 2.0 does not convert them, and some of the blocks they use no longer exist. Read this
+page before you update a site that has Blicks pages on it.
+</Warning>
+
+## What changed
+
+Blicks 2.0 is a rewrite of the blocks, the inspector and the style engine, not an update of them.
+
+- **Four blocks are gone.** Stack, Grid, Spacer and Divider are now part of **Box**: Stack and Grid
+  are Box's **Arrange** choices (**Stacked**, **Grid**), and Spacer and Divider are kinds of Box.
+  A post that uses one of the old blocks shows it as a block the editor does not recognise.
+- **Saved markup restarted.** The blocks that carry on — Section, Box, Heading, Text, Buttons,
+  Button, Image and Icon — save different markup in 2.0, and 2.0 keeps no older versions to fall
+  back on. The editor may report 1.x copies of them as invalid content.
+- **The inspector is new.** The state and device switchers are gone. See
+  [States and interactions](/guides/states-and-interactions) and
+  [Responsive patterns](/guides/responsive-patterns).
+- **WordPress 7.0 or newer is required.** PHP 8.1 is still the minimum.
+- **The extension API moved to version 2.** Companion plugins built for 1.x need an update. See
+  [Migrating from API v1](/developers/migrating-from-v1).
+
+## Before you update
+
+<Steps>
+	<Step title="Find the pages that use Blicks">
+		Search your posts and pages for Blicks blocks. In the block editor, the List View of a page shows which blocks it uses.
+	</Step>
+	<Step title="Try 2.0 on a copy first">
+		Update a staging copy of the site, not the live one, and open each page you found. Update the live site only once you know what each page needs.
+	</Step>
+	<Step title="Decide per page">
+		Rebuild it with the 2.0 blocks, replace it with WordPress core blocks, or keep the site on 1.x until you have time to rebuild.
+	</Step>
+</Steps>
+
+## Rebuilding a page
+
+Most 1.x layouts map onto 2.0 directly:
+
+| 1.x | 2.0 |
+|---|---|
+| Stack | Box, **Arrange ▸ Stacked** |
+| Grid | Box, **Arrange ▸ Grid** |
+| Spacer | Box, **What is it? ▸ Spacer** — or the space settings of the Box around it |
+| Divider | Box, **What is it? ▸ Divider** |
+| A hover value set with the state switcher | **Style ▸ States ▸ On hover** |
+| A mobile value set with the device switcher | The block's **on phones** switches, or **All settings ▸ Set for phone** |
+
+[Build a landing page](/guides/build-a-landing-page) walks through the 2.0 way of putting a page
+together.
+
+## Staying on 1.x
+
+The last 1.x release stays available on the
+[releases page](https://github.com/blicks-dev/blicks/releases). To keep a site on it, install that
+zip and do not update Blicks from the Plugins screen until you are ready.
+
+## What carries over
+
+Your WordPress content is untouched: the update does not delete or rewrite posts. Nothing in 2.0
+converts 1.x layouts either, so a page looks the way 2.0 renders the HTML it finds until you
+rebuild it.

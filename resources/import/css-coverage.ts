@@ -5,9 +5,10 @@
  * `blicks` attr), or is it a CUSTOM-CSS fallback (valid CSS, no control — goes to the per-block
  * import report)? This is the engine behind "flag unsupported CSS" + "suggest controls".
  *
- * `PROPERTY_MAP` is curated to mirror `STYLE_MAP` (css/vars.ts); a unit test asserts every STYLE_MAP
- * attr is represented here, so the two can't silently drift.
+ * `PROPERTY_MAP` is generated from the engine schema alongside `STYLE_MAP`, so the two cannot drift.
  */
+
+import { IMPORT_PROPERTIES } from '@/engine/schema.gen';
 
 export type Section =
 	| 'layout'
@@ -29,144 +30,16 @@ export interface ControlRef {
 	attr: string;
 }
 
-/** Base CSS property → the Blicks control that produces it. */
-export const PROPERTY_MAP: Record< string, ControlRef > = {
-	// Layout
-	display: { section: 'layout', attr: 'layout.display' },
-	'flex-direction': { section: 'layout', attr: 'layout.flexDirection' },
-	'justify-content': { section: 'layout', attr: 'layout.justifyContent' },
-	'align-items': { section: 'layout', attr: 'layout.alignItems' },
-	'justify-items': { section: 'layout', attr: 'layout.justifyItems' },
-	'flex-wrap': { section: 'layout', attr: 'layout.flexWrap' },
-	'row-gap': { section: 'layout', attr: 'layout.gapRow' },
-	gap: { section: 'layout', attr: 'layout.gapRow' },
-	'grid-template-columns': { section: 'layout', attr: 'layout.gridColumns' },
-	'grid-template-rows': { section: 'layout', attr: 'layout.gridRows' },
-	'grid-template-areas': { section: 'layout', attr: 'layout.gridAreas' },
-	'grid-auto-flow': { section: 'layout', attr: 'layout.gridAutoFlow' },
-	width: { section: 'layout', attr: 'layout.width' },
-	height: { section: 'layout', attr: 'layout.height' },
-	overflow: { section: 'layout', attr: 'layout.overflow' },
-	'overflow-x': { section: 'layout', attr: 'layout.overflowX' },
-	'overflow-y': { section: 'layout', attr: 'layout.overflowY' },
-	'scroll-snap-type': { section: 'layout', attr: 'layout.scrollSnapType' },
-	'container-type': { section: 'layout', attr: 'layout.containerType' },
-	'container-name': { section: 'layout', attr: 'layout.containerName' },
-	'aspect-ratio': { section: 'layout', attr: 'layout.aspectRatio' },
-	'object-fit': { section: 'layout', attr: 'layout.objectFit' },
-	'align-content': { section: 'layout', attr: 'layout.alignContent' },
-	'grid-auto-columns': { section: 'layout', attr: 'layout.gridAutoColumns' },
-	'grid-auto-rows': { section: 'layout', attr: 'layout.gridAutoRows' },
-	'min-width': { section: 'layout', attr: 'layout.minWidth' },
-	'max-width': { section: 'layout', attr: 'layout.maxWidth' },
-	'min-height': { section: 'layout', attr: 'layout.minHeight' },
-	'max-height': { section: 'layout', attr: 'layout.maxHeight' },
-	'box-sizing': { section: 'layout', attr: 'layout.boxSizing' },
-	visibility: { section: 'layout', attr: 'layout.visibility' },
-	float: { section: 'layout', attr: 'layout.float' },
-	clear: { section: 'layout', attr: 'layout.clear' },
-	isolation: { section: 'layout', attr: 'layout.isolation' },
-	resize: { section: 'layout', attr: 'layout.resize' },
-	'scroll-behavior': { section: 'layout', attr: 'layout.scrollBehavior' },
-	'overscroll-behavior': { section: 'layout', attr: 'layout.overscrollBehavior' },
-	'scroll-snap-stop': { section: 'layout', attr: 'layout.scrollSnapStop' },
-	direction: { section: 'layout', attr: 'layout.direction' },
-	contain: { section: 'layout', attr: 'layout.contain' },
-	'content-visibility': { section: 'layout', attr: 'layout.contentVisibility' },
-	'contain-intrinsic-size': { section: 'layout', attr: 'layout.containIntrinsicSize' },
-	'-webkit-line-clamp': { section: 'layout', attr: 'layout.lineClamp' },
-
-	// Spacing
-	padding: { section: 'spacing', attr: 'spacing.padding' },
-	margin: { section: 'spacing', attr: 'spacing.margin' },
-
-	// Border
-	'border-width': { section: 'border', attr: 'border.width' },
-	'border-style': { section: 'border', attr: 'border.style' },
-	'border-color': { section: 'border', attr: 'border.color' },
-	'border-radius': { section: 'border', attr: 'border.radius' },
-	border: { section: 'border', attr: 'border.width' },
-
-	// Position
-	position: { section: 'position', attr: 'position.type' },
-	inset: { section: 'position', attr: 'position.inset' },
-	'z-index': { section: 'position', attr: 'position.zIndex' },
-
-	// Colors / background
-	color: { section: 'colors', attr: 'colors.text' },
-	'background-color': { section: 'colors', attr: 'colors.background' },
-	background: { section: 'colors', attr: 'colors.background' },
-	'background-image': { section: 'background', attr: 'background.image' },
-	'background-size': { section: 'background', attr: 'background.size' },
-	'background-position': { section: 'background', attr: 'background.position' },
-	'background-repeat': { section: 'background', attr: 'background.repeat' },
-	'background-attachment': { section: 'background', attr: 'background.attachment' },
-	'background-blend-mode': { section: 'background', attr: 'background.blendMode' },
-	'background-clip': { section: 'colors', attr: 'colors.clipText' },
-	'mix-blend-mode': { section: 'effects', attr: 'effects.blendMode' },
-
-	// Typography
-	'font-family': { section: 'typography', attr: 'typography.fontFamily' },
-	'font-size': { section: 'typography', attr: 'typography.fontSize' },
-	'line-height': { section: 'typography', attr: 'typography.lineHeight' },
-	'font-weight': { section: 'typography', attr: 'typography.fontWeight' },
-	'font-style': { section: 'typography', attr: 'typography.fontStyle' },
-	'letter-spacing': { section: 'typography', attr: 'typography.letterSpacing' },
-	'word-spacing': { section: 'typography', attr: 'typography.wordSpacing' },
-	'text-transform': { section: 'typography', attr: 'typography.textTransform' },
-	'text-decoration': { section: 'typography', attr: 'typography.textDecoration' },
-	'text-align': { section: 'typography', attr: 'typography.textAlign' },
-	'writing-mode': { section: 'typography', attr: 'typography.writingMode' },
-	'text-orientation': { section: 'typography', attr: 'typography.textOrientation' },
-
-	// Effects
-	opacity: { section: 'effects', attr: 'effects.opacity' },
-	cursor: { section: 'effects', attr: 'effects.cursor' },
-	'box-shadow': { section: 'effects', attr: 'effects.boxShadow' },
-	'text-shadow': { section: 'effects', attr: 'effects.textShadow' },
-	transition: { section: 'effects', attr: 'effects.transition' },
-	transform: { section: 'effects', attr: 'effects.transform' },
-	filter: { section: 'effects', attr: 'effects.filter' },
-	'clip-path': { section: 'effects', attr: 'effects.clipPath' },
-	'backdrop-filter': { section: 'effects', attr: 'effects.backdropFilter' },
-	mask: { section: 'effects', attr: 'effects.mask' },
-	'transform-origin': { section: 'effects', attr: 'effects.transformOrigin' },
-	'transform-style': { section: 'effects', attr: 'effects.transformStyle' },
-	perspective: { section: 'effects', attr: 'effects.perspective' },
-
-	// Animation
-	'animation-name': { section: 'animation', attr: 'animation.name' },
-	'animation-duration': { section: 'animation', attr: 'animation.duration' },
-	'animation-timing-function': { section: 'animation', attr: 'animation.easing' },
-	'animation-iteration-count': { section: 'animation', attr: 'animation.iteration' },
-	'animation-direction': { section: 'animation', attr: 'animation.direction' },
-	'animation-fill-mode': { section: 'animation', attr: 'animation.fillMode' },
-	'animation-delay': { section: 'animation', attr: 'animation.delay' },
-	'animation-timeline': { section: 'animation', attr: 'animation.timeline' },
-	'animation-range': { section: 'animation', attr: 'animation.range' },
-
-	// Grid child
-	'grid-column': { section: 'gridChild', attr: 'gridChild.columnSpan' },
-	'grid-row': { section: 'gridChild', attr: 'gridChild.rowSpan' },
-	'align-self': { section: 'gridChild', attr: 'gridChild.alignSelf' },
-	'justify-self': { section: 'gridChild', attr: 'gridChild.justifySelf' },
-	order: { section: 'gridChild', attr: 'gridChild.order' },
-	'grid-area': { section: 'gridChild', attr: 'gridChild.gridArea' },
-	'scroll-snap-align': { section: 'gridChild', attr: 'gridChild.scrollSnapAlign' },
-
-	// Flex child — `align-self`/`order` are shared with Grid child above and stay mapped there
-	// (a raw CSS paste can't disambiguate flex vs. grid context); flex-grow/shrink/basis are
-	// unambiguous.
-	'flex-grow': { section: 'flexChild', attr: 'flexChild.grow' },
-	'flex-shrink': { section: 'flexChild', attr: 'flexChild.shrink' },
-	'flex-basis': { section: 'flexChild', attr: 'flexChild.basis' },
-
-	// Multi-column
-	'column-count': { section: 'columns', attr: 'columns.columnCount' },
-	'column-width': { section: 'columns', attr: 'columns.columnWidth' },
-	'column-gap': { section: 'columns', attr: 'columns.columnGap' },
-	'break-inside': { section: 'columns', attr: 'columns.breakInside' },
-};
+/**
+ * Base CSS property → the Blicks control that produces it. Generated: each control's `import`
+ * list in resources/engine/schema.json names the properties a pasted declaration maps to.
+ */
+export const PROPERTY_MAP: Record< string, ControlRef > = Object.fromEntries(
+	Object.entries( IMPORT_PROPERTIES ).map( ( [ property, attr ] ) => [
+		property,
+		{ section: attr.split( '.' )[ 0 ] as Section, attr },
+	] )
+);
 
 /**
  * Reduce a longhand/side/corner property to the base property a control covers

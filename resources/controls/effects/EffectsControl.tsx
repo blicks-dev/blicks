@@ -401,7 +401,7 @@ export function EffectsControl( { attributes, setAttributes, state, breakpoint, 
 						</div>
 						<div className="bl-fields">
 							<ColorRow
-								hint={ __( 'Box shadow colour', 'blicks' ) }
+								hint={ __( 'Box shadow color', 'blicks' ) }
 								value={ boxShadow?.color ?? '' }
 								onChange={ ( v ) => updateBoxShadow( 'color', v ) }
 							/>
@@ -423,7 +423,7 @@ export function EffectsControl( { attributes, setAttributes, state, breakpoint, 
 						<div className="bl-fields">
 							{ shadowField( 'BLUR', __( 'Blur radius', 'blicks' ), textShadow?.blur ?? '', '4px', ( v ) => updateTextShadow( 'blur', v ) ) }
 							<ColorRow
-								hint={ __( 'Text shadow colour', 'blicks' ) }
+								hint={ __( 'Text shadow color', 'blicks' ) }
 								value={ textShadow?.color ?? '' }
 								onChange={ ( v ) => updateTextShadow( 'color', v ) }
 							/>

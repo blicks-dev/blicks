@@ -20,9 +20,14 @@ interface IconPickerProps {
 	allowNone?: boolean;
 	/** Optional id for popover-close coordination. */
 	id?: string;
+	/**
+	 * Draws the button that opens the picker in place of the default name-and-preview trigger,
+	 * as the block toolbar does. It must attach `ref` to the element the popover hangs from.
+	 */
+	trigger?: ( props: { ref: ( el: HTMLButtonElement | null ) => void; onClick: () => void; isOpen: boolean; label: string } ) => JSX.Element;
 }
 
-export function IconPicker( { value, onChange, allowNone = false, id }: IconPickerProps ) {
+export function IconPicker( { value, onChange, allowNone = false, id, trigger }: IconPickerProps ) {
 	const [ isOpen, setIsOpen ] = useState( false );
 	const [ query, setQuery ] = useState( '' );
 	const anchorRef = useRef< HTMLButtonElement | null >( null );
@@ -71,6 +76,8 @@ export function IconPicker( { value, onChange, allowNone = false, id }: IconPick
 
 	return (
 		<div className="bl-icon-picker-control">
+			{ trigger ? trigger( { ref: ( el ) => { anchorRef.current = el; }, onClick: toggle, isOpen, label: displayLabel } ) : (
+			<>
 			<button
 				type="button"
 				ref={ anchorRef }
@@ -96,11 +103,13 @@ export function IconPicker( { value, onChange, allowNone = false, id }: IconPick
 					×
 				</button>
 			) }
+			</>
+			) }
 
 			{ isOpen && (
 				<Popover
 					anchor={ anchorRef.current }
-					placement="left-start"
+					placement={ trigger ? 'bottom-start' : 'left-start' }
 					offset={ 12 }
 					flip
 					resize

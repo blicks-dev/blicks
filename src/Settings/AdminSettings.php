@@ -20,39 +20,35 @@ use Blicks\Models\SettingModel;
  */
 final class AdminSettings {
 
-	public const DEFAULT_INSPECTOR_PANEL = 'styles';
-	public const HELP_VISIBILITY = 'show';
 	public const THEME_JSON_SYNC = false;
 	public const REGENERATE_EDITOR_CSS = true;
 
 	/** Deleting a plugin should not silently destroy a site's design work, so this is opt-in. */
 	public const DELETE_DATA_ON_UNINSTALL = false;
 
+	/**
+	 * The Studio library's Marketplace shelf asks showcase.blicks.dev for its list and loads
+	 * preview frames from it, so it stays off until an administrator turns it on.
+	 */
+	public const MARKETPLACE = false;
+
+	/** A site option rather than a row in the settings table: one switch, read on its own. */
+	public const MARKETPLACE_OPTION = 'blicks_marketplace_enabled';
+
 	private const KEYS = [
-		'defaultInspectorPanel' => 'admin.default_inspector_panel',
-		'helpVisibility' => 'admin.help_visibility',
 		'deleteDataOnUninstall' => 'admin.delete_data_on_uninstall',
 		'themeJsonSync' => 'design_system.theme_json_sync',
 		'regenerateEditorCss' => 'design_system.regenerate_editor_css',
 		'updatedAt' => 'admin.updated_at',
 	];
 
-	/** @return array{defaultInspectorPanel:string,helpVisibility:string,deleteDataOnUninstall:bool,designSystem:array{themeJsonSync:bool,themeJsonSupported:bool}} */
+	/** @return array{deleteDataOnUninstall:bool,marketplace:bool,designSystem:array{themeJsonSync:bool,themeJsonSupported:bool}} */
 	public static function snapshot(): array {
 		$themeJsonSupported = self::themeJsonSupported();
 
 		return [
-			'defaultInspectorPanel' => self::validChoice(
-				SettingModel::getValue( self::KEYS['defaultInspectorPanel'], self::DEFAULT_INSPECTOR_PANEL ),
-				[ 'settings', 'styles', 'advanced' ],
-				self::DEFAULT_INSPECTOR_PANEL
-			),
-			'helpVisibility' => self::validChoice(
-				SettingModel::getValue( self::KEYS['helpVisibility'], self::HELP_VISIBILITY ),
-				[ 'show', 'hide' ],
-				self::HELP_VISIBILITY
-			),
 			'deleteDataOnUninstall' => self::deleteDataOnUninstallEnabled(),
+			'marketplace' => self::marketplaceEnabled(),
 			'designSystem' => [
 				'themeJsonSync' => self::themeJsonSyncEnabled() && $themeJsonSupported,
 				'themeJsonSupported' => $themeJsonSupported,
@@ -71,22 +67,12 @@ final class AdminSettings {
 
 	/** @param array<string,mixed> $payload */
 	public static function save( array $payload ): array {
-		if ( array_key_exists( 'defaultInspectorPanel', $payload ) ) {
-			SettingModel::setValue(
-				self::KEYS['defaultInspectorPanel'],
-				self::validChoice( $payload['defaultInspectorPanel'], [ 'settings', 'styles', 'advanced' ], self::DEFAULT_INSPECTOR_PANEL )
-			);
-		}
-
-		if ( array_key_exists( 'helpVisibility', $payload ) ) {
-			SettingModel::setValue(
-				self::KEYS['helpVisibility'],
-				self::validChoice( $payload['helpVisibility'], [ 'show', 'hide' ], self::HELP_VISIBILITY )
-			);
-		}
-
 		if ( array_key_exists( 'deleteDataOnUninstall', $payload ) ) {
 			SettingModel::setValue( self::KEYS['deleteDataOnUninstall'], (bool) $payload['deleteDataOnUninstall'] );
+		}
+
+		if ( array_key_exists( 'marketplace', $payload ) ) {
+			update_option( self::MARKETPLACE_OPTION, (bool) $payload['marketplace'] ? '1' : '0', false );
 		}
 
 		$designSystem = $payload['designSystem'] ?? null;
@@ -134,16 +120,15 @@ final class AdminSettings {
 	}
 
 	public static function themeJsonSupported(): bool {
-		return function_exists( 'wp_theme_has_theme_json' ) ? (bool) wp_theme_has_theme_json() : false;
+		return (bool) wp_theme_has_theme_json();
 	}
 
 	public static function regenerateEditorCssEnabled(): bool {
 		return (bool) SettingModel::getValue( self::KEYS['regenerateEditorCss'], self::REGENERATE_EDITOR_CSS );
 	}
 
-	/** @param list<string> $allowed */
-	private static function validChoice( mixed $value, array $allowed, string $fallback ): string {
-		$value = is_string( $value ) ? sanitize_key( $value ) : '';
-		return in_array( $value, $allowed, true ) ? $value : $fallback;
+	/** Whether an administrator has turned the Marketplace shelf on. Off until they do. */
+	public static function marketplaceEnabled(): bool {
+		return '1' === (string) get_option( self::MARKETPLACE_OPTION, self::MARKETPLACE ? '1' : '0' );
 	}
 }

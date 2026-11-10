@@ -1,0 +1,14 @@
+{
+	"triggers": [
+		{ "name": "nothing", "in": null, "out": { "load": { "on": false, "delay": 5 }, "scroll": { "on": false, "percent": 50 }, "exit": { "on": false }, "idle": { "on": false, "seconds": 30 } } },
+		{ "name": "a JSON string", "in": "{\"load\":{\"on\":true,\"delay\":3}}", "out": { "load": { "on": true, "delay": 3 }, "scroll": { "on": false, "percent": 50 }, "exit": { "on": false }, "idle": { "on": false, "seconds": 30 } } },
+		{ "name": "clamped and rounded", "in": { "load": { "on": 1, "delay": 9999 }, "scroll": { "on": "true", "percent": 0 }, "exit": { "on": "0" }, "idle": { "on": true, "seconds": 2.5 } }, "out": { "load": { "on": true, "delay": 600 }, "scroll": { "on": true, "percent": 1 }, "exit": { "on": false }, "idle": { "on": true, "seconds": 5 } } },
+		{ "name": "junk dropped", "in": { "load": "yes", "scroll": { "percent": "abc", "evil": 1 }, "other": 1 }, "out": { "load": { "on": false, "delay": 5 }, "scroll": { "on": false, "percent": 50 }, "exit": { "on": false }, "idle": { "on": false, "seconds": 30 } } }
+	],
+	"rules": [
+		{ "name": "nothing", "in": null, "out": { "where": "all", "include": [], "exclude": [], "screens": { "desktop": true, "tablet": true, "phone": true }, "visitors": "all", "frequency": "session", "days": 7, "stopAfterConvert": true, "schedule": { "on": false, "from": "", "to": "" } } },
+		{ "name": "places kept, junk dropped, duplicates once", "in": { "where": "some", "include": [ "type:post", "post:12", "front", "post:0", "type:BAD", 7, "post:12" ], "exclude": [ "post:3" ] }, "out": { "where": "some", "include": [ "type:post", "post:12", "front" ], "exclude": [ "post:3" ], "screens": { "desktop": true, "tablet": true, "phone": true }, "visitors": "all", "frequency": "session", "days": 7, "stopAfterConvert": true, "schedule": { "on": false, "from": "", "to": "" } } },
+		{ "name": "a schedule given backwards, an impossible day", "in": { "visitors": "out", "frequency": "days", "days": 0, "screens": { "phone": false }, "stopAfterConvert": false, "schedule": { "on": true, "from": "2026-12-01", "to": "2026-11-20" } }, "out": { "where": "all", "include": [], "exclude": [], "screens": { "desktop": true, "tablet": true, "phone": false }, "visitors": "out", "frequency": "days", "days": 1, "stopAfterConvert": false, "schedule": { "on": true, "from": "2026-11-20", "to": "2026-12-01" } } },
+		{ "name": "unknown words fall back", "in": { "where": "everywhere", "visitors": "robots", "frequency": "hourly", "schedule": { "on": true, "from": "2026-02-30", "to": "soon" } }, "out": { "where": "all", "include": [], "exclude": [], "screens": { "desktop": true, "tablet": true, "phone": true }, "visitors": "all", "frequency": "session", "days": 7, "stopAfterConvert": true, "schedule": { "on": true, "from": "", "to": "" } } }
+	]
+}

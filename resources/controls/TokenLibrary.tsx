@@ -3,7 +3,7 @@ import { Popover } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import type { TokenCategory } from '@/framework/types';
 import { announcePopoverOpen, useCloseOnOtherPopover, useCloseOnOutsideClick } from '@/controls/common';
-import { resolveTokenValues, tokenOptions } from '@/controls/token-utils';
+import { resolveTokenValues, tokenOptions, tokenSlugOfValue } from '@/controls/token-utils';
 import './token-library.scss';
 
 /**
@@ -89,9 +89,9 @@ export function TokenLibrary( {
 							<button
 								type="button"
 								key={ option.slug }
-								className={ `bl-token-library__item${ value === option.slug ? ' is-selected' : '' }` }
+								className={ `bl-token-library__item${ tokenSlugOfValue( category, value ?? '' ) === option.slug ? ' is-selected' : '' }` }
 								onClick={ () => {
-									onSelect( option.slug );
+									onSelect( option.value );
 									setIsOpen( false );
 								} }
 							>

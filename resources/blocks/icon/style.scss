@@ -5,10 +5,22 @@
 		display: inline-flex;
 		color: currentcolor;
 		box-sizing: border-box;
+		text-decoration: none;
 
 		svg {
 			width: var(--bl-icon-size);
 			height: var(--bl-icon-size);
 		}
+
+		// Filled: the shape takes the colour; the line stays, so corners keep their round joins.
+		&--filled svg { fill: currentcolor; }
+
+		// Mirror and turn the drawing, not the box, so a ring or badge stays put.
+		&--flip-h svg { scale: -1 1; }
+		&--flip-v svg { scale: 1 -1; }
+		&--flip-h.bl-icon--flip-v svg { scale: -1 -1; }
+		&--turn-90 svg { rotate: 90deg; }
+		&--turn-180 svg { rotate: 180deg; }
+		&--turn-270 svg { rotate: 270deg; }
 	}
 }

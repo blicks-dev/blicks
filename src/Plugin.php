@@ -14,13 +14,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Blicks\Core\Plugin as BasePlugin;
-use Blicks\DesignSystem\Store;
+use Blicks\Core\DevModules;
 use Blicks\Providers\HookServiceProvider;
 use Blicks\Providers\RestServiceProvider;
 use Blicks\Providers\AssetServiceProvider;
 use Blicks\Providers\AdminServiceProvider;
 use Blicks\Providers\BlockServiceProvider;
 use Blicks\Providers\StyleServiceProvider;
+use Blicks\Providers\McpServiceProvider;
+use Blicks\Providers\StudioServiceProvider;
+use Blicks\Providers\DataServiceProvider;
+use Blicks\Providers\BehaviourServiceProvider;
+use Blicks\Providers\DialogServiceProvider;
+use Blicks\Providers\FormServiceProvider;
+use Blicks\Models\KitModel;
 use Blicks\Models\SettingModel;
 use Blicks\Settings\AdminSettings;
 
@@ -29,8 +36,9 @@ use Blicks\Settings\AdminSettings;
  */
 final class Plugin {
 
-	private const MIN_PHP = '8.1';
-	private const MIN_WP  = '6.6';
+	/** The oldest PHP and WordPress Blicks runs on. The Health check reads these too. */
+	public const MIN_PHP = '8.1';
+	public const MIN_WP  = '7.0';
 
 	/**
 	 * Plugins that must be active before this plugin loads.
@@ -81,12 +89,19 @@ final class Plugin {
 		( new AdminServiceProvider() )->register();
 		( new BlockServiceProvider() )->register();
 		( new StyleServiceProvider() )->register();
+		( new McpServiceProvider() )->register();
+		( new StudioServiceProvider() )->register();
+		( new DataServiceProvider() )->register();
+		( new BehaviourServiceProvider() )->register();
+		( new DialogServiceProvider() )->register();
+		( new FormServiceProvider() )->register();
+
+		// Pro modules under development, on an install that names them. Never in a release.
+		DevModules::load();
 	}
 
 	public static function activate(): void {
 		SettingModel::install();
-		// Design-system overrides are now owned per-theme; discard the legacy global override set.
-		Store::purgeLegacyOption();
 		flush_rewrite_rules();
 	}
 
@@ -95,17 +110,21 @@ final class Plugin {
 	}
 
 	/**
-	 * Options this plugin owns. Kept in one place so uninstall cannot drift from what the
-	 * plugin actually writes.
+	 * Options this plugin owns. Its data lives in its own tables; the only option it still writes
+	 * is the schema version, which has to be readable before those tables exist. The rest are where
+	 * data was kept before the tables — moved on first read, but a site that never read them (or a
+	 * downgrade) can still have them, so uninstall clears them too.
 	 *
 	 * @var list<string>
 	 */
 	private const OWNED_OPTIONS = [
+		'blicks_settings_schema_version',
 		'blicks_design_system',
 		'blicks_design_custom_slugs',
 		'blicks_design_animations',
 		'blicks_design_themes',
-		'blicks_settings_schema_version',
+		'blicks_form_keys',
+		AdminSettings::MARKETPLACE_OPTION,
 	];
 
 	/**
@@ -125,14 +144,32 @@ final class Plugin {
 		if ( is_object( $wpdb ) ) {
 			// Table name is a class constant joined to $wpdb->prefix — no user input reaches
 			// this identifier, and identifiers cannot be bound with prepare().
-			$table = SettingModel::table();
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Static identifier; DROP TABLE cannot be prepared.
-			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+			foreach ( [ SettingModel::table(), KitModel::table() ] as $table ) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Static identifier; DROP TABLE cannot be prepared.
+				$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+			}
 		}
 
 		foreach ( self::OWNED_OPTIONS as $option ) {
 			delete_option( $option );
 		}
+
+		// Form entries, which hold what visitors sent. In batches: a site may hold many.
+		do {
+			$ids = get_posts(
+				[
+					'post_type' => \Blicks\Forms\Entries::POST_TYPE,
+					'post_status' => 'any',
+					'fields' => 'ids',
+					'posts_per_page' => 100,
+					'no_found_rows' => true,
+				]
+			);
+
+			foreach ( $ids as $id ) {
+				wp_delete_post( (int) $id, true );
+			}
+		} while ( [] !== $ids );
 	}
 
 	public static function requirementsNotice(): void {

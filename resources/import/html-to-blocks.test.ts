@@ -41,9 +41,8 @@ describe( 'html-to-blocks: pickBlock', () => {
 	 */
 	it( 'never names a Blicks block that is not shipped', () => {
 		const shipped = new Set( [
-			'blicks/box', 'blicks/button', 'blicks/buttons', 'blicks/divider', 'blicks/grid',
-			'blicks/heading', 'blicks/icon', 'blicks/image', 'blicks/section', 'blicks/spacer',
-			'blicks/stack', 'blicks/text',
+			'blicks/box', 'blicks/button', 'blicks/buttons', 'blicks/heading', 'blicks/icon',
+			'blicks/image', 'blicks/section', 'blicks/text',
 		] );
 		const tags = [
 			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'img', 'hr', 'button',
@@ -61,9 +60,10 @@ describe( 'html-to-blocks: pickBlock', () => {
 		}
 	} );
 
-	it( 'maps a div by its display: flex → Stack, grid → Grid, else Box', () => {
-		expect( pickBlock( 'div', parseDeclarations( 'display: flex' ) ).name ).toBe( 'blicks/stack' );
-		expect( pickBlock( 'div', parseDeclarations( 'display: grid' ) ).name ).toBe( 'blicks/grid' );
+	it( 'maps every div to a Box, whatever its display, and a rule to a Box divider', () => {
+		expect( pickBlock( 'div', parseDeclarations( 'display: flex' ) ).name ).toBe( 'blicks/box' );
+		expect( pickBlock( 'div', parseDeclarations( 'display: grid' ) ).name ).toBe( 'blicks/box' );
 		expect( pickBlock( 'div', [] ).name ).toBe( 'blicks/box' );
+		expect( pickBlock( 'hr', [] ) ).toEqual( { name: 'blicks/box', extra: { kind: 'divider' } } );
 	} );
 } );

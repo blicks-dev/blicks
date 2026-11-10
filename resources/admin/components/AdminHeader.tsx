@@ -1,117 +1,104 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { bootstrap } from '../bootstrap';
-import { getRegisteredView } from '../registry';
-import { icon, StackBMark } from '../icons';
+import { StackBMark } from '../icons';
 import { urlForView } from '../routing';
 import type { AdminView } from '../types';
 
+/**
+ * One bar for the whole admin: the brand, a tab per page, the actions that belong to the open
+ * page, and Jump to. Pages other plugins register (Blicks Pro adds Licence) follow a divider,
+ * in the order PHP gave them, so it is always clear which tabs ship with Blicks.
+ */
 export function AdminHeader( {
 	activeView,
-	systemState,
+	dirty,
+	actions,
 	onViewChange,
 	onOpenPalette,
 }: {
 	activeView: AdminView;
-	systemState: { label: string; tone: 'ok' | 'warn' };
+	dirty: Partial< Record< string, boolean > >;
+	actions?: React.ReactNode;
 	onViewChange: ( view: AdminView ) => void;
 	onOpenPalette: () => void;
 } ): JSX.Element {
-	const { version, docsUrl, editorUrl } = bootstrap();
-
-	// A neutral square, for a registered page that supplied no icon of its own. Better than an
-	// empty slot, which makes the nav row look misaligned.
-	const fallbackIcon = icon( <><rect x="4" y="4" width="16" height="16" rx="2" /></> );
-
-	const builtinTabs: Array< { id: AdminView; label: string; icon: JSX.Element } > = [
-		{ id: 'overview', label: __( 'Overview', 'blicks' ), icon: icon( <><path d="M3 12l9-8 9 8" /><path d="M5 10v10h14V10" /></> ) },
-		{ id: 'design', label: __( 'Design System', 'blicks' ), icon: icon( <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></> ) },
-		{ id: 'settings', label: __( 'Settings', 'blicks' ), icon: icon( <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.6H9.5L9 5.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.5 2.6h5l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z" /></> ) },
+	const builtin: Array< { id: AdminView; label: string } > = [
+		{ id: 'overview', label: __( 'Overview', 'blicks' ) },
+		{ id: 'design', label: __( 'Design system', 'blicks' ) },
+		{ id: 'settings', label: __( 'Settings', 'blicks' ) },
+		{ id: 'mcp', label: __( 'MCP', 'blicks' ) },
 	];
-
-	// Registered pages come from PHP, which has already capability-filtered them, and keep the
-	// order the menu gave them. The label is PHP's too — translated in the plugin that owns the
-	// string — while the icon is optional and comes from the runtime registration.
-	const externalTabs = bootstrap().externalViews.map( entry => ( {
-		id: entry.id as AdminView,
-		label: entry.label,
-		icon: getRegisteredView( entry.id )?.icon ?? fallbackIcon,
-	} ) );
-
-	const tabs = [ ...builtinTabs, ...externalTabs ];
-
+	const external = bootstrap().externalViews;
 	const shortcut = isAppleOs() ? '⌘K' : 'Ctrl K';
 
+	const tab = ( id: AdminView, label: string, title?: string ): JSX.Element => (
+		<a
+			key={ id }
+			href={ urlForView( id ) }
+			title={ title }
+			aria-current={ activeView === id ? 'page' : undefined }
+			onClick={ event => {
+				// Plain clicks route in-page; modified clicks keep open-in-new-tab, which the
+				// real href makes possible.
+				if ( event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) return;
+				event.preventDefault();
+				onViewChange( id );
+			} }
+		>
+			{ label }
+			{ dirty[ id ] && (
+				<>
+					<i className="pdot" aria-hidden="true" />
+					<span className="screen-reader-text">{ __( '(unsaved changes)', 'blicks' ) }</span>
+				</>
+			) }
+		</a>
+	);
+
 	return (
-		<>
-			<div className="topbar">
-				{ /* The real plugin mark (icons.tsx / .wordpress-org/icon-256x256.png), not the
-				     mockup's placeholder bars — same slot, same size. */ }
-				<div className="brand">
-					<StackBMark className="mark" />
-					<b>Blicks</b>
-					<span>{ __( 'Design System', 'blicks' ) }</span>
-				</div>
-				<div className="spacer" />
+		<header className="top">
+			<a
+				className="brand"
+				href={ urlForView( 'overview' ) }
+				aria-label={ __( 'Blicks overview', 'blicks' ) }
+				onClick={ event => {
+					if ( event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) return;
+					event.preventDefault();
+					onViewChange( 'overview' );
+				} }
+			>
+				{ /* The real plugin mark (icons.tsx), on the brand square — its dark tone keeps the
+				     accent bar visible on ultramarine. */ }
+				<span className="mark" aria-hidden="true"><StackBMark tone="dark" /></span>
+				<span className="t">Blicks</span>
+			</a>
 
-				<button
-					className="search"
-					type="button"
-					onClick={ onOpenPalette }
-					aria-label={ sprintf(
-						/* translators: %s: keyboard shortcut, e.g. "⌘K". */
-						__( 'Search views and tokens (%s)', 'blicks' ),
-						shortcut
-					) }
-				>
-					{ icon( <><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></> ) }
-					<span>{ __( 'Search views and tokens', 'blicks' ) }</span>
-					<kbd aria-hidden="true">{ shortcut }</kbd>
-				</button>
+			<nav className="pages" aria-label={ __( 'Blicks pages', 'blicks' ) }>
+				{ builtin.map( entry => tab( entry.id, entry.label ) ) }
+				{ external.length > 0 && <span className="pages-sep" aria-hidden="true" /> }
+				{ external.map( entry => tab( entry.id as AdminView, entry.label, __( 'Added by another plugin', 'blicks' ) ) ) }
+			</nav>
 
-				{ docsUrl && (
-					<a className="btn" href={ docsUrl } target="_blank" rel="noreferrer">
-						{ icon( <><path d="M14 3h7v7" /><path d="M21 3l-9 9" /><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" /></> ) }
-						{ __( 'Docs', 'blicks' ) }
-					</a>
+			<span className="grow" />
+
+			{ actions && <div className="page-actions">{ actions }</div> }
+
+			<button
+				type="button"
+				className="jump"
+				onClick={ onOpenPalette }
+				title={ __( 'Jump to any page, section or token', 'blicks' ) }
+				aria-label={ sprintf(
+					/* translators: %s: keyboard shortcut, e.g. "⌘K". */
+					__( 'Jump to anything (%s)', 'blicks' ),
+					shortcut
 				) }
-
-				{ editorUrl && (
-					<a className="btn primary" href={ editorUrl }>
-						{ icon( <><path d="M12 5v14M5 12h14" /></> ) }
-						{ __( 'Create with Blicks', 'blicks' ) }
-					</a>
-				) }
-			</div>
-
-			<div className="tabs" role="tablist" aria-label={ __( 'Blicks sections', 'blicks' ) }>
-				{ tabs.map( tab => (
-					<a
-						key={ tab.id }
-						className="tab"
-						role="tab"
-						href={ urlForView( tab.id ) }
-						aria-selected={ activeView === tab.id }
-						onClick={ event => {
-							// Plain clicks route in-page; modified clicks keep the browser's
-							// open-in-new-tab behaviour, which the real href makes possible.
-							if ( event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) return;
-							event.preventDefault();
-							onViewChange( tab.id );
-						} }
-					>
-						{ tab.icon }
-						{ tab.label }
-					</a>
-				) ) }
-				<div className="right">
-					{ version && <span className="ver">{ sprintf( /* translators: %s: plugin version. */ __( 'v%s', 'blicks' ), version ) }</span> }
-					<span className={ `live${ systemState.tone === 'warn' ? ' is-warn' : '' }` }>
-						<span className="dot" />
-						{ systemState.label }
-					</span>
-				</div>
-			</div>
-		</>
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z" /></svg>
+				<span>{ __( 'Jump to', 'blicks' ) }</span>
+				<kbd aria-hidden="true">{ shortcut }</kbd>
+			</button>
+		</header>
 	);
 }
 

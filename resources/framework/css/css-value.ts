@@ -15,7 +15,8 @@
  * A failing value yields `''` and the caller drops the declaration.
  */
 
-const MAX = 500;
+/** Longest value the engine emits; mirrors CssValue::MAX. Layered backgrounds are the long ones. */
+export const MAX = 2000;
 
 const ALLOWED_CHARS = /^[A-Za-z0-9 \t.,%#+\-*/()_[\]='"\u0080-\u{10FFFF}]*$/u;
 

@@ -78,8 +78,13 @@ for ( const block of nestedBlocks() ) {
 		await openEditor( page );
 
 		// A nested block is hidden from the inserter, so reach it the way a user does: insert
-		// the parent and let it seed the child through its InnerBlocks template.
-		const parentName = block.parent![ 0 ];
+		// the parent and let it seed the child through its InnerBlocks template. A parent that is
+		// nested too (a Field's Input lives in a Field, which lives in a Form) is reached through
+		// its own parent, which seeds the whole chain.
+		let parentName = block.parent![ 0 ];
+		for ( let hop = nestedBlocks().find( ( b ) => b.name === parentName ); hop; hop = nestedBlocks().find( ( b ) => b.name === parentName ) ) {
+			parentName = hop.parent![ 0 ];
+		}
 		const parent = insertableBlocks().find( ( candidate ) => candidate.name === parentName );
 		expect(
 			parent,
@@ -88,7 +93,14 @@ for ( const block of nestedBlocks() ) {
 
 		await insertBlock( page, parent! );
 
-		await expect( canvas( page ).locator( `.bl-${ block.slug }` ).first() ).toBeVisible();
+		// A parent that starts empty offers starting layouts instead (a Form's templates): take
+		// the first, as a user would.
+		const child = canvas( page ).locator( `.bl-${ block.slug }` ).first();
+		const preset = canvas( page ).locator( '.bl-placeholder__card' ).filter( { hasNotText: 'Blank' } ).first();
+		await expect( child.or( preset ) ).toBeVisible();
+		if ( ! ( await child.isVisible() ) ) await preset.click();
+
+		await expect( child ).toBeVisible();
 		await expect( canvas( page ).locator( '.block-editor-warning' ) ).toHaveCount( 0 );
 
 		expect( watcher.errors ).toEqual( [] );

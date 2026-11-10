@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/loop",
+	"title": "Loop",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M15 3H19A2 2 0 0 1 21 5V9A2 2 0 0 1 19 11H15A2 2 0 0 1 13 9V5A2 2 0 0 1 15 3ZM15 9L19 9L19 5L15 5ZM5 13H9A2 2 0 0 1 11 15V19A2 2 0 0 1 9 21H5A2 2 0 0 1 3 19V15A2 2 0 0 1 5 13ZM5 19L9 19L9 15L5 15ZM15 13H19A2 2 0 0 1 21 15V19A2 2 0 0 1 19 21H15A2 2 0 0 1 13 19V15A2 2 0 0 1 15 13ZM15 19L19 19L19 15L15 15Z\" fill=\"currentColor\"/><path d=\"M5 3H9A2 2 0 0 1 11 5V9A2 2 0 0 1 9 11H5A2 2 0 0 1 3 9V5A2 2 0 0 1 5 3Z\" fill=\"#002bff\"/></svg>",
+	"description": "Repeat a card once for every item in a list: pasted JSON, a data endpoint or a WordPress query. Blocks inside it can show fields from each item.",
+	"keywords": [ "query", "repeater", "json", "api", "cards", "bento", "posts" ],
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"blicks": {
+			"controls": [ "layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "flexChild.*", "gridChild.*" ],
+			"states": [ "default", "hover", "reduced" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks": { "type": "object", "default": {} },
+		"source": { "type": "string", "enum": [ "json", "endpoint", "query" ], "default": "json" },
+		"data": { "type": "string", "default": "" },
+		"path": { "type": "string", "default": "" },
+		"endpoint": { "type": "string", "default": "" },
+		"query": { "type": "object", "default": { "postType": "post", "orderBy": "date", "order": "desc" } },
+		"limit": { "type": "number", "default": 6 },
+		"offset": { "type": "number", "default": 0 },
+		"sort": { "type": "object" },
+		"filter": { "type": "object" },
+		"layout": { "type": "string", "enum": [ "grid", "bento", "list" ], "default": "grid" },
+		"columns": { "type": "object", "default": { "desktop": 3, "tablet": 2, "phone": 1 } },
+		"bento": { "type": "object", "default": { "tiles": [ "2x2", "1x1", "1x1", "1x1", "1x1" ], "rowHeight": 180, "repeat": true } },
+		"gap": { "type": "string", "enum": [ "sm", "md", "lg" ], "default": "md" },
+		"equalHeights": { "type": "boolean", "default": true },
+		"rules": { "type": "array", "default": [] },
+		"emptyText": { "type": "string", "default": "" },
+		"itemInUrl": { "type": "boolean", "default": false },
+		"pagination": { "type": "object" }
+	},
+	"usesContext": [ "postId", "postType" ],
+	"render": "file:./render.php",
+	"editorScript": "blicks-editor",
+	"style": "file:./index.css"
+}

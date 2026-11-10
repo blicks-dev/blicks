@@ -30,7 +30,13 @@ const input = {
     index:   resolve('resources/index.js'),
     admin:   resolve('resources/admin.js'),
     runtime: resolve('resources/runtime/runtime.js'),
+    // Block interactions (follow / replay / toggle): enqueued only on pages whose blocks ask.
+    interactions: resolve('resources/runtime/interactions.ts'),
+    // Load more for paged Loops: enqueued only on pages with one (src/Data/Pager.php).
+    'loop-more': resolve('resources/runtime/loop-more.ts'),
     editor:  resolve('resources/editor.tsx'),
+    // The Studio: post editor only, after `editor` (it mounts the blocks that bundle registers).
+    studio:  resolve('resources/studio.tsx'),
     ...discoverBlockStyles(),
 };
 
@@ -73,6 +79,14 @@ export default defineConfig({
                         break;
                     }
                 }
+                for ( const [ key, asset ] of Object.entries( bundle ) ) {
+                    if ( asset.type === 'asset' && /^assets\/studio-[^/]+\.css$/.test( key ) ) {
+                        asset.fileName = 'studio.css';
+                        bundle[ 'studio.css' ] = asset;
+                        delete bundle[ key ];
+                        break;
+                    }
+                }
             },
         },
     ],
@@ -101,7 +115,7 @@ export default defineConfig({
                     if ( block ) return `blocks/${ block[ 1 ] }/index.css`;
                     if ( /resources\/runtime\//.test( src ) ) return 'runtime.css';
                     // Inspector control styles flow through the editor entry — route to build/editor.css.
-                    if ( srcs.some( s => /resources\/(controls|framework|theme-settings)\//.test( s ) ) ) return 'editor.css';
+                    if ( srcs.some( s => /resources\/(controls|framework)\//.test( s ) ) ) return 'editor.css';
                     if ( /(^|\/)admin(\.s?css)?$/.test( src ) ) return 'admin.css';
                     if ( /(^|\/)index(\.s?css)?$/.test( src ) ) return 'index.css';
                     return 'assets/[name]-[hash][extname]';

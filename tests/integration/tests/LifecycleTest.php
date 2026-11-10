@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Blicks\Tests\Integration;
 
 use Blicks\Plugin;
+use Blicks\Models\KitModel;
 use Blicks\Models\SettingModel;
 use WP_UnitTestCase;
 
@@ -24,6 +25,15 @@ final class LifecycleTest extends WP_UnitTestCase {
 		'blicks_settings_schema_version',
 	];
 
+	/**
+	 * SettingModel keeps what it read in a static, for the rest of the request. A test suite is
+	 * one long request, so without this a setting one test wrote is still "on" in the next.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+		( fn () => self::$runtimeCache = [] )->bindTo( null, SettingModel::class )();
+	}
+
 	public function test_activation_creates_the_settings_table(): void {
 		global $wpdb;
 
@@ -35,15 +45,38 @@ final class LifecycleTest extends WP_UnitTestCase {
 		$this->assertSame( $table, $exists, 'Activation did not create the settings table.' );
 	}
 
+	public function test_activation_creates_the_kits_table_and_uninstall_drops_it(): void {
+		global $wpdb;
+
+		Plugin::activate();
+		$table = KitModel::table();
+		$this->assertSame( $table, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ), 'Activation did not create the kits table.' );
+
+		SettingModel::setValue( 'admin.delete_data_on_uninstall', true );
+
+		// WP_UnitTestCase rewrites DROP TABLE into DROP TEMPORARY TABLE, which leaves the real
+		// table standing. Let this one drop reach MySQL, then put both tables back for the tests
+		// after it.
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+
+		try {
+			Plugin::uninstall();
+			$this->assertNull( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ), 'Uninstall left the kits table behind.' );
+		} finally {
+			Plugin::activate();
+		}
+	}
+
 	public function test_settings_round_trip_through_the_database(): void {
 		Plugin::activate();
 
-		SettingModel::setValue( 'admin.default_inspector_panel', 'advanced' );
+		SettingModel::setValue( 'design_system.theme_json_sync', true );
 
 		// Clear the object cache so the read comes from the database, not the write.
 		wp_cache_flush();
 
-		$this->assertSame( 'advanced', SettingModel::getValue( 'admin.default_inspector_panel' ) );
+		$this->assertTrue( SettingModel::getValue( 'design_system.theme_json_sync' ) );
 	}
 
 	/**

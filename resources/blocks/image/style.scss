@@ -26,6 +26,124 @@
 			font-size: 0.875rem;
 			text-align: center;
 		}
+
+		// A set width: the figure keeps the full column (a theme's layout owns its margins) and what
+		// it holds narrows and lines up inside it; phones get the full column unless told not to.
+		&.bl-image--w {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+
+			> img,
+			> a,
+			> .bl-image__frame,
+			> figcaption {
+				width: min(var(--bl-img-w), 100%);
+			}
+
+			> a {
+				display: block;
+			}
+
+			img {
+				width: 100%;
+			}
+		}
+
+		&.bl-image--start {
+			align-items: flex-start;
+		}
+
+		&.bl-image--end {
+			align-items: flex-end;
+		}
+
+		@media (width <= 600px) {
+			&.bl-image--w:not(.bl-image--keep-phone) {
+				> img,
+				> a,
+				> .bl-image__frame,
+				> figcaption {
+					width: 100%;
+				}
+			}
+		}
+
+		&.bl-image--cap-start figcaption {
+			text-align: start;
+		}
+
+		&.bl-image--cap-center figcaption {
+			text-align: center;
+		}
+
+		&.bl-image--cap-end figcaption {
+			text-align: end;
+		}
+
+		// The frame holds what sits over the picture: a shade, an overlaid caption, a hover zoom.
+		.bl-image__frame {
+			position: relative;
+			display: block;
+			overflow: hidden;
+			border-radius: inherit;
+
+			img {
+				transition: transform 0.4s ease, filter 0.4s ease;
+			}
+		}
+
+		&.bl-image--dim .bl-image__frame::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: rgb(0 0 0 / var(--bl-img-dim, 40%));
+			pointer-events: none;
+		}
+
+		&.bl-image--cap-over figcaption {
+			position: absolute;
+			z-index: 1;
+			inset: auto 0 0;
+			margin: 0;
+			padding: 2.5rem 1rem 0.875rem;
+			color: #fff;
+			background: linear-gradient(rgb(0 0 0 / 0%), rgb(0 0 0 / 62%));
+		}
+
+		&.bl-image--hover-zoom .bl-image__frame:hover img {
+			transform: scale(1.08);
+		}
+
+		&.bl-image--hover-brighten .bl-image__frame:hover img {
+			filter: brightness(1.1);
+		}
+
+		// "Show colour" lifts the duotone and adjustments on hover.
+		&.bl-image--hover-colour .bl-image__frame:hover img {
+			filter: none !important;
+		}
+
+		&.bl-image--hover-lift .bl-image__frame {
+			transition: transform 0.4s ease, box-shadow 0.4s ease;
+
+			&:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 14px 28px -12px rgb(0 0 0 / 35%);
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.bl-image__frame,
+			.bl-image__frame img {
+				transition: none;
+			}
+
+			&.bl-image--hover-zoom .bl-image__frame:hover img,
+			&.bl-image--hover-lift .bl-image__frame:hover {
+				transform: none;
+			}
+		}
 	}
 }
 
@@ -56,5 +174,14 @@
 
 	.components-placeholder__instructions {
 		color: #757575;
+	}
+}
+
+@layer blicks.base {
+	// Inline form, inside a Button: sits in the button's row like an icon would.
+	.bl-image--inline {
+		display: inline-block;
+		flex: 0 0 auto;
+		vertical-align: middle;
 	}
 }

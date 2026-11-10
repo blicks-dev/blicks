@@ -1,112 +1,130 @@
 ---
 title: "Customize the Design System"
-description: "Override Blicks tokens and type roles, save named themes, author keyframe animations, and sync back to theme.json."
+description: "Pick a design language and a palette, change any token with your site previewed live, save kits, add tokens and animations, and sync with Global Styles."
 ---
 
-Blicks reads its default token values from the active theme's `theme.json` and user Global Styles.
-You can override those values site-wide from the Blicks admin page or the editor Theme Settings
-sidebar.
+Every Blicks block draws from one set of design tokens. Blicks keeps its own catalogue of them,
+and their values resolve through your active theme's `theme.json` presets where the theme defines
+them. **Blicks ▸ Design System** is where you make them yours.
 
-## Where to edit
+<Frame caption="Blicks ▸ Design System, with the live preview of your site on the right.">
+	<img src="/images/admin/1-look-and-feel-2-color.png" alt="The Colors page of the Design System screen, with built-in palettes and a live site preview" />
+</Frame>
 
-### Blicks → Design System
+## The screen
 
-The full management surface. Sections, in order:
+The sidebar groups every token by what it is for:
 
-**Themes** · **Color** · **Typography** · **Spacing** · **Radius** · **Shadow** · **Gradient** ·
-**Motion** · **Animation** · **Z-index** · **Opacity** · **Border** · **Focus ring** · **Sizing** ·
-**Line-height** · **Breakpoints**
+| Group | Pages |
+|---|---|
+| **Look and feel** | Design language, Colors, Typography |
+| **Layout** | Spacing, Widths and shapes, Screen sizes |
+| **Surfaces** | Corners, Shadows, Borders, Buttons, Gradients |
+| **Motion** | Transitions, Hover effects, Animations |
+| **Advanced** | Transparency, Stacking, Line spacing, Where it's saved |
 
-Use it to see where each value comes from, edit any token, add your own tokens, manage type roles
-and keyframe animations, and save the whole set as a named theme.
+**Your site, live** on the right redraws a sample page as you change values. Point at a token to
+see where it is used. **Find a token** searches by name or by what it is for, such as "button" or
+"card".
 
-### Editor → Theme Settings sidebar
+Changes wait until you choose **Save** at the top, or **Discard**.
 
-A quick-access panel for the same token set. Draft values are pinned to `:root` so changes preview
-live on the canvas before you save, then apply site-wide once saved.
+## Design language
 
-Both surfaces speak the same `blicks/v1/design-system` REST contract, so they can never drift.
+<Frame caption="Design language, with Kits.">
+	<img src="/images/admin/1-look-and-feel-1-look.png" alt="The Design language page with Kits below it" />
+</Frame>
 
-## Token categories you can override
+A **design language** sets how your site is drawn — corners, depth, borders, headings and surfaces —
+as one choice: Minimalism, Flat design, Skeuomorphism, Glassmorphism, Liquid Glass, Neumorphism,
+Claymorphism, Neo-brutalism, Bento grid or Retro Y2K. Point at one to try it on the live preview.
 
-| Category | Slugs | Stored in `theme.json` |
-|---|---|---|
-| Color | `background`, `foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`, `card`, `card-foreground`, `popover`, `popover-foreground` | `settings.color.palette` |
-| Font family | `sans`, `serif`, `mono` | `settings.typography.fontFamilies` |
-| Font size | `xs`, `sm`, `base`, `lg`, `xl`, `2xl`, `3xl`, `4xl` | `settings.typography.fontSizes` |
-| Spacing | `0`, `px`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl` | `settings.spacing.spacingSizes` |
-| Radius | `none`, `sm`, `md`, `lg`, `xl`, `full` | `settings.border.radiusSizes` |
-| Shadow | `none`, `sm`, `md`, `lg`, `xl` | `settings.shadow.presets` |
-| Gradient | `brand`, `paper`, `atomic` | `settings.color.gradients` |
-| Transition | `fast`, `base`, `slow` | `settings.custom.blicks.transition` |
-| Transform | `lift`, `press`, `zoom` | `settings.custom.blicks.transform` |
-| Filter | `blur`, `dim`, `grayscale` | `settings.custom.blicks.filter` |
-| Z-index | `base`, `sticky`, `drawer`, `popover`, `drag`, `toast` | `settings.custom.blicks.zIndex` |
-| Opacity | `disabled`, `muted`, `scrim`, `hover` | `settings.custom.blicks.opacity` |
-| Border width | `hair`, `strong`, `heavy` | `settings.custom.blicks.borderWidth` |
-| Border style | `solid`, `dashed`, `dotted` | `settings.custom.blicks.borderStyle` |
-| Focus ring | `brand`, `subtle`, `danger` | `settings.custom.blicks.ring` |
-| Width | `prose`, `content`, `wide`, `full` | `settings.custom.blicks.width` |
-| Aspect | `square`, `wide`, `portrait` | `settings.custom.blicks.aspect` |
-| Line height | `tight`, `snug`, `body`, `loose` | `settings.custom.blicks.leading` |
-| Content | `size` | `settings.layout.contentSize` |
-| Button | `radius`, `height`, `padding-x`, `padding-y`, `font-size`, `font-weight`, `border-width` | `settings.custom.blicks.button` |
-| Breakpoints | `tablet`, `mobile` | `settings.custom.blicks.breakpoints` |
+Choosing a language changes shared values only, so every page restyles at once and nothing is
+re-saved. A color or shape set by hand on a block stays as it was. Your colors are separate, so any
+language works with any palette.
 
-The canonical slug list ships in the plugin at `resources/design-system/tokens.json`; PHP reads the
-same catalogue, so server and client always agree on which slugs exist.
+## Colors and palettes
+
+Start from a palette, then tune any color. Built-in palettes are **Blicks Indigo**, **Emerald
+Citrus**, **Rose Ember**, **Violet Bloom** and **Slate Sky**. Using one repaints your brand colors;
+your design language stays.
+
+Every surface color comes paired with the text color that sits on it, and each pair shows whether
+people can read it. **Save these colors as a palette** keeps your own set beside the built-in ones.
+
+## Kits
+
+A **kit** is a design language, a palette and your own values, saved together. **Save what you have
+now as a kit** to come back to it in one click.
+
+## Typography and type roles
+
+Beyond the font-size scale, Blicks has **type roles** — Display, Heading 1 to 6, Body, Lead, Small,
+Caption, Code and Eyebrow / mono. A role bundles a complete look: size, weight, line height, letter
+spacing, font and letter case. Edit them under **Typography**. See
+[Type roles](/reference/design-system/type-roles).
 
 ## Add your own tokens
 
-Any category accepts custom slugs. Use **Add token**, name it, and give it a value — Blicks
-generates the slug, stores it in the `blicks_design_custom_slugs` option, and the new token appears
-as a pickable value in every block control that consumes that category.
+Colors, spacing, corners, shadows, gradients, transitions, layers, transparency, border widths,
+widths and line spacing accept tokens of your own. Add one, name it, give it a value, and it shows up
+as a choice in every block control that uses that kind of value.
 
-## Type roles
+## Animations
 
-Beyond the flat font-size scale, Blicks defines **semantic typography roles** — `display`, `h1`–`h6`,
-`body`, `lead`, `small`, `caption`, `code`, and `mono`. A role bundles a complete look: size,
-weight, line height, letter spacing, family, and text transform.
+<Frame caption="Motion ▸ Animations.">
+	<img src="/images/admin/4-motion-3-anim.png" alt="The Animations page of the Design System screen" />
+</Frame>
 
-Edit them under **Typography**. Roles that map onto a native `theme.json` element slot (`h1`–`h6`,
-`body`, `caption`) are read from and written back to the theme's own `styles` tree; the rest are
-stored under `settings.custom.blicks.typeRoles`. See
-[Type Roles](/reference/design-system/type-roles) for the full model.
+**Motion ▸ Animations** is a small keyframe editor: **New animation**, a name, a length, a speed
+curve, and steps with the properties each one sets. An animation saves as soon as you add it — it
+does not wait for the Save button — and becomes selectable for any block's motion.
 
-## Named design themes
+## Screen sizes
 
-Save the current token set as a **named theme**, switch between saved themes, or reset back to the
-active WordPress theme's values. Themes are stored in the `blicks_design_themes` option — switching
-one applies its whole token set at once.
-
-## Keyframe animations
-
-The **Animation** section is a small keyframe authoring surface. Animations you define are stored in
-`blicks_design_animations` and become selectable in each block's animation control alongside the
-built-in motion tokens, so a custom entrance can be reused across the site.
+**Layout ▸ Screen sizes** sets where the layout switches to tablet and phone: 782px and 600px by
+default. Phone must be narrower than tablet. See [Responsive patterns](/guides/responsive-patterns).
 
 ## Global Styles sync
 
-When **Global Styles sync** is enabled in **Blicks → Settings**, newly saved tokens are also written
-to the user Global Styles entity / `theme.json`, and the Blicks override migrates forward so
-WordPress owns the value natively. If your active theme has no `theme.json` support the toggle is
-disabled, and overrides stay in the `blicks_design_system` option.
+With **Sync with Global Styles** on in **Blicks ▸ Settings**, a save also writes these values into
+the Site Editor's Global Styles, so WordPress holds them natively. It is off by default, and
+unavailable when the active theme has no `theme.json`.
 
-## Breakpoints
+**Advanced ▸ Where it's saved** shows where your values live.
 
-Breakpoints do not emit CSS variables. They set the max-width thresholds used by the responsive
-controls and the runtime style engine. Defaults:
+## Token categories
 
-- `tablet`: 782px
-- `mobile`: 600px
+| Category | Slugs |
+|---|---|
+| Color | `background`, `foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`, `card`, `card-foreground`, `popover`, `popover-foreground` |
+| Spacing | `0`, `px`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl` |
+| Font size | `xs`, `sm`, `base`, `lg`, `xl`, `2xl`, `3xl`, `4xl` |
+| Font family | `sans`, `serif`, `mono` |
+| Radius | `none`, `sm`, `md`, `lg`, `xl`, `full` |
+| Shadow | `none`, `sm`, `md`, `lg`, `xl` |
+| Gradient | `brand`, `paper`, `atomic`, `backdrop` |
+| Transition | `fast`, `base`, `slow` |
+| Transform | `lift`, `press`, `zoom` |
+| Filter | `blur`, `dim`, `grayscale` |
+| Z-index | `base`, `sticky`, `drawer`, `popover`, `drag`, `toast` |
+| Opacity | `disabled`, `muted`, `scrim`, `hover` |
+| Border width | `hair`, `strong`, `heavy` |
+| Width | `prose`, `content`, `wide`, `full` |
+| Aspect | `square`, `wide`, `portrait` |
+| Line height | `tight`, `snug`, `body`, `loose` |
+| Content | `size` |
+| Button | `radius`, `height`, `padding-x`, `padding-y`, `font-size`, `font-weight`, `border-width` |
 
-Override them in either token editor.
+The catalogue ships in the plugin at `resources/design-system/tokens.json`, and PHP reads the same
+file, so the editor and the server agree on which slugs exist. See
+[Global tokens](/reference/design-system/global-tokens) for how each one maps to CSS.
 
 ## Next steps
 
 <CardGroup cols={2}>
 	<Card title="Global tokens" icon="palette" href="/reference/design-system/global-tokens">
-		The full token model and CSS variable tiers.
+		The token model and the CSS variables.
 	</Card>
 	<Card title="Type roles" icon="a-large-small" href="/reference/design-system/type-roles">
 		Semantic typography roles and where they are stored.

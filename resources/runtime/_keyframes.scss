@@ -11,18 +11,26 @@
 //
 // `Animations::builtins()` mirrors this list and a unit test asserts the names stay in step —
 // `bl-marquee` is consumed directly by the Marquee block's stylesheet, so a drift breaks a block.
+// They move with the individual `rotate` / `translate` / `scale` properties, never `transform`: an
+// animation owns every property it names for as long as it runs, so a `transform` keyframe threw
+// away the block's own transform (a centring translate(-50%, -50%), a tilt) while it spun.
 @media (prefers-reduced-motion: no-preference) {
-	@keyframes bl-spin   { to { transform: rotate(1turn); } }
+	@keyframes bl-spin   { to { rotate: 1turn; } }
 
-	@keyframes bl-float  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+	@keyframes bl-float  { 0%, 100% { translate: 0 0; } 50% { translate: 0 -12px; } }
 
-	@keyframes bl-ping   { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2); } }
+	@keyframes bl-ping   { 0% { opacity: 1; scale: 1; } 100% { opacity: 0; scale: 2; } }
 
-	@keyframes bl-rise   { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+	@keyframes bl-rise   { from { opacity: 0; translate: 0 24px; } to { opacity: 1; translate: 0 0; } }
 
 	@keyframes bl-pan    { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 
-	@keyframes bl-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+	@keyframes bl-marquee { from { translate: 0 0; } to { translate: -50% 0; } }
 
 	@keyframes bl-fill   { from { --bl-p: 0; } to { --bl-p: var(--bl-p-target, 1); } }
+
+	// Entrances — played once as the element scrolls into view (a `view()` timeline).
+	@keyframes bl-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+	@keyframes bl-zoom-in { from { opacity: 0; scale: 0.94; } to { opacity: 1; scale: 1; } }
 }

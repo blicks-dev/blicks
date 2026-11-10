@@ -1,18 +1,24 @@
-import { __ } from '@wordpress/i18n';
-import { createRoot, useCallback, useEffect, useState, useSyncExternalStore } from '@wordpress/element';
+import { _n, sprintf } from '@wordpress/i18n';
+import { createRoot, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from '@wordpress/element';
 import { AdminHeader } from './components/AdminHeader';
 import { CommandPalette } from './components/CommandPalette';
 import { OverviewPanel } from './components/OverviewPanel';
 import { DesignSystemPanel } from './components/DesignSystemPanel';
+import { DesignActions, SettingsActions } from './components/PageActions';
 import { SettingsPanel } from './components/SettingsPanel';
+import { McpPanel } from './components/McpPanel';
+import { EntriesView } from './components/EntriesView';
+import { ExternalPanel } from './components/ExternalPanel';
+import { ToastProvider, useToast } from './components/Toast';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useDesignSystem } from './hooks/useDesignSystem';
 import { useAdminSettings } from './hooks/useAdminSettings';
+import { useAnimations } from './hooks/useAnimations';
 import { useDashboard } from './hooks/useDashboard';
 import { useDiagnostics } from './hooks/useDiagnostics';
-import { ExternalPanel } from './components/ExternalPanel';
-import { bootstrap } from './bootstrap';
 import { BUILTIN_VIEWS } from './constants';
+import { designChanges } from './design-model';
+import { setDesignSection } from './routing';
 import { exposeRegistry, getRegisteredView, getRegisteredViews, subscribeToViews } from './registry';
 import type { AdminView } from './types';
 
@@ -20,14 +26,26 @@ function App(): JSX.Element {
 	const { activeView, changeView } = useHashRoute();
 	const ds = useDesignSystem();
 	const settings = useAdminSettings();
+	const animations = useAnimations();
 	const dashboard = useDashboard();
 	const diagnostics = useDiagnostics();
+	const toast = useToast();
 	const [ paletteOpen, setPaletteOpen ] = useState( false );
 
 	// Companion plugins register their components from their own bundles, which load after this
 	// one. Subscribing — rather than reading once — is what makes a late registration appear
 	// instead of leaving the user on a permanently empty panel.
 	useSyncExternalStore( subscribeToViews, getRegisteredViews );
+
+	// Saves, applies and failures arrive as notices; each one is announced once, as a toast.
+	const { notice } = ds;
+	const { settingsNotice } = settings;
+	useEffect( () => {
+		if ( notice.text ) toast( notice.text );
+	}, [ notice, toast ] );
+	useEffect( () => {
+		if ( settingsNotice.text ) toast( settingsNotice.text );
+	}, [ settingsNotice, toast ] );
 
 	// ⌘K / Ctrl-K anywhere in the page opens the palette.
 	useEffect( () => {
@@ -41,123 +59,117 @@ function App(): JSX.Element {
 		return () => window.removeEventListener( 'keydown', onKeyDown );
 	}, [] );
 
-	// Jump to a section of the Design System view — switch views first, then let the panel's
-	// own hash handling scroll to the anchor once it has mounted.
+	// Leaving with unsaved work asks first, the way the block editor does.
+	const hasUnsaved = ds.isDirty || settings.settingsDirty;
+	useEffect( () => {
+		if ( ! hasUnsaved ) return;
+		const onBeforeUnload = ( event: BeforeUnloadEvent ): void => {
+			event.preventDefault();
+		};
+		window.addEventListener( 'beforeunload', onBeforeUnload );
+		return () => window.removeEventListener( 'beforeunload', onBeforeUnload );
+	}, [ hasUnsaved ] );
+
 	const openDesignSection = useCallback( ( section: string ): void => {
-		window.location.hash = `design/${ section }`;
 		changeView( 'design' );
-		window.requestAnimationFrame( () => {
-			document.getElementById( `s-${ section }` )?.scrollIntoView( { block: 'start' } );
-		} );
+		setDesignSection( section );
 	}, [ changeView ] );
 
 	const navigate = useCallback( ( view: AdminView ): void => changeView( view ), [ changeView ] );
 
-	const systemState = activeView === 'design'
-		? ds.snapshot.source.themeJson
-			? { label: __( 'theme.json in sync', 'blicks' ), tone: 'ok' as const }
-			: { label: __( 'theme.json fallback', 'blicks' ), tone: 'warn' as const }
-		: ds.apiStatus === 'ready' && dashboard.dashboardStatus === 'ready'
-			? { label: __( 'All systems live', 'blicks' ), tone: 'ok' as const }
-			: ds.apiStatus === 'loading' || dashboard.dashboardStatus === 'loading'
-				? { label: __( 'Checking systems', 'blicks' ), tone: 'ok' as const }
-				: { label: __( 'Running on fallback data', 'blicks' ), tone: 'warn' as const };
-
-	// The mockups scope their page CSS per file; here all four views share one document,
-	// so the active view's class is what keeps `.panel`/`.toolbar`/`.head` from colliding.
-	const viewClass = ( {
-		overview: 'v-overview',
-		design: 'v-design',
-		settings: 'v-settings',
-	} as Record< string, string > )[ activeView ] ?? 'v-external';
+	const changes = useMemo(
+		() => designChanges( ds.snapshot, { tokens: ds.tokenDraft, breakpoints: ds.breakpointDraft, typeRoles: ds.typeRoleDraft } ),
+		[ ds.snapshot, ds.tokenDraft, ds.breakpointDraft, ds.typeRoleDraft ]
+	);
 
 	const isBuiltin = ( BUILTIN_VIEWS as readonly string[] ).includes( activeView );
 
-	return (
-		<div className="blicks-admin">
-			<div className={ `wrap ${ viewClass }` }>
-				<AdminHeader
-					activeView={ activeView }
-					systemState={ systemState }
-					onViewChange={ changeView }
-					onOpenPalette={ () => setPaletteOpen( true ) }
-				/>
+	let actions: React.ReactNode = null;
+	if ( activeView === 'design' ) {
+		actions = <DesignActions ds={ ds } changes={ changes } />;
+	} else if ( activeView === 'settings' ) {
+		actions = (
+			<SettingsActions
+				count={ settings.settingsDirtyCount }
+				isSaving={ settings.isSettingsSaving }
+				onDiscard={ () => {
+					const before = settings.adminSettingsDraft;
+					settings.resetSettingsDraft();
+					toast(
+						sprintf(
+							/* translators: %d: number of settings changed. */
+							_n( '%d change discarded', '%d changes discarded', settings.settingsDirtyCount, 'blicks' ),
+							settings.settingsDirtyCount
+						),
+						() => settings.setAdminSettingsDraft( before )
+					);
+				} }
+				onSave={ () => void settings.saveAdminSettings() }
+			/>
+		);
+	}
 
-				<CommandPalette
-					open={ paletteOpen }
+	return (
+		<div className="bx-shell">
+			<AdminHeader
+				activeView={ activeView }
+				dirty={ { design: changes.length > 0, settings: settings.settingsDirty } }
+				actions={ actions }
+				onViewChange={ changeView }
+				onOpenPalette={ () => setPaletteOpen( true ) }
+			/>
+
+			{ activeView === 'overview' && (
+				<OverviewPanel
 					snapshot={ ds.snapshot }
-					onClose={ () => setPaletteOpen( false ) }
-					onNavigate={ navigate }
+					apiStatus={ ds.apiStatus }
+					themes={ ds.themes }
+					unsaved={ changes.length }
+					dashboardSummary={ dashboard.dashboardSummary }
+					dashboardStatus={ dashboard.dashboardStatus }
+					diagnostics={ diagnostics.result }
+					diagnosticsRunning={ diagnostics.isRunning }
+					diagnosticsError={ diagnostics.error }
+					onRunDiagnostics={ () => void diagnostics.run() }
+					onViewChange={ changeView }
 					onOpenDesignSection={ openDesignSection }
 				/>
+			) }
 
-				{ activeView === 'design' && ds.notice && <div className="notice-card" role="status">{ ds.notice }</div> }
+			{ activeView === 'design' && (
+				<DesignSystemPanel ds={ ds } changes={ changes } animations={ animations } themeJsonSync={ settings.adminSettings.designSystem.themeJsonSync } onViewChange={ changeView } />
+			) }
 
-				{ activeView === 'overview' && (
-					<OverviewPanel
-						snapshot={ ds.snapshot }
-						apiStatus={ ds.apiStatus }
-						adminSettings={ settings.adminSettings }
-						dashboardSummary={ dashboard.dashboardSummary }
-						dashboardStatus={ dashboard.dashboardStatus }
-						diagnostics={ diagnostics.result }
-						diagnosticsRunning={ diagnostics.isRunning }
-						diagnosticsError={ diagnostics.error }
-						onRunDiagnostics={ () => void diagnostics.run() }
-						onViewChange={ changeView }
-						onOpenDesignSection={ openDesignSection }
-					/>
-				) }
+			{ activeView === 'settings' && (
+				<SettingsPanel
+					settings={ settings.adminSettingsDraft }
+					saved={ settings.adminSettings }
+					isSaving={ settings.isSettingsSaving }
+					ownThemes={ ds.themes.themes.filter( theme => ! theme.builtin ).length }
+					customAnimations={ animations.animations.length }
+					onChange={ next => settings.setAdminSettingsDraft( next ) }
+				/>
+			) }
 
-				{ activeView === 'design' && (
-					<DesignSystemPanel
-						snapshot={ ds.snapshot }
-						apiStatus={ ds.apiStatus }
-						tokenDraft={ ds.tokenDraft }
-						breakpointDraft={ ds.breakpointDraft }
-						typeRoleDraft={ ds.typeRoleDraft }
-						colorTokens={ ds.colorTokens }
-						themes={ ds.themes }
-						isSaving={ ds.isSaving }
-						isDirty={ ds.isDirty }
-						onTokenChange={ ds.updateTokenDraft }
-						onTokenReset={ ds.resetTokenDraft }
-						onBreakpointChange={ ds.updateBreakpointDraft }
-						onBreakpointReset={ ds.resetBreakpointDraft }
-						onTypeRoleChange={ ds.updateTypeRoleDraft }
-						onTypeRoleReset={ ds.resetTypeRoleDraft }
-						onReset={ ds.resetDraft }
-						onSave={ ds.saveOverrides }
-						onApplyTheme={ ds.applyTheme }
-						onCreateTheme={ ds.createThemeFromCurrent }
-						onDeleteTheme={ ds.deleteTheme }
-						onResetTheme={ ds.resetTheme }
-						onGroupReset={ ds.resetGroup }
-					/>
-				) }
+			{ activeView === 'mcp' && <McpPanel /> }
 
+			{ activeView === 'entries' && <EntriesView /> }
 
-				{ activeView === 'settings' && settings.settingsNotice && <div className="notice-card" role="status">{ settings.settingsNotice }</div> }
+			{ ! isBuiltin && (
+				<div className="page ext">
+					<div className="page-in">
+						<ExternalPanel view={ activeView } registered={ getRegisteredView( activeView ) } navigate={ navigate } />
+					</div>
+				</div>
+			) }
 
-				{ activeView === 'settings' && (
-					<SettingsPanel
-						settings={ settings.adminSettingsDraft }
-						isDirty={ settings.settingsDirty }
-						isSaving={ settings.isSettingsSaving }
-						dirtyCount={ settings.settingsDirtyCount }
-						onChange={ next => settings.setAdminSettingsDraft( next ) }
-						onReset={ settings.resetSettingsDraft }
-						onSave={ settings.saveAdminSettings }
-					/>
-				) }
-				{ ! isBuiltin && (
-					<ExternalPanel
-						view={ activeView }
-						registered={ getRegisteredView( activeView ) }
-						navigate={ navigate }
-					/>
-				) }
-			</div>
+			<CommandPalette
+				open={ paletteOpen }
+				snapshot={ ds.snapshot }
+				onClose={ () => setPaletteOpen( false ) }
+				onNavigate={ navigate }
+				onOpenDesignSection={ openDesignSection }
+			/>
 		</div>
 	);
 }
@@ -176,7 +188,13 @@ function mount(): void {
 	const root = document.getElementById( 'blicks-admin-root' );
 
 	if ( root ) {
-		createRoot( root ).render( <App /> );
+		createRoot( root ).render(
+			<div className="blicks-admin">
+				<ToastProvider>
+					<App />
+				</ToastProvider>
+			</div>
+		);
 	}
 }
 

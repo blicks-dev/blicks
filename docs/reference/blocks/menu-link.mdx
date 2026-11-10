@@ -1,0 +1,83 @@
+---
+title: "Menu link"
+description: "A link for menus and link columns: a label with an optional line of description, an icon and a badge."
+---
+
+<Info>
+Generated from `resources/blocks/menu-link/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/menu-link` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, hover, focus, active, reduced` |
+
+## Blicks controls
+
+`spacing.*` · `border.*` · `effects.*` · `colors.*` · `background.*` · `typography.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `layout.gapColumn` · `layout.alignItems` · `flexChild.*` · `gridChild.*` · `animation.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `badge` | `string` | `""` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `description` | `string` | `""` |
+| `icon` | `string` | `""` |
+| `label` | `string` | `""` |
+| `linkTarget` | `string` | `""` |
+| `rel` | `string` | `""` |
+| `uniqueId` | `string` | — |
+| `url` | `string` | `""` |
+
+## Help
+
+## Description
+
+Menu link is one link for a menu or a column of links: a label, an optional line of description under it, an optional icon before it and a badge such as "New" after it. The whole row is the link, so it is easy to hit on a phone. Use it in mega menu panels, footer columns and sidebars.
+
+## Controls
+
+### label
+
+The link's text. Type it on the canvas.
+
+### description
+
+A short line under the label. Leave it empty for a plain link.
+
+### url
+
+Where the link goes.
+
+### linkTarget
+
+Opens the link in a new tab.
+
+### icon
+
+An optional icon before the label.
+
+### badge
+
+A short tag after the label, such as "New" or "Beta".
+
+## Tips
+
+- Keep descriptions to one short line; a phone menu may hide them.
+- Put Menu links in a Box arranged as a stack, with a Heading over them, to make a column of links.

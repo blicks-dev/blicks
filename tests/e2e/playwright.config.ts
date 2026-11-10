@@ -20,6 +20,9 @@ for ( const required of [ 'build/block-library.js', 'vendor/autoload.php' ] ) {
 // A dedicated port so a hand-started Playground instance cannot silently serve the suite.
 const PORT = 9401;
 
+// Specs that run on their own, after the parallel ones (see the projects below).
+const SERIAL = /(form|loop|loop-sources)\.spec\.ts$/;
+
 export default defineConfig( {
 	testDir: './specs',
 	globalSetup: './global-setup.ts',
@@ -40,7 +43,37 @@ export default defineConfig( {
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure',
 	},
-	projects: [ { name: 'chromium', use: { ...devices[ 'Desktop Chrome' ] } } ],
+	projects: [
+		{ name: 'chromium', testIgnore: SERIAL, use: { ...devices[ 'Desktop Chrome' ] } },
+		// Safari has neither invoker commands nor `closedby` yet, so the dialog specs there run the
+		// dialog behaviour's polyfills. The form specs run here too (below): the form plan ships the
+		// front end only once validation, the error summary's focus and the send work in WebKit as
+		// well. Desktop WebKit, not iOS: no real touch scrolling or notch.
+		{
+			name: 'webkit',
+			testMatch: /dialog\.spec\.ts$/,
+			use: { ...devices[ 'Desktop Safari' ] },
+		},
+		/*
+		 * The form and Loop specs, one at a time, after everything else. They publish pages, send
+		 * forms and wait on real timers against the one WordPress the suite shares; next to another
+		 * worker they ran past their timeouts, and alone they pass.
+		 */
+		{
+			name: 'chromium-serial',
+			testMatch: SERIAL,
+			workers: 1,
+			dependencies: [ 'chromium', 'webkit' ],
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+		{
+			name: 'webkit-serial',
+			testMatch: /form\.spec\.ts$/,
+			workers: 1,
+			dependencies: [ 'chromium-serial' ],
+			use: { ...devices[ 'Desktop Safari' ] },
+		},
+	],
 	webServer: {
 		// Real WordPress on PHP-WASM — no Docker, no MySQL. The mount points WordPress at the
 		// working tree, so the suite tests the plugin as it is right now, not a built artifact.
@@ -49,6 +82,8 @@ export default defineConfig( {
 			`--port ${ PORT }`,
 			'--blueprint ./blueprint.json',
 			`--mount ${ REPO_ROOT }:/wordpress/wp-content/plugins/blicks`,
+			// Test-only must-use plugins, e.g. the Loop specs' fake data endpoint.
+			`--mount ${ resolve( HERE, 'mu-plugins' ) }:/wordpress/wp-content/mu-plugins`,
 		].join( ' ' ),
 		// Readiness is probed against a STATIC file on purpose. Every PHP route — `/`,
 		// `/wp-login.php`, `/wp-admin/` — answers a cookie-less client with a 302 to itself, so a

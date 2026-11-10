@@ -295,7 +295,7 @@ final class Overrides {
 
 	/**
 	 * Per-category value guards for the numeric custom groups. Other categories (CSS-string customs
-	 * like ring/borderStyle/gradient, presets) accept any sanitized value — same as the existing
+	 * like gradient, presets) accept any sanitized value — same as the existing
 	 * transition/transform/filter customs.
 	 */
 	private static function isValidTokenValue( string $category, string $value ): bool {

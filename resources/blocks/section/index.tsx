@@ -2,7 +2,9 @@ import { createBlock } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
-import { SectionControls, cleanSectionDimension, cleanSectionSpace, cleanSectionSurface } from './controls';
+import { SectionMotion, SectionSettings, SectionStyle, SectionToolbar } from './controls';
+import { cleanSectionDimension, cleanSectionSpace, cleanSectionSurface, describeSection } from './model';
+import { copyStack, heroStack } from './presets';
 
 const sectionGlyph = (
 	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -11,9 +13,9 @@ const sectionGlyph = (
 	</svg>
 );
 
-/** A vertical content stack — the canonical inner block for a Section. */
-function stack( attrs: Record< string, unknown >, inner: any[] = [] ) {
-	return createBlock( 'blicks/stack', { orientation: 'vertical', gap: 'md', ...attrs }, inner );
+/** A Box that stacks its blocks — the canonical inner block for a Section. */
+function box( blicks: Record< string, any >, inner: any[] = [] ) {
+	return createBlock( 'blicks/box', { blicks }, inner );
 }
 
 function dimensionStyle( attributes: any ) {
@@ -28,6 +30,7 @@ function dimensionStyle( attributes: any ) {
 
 defineBlock( metadata, {
 	dynamic: true,
+	Toolbar: SectionToolbar,
 	innerBlocks: {
 		templateLock: false,
 		wrapperClassName: 'bl-section__inner',
@@ -42,7 +45,7 @@ defineBlock( metadata, {
 				label: __( 'Heading + copy', 'blicks' ),
 				skeleton: { align: 'start', rows: [ 'title', 'text', 'text-sm' ] },
 				create: () => [
-					stack( {}, [
+					box( copyStack(), [
 						createBlock( 'blicks/heading', { level: 2, content: __( 'Section heading', 'blicks' ) } ),
 						createBlock( 'blicks/text', { content: __( 'Describe this section in a sentence or two.', 'blicks' ) } ),
 					] ),
@@ -52,7 +55,7 @@ defineBlock( metadata, {
 				label: __( 'Centered hero', 'blicks' ),
 				skeleton: { align: 'center', rows: [ 'title', 'text', 'buttons' ] },
 				create: () => [
-					stack( { align: 'center', justify: 'center' }, [
+					box( heroStack(), [
 						createBlock( 'blicks/heading', { level: 1, content: __( 'Build something great', 'blicks' ) } ),
 						createBlock( 'blicks/text', { content: __( 'A short, punchy subheading that explains the value in one line.', 'blicks' ) } ),
 						createBlock( 'blicks/buttons', { justify: 'center' }, [
@@ -64,7 +67,12 @@ defineBlock( metadata, {
 			},
 		],
 	},
-	Controls: SectionControls,
+	panels: {
+		Settings: SectionSettings,
+		Style: SectionStyle,
+		Motion: SectionMotion,
+		describe: describeSection,
+	},
 	render( { attributes, blockProps, innerBlocksProps } ) {
 		const className = [
 			blockProps.className,

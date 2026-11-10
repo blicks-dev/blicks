@@ -214,7 +214,7 @@ export function AnimationControl( { attributes, setAttributes, state, breakpoint
 
 	const clearAll = () => {
 		const blicks = { ...( attributes.blicks ?? {} ) };
-		for ( const id of [ 'animation.name', 'animation.duration', 'animation.easing', 'animation.iteration', 'animation.direction', 'animation.fillMode', 'animation.delay', 'animation.timeline', 'animation.range', 'animation.target', 'animation.targetAngle' ] ) {
+		for ( const id of [ 'animation.name', 'animation.duration', 'animation.easing', 'animation.iteration', 'animation.direction', 'animation.fillMode', 'animation.delay', 'animation.timeline', 'animation.range', 'animation.target' ] ) {
 			delete blicks[ id ];
 		}
 		setAttributes( { blicks } );

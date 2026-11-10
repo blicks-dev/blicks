@@ -13,12 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Core\BlockSupport;
+use Blicks\Core\BoxLink;
 use Blicks\DesignSystem\Catalogue;
 use Blicks\DesignSystem\ThemeProjection;
 use Blicks\DesignSystem\Animations;
 use Blicks\Settings\AdminSettings;
 use Blicks\Core\ServiceProvider;
 use Blicks\Core\Attributes\Action;
+use Blicks\Core\Attributes\Filter;
 use Blicks\Core\Plugin as BasePlugin;
 
 /**
@@ -60,9 +63,7 @@ final class BlockServiceProvider extends ServiceProvider {
 		// The editor bundle holds the overwhelming majority of this plugin's translatable
 		// strings (block titles, inspector labels, control help). Without this call none of
 		// them can be translated, no matter what is in the .po file.
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'blicks-editor', 'blicks', BasePlugin::path( 'languages' ) );
-		}
+		wp_set_script_translations( 'blicks-editor', 'blicks', BasePlugin::path( 'languages' ) );
 
 		// Computed once and reused by both colorPalette() and tokenCatalogue() below — both derive
 		// from the same Catalogue::snapshot(), so this avoids running the theme projection twice.
@@ -102,6 +103,12 @@ final class BlockServiceProvider extends ServiceProvider {
 		}
 	}
 
+	/** A linked Box with no link label names its overlay link from its heading (see BoxLink). */
+	#[Filter( 'render_block_blicks/box', priority: 10, args: 1 )]
+	public function nameBoxLink( string $block_content ): string {
+		return BoxLink::withName( $block_content );
+	}
+
 	#[Action( 'enqueue_block_editor_assets' )]
 	public function enqueueEditorAssets(): void {
 		wp_enqueue_style( 'blicks-editor' );
@@ -112,9 +119,9 @@ final class BlockServiceProvider extends ServiceProvider {
 	 *
 	 * When `wp_should_load_separate_core_block_assets()` is true (the modern default), core's
 	 * `wp_enqueue_registered_block_scripts_and_styles()` no-ops and a block's `style` handle only
-	 * enqueues when the block renders **server-side**. Blicks' layout primitives (grid/box/stack/
+	 * enqueues when the block renders **server-side**. Blicks' layout primitives (box/
 	 * heading/…) are STATIC blocks — they never server-render — so their base CSS
-	 * (`.bl-grid { display:grid }`, `.bl-stack { display:flex }`, the var initializers) never loaded
+	 * (`.bl-box` and its layout classes, the var initializers) never loaded
 	 * on the front end, and `grid-template-columns`/spans/flex silently did nothing. (Only dynamic
 	 * blocks — section, marquee — happened to enqueue.) The editor was masked by force-enqueuing too,
 	 * which hid the front-end breakage.
@@ -126,7 +133,7 @@ final class BlockServiceProvider extends ServiceProvider {
 	#[Action( 'enqueue_block_assets' )]
 	public function enqueueBlockBaseStyles(): void {
 		foreach ( \WP_Block_Type_Registry::get_instance()->get_all_registered() as $name => $type ) {
-			if ( ! str_starts_with( $name, 'blicks/' ) ) {
+			if ( ! BlockSupport::usesBlicks( $name, $type ) ) {
 				continue;
 			}
 			foreach ( $type->style_handles as $handle ) {

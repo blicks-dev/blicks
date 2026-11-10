@@ -1,0 +1,4758 @@
+/**
+ * The Studio's chrome, as approved in the prototype.
+ *
+ * Dark, square-cornered, and deliberately not the editor's own surface: the Studio is a different
+ * place, and looking like the post editor with extra buttons is how people lose track of whether
+ * what they are doing has touched the page.
+ *
+ * **Everything floats over one dotted world.** Three toolbars sit along the top edge; the outer two
+ * grow downward into the sidebars, as panels with their own shadow, inset from the edges. Nothing
+ * is docked, and that is structural rather than stylistic — a sidebar opening over the canvas
+ * never re-lays-out the composition to make room, which is the one thing this surface must never
+ * do to the work.
+ *
+ * Plain CSS, not Sass, and its own entry: the Studio bundle imports nothing from the editor or admin
+ * bundles, because a module shared between two IIFE entries is emitted into both and evaluated
+ * twice. The UI token values are written out by hand for the same reason. Few enough to keep
+ * honest; a drift test is the answer if that stops being true.
+ */
+
+/*
+ * The palette is declared on the two surfaces the launcher draws outside the Studio as well — the
+ * scrim every sheet sits in and the ancestor picker's popover — so a sheet over the library reads
+ * exactly as one over the canvas. Scoped to those elements, not lifted to `:root`: none of it leaks
+ * onto the admin document.
+ */
+.bl-studio,
+.bl-studio-scrim,
+.bl-studio-picker {
+	/*
+	 * Light chrome, dark world, in the Blicks palette: the brand blue for the one primary action
+	 * and selection, warm neutrals for everything else. No outlines — areas are told apart by fill,
+	 * and controls are rounded so the chrome reads as soft objects over the hard-edged work.
+	 */
+	--bl-studio-primary: #002bff;
+	--bl-studio-primary-deep: #0020c2;
+	--bl-studio-selected: #eef1ff;
+	--bl-studio-selected-deep: #dfe5ff;
+	--bl-studio-on-selected: #002bff;
+	--bl-studio-rail: #fff;
+	--bl-studio-sunk: #f5f5f4;
+	--bl-studio-paper: #fff;
+	--bl-studio-ink: #1c1917;
+	--bl-studio-ink-variant: #57534e;
+	--bl-studio-outline: #e7e5e4;
+	--bl-studio-hair: #f0efed;
+
+	/* The world, and the grid drawn on it. Chosen rather than measured: the reference has none. */
+	--bl-studio-world: #202124;
+	--bl-studio-world-dot: #34363b;
+
+	/*
+	 * **The old dark names, pointed at the light ramp.** A bridge, and marked as one.
+	 *
+	 * The surfaces that float over everything — the save sheet, the keyboard map, the leave
+	 * prompt, the ancestor and insert pickers, the assistant — were written against the dark ramp
+	 * and have not had their own pass yet. Dropping the names would leave them unstyled, which the
+	 * drift test would catch; keeping two ramps would leave them dark over a light surface, which
+	 * nothing would catch and everyone would see.
+	 *
+	 * Aliasing flips all of them to approximately the right thing in one move: a sheet that asked
+	 * for `panel` and `ink` now gets white and near-black. Approximately, not exactly — a few of
+	 * them still carry hard-coded dark shadows and hovers that read heavy on paper. Each one is
+	 * due the treatment the bar and the rails just had, and these names come out as it gets it.
+	 */
+	--bl-studio-panel: var(--bl-studio-paper);
+	--bl-studio-raised: var(--bl-studio-sunk);
+	--bl-studio-edge: var(--bl-studio-outline);
+	--bl-studio-edge-soft: var(--bl-studio-hair);
+	--bl-studio-ink-dim: var(--bl-studio-ink-variant);
+	--bl-studio-ink-faint: #9aa0a6;
+	--bl-studio-accent: var(--bl-studio-primary);
+
+	/*
+	 * Motion, in four values so every state change in this surface agrees with the others.
+	 *
+	 * The curve is the reference tool's: slow out of the gate, fast through the middle, a long
+	 * settle. It reads as deliberate rather than springy, which is what a tool for placing things
+	 * wants.
+	 *
+	 * **Never applied to a property a pointer is currently driving.** A box that eases toward each
+	 * frame of a drag is easing toward positions the pointer has already left — lag wearing a nicer
+	 * coat. These are for hover, selection and reveal; placement is always immediate.
+	 *
+	 * The three durations are measured from the reference tool rather than chosen: a surface
+	 * answering a hover settles in 200ms, an icon revealing itself takes 400ms, and a thing
+	 * travelling across the canvas takes 300ms. The icon is the slowest on purpose — it appears
+	 * from nothing, and a glyph that snaps into existence reads as a flicker.
+	 */
+	--bl-studio-ease: cubic-bezier(0.56, 0, 0.03, 0.99);
+	--bl-studio-fast: 200ms;
+	--bl-studio-slow: 300ms;
+	--bl-studio-reveal: 400ms;
+
+	/* The floating chrome's geometry: how far in from the edges, and how tall a toolbar is. */
+	--bl-studio-gap: 12px;
+	--bl-studio-bar-h: 44px;
+}
+
+.bl-studio {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	overflow: hidden;
+	background: var(--bl-studio-world);
+	color: var(--bl-studio-ink);
+	font-family: Inter, system-ui, sans-serif;
+	-webkit-font-smoothing: antialiased;
+
+	/*
+	 * An explicit base, so the surface does not inherit whatever the host's root happens to be.
+	 * wp-admin's is 13px; this states 14px, which is the reference's body size, and stays 14px if
+	 * wp-admin ever changes underneath.
+	 */
+	font-size: 14px;
+}
+
+.bl-studio *,
+.bl-studio *::before,
+.bl-studio *::after,
+.bl-studio-scrim *,
+.bl-studio-scrim *::before,
+.bl-studio-scrim *::after,
+.bl-studio-picker *,
+.bl-studio-picker *::before,
+.bl-studio-picker *::after {
+	box-sizing: border-box;
+}
+
+/* ---------- the floating toolbars ---------- */
+
+/*
+ * One shape for all three: a rounded panel with a shadow, laid on the world. A toolbar never wraps
+ * — each holds a short, fixed set — so its height is a constant the sidebars below it can grow from.
+ */
+.bl-studio__bar {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: var(--bl-studio-bar-h);
+	padding: 0 6px;
+	border-bottom: 1px solid transparent;
+	transition: border-color var(--bl-studio-slow) var(--bl-studio-ease);
+}
+
+.bl-studio__bar .bl-studio__iconbtn {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+}
+
+.bl-studio__bar .bl-studio__iconbtn svg {
+	width: 18px;
+	height: 18px;
+}
+
+.bl-studio__bar .bl-studio__btn,
+.bl-studio__bar .bl-studio__textbtn {
+	height: 30px;
+	padding: 0 12px;
+	font-size: 13px;
+}
+
+/*
+ * **A dock is a toolbar that can become a sidebar.** Closed, it is exactly its toolbar's height;
+ * open, the same panel runs to the bottom edge and the sidebar is what fills the new room. Its
+ * width never changes between the two, so opening is purely downward — the toolbar stays where the
+ * hand left it, and the sidebar is visibly the toolbar growing rather than something new arriving.
+ *
+ * Height eases between a length and a percentage, which every current engine interpolates; the
+ * sidebar's contents fade in behind the edge as it travels.
+ */
+.bl-studio__dock {
+	position: absolute;
+	top: var(--bl-studio-gap);
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	height: var(--bl-studio-bar-h);
+	max-width: calc(100% - var(--bl-studio-gap) * 2);
+	overflow: hidden;
+	border-radius: 12px;
+	background: var(--bl-studio-rail);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+	transition: height var(--bl-studio-slow) var(--bl-studio-ease);
+}
+
+.bl-studio__dock--open {
+	height: calc(100% - var(--bl-studio-gap) * 2);
+}
+
+.bl-studio__dock--open > .bl-studio__bar {
+	border-bottom-color: var(--bl-studio-hair);
+}
+
+.bl-studio__dock--left {
+	left: var(--bl-studio-gap);
+	width: 300px;
+}
+
+/*
+ * As wide as its doors in this language, and never narrower than the inspector needs. The
+ * sidebar under it is kept out of that sum (`contain` on the rail), or the inspector's widest
+ * control would decide how wide the toolbar is.
+ */
+.bl-studio__dock--right {
+	right: var(--bl-studio-gap);
+	width: max-content;
+	min-width: 340px;
+}
+
+/*
+ * The middle toolbar is centred in the gap the side toolbars leave, not in the window: the right
+ * one is wider than the left, and a bar centred on the window would meet it first. The widths are
+ * measured by the shell and arrive as custom properties.
+ */
+.bl-studio__centre {
+	position: absolute;
+	top: calc(var(--bl-studio-gap) + (var(--bl-studio-bar-h) - 44px) / 2);
+	left: calc(var(--bl-studio-dock-left, 312px) + var(--bl-studio-gap));
+	right: calc(var(--bl-studio-dock-right, 364px) + var(--bl-studio-gap));
+	z-index: 4;
+	display: flex;
+	justify-content: center;
+	container-type: inline-size;
+	pointer-events: none;
+}
+
+.bl-studio__bar--centre {
+	min-width: 0;
+	max-width: 100%;
+	height: 44px;
+	gap: 2px;
+	padding: 0 6px;
+
+	/*
+	 * The last resort, after every container query below has compacted what it can: the bar
+	 * scrolls sideways inside its gap rather than sliding under a side toolbar.
+	 */
+	overflow-x: auto;
+	scrollbar-width: none;
+	border-radius: 12px;
+	background: var(--bl-studio-rail);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+	pointer-events: auto;
+}
+
+.bl-studio__zoom {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+}
+
+/* Smaller than the side bars' controls: the centre bar is a strip of tools, not a header. */
+.bl-studio__bar--centre .bl-studio__iconbtn {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+}
+
+.bl-studio__bar--centre .bl-studio__iconbtn svg {
+	width: 18px;
+	height: 18px;
+}
+
+.bl-studio__bar--centre .bl-studio__divider {
+	height: 16px;
+	margin: 0 4px;
+}
+
+.bl-studio__bar--centre .bl-studio__textbtn {
+	height: 32px;
+	padding: 0 10px;
+	font-size: 13px;
+}
+
+.bl-studio__bar--centre .bl-studio__zoomreset {
+	min-width: 44px;
+	height: 32px;
+	font-size: 12px;
+}
+
+.bl-studio__name {
+	flex-shrink: 0;
+	margin: 0 4px 0 2px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.bl-studio__divider {
+	flex-shrink: 0;
+	width: 1px;
+	height: 24px;
+	margin: 0 6px;
+	background: var(--bl-studio-hair);
+}
+
+/* What is mounted. The one piece of information in the row, so it is the only thing with a fill. */
+.bl-studio__chip {
+	flex-shrink: 1;
+	min-width: 0;
+	max-width: 220px;
+	padding: 3px 10px;
+	border-radius: 9999px;
+	background: var(--bl-studio-hair);
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	font-weight: 500;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-studio__mono {
+	flex-shrink: 0;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 13px;
+	color: var(--bl-studio-ink-variant);
+}
+
+/* ---------- the centre bar's controls ---------- */
+
+.bl-studio__widths {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+/* ---------- buttons ---------- */
+
+/*
+ * Four shapes, and each says what it costs.
+ *
+ * `__textbtn` takes nothing back — Copy, Play. `__btn` is an outlined pill for an action that
+ * writes somewhere else — Save as pattern. `__btn--filled` is the one that writes the post.
+ * `__iconbtn` is the 48px target you hit without reading, which is why it is bigger than the 40px
+ * ones you read first.
+ */
+.bl-studio__btn {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 8px;
+	height: 40px;
+	padding: 0 20px;
+	border: 0;
+	border-radius: 9999px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-studio__btn:hover {
+	background: var(--bl-studio-outline);
+}
+
+.bl-studio__btn--filled {
+	padding: 0 24px;
+	border-color: transparent;
+	background: var(--bl-studio-primary);
+	color: var(--bl-studio-paper);
+}
+
+.bl-studio__btn--filled:hover {
+	background: var(--bl-studio-primary-deep);
+}
+
+.bl-studio__textbtn {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	height: 40px;
+	padding: 0 16px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-studio-primary);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-studio__textbtn:hover {
+	background: var(--bl-studio-sunk);
+}
+
+/* The zoom readout, which also puts the work back at 100%. Reads as a number until hovered. */
+.bl-studio__zoomreset {
+	min-width: 52px;
+	height: 36px;
+	padding: 0 6px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	cursor: pointer;
+}
+
+.bl-studio__zoomreset:hover {
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+}
+
+.bl-studio__iconbtn {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-studio__iconbtn:hover {
+	background: var(--bl-studio-sunk);
+}
+
+/* A sidebar toggle while its sidebar is out. */
+.bl-studio__iconbtn--on,
+.bl-studio__iconbtn--on:hover {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+}
+
+/* A disabled control keeps its place and loses its ink. Hiding Undo would move everything beside it. */
+.bl-studio__iconbtn:disabled,
+.bl-studio__btn:disabled,
+.bl-studio__textbtn:disabled {
+	background: none;
+	color: var(--bl-studio-outline);
+	cursor: not-allowed;
+}
+
+.bl-studio__btn:disabled {
+	background: var(--bl-studio-hair);
+}
+
+/* The rail head's add button: the only tonal control on the surface, because it is the only one
+ * that makes something appear. */
+.bl-studio__addbtn {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	border-radius: 9999px;
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	cursor: pointer;
+}
+
+.bl-studio__addbtn:hover {
+	background: #dfe5ff;
+}
+
+.bl-studio__addbtn svg {
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
+}
+
+/* A width: an icon button of the centre bar's size, the chosen one filled. */
+.bl-studio__pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-studio__pill:hover {
+	background: var(--bl-studio-sunk);
+}
+
+.bl-studio__pill--on,
+.bl-studio__pill--on:hover {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+}
+
+/*
+ * Tightest: the bar takes a second row inside its gap rather than hiding a control. The shell
+ * measures the bar's real bottom, so the work is framed below both rows.
+ */
+@container (max-width: 400px) {
+	.bl-studio__bar--centre {
+		flex-wrap: wrap;
+		justify-content: center;
+		height: auto;
+		padding: 4px;
+		row-gap: 2px;
+	}
+
+	.bl-studio__bar--centre .bl-studio__divider {
+		display: none;
+	}
+}
+
+/* ---------- the sidebars ---------- */
+
+/*
+ * What a dock grows into: the rest of the panel below its toolbar. The dock paints the surface, so
+ * the rail has no ground of its own and the two read as one.
+ *
+ * Hidden while closed, after the dock has finished closing — `visibility` takes the contents out of
+ * the tab order and the accessibility tree, and its delay is what lets them fade rather than blink.
+ * Never unmounted: the inspector's open panels and a panel's half-typed input survive a toggle.
+ */
+.bl-studio__rail {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	contain: inline-size;
+	visibility: hidden;
+	opacity: 0;
+	transition:
+		opacity var(--bl-studio-fast) var(--bl-studio-ease),
+		visibility 0s linear var(--bl-studio-slow);
+}
+
+.bl-studio__dock--open > .bl-studio__rail {
+	visibility: visible;
+	opacity: 1;
+	transition:
+		opacity var(--bl-studio-slow) var(--bl-studio-ease) 80ms,
+		visibility 0s linear 0s;
+}
+
+.bl-studio__railhead {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	padding: 20px 16px 10px 24px;
+}
+
+.bl-studio__railtitle {
+	flex-grow: 1;
+	min-width: 0;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bl-studio-ink-variant);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-studio__railhead--tabs {
+	gap: 2px;
+	margin: 12px 12px 8px;
+	padding: 3px;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+}
+
+/*
+ * Two tabs, one underlined. Not the pill the rows use: a tab switches what this rail IS, where a
+ * pill filters what it shows, and a surface that spells those the same way teaches neither.
+ */
+.bl-studio__tab {
+	flex: 1 1 0;
+	min-width: 0;
+	height: 34px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	border: 0;
+	border-radius: 10px;
+	background: none;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+	color: var(--bl-studio-ink-variant);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-studio__tab:hover {
+	color: var(--bl-studio-ink);
+}
+
+.bl-studio__tab--on,
+.bl-studio__tab--on:hover {
+	background: var(--bl-studio-paper);
+	box-shadow: 0 1px 3px rgb(28 25 23 / 15%);
+	color: var(--bl-studio-ink);
+	font-weight: 600;
+}
+
+.bl-studio__railbody {
+	flex-grow: 1;
+	min-width: 0;
+	min-height: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.bl-studio__railfoot {
+	flex-shrink: 0;
+	padding: 12px 24px 16px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/* ---------- the tree ---------- */
+
+.bl-studio__tree {
+	flex-grow: 1;
+	min-height: 0;
+	margin: 0;
+	padding: 0 12px 16px;
+	overflow-y: auto;
+	list-style: none;
+}
+
+/*
+ * A row is icon, name, count — and it is 44px, not the 48px every other control here takes.
+ *
+ * A documented departure. The 48px row is right for a rail of six filters; a tree is as many rows
+ * as the composition has blocks, and at 48px a modest page runs off the bottom of a laptop screen.
+ * 44 keeps a comfortable target and buys back a row every six.
+ */
+.bl-studio__node {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	height: 44px;
+	padding: 0 12px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 14px;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-studio__node:hover {
+	background: var(--bl-studio-sunk);
+}
+
+.bl-studio__node--on,
+.bl-studio__node--on:hover {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	font-weight: 500;
+}
+
+.bl-studio__nodeicon {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-studio__node--on .bl-studio__nodeicon {
+	color: var(--bl-studio-on-selected);
+}
+
+/* Core renders its block icons at 24px; a tree row is not a toolbar. */
+.bl-studio__nodeicon svg {
+	width: 18px;
+	height: 18px;
+}
+
+/*
+ * Flatten the icon to one colour.
+ *
+ * Blicks' block icons are two-tone: a `currentColor` path plus an accent path painted
+ * `#002bff`. At 18px a two-tone glyph has no room to read as two tones, and the icons that differ
+ * only in their accent stop being distinguishable from one another.
+ */
+.bl-studio__nodeicon svg path,
+.bl-studio__nodeicon svg rect,
+.bl-studio__nodeicon svg circle {
+	fill: currentColor;
+}
+
+.bl-studio__nodename {
+	flex-grow: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/*
+ * How many blocks are inside. The one fact worth a column of its own: it is what tells a collapsed
+ * reading of the tree where the substance is. Monospaced so a column of them lines up without one.
+ */
+.bl-studio__nodetag {
+	flex-shrink: 0;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-studio__node--on .bl-studio__nodetag {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-studio__empty {
+	margin: 0;
+	padding: 8px 24px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+}
+
+/* ---------- the world ---------- */
+
+/*
+ * The one dark surface, and NOT a scroller.
+ *
+ * A scrolling pane only moves along axes its content overflows, so a composition narrower than the
+ * viewport cannot be moved at all. Pan is a transform instead: it works in every direction whatever
+ * the content's size, costs one composited layer instead of a reflow, and survives zoom without
+ * fighting scroll anchoring.
+ *
+ * Full-bleed, under all of the chrome. The fit is told what the chrome covers (`StudioCanvas`'s
+ * `frame`), so the composition is framed in the clear part while the world itself runs to every
+ * edge — and a drag or a wheel anywhere the chrome is not lands on it.
+ */
+.bl-studio__world {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	background-color: var(--bl-studio-world);
+	background-image: radial-gradient(var(--bl-studio-world-dot) 1px, transparent 1.2px);
+	background-size: 20px 20px;
+	cursor: grab;
+	touch-action: none;
+}
+
+.bl-studio__world--panning {
+	cursor: grabbing;
+}
+
+/*
+ * The moving layer. `will-change` keeps it on its own compositor layer so a pan is a transform and
+ * not a repaint of every block in the tree.
+ */
+.bl-studio__viewport {
+	position: absolute;
+	top: 0;
+	left: 0;
+	will-change: transform;
+}
+
+/* A re-fit for a sidebar glides; a pan or a zoom never does (the class is off during gestures). */
+.bl-studio__viewport--easing {
+	transition: transform var(--bl-studio-slow) var(--bl-studio-ease);
+}
+
+.bl-studio__sheet {
+	min-height: 240px;
+	padding: 24px;
+	background: #fff;
+	color: #141417;
+	box-shadow: 0 24px 64px rgb(0 0 0 / 55%);
+
+	/* The work is dragged by the world behind it, never by grabbing the page itself. */
+	cursor: auto;
+}
+
+/* ---------- the pickers and sheets ---------- */
+
+/*
+ * One light treatment for every sheet: paper, ink and the Studio's rounded controls, with areas
+ * told apart by fill rather than outline — the same language as the bar and the rails. The
+ * ancestor picker is core's popover with the same card drawn inside it.
+ */
+
+.bl-studio-picker__body {
+	min-width: 340px;
+	padding: 14px;
+	border-radius: 16px;
+	background: var(--bl-studio-paper);
+	box-shadow: 0 12px 40px rgb(28 25 23 / 18%), 0 1px 3px rgb(28 25 23 / 8%);
+	color: var(--bl-studio-ink);
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.bl-studio-picker__head {
+	display: block;
+	margin: 0 0 10px;
+	color: var(--bl-studio-ink);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.bl-studio-picker__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	margin-bottom: 6px;
+	padding: 9px 12px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-studio-picker__row:hover,
+.bl-studio-picker__row--on {
+	background: var(--bl-studio-selected);
+}
+
+.bl-studio-picker__row--on .bl-studio-picker__title {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-studio-picker__title {
+	flex-shrink: 0;
+	width: 96px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bl-studio-picker__note {
+	flex-grow: 1;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-studio-picker__tag {
+	flex-shrink: 0;
+	padding: 2px 7px;
+	border-radius: 9999px;
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-ink-variant);
+	font-family: ui-monospace, monospace;
+	font-size: 10px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.bl-studio-picker__foot {
+	margin: 4px 0 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/*
+ * Core's popovers — an inserter, a dropdown menu — mount in a container on the body at 99999, under
+ * the Studio's 100000, so one opened from a rail sat behind the rail it came from. Raised above the
+ * Studio and its sheets while the Studio is open.
+ */
+body:has(.bl-studio) .components-popover__fallback-container > .components-popover {
+	z-index: 100002;
+}
+
+/*
+ * Above the Studio's own 100000. A sheet the Studio renders sits over its canvas; one the launcher
+ * renders sits over the whole Studio.
+ */
+.bl-studio-scrim {
+	position: fixed;
+	inset: 0;
+	z-index: 100001;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgb(28 25 23 / 45%);
+	font-size: 14px;
+}
+
+.bl-studio-sheet {
+	width: 640px;
+	max-width: 100%;
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+	padding: 22px 22px 20px;
+	border-radius: 20px;
+	background: var(--bl-studio-paper);
+	box-shadow: 0 24px 64px rgb(28 25 23 / 22%), 0 2px 6px rgb(28 25 23 / 8%);
+	color: var(--bl-studio-ink);
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.bl-studio-sheet__title {
+	display: block;
+	margin: 0 0 6px;
+	color: var(--bl-studio-ink);
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.bl-studio-sheet__why {
+	margin: 0 0 14px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.bl-studio-sheet__ok {
+	margin: 14px 0 0;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #e9f7ef;
+	color: #146c43;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.bl-studio-sheet__body {
+	display: flex;
+	gap: 16px;
+}
+
+.bl-studio-sheet__outline {
+	flex-shrink: 0;
+	width: 180px;
+	max-height: 260px;
+	margin: 0;
+	padding: 6px;
+	overflow-y: auto;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+	list-style: none;
+}
+
+.bl-studio-sheet__row {
+	padding: 6px 10px;
+	border-radius: 8px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-studio-sheet__row--on {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	font-weight: 600;
+}
+
+.bl-studio-sheet__choices {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.bl-studio-sheet__choice {
+	display: block;
+	width: 100%;
+	margin-bottom: 6px;
+	padding: 11px 14px;
+	border: 0;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+	box-shadow: inset 0 0 0 2px transparent;
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-studio-sheet__choice:hover {
+	background: var(--bl-studio-outline);
+}
+
+.bl-studio-sheet__choice--on,
+.bl-studio-sheet__choice--on:hover {
+	background: var(--bl-studio-selected);
+	box-shadow: inset 0 0 0 2px var(--bl-studio-primary);
+}
+
+.bl-studio-sheet__choicename {
+	display: block;
+	margin-bottom: 2px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bl-studio-sheet__choice--on .bl-studio-sheet__choicename {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-studio-sheet__choicenote {
+	display: block;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.bl-studio-sheet__warn {
+	margin: 14px 0 0;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.bl-studio-sheet__fields {
+	display: flex;
+	gap: 14px;
+	margin-top: 4px;
+}
+
+.bl-studio-sheet__field {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.bl-studio-sheet__label {
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.bl-studio-sheet__input {
+	width: 100%;
+	height: 40px;
+	padding: 0 12px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 14px;
+}
+
+.bl-studio-sheet__input:hover {
+	background: var(--bl-studio-outline);
+}
+
+.bl-studio-sheet__input:focus {
+	outline: 2px solid var(--bl-studio-primary);
+	outline-offset: 0;
+	background: var(--bl-studio-paper);
+}
+
+.bl-studio-sheet__preview {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+	width: 124px;
+	height: 78px;
+	padding: 9px;
+	border-radius: 12px;
+	background: var(--bl-studio-world);
+}
+
+.bl-studio-sheet__bar {
+	display: block;
+	height: 100%;
+	border-radius: 4px;
+	background: var(--bl-studio-world-dot);
+}
+
+.bl-studio-sheet__bar--lead {
+	background: var(--bl-studio-primary);
+}
+
+.bl-studio-sheet__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 18px;
+}
+
+.bl-studio-sheet__note {
+	margin-left: auto;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-studio-sheet .bl-studio__btn:focus-visible,
+.bl-studio-sheet__choice:focus-visible,
+.bl-studio-picker__row:focus-visible {
+	outline: 2px solid var(--bl-studio-primary);
+	outline-offset: 2px;
+}
+
+.bl-studio-sheet .bl-studio__btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+/* ---------- narrow ---------- */
+
+/*
+ * Below 1024 the gap between the side toolbars is too short for even the compact centre toolbar,
+ * so it drops to the bottom edge. The shell measures where it landed and frames the work above it.
+ * The sidebars start closed at this width (the shell's default), so the bottom edge is clear.
+ */
+@media (width <= 1023px) {
+	.bl-studio__centre {
+		top: auto;
+		bottom: var(--bl-studio-gap);
+		left: var(--bl-studio-gap);
+		right: var(--bl-studio-gap);
+	}
+
+	.bl-studio__name {
+		display: none;
+	}
+
+	.bl-studio__hint {
+		display: none;
+	}
+}
+
+/*
+ * Below 1280 only one sidebar is open at a time (the shell enforces it), and the tree gives up
+ * some width so the inspector and the work share what is left.
+ */
+@media (width <= 1279px) {
+	.bl-studio__dock--left {
+		width: 264px;
+	}
+}
+
+/*
+ * Tablet portrait and phones. An open sidebar is a full-width sheet over the work rather than a
+ * column that leaves it a sliver, and the toolbars drop what a touch screen does not need.
+ */
+@media (width <= 767px) {
+	.bl-studio__dock--left {
+		width: max-content;
+		max-width: calc(100% - var(--bl-studio-gap) * 2);
+	}
+
+	.bl-studio__dock--right {
+		min-width: 0;
+		max-width: calc(100% - var(--bl-studio-gap) * 2);
+	}
+
+	.bl-studio__dock--open {
+		left: var(--bl-studio-gap);
+		right: var(--bl-studio-gap);
+		z-index: 5;
+		width: auto;
+		max-width: none;
+	}
+
+	/* Copy JSON is a developer's door; on a small screen the bar keeps room for Save and Insert. */
+	.bl-studio__dock--right > .bl-studio__bar > .bl-studio__textbtn,
+	.bl-studio__keysbtn {
+		display: none;
+	}
+}
+
+/*
+ * Phones. The two side toolbars no longer fit on one line, so the inspector's drops under the
+ * tree's. The shell measures both bars, so the canvas frames below them.
+ */
+@media (width <= 479px) {
+	.bl-studio__dock--right {
+		top: calc(var(--bl-studio-gap) * 2 + var(--bl-studio-bar-h));
+	}
+
+	.bl-studio__dock--right.bl-studio__dock--open {
+		top: var(--bl-studio-gap);
+	}
+}
+
+/*
+ * Opening and closing still happens, it just does not travel. The glide of a re-fit goes too:
+ * the work arrives at its new frame at once.
+ */
+@media (prefers-reduced-motion: reduce) {
+	.bl-studio__dock,
+	.bl-studio__bar,
+	.bl-studio__rail,
+	.bl-studio__dock--open > .bl-studio__rail,
+	.bl-studio__viewport--easing {
+		transition: none;
+	}
+}
+
+/* ---------- leaving ---------- */
+
+.bl-studio-sheet--narrow {
+	width: 440px;
+}
+
+.bl-studio-sheet__lead {
+	margin: 0 0 16px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+.bl-studio-sheet__ways {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.bl-studio-sheet__way {
+	display: block;
+	width: 100%;
+	padding: 11px 14px;
+	border: 0;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-studio-sheet__way:hover {
+	background: var(--bl-studio-selected);
+}
+
+.bl-studio-sheet__way:focus-visible,
+.bl-studio-sheet__discard:focus-visible {
+	outline: 2px solid var(--bl-studio-primary);
+	outline-offset: 2px;
+}
+
+.bl-studio-sheet__wayname {
+	display: block;
+	margin-bottom: 2px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bl-studio-sheet__way:hover .bl-studio-sheet__wayname {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-studio-sheet__waynote {
+	display: block;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+/*
+ * The destructive action reads as destructive and sits apart from the doors. It is not styled as
+ * the primary button: the primary thing to do here is keep the work.
+ */
+.bl-studio-sheet__discard {
+	height: 40px;
+	margin-left: auto;
+	padding: 0 18px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: #b3261e;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-studio-sheet__discard:hover {
+	background: #fceeee;
+}
+
+/* ---------- the keyboard map ---------- */
+
+.bl-keys {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 20px;
+	margin-top: 12px;
+}
+
+.bl-keys__title {
+	margin: 0 0 8px;
+	color: var(--bl-studio-ink);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.bl-keys__row {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	margin: 0 0 6px;
+}
+
+.bl-keys__combo {
+	flex-shrink: 0;
+	min-width: 76px;
+	padding: 2px 7px;
+	border-radius: 6px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: ui-monospace, monospace;
+	font-size: 11px;
+	text-align: center;
+}
+
+.bl-keys__does {
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+/*
+ * The library's styles were lost once in a wholesale rewrite of this file, and nothing noticed for
+ * five commits because every test of that screen read its DOM rather than looking at it. Recovered
+ * from history. A screen whose tests only assert text can be entirely unstyled and still pass.
+ */
+/* ---------- the library ---------- */
+
+/*
+ * The one screen in the Studio that is LIGHT, and the one that is docked.
+ *
+ * Both are the same decision. There is no composition underneath to stay out of the way of, so
+ * nothing has to float. The dark world belongs to the canvas screens, where the artboard has to be
+ * the only lit thing.
+ *
+ * It wears the Blicks marketplace's look — palette, type, mono labels — so an item reads the same
+ * on the site and on the shelf, with rounded corners where the marketplace is square. It once
+ * borrowed fonts.google.com's pills while its rail wore Blueprint: one screen, two languages.
+ * Fonts are named, not loaded: a WordPress.org plugin may not pull them from a CDN.
+ */
+
+.bl-studio--library {
+	--bl-lib-primary: #002bff;
+	--bl-lib-primary-hover: #02c;
+	--bl-lib-selected: #eef1ff;
+	--bl-lib-on-selected: #002bff;
+	--bl-lib-rail: #f6f7f9;
+	--bl-lib-sunk: #eef0f4;
+	--bl-lib-paper: #fff;
+	--bl-lib-ink: #0b0d12;
+	--bl-lib-ink-variant: #565d6b;
+	--bl-lib-outline: #c6cbd5;
+	--bl-lib-hair: #e2e5eb;
+	--bl-lib-r: 8px;
+	--bl-lib-rl: 12px;
+	--bl-lib-font: geist, "Instrument Sans", -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+	--bl-lib-display: "Schibsted Grotesk", geist, "Helvetica Neue", arial, sans-serif;
+	--bl-lib-mono: "JetBrains Mono", ui-monospace, "SF Mono", menlo, monospace;
+	--bl-bp: var(--bl-lib-primary);
+	--bl-bp-ink: var(--bl-lib-ink);
+	--bl-bp-r: var(--bl-lib-r);
+
+	display: flex;
+	flex-direction: column;
+	background-color: var(--bl-lib-paper);
+	background-image: none;
+	color: var(--bl-lib-ink);
+	font-family: var(--bl-lib-font);
+	font-size: 14px;
+}
+
+/* ---------- header ---------- */
+
+.bl-library__top {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	height: 64px;
+	padding: 0 16px;
+	border-bottom: 1px solid var(--bl-lib-hair);
+}
+
+.bl-library__name {
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.bl-library__divider {
+	width: 1px;
+	height: 24px;
+	background: var(--bl-lib-hair);
+}
+
+.bl-library__state {
+	font-size: 14px;
+	color: var(--bl-lib-ink-variant);
+}
+
+/* The site's own language, so the strip below always has its reference point in view. */
+.bl-library__site {
+	padding: 4px 12px;
+	border-radius: 9999px;
+	background: var(--bl-lib-hair);
+	color: var(--bl-lib-ink-variant);
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.bl-library__site b {
+	color: var(--bl-lib-ink);
+	font-weight: 600;
+}
+
+.bl-library__spacer {
+	flex-grow: 1;
+}
+
+/* ---------- buttons ---------- */
+
+/*
+ * One button, two weights. The pill is the system's own shape and the height is its 40px text
+ * control; the icon button is the 48px one, because a target you hit without reading has to be
+ * bigger than a target you read first.
+ */
+.bl-library__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 40px;
+	padding: 0 20px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-lib-primary);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__btn:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__btn--filled {
+	padding: 0 22px;
+	border-color: transparent;
+	background: var(--bl-lib-primary);
+	color: var(--bl-lib-paper);
+}
+
+.bl-library__btn--filled:hover {
+	background: var(--bl-lib-on-selected);
+}
+
+/* "+ New", once a companion adds something beside the Section. */
+.bl-library__new {
+	position: relative;
+}
+
+.bl-library__newmenu {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 5;
+	display: grid;
+	gap: 2px;
+	width: 300px;
+	padding: 6px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 12px;
+	background: var(--bl-lib-paper);
+	box-shadow: 0 8px 28px rgb(0 0 0 / 16%);
+}
+
+.bl-library__newmenu button {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 10px 12px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-library__newmenu button:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__newmenu small {
+	color: var(--bl-lib-ink-variant, inherit);
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.bl-library__btn:disabled {
+	border-color: var(--bl-lib-hair);
+	background: var(--bl-lib-sunk);
+	color: var(--bl-lib-ink-variant);
+	cursor: default;
+	opacity: 0.6;
+}
+
+.bl-library__iconbtn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-lib-ink-variant);
+	cursor: pointer;
+}
+
+.bl-library__iconbtn:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__textbtn {
+	height: 40px;
+	padding: 0 14px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-lib-primary);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-library__textbtn:hover {
+	background: var(--bl-lib-sunk);
+}
+
+/* ---------- the rail ---------- */
+
+.bl-library__body {
+	flex-grow: 1;
+	display: flex;
+	min-height: 0;
+}
+
+/*
+ * 320px, and the rounded outer edge the reference uses on its own drawer. The radius is doing
+ * work: it says the rail is a surface laid ON the page rather than a column cut OUT of it, which
+ * is what lets it carry a different background without reading as a second window.
+ */
+.bl-library__rail {
+	--bl-bp: #002bff;
+	--bl-bp-ink: #0a0f2c;
+	--bl-bp-soft: #e8edff;
+	--bl-bp-dot: #cfd8ff;
+	--bl-bp-r: 4px;
+
+	flex-shrink: 0;
+	width: 320px;
+	overflow-y: auto;
+	padding: 22px 12px 24px 24px;
+	border-right: 1px solid var(--bl-bp-dot);
+	background-color: #fbfcff;
+	background-image: radial-gradient(var(--bl-bp-dot) 1px, transparent 1.2px);
+	background-size: 16px 16px;
+}
+
+.bl-library__grouphead {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-right: 12px;
+}
+
+.bl-library__grouphead .bl-library__railtitle {
+	flex-grow: 1;
+}
+
+.bl-library__railtitle {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bl-lib-ink-variant);
+}
+
+/* Every group but the first opens a gap; the first is already clear of the rail's own padding. */
+.bl-library__rail > .bl-library__railtitle:not(:first-child),
+.bl-library__rail > .bl-library__grouphead:not(:first-child) {
+	margin-top: 30px;
+}
+
+.bl-library__rail > .bl-library__railtitle + .bl-library__row,
+.bl-library__rail > .bl-library__grouphead + .bl-library__row {
+	margin-top: 6px;
+}
+
+/*
+ * A selected row is a filled pill, not a tinted stripe.
+ *
+ * The reference does this and it is worth copying for one reason: a pill ends, so a row that is on
+ * reads as a chosen OBJECT, where a full-bleed stripe reads as a highlighted region of a list.
+ */
+.bl-library__row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	height: 48px;
+	padding: 0 12px;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--bl-lib-ink);
+	font-family: inherit;
+	font-size: 14px;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__row:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__row--on,
+.bl-library__row--on:hover {
+	background: var(--bl-lib-selected);
+	color: var(--bl-lib-on-selected);
+	font-weight: 500;
+}
+
+.bl-library__rowicon {
+	display: flex;
+	flex-shrink: 0;
+	color: var(--bl-lib-ink-variant);
+}
+
+.bl-library__row--on .bl-library__rowicon {
+	color: var(--bl-lib-on-selected);
+}
+
+.bl-library__rowname {
+	flex-grow: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* Counts are monospaced so a column of them lines up without a column. */
+.bl-library__count {
+	flex-shrink: 0;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+	color: var(--bl-lib-ink-variant);
+}
+
+.bl-library__row--on .bl-library__count {
+	color: var(--bl-lib-on-selected);
+}
+
+/* ---------- the swatch ---------- */
+
+/*
+ * Three dots: accent, ground, ink. It appears everywhere a collection is named — rail row, strip
+ * card, and in place of the source badge on a card that belongs to a set — because it is how two
+ * cards read as family before either name is read.
+ */
+.bl-library__swatch {
+	display: flex;
+	flex-shrink: 0;
+	gap: 3px;
+}
+
+.bl-library__dot {
+	display: block;
+	border-radius: 9999px;
+	box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%);
+}
+
+/* ---------- chips ---------- */
+
+.bl-library__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+	padding-right: 12px;
+}
+
+/*
+ * 32px tall, 8px radius — the reference's own chip, and deliberately NOT the pill the rows use.
+ * Kind and Industry are many short values you scan; Collection and Source are few long ones you
+ * read. Different shapes for different reading is the whole reason both exist in one rail.
+ */
+.bl-library__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	height: 32px;
+	padding: 0 14px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-lib-ink-variant);
+	font-family: inherit;
+	font-size: 14px;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__chip:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__chip--on,
+.bl-library__chip--on:hover {
+	border-color: var(--bl-lib-selected);
+	background: var(--bl-lib-selected);
+	color: var(--bl-lib-on-selected);
+	font-weight: 500;
+}
+
+.bl-library__chipcount {
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 11px;
+	color: #9aa0a6;
+}
+
+.bl-library__chip--on .bl-library__chipcount {
+	color: var(--bl-lib-on-selected);
+}
+
+/* ---------- the shelf ---------- */
+
+.bl-library__main {
+	flex-grow: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	padding: 18px 28px 28px;
+}
+
+.bl-library__bar {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding-bottom: 14px;
+}
+
+.bl-library__field {
+	flex-grow: 1;
+	max-width: 360px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	height: 48px;
+	padding: 0 18px;
+	border-radius: 9999px;
+	background: var(--bl-lib-sunk);
+}
+
+.bl-library__searchicon {
+	flex-shrink: 0;
+	color: var(--bl-lib-ink-variant);
+}
+
+/*
+ * `input.bl-…` rather than `.bl-…`, and the same for the textarea below.
+ *
+ * wp-admin styles its fields as `input[type="search"]` — an element-plus-attribute selector, which
+ * out-specifies a single class. A plain class rule leaves core's border, background and min-height
+ * in place, and the field renders as a white box inside the pill that was supposed to BE the
+ * field. Adding the element name is the whole fix; it is not redundancy.
+ */
+input.bl-library__searchinput {
+	flex-grow: 1;
+	min-width: 0;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--bl-lib-ink);
+	font-family: inherit;
+	font-size: 15px;
+	line-height: 1.4;
+}
+
+input.bl-library__searchinput:focus {
+	border: 0;
+	outline: none;
+	box-shadow: none;
+}
+
+.bl-library__found {
+	font-size: 13px;
+	color: var(--bl-lib-ink-variant);
+}
+
+/* ---------- the collections strip ---------- */
+
+/*
+ * Every set, as a row of cards above the grid, so a collection is browsable AS a collection and
+ * not only as a filter row. It is the same control as the rail's Collection group and says so by
+ * selecting with the same fill — two ways to the same place, never two places.
+ */
+.bl-library__strip {
+	flex-shrink: 0;
+	display: flex;
+	gap: 10px;
+	padding-bottom: 14px;
+}
+
+.bl-library__set {
+	flex: 1 1 0;
+	min-width: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--bl-lib-hair);
+	border-radius: 16px;
+	background: var(--bl-lib-paper);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color var(--bl-studio-fast) var(--bl-studio-ease),
+		background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__set:hover {
+	border-color: var(--bl-lib-outline);
+}
+
+.bl-library__set--on,
+.bl-library__set--on:hover {
+	border-color: var(--bl-lib-selected);
+	background: var(--bl-lib-selected);
+}
+
+.bl-library__setname {
+	display: block;
+	margin-top: 9px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bl-lib-ink);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-library__setmeta {
+	display: block;
+	margin-top: 2px;
+	font-size: 11px;
+	color: var(--bl-lib-ink-variant);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-library__set--on .bl-library__setname,
+.bl-library__set--on .bl-library__setmeta {
+	color: var(--bl-lib-on-selected);
+}
+
+/* ---------- the set you are standing in ---------- */
+
+/*
+ * Painted in the collection's OWN colours, from its own palette, inline. It is the one place a set
+ * speaks for itself rather than being a row in a list — and a header that described Funky in
+ * Google-grey would be describing it rather than showing it.
+ */
+.bl-library__head {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 14px;
+	padding: 16px 20px;
+	border-radius: 16px;
+}
+
+.bl-library__headtext {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.bl-library__headline {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.bl-library__headname {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: inherit;
+}
+
+/*
+ * Tinted from the header's OWN ink, not from white.
+ *
+ * The header takes each collection's ground, which is near-black for Funky and paper white for
+ * Brutalist Press. A fixed white wash is a visible chip on one and an invisible one on the other,
+ * and the count disappearing on the light sets is the kind of thing that reads as a rendering bug.
+ * `currentColor` is already the collection's ink, so mixing against it works on either.
+ */
+.bl-library__pill {
+	padding: 3px 10px;
+	border-radius: 9999px;
+	background: rgb(128 128 128 / 20%);
+	background: color-mix(in srgb, currentcolor 14%, transparent);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+.bl-library__blurb {
+	margin: 5px 0 0;
+	max-width: 72ch;
+	font-size: 13px;
+	line-height: 1.55;
+	opacity: 0.78;
+}
+
+.bl-library__setbtn {
+	flex-shrink: 0;
+	height: 40px;
+	padding: 0 20px;
+	border: 0;
+	border-radius: 9999px;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+/* ---------- the grid ---------- */
+
+.bl-library__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: 16px;
+	align-content: start;
+}
+
+.bl-library__card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	border: 1px solid var(--bl-lib-hair);
+	border-radius: 16px;
+	background: var(--bl-lib-paper);
+	overflow: hidden;
+	font-family: inherit;
+	text-align: left;
+	cursor: default;
+	transition: border-color var(--bl-studio-fast) var(--bl-studio-ease),
+		box-shadow var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__card:hover {
+	border-color: var(--bl-lib-outline);
+	box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
+}
+
+.bl-library__card--bone {
+	cursor: default;
+	opacity: 0.6;
+}
+
+/*
+ * The thumbnail is a MINIATURE OF THE COMPOSITION, in the collection's colours. Shape comes from
+ * the tree and colour from the set, and neither is stored — so a card cannot go stale, and cannot
+ * look like it belongs to a set it is not in.
+ */
+.bl-library__thumb {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	gap: 6px;
+	height: 116px;
+	padding: 12px;
+	background: var(--bl-lib-sunk);
+}
+
+/*
+ * The hairline is load-bearing on the light sets. Brutalist Press raises #fff on #f2f2f2 and
+ * Editorial #fff on #f7f3ec — a faithful miniature of either is a thumbnail that looks empty. The
+ * inset edge gives a pale panel a boundary without inventing a colour the set never declared.
+ */
+.bl-library__bar2 {
+	display: block;
+	border-radius: 5px;
+	background: var(--bl-lib-outline);
+	box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+}
+
+.bl-library__bar2--lead {
+	background: var(--bl-lib-ink-variant);
+}
+
+.bl-library__locked {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgb(248 250 253 / 70%);
+	color: #7a5900;
+}
+
+.bl-library__meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 14px 0;
+}
+
+.bl-library__title {
+	flex-grow: 1;
+	min-width: 0;
+	font-size: 14px;
+	font-weight: 500;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-library__badge {
+	flex-shrink: 0;
+	padding: 2px 8px;
+	border-radius: 9999px;
+	background: var(--bl-lib-sunk);
+	color: var(--bl-lib-ink-variant);
+	font-size: 10px;
+	font-weight: 500;
+}
+
+.bl-library__badge--dev {
+	background: var(--bl-lib-selected);
+	color: var(--bl-lib-on-selected);
+}
+
+.bl-library__badge--imported {
+	background: #fef7e0;
+	color: #7a5900;
+}
+
+.bl-library__shape {
+	padding: 4px 14px 14px;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 10px;
+	color: var(--bl-lib-ink-variant);
+}
+
+.bl-library__bonebar {
+	display: block;
+	width: 60%;
+	height: 11px;
+	border-radius: 9999px;
+	background: var(--bl-lib-sunk);
+}
+
+/* ---------- the empties ---------- */
+
+.bl-library__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	margin: 48px auto;
+	max-width: 46ch;
+	text-align: center;
+}
+
+.bl-library__emptyhead {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 500;
+}
+
+.bl-library__emptybody {
+	margin: 0 0 6px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--bl-lib-ink-variant);
+}
+
+/* ---------- import ---------- */
+
+.bl-library__scrim {
+	position: absolute;
+	inset: 0;
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgb(31 31 31 / 32%);
+}
+
+.bl-library__import {
+	width: 520px;
+	max-width: 100%;
+	padding: 24px;
+	border-radius: 20px;
+	background: var(--bl-lib-paper);
+	box-shadow: 0 8px 32px rgb(0 0 0 / 24%);
+}
+
+.bl-library__importhead {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.bl-library__importnote {
+	margin: 6px 0 0;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--bl-lib-ink-variant);
+}
+
+textarea.bl-library__paste {
+	display: block;
+	width: 100%;
+	height: 160px;
+	margin-top: 14px;
+	padding: 12px 14px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 12px;
+	background: var(--bl-lib-paper);
+	color: var(--bl-lib-ink);
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+	line-height: 1.6;
+	box-shadow: none;
+	resize: vertical;
+}
+
+.bl-library__importrow {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 16px;
+}
+
+.bl-library__problem {
+	margin: 12px 0 0;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #fce8e6;
+	color: #b3261e;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/* The same message when no sheet is open — a card can fail to mount with nothing else on screen. */
+.bl-library__problem--loose {
+	position: absolute;
+	left: 50%;
+	bottom: 24px;
+	z-index: 4;
+	transform: translateX(-50%);
+	box-shadow: 0 4px 16px rgb(0 0 0 / 16%);
+}
+
+/*
+ * Elements the drift test found rendered with no rule of their own.
+ *
+ * Each was invisible rather than broken — a head with no spacing, a grid cell with no gap — which
+ * is exactly the class of gap that survives a suite that only reads text.
+ */
+.bl-studio-sheet__head {
+	margin-bottom: 12px;
+}
+
+.bl-keys__group {
+	min-width: 0;
+}
+
+/* Core's popover brings its own padding; the picker draws its own box inside it. */
+.bl-studio-picker .components-popover__content {
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+/* ---------- a block this site does not have ---------- */
+
+/*
+ * WordPress already keeps an unrenderable block and its markup, and already shows a notice saying
+ * so. What it does not do is look like it belongs here: core's placeholder is built for the light
+ * editor, so on this canvas it arrives as a white slab.
+ *
+ * Restyled rather than replaced. Core's own component is what preserves the content and hands it
+ * back on save; a custom placeholder would mean owning that promise ourselves, for a cosmetic gain.
+ *
+ * It keeps its real size and says what is missing. A hole in a composition being judged by eye is
+ * worse than a labelled box, and the name is the one fact that lets anyone act — "blicks/scene"
+ * tells a site owner which plugin to install.
+ *
+ * **Matched by `data-type`, not by `.wp-block-missing`, and that is not a style preference.**
+ * The editor scans every stylesheet in the admin document and copies any one whose selector text
+ * mentions `wp-block` or `editor-styles-wrapper` into the canvas iframe, warning as it goes — a
+ * heuristic for themes that style block output from the wrong place. It is a substring test, so
+ * one selector naming a core block class dragged this entire file into an iframe where nothing
+ * it describes exists: every rule here is scoped under `.bl-studio`, which the canvas never has.
+ * `data-type` is the attribute core puts on the same wrapper, so this is the same element by a
+ * name the scan does not look for.
+ */
+.bl-studio [data-type="core/missing"],
+.bl-studio .block-editor-warning {
+	border: 1px dashed var(--bl-studio-edge);
+	background: repeating-linear-gradient(
+		135deg,
+		#1a1a1d 0 7px,
+		#141417 7px 14px
+	);
+	color: var(--bl-studio-ink-dim);
+}
+
+.bl-studio .block-editor-warning__message {
+	color: var(--bl-studio-ink);
+	font-size: 12px;
+}
+
+/*
+ * Core offers "Keep as HTML" here, which is the honest action and the one the Studio's promise
+ * depends on — so it is left reachable rather than hidden for tidiness.
+ */
+.bl-studio .block-editor-warning__actions .components-button {
+	color: var(--bl-studio-ink);
+}
+
+/* ---------- the assistant ---------- */
+
+/*
+ * Both panels stay in the DOM and one is hidden, so switching away from a proposal and back does
+ * not throw it away — nor a half-typed prompt. `hidden` has to be stated because the rail is a
+ * flex column and a UA `display: none` is easy to lose to a class that sets `display` back.
+ *
+ * The tabs themselves are styled with the rails, up where the rest of the rail is. They were
+ * written a second time down here, in the dark surface's monospace-caps manner, and being later
+ * in the file that copy silently won — which is how "Selected" was still shouting in a bar that
+ * had already been restyled. A duplicate selector is the quiet kind of drift.
+ */
+.bl-studio__railbody[hidden] {
+	display: none;
+}
+
+.bl-assist {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+}
+
+.bl-assist__label {
+	margin: 0 0 6px;
+	color: var(--bl-studio-ink-faint);
+	font-family: ui-monospace, monospace;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bl-assist__scope {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--bl-studio-edge-soft);
+}
+
+.bl-assist__scopeone {
+	display: block;
+	width: 100%;
+	margin-bottom: 4px;
+	padding: 7px 9px;
+	border: 1px solid transparent;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink-dim);
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-assist__scopeone:hover {
+	border-color: var(--bl-studio-edge-soft);
+}
+
+.bl-assist__scopeone--on {
+	border-color: var(--bl-studio-accent);
+	color: var(--bl-studio-ink);
+}
+
+.bl-assist__scopename {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.bl-assist__scopenote {
+	display: block;
+	margin-top: 1px;
+	color: var(--bl-studio-ink-faint);
+	font-size: 11px;
+}
+
+/*
+ * The chips are rendered from the payload, not written beside it. They are the Studio's claim
+ * about what was sent, and a claim maintained in a second place is one that goes stale quietly.
+ */
+.bl-assist__given {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--bl-studio-edge-soft);
+}
+
+.bl-assist__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.bl-assist__chip {
+	padding: 2px 7px;
+	border: 1px solid var(--bl-studio-edge-soft);
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink-dim);
+	font-family: ui-monospace, monospace;
+	font-size: 10px;
+}
+
+.bl-assist__body {
+	flex-grow: 1;
+	min-height: 0;
+	padding: 12px 14px;
+}
+
+.bl-assist__state {
+	padding: 10px 12px;
+	border: 1px solid var(--bl-studio-edge-soft);
+	background: var(--bl-studio-sunk);
+}
+
+.bl-assist__state--failed {
+	border-color: #7a3a3a;
+}
+
+.bl-assist__statehead {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.bl-assist__statenote {
+	margin: 4px 0 10px;
+	color: var(--bl-studio-ink-faint);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.bl-assist__summary {
+	margin: 0 0 10px;
+	font-size: 12px;
+	line-height: 1.55;
+}
+
+.bl-assist__dropped {
+	margin: 0 0 10px;
+	padding: 7px 9px;
+	border-left: 2px solid var(--bl-studio-edge);
+	color: var(--bl-studio-ink-dim);
+	font-size: 11px;
+}
+
+.bl-assist__changes {
+	border: 1px solid var(--bl-studio-edge-soft);
+	background: var(--bl-studio-sunk);
+}
+
+.bl-assist__changehead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 9px;
+	border-bottom: 1px solid var(--bl-studio-edge-soft);
+}
+
+.bl-assist__changecount {
+	color: var(--bl-studio-ink-faint);
+	font-family: ui-monospace, monospace;
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bl-assist__all {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--bl-studio-ink-dim);
+	font-size: 11px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.bl-assist__change {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	margin: 0;
+	padding: 8px 9px;
+	border-top: 1px solid var(--bl-studio-edge-soft);
+	cursor: pointer;
+}
+
+.bl-assist__change:first-of-type {
+	border-top: 0;
+}
+
+/*
+ * A refused change is shown, struck, with its reason — never dropped silently. "2 of 3 applied"
+ * with a sentence saying which one and why is a state someone can act on; a shorter list they
+ * never asked for is how a tool loses the benefit of the doubt.
+ */
+.bl-assist__change--dropped {
+	cursor: default;
+	opacity: 0.65;
+}
+
+.bl-assist__change--dropped .bl-assist__changelabel {
+	text-decoration: line-through;
+}
+
+.bl-assist__changelabel {
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.bl-assist__why {
+	display: block;
+	margin-top: 2px;
+	color: var(--bl-studio-ink-faint);
+	font-size: 11px;
+}
+
+.bl-assist__actions {
+	display: flex;
+	gap: 6px;
+	margin-top: 12px;
+}
+
+.bl-assist__note {
+	margin: 10px 0 0;
+	color: var(--bl-studio-ink-faint);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.bl-assist__composer {
+	flex-shrink: 0;
+	padding: 12px 14px;
+	border-top: 1px solid var(--bl-studio-edge-soft);
+}
+
+.bl-assist__field {
+	display: block;
+}
+
+.bl-assist__field textarea {
+	display: block;
+	width: 100%;
+	padding: 8px 9px;
+	border: 1px solid var(--bl-studio-edge);
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 12px;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.bl-assist__field textarea:focus {
+	border-color: var(--bl-studio-accent);
+	outline: none;
+}
+
+.bl-assist__field textarea:disabled {
+	color: var(--bl-studio-ink-faint);
+	cursor: not-allowed;
+}
+
+.bl-assist__send {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 8px;
+}
+
+.bl-assist__hint {
+	color: var(--bl-studio-ink-faint);
+	font-family: ui-monospace, monospace;
+	font-size: 10px;
+}
+
+/*
+ * Core's "no block selected" panel, which ships white.
+ *
+ * It is the FIRST thing in the right rail on every fresh mount — nothing is selected yet — so the
+ * one state everybody sees was a white slab in a dark panel. The inspector's other surfaces
+ * inherit the Studio's tokens already; this one sets its own background and had to be told.
+ */
+.bl-studio .block-editor-block-inspector__no-blocks {
+	background: transparent;
+	color: var(--bl-studio-ink-faint);
+	font-size: 12px;
+}
+
+/* ---------- the inspector ---------- */
+
+/*
+ * **Core's own chrome, off the blocks that draw their whole panel themselves.**
+ *
+ * `BlockInspector` renders three things of its own around whatever a block contributes: a block
+ * card (icon, title, description), an Advanced panel, and a skip link. For a Scene box all three
+ * are noise, and the Advanced panel is worse than noise — `className: false` removed the only
+ * control it ever held, so it renders an empty collapsible titled "Advanced" that opens onto
+ * nothing.
+ *
+ * Hidden rather than not-rendered because none of it is ours: core builds that subtree, and the
+ * published API deliberately does not hand a companion the inspector's internals. The rail
+ * publishes which block is selected and the rule names the block, so this cannot leak onto a
+ * Section or a Stack in Flow mode — where a block card is genuinely useful.
+ *
+ * The block's own identity has not gone anywhere: the tree rail names it, and the stage shows it
+ * selected. What is gone is a second, longer statement of the same thing above a four-group panel.
+ */
+.bl-studio__rail--right[data-selected-type="blicks/scene-box"] .block-editor-block-card,
+.bl-studio__rail--right[data-selected-type="blicks/scene-box"] .components-panel__body,
+.bl-studio__rail--right[data-selected-type="blicks/scene-box"] .block-editor-skip-to-selected-block {
+	display: none;
+}
+
+/*
+ * **The state and breakpoint bar goes too, because for this block it lies.**
+ *
+ * It is the free plugin's, not core's, and flat mode keeps it on purpose — dropping it is real
+ * capability loss, since it is the only way to reach a hover value or a tablet override.
+ *
+ * It cannot do that here. A block's `Controls` component is handed `attributes` and
+ * `setAttributes` and nothing else — not the active state, not the active breakpoint — so the
+ * box's panel writes `default` / `base` whatever the bar says. Switching it to Hover and then
+ * picking a fill silently writes the resting colour. A control that reports a mode it does not
+ * apply is worse than one that is absent.
+ *
+ * So the box is a resting-state panel and says so by having no switch. Getting the bar back means
+ * giving `Controls` the slot it is editing, which is a change to the published API rather than a
+ * line of CSS — and the right one to make if hover on a box turns out to be wanted.
+ *
+ * The block label rides in that bar, which is why the panel no longer repeats "Scene box": the
+ * tree rail names it and the stage shows it selected.
+ */
+.bl-studio__rail--right[data-selected-type="blicks/scene-box"] .ins-toolbar,
+.bl-studio__rail--right[data-selected-type="blicks/scene-box"] .ins-footer {
+	display: none;
+}
+
+/*
+ * **The dark re-point is gone, and that is the change.**
+ *
+ * This rail used to carry a block that pointed every `--bl-ui-*` token at the free plugin's
+ * `--bl-ui-dark-*` ramp, because the Studio's rails were dark and the inspector rendered in its
+ * light defaults inside them. The rails are light now, so the inspector's own defaults are simply
+ * correct, and a re-point would be Pro overriding the free plugin to arrive back where it started.
+ *
+ * Worth keeping the reason the re-point was written that way, since it will be needed again the
+ * day anything here goes dark: the inspector's foundation does `@include ui-tokens.palette` ON
+ * `.bl-ins`, redefining every `--bl-ui-*` there, so a re-point on any ANCESTOR is shadowed by the
+ * element that reads it. It has to be set from a descendant selector — `.bl-studio .bl-ins`,
+ * (0,2,0) against (0,1,0) — regardless of which stylesheet loaded last.
+ */
+
+/*
+ * The inspector's root surfaces, which paint rather than take a token. Transparent, so the rail's
+ * own ground shows through and exactly one thing decides what colour this rail is.
+ */
+.bl-studio .bl-ins,
+.bl-studio .block-editor-block-inspector,
+.bl-studio .components-panel,
+.bl-studio .components-panel__body {
+	background: transparent;
+	color: var(--bl-studio-ink);
+}
+
+/* ---------- library: card actions ---------- */
+
+/*
+ * Add and Open in Studio sit on the preview and show on hover or keyboard focus, so the shelf reads
+ * as pictures. With no hover (touch), they stay visible.
+ */
+.bl-library__acts {
+	position: absolute;
+	inset: 0 0 auto;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 116px;
+	padding: 12px;
+	background: rgb(15 23 42 / 42%);
+	opacity: 0;
+	transition: opacity var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-library__card:hover .bl-library__acts,
+.bl-library__card:focus-within .bl-library__acts {
+	opacity: 1;
+}
+
+.bl-library__act {
+	height: 34px;
+	padding: 0 14px;
+	border: 1px solid #fff;
+	border-radius: 6px;
+	background: #fff;
+	color: var(--bl-lib-primary);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.bl-library__act--add {
+	border-color: var(--bl-lib-primary);
+	background: var(--bl-lib-primary);
+	color: var(--bl-lib-paper);
+}
+
+.bl-library__act:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+@media (hover: none) {
+	.bl-library__acts {
+		position: static;
+		height: auto;
+		padding: 0 12px 12px;
+		background: none;
+		opacity: 1;
+		order: 9;
+	}
+
+	.bl-library__act {
+		flex: 1;
+		box-shadow: none;
+	}
+}
+
+/* ---------- library: "+ New" pictures ---------- */
+
+.bl-library__newmenu button > span:last-child {
+	display: grid;
+	gap: 2px;
+}
+
+.bl-library__newpic {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	gap: 3px;
+	width: 52px;
+	height: 40px;
+	padding: 5px;
+	box-sizing: border-box;
+	border: 1px solid #cfd8ff;
+	border-radius: 4px;
+	background: #f5f7ff;
+	color: #002bff;
+}
+
+.bl-library__newpic i {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 2px;
+	background: #002bff;
+	opacity: 0.85;
+}
+
+.bl-library__newpic--section {
+	grid-template-rows: repeat(3, 1fr);
+}
+
+.bl-library__newpic--section i:nth-child(2) {
+	opacity: 0.45;
+}
+
+.bl-library__newpic--section i:nth-child(3) {
+	width: 60%;
+	opacity: 0.25;
+	justify-self: start;
+}
+
+/* ---------- library: the filter rail, in the Blicks Blueprint look ---------- */
+
+/* One blue, slight corners, a dot grid, mono labels: the rail's own rule carries the ground. */
+
+.bl-library__rail .bl-library__railtitle {
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 10.5px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--bl-bp);
+}
+
+.bl-library__rail .bl-library__row {
+	height: 38px;
+	border-radius: var(--bl-bp-r);
+	color: var(--bl-bp-ink);
+}
+
+.bl-library__rail .bl-library__row:hover {
+	background: var(--bl-bp-soft);
+}
+
+.bl-library__rail .bl-library__row--on,
+.bl-library__rail .bl-library__row--on:hover {
+	background: var(--bl-bp);
+	color: #fff;
+}
+
+.bl-library__rail .bl-library__row--on .bl-library__rowicon,
+.bl-library__rail .bl-library__row--on .bl-library__count {
+	color: #fff;
+}
+
+.bl-library__rail .bl-library__count {
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	color: var(--bl-bp);
+}
+
+.bl-library__rail .bl-library__chips button {
+	border: 1px solid var(--bl-bp-dot);
+	border-radius: var(--bl-bp-r);
+	background: #fff;
+	color: var(--bl-bp-ink);
+}
+
+.bl-library__rail .bl-library__chips button:hover {
+	border-color: var(--bl-bp);
+	color: var(--bl-bp);
+}
+
+.bl-library__rail .bl-library__chips [aria-pressed="true"] {
+	border-color: var(--bl-bp);
+	background: var(--bl-bp);
+	color: #fff;
+}
+
+.bl-library__rail :focus-visible {
+	outline: 2px solid var(--bl-bp);
+	outline-offset: 1px;
+}
+
+.bl-library__rail .bl-library__chips [aria-pressed="true"] .bl-library__chipcount {
+	color: #fff;
+	opacity: 0.85;
+}
+
+/* ---------- library: viewing patterns in a design language ---------- */
+
+.bl-library__lenses {
+	display: flex;
+	flex-shrink: 0;
+	gap: 8px;
+	margin-bottom: 10px;
+	padding: 2px 2px 6px;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+}
+
+/*
+ * A language picker card: a sample drawn in the language, then its name.
+ *
+ * The sample reads the same variables Box and Button do, re-rooted on the card (`LENS_CSS`), so ten
+ * cards side by side are ten real looks rather than ten labels — the difference between
+ * Neumorphism and Claymorphism is something you see, not something you read about.
+ */
+.bl-library__lens {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	flex: 0 0 132px;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 6px;
+	background: var(--bl-lib-paper);
+	color: var(--bl-lib-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+	scroll-snap-align: start;
+}
+
+.bl-library__lens:hover {
+	border-color: #002bff;
+}
+
+.bl-library__lens.is-on {
+	border-color: #002bff;
+	box-shadow: inset 0 0 0 1px #002bff;
+}
+
+.bl-library__lenspv {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 52px;
+	background-color: var(--blicks-color-background, #fff);
+	background-image: var(--blicks-gradient-backdrop, linear-gradient(var(--blicks-color-background), var(--blicks-color-background)));
+}
+
+.bl-library__lenscard {
+	width: 34px;
+	height: 28px;
+	border: var(--blicks-borderWidth-hair, 1px) solid var(--blicks-surface-border-color, var(--blicks-color-border, #e4e4e7));
+	border-radius: var(--blicks-radius-lg, 0.75rem);
+	background-color: color-mix(in srgb, var(--blicks-color-card, #fff) var(--blicks-surface-opacity, 100%), var(--blicks-surface-tint, transparent));
+	background-image: var(--blicks-surface-sheen, none);
+	box-shadow: var(--blicks-shadow-md, 0 4px 8px rgb(0 0 0 / 0.1));
+	backdrop-filter: var(--blicks-surface-blur, none);
+}
+
+.bl-library__lensbtn {
+	padding: 4px 9px;
+	border: var(--blicks-button-border-width, 1px) solid var(--blicks-button-border-color, var(--blicks-color-primary, #18181b));
+	border-radius: var(--blicks-button-radius, var(--blicks-radius-md, 0.5rem));
+	background-color: var(--blicks-color-primary, #18181b);
+	background-image: var(--blicks-button-sheen, none);
+	box-shadow: var(--blicks-button-shadow, none);
+	color: var(--blicks-color-primary-foreground, #fafafa);
+	text-shadow: var(--blicks-button-text-shadow, none);
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.1;
+}
+
+.bl-library__lensmeta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	padding: 6px 10px 7px;
+	border-top: 1px solid var(--bl-lib-hair);
+}
+
+.bl-library__lensname {
+	min-width: 0;
+	overflow: hidden;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-library__lenssite {
+	flex-shrink: 0;
+	color: #002bff;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+/* What the chosen language is, in its own words, under the strip. */
+.bl-library__lensdesc {
+	flex-shrink: 0;
+	max-width: 70ch;
+	margin: 0 0 12px;
+	color: var(--bl-lib-ink-variant);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.bl-library__lensdesc b {
+	color: var(--bl-lib-ink);
+	font-weight: 600;
+}
+
+.bl-library__notice {
+	display: flex;
+	flex-shrink: 0;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 14px;
+	margin-bottom: 14px;
+	padding: 10px 14px;
+	border: 1px solid #f1dfa6;
+	border-radius: 6px;
+	background: #fff4d6;
+	color: #5c4300;
+	font-size: 13px;
+}
+
+.bl-library__notice .bl-library__textbtn {
+	color: #5c4300;
+	text-decoration: underline;
+}
+
+/* The pattern itself, filling the thumbnail; the bars stay for patterns not yet parsed. */
+.bl-library__preview {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	background: var(--bl-lib-paper);
+}
+
+/* ---------- viewing the work in another design language ---------- */
+
+/* "View in": which language the canvas is drawn in. The chrome stays the Studio's own. */
+.bl-studio__lens {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 6px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+}
+
+.bl-studio__lens select {
+	/* WP admin gives every select a 40px box and a tall line-height; this one sits in a 32px row. */
+	min-height: 28px;
+	height: 28px;
+	width: auto;
+	max-width: 190px;
+	line-height: 1.2;
+	padding: 0 24px 0 10px;
+	border: 0;
+	border-radius: 9999px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 13px;
+}
+
+
+/* ---------- layers (the left sidebar) ---------- */
+
+.bl-layers {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.bl-layers__head {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: 0 12px 8px;
+}
+
+.bl-layers__search {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: 34px;
+	margin-right: 4px;
+	padding: 0 12px;
+	border-radius: 9999px;
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-layers__search input {
+	width: 100%;
+	min-width: 0;
+	border: 0;
+	background: none;
+	color: var(--bl-studio-ink);
+	font: inherit;
+	font-size: 13px;
+	outline: none;
+	box-shadow: none;
+}
+
+.bl-layers__tool,
+.bl-layers__act,
+.bl-layers__caret {
+	display: grid;
+	place-items: center;
+	flex: none;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease), color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-layers__tool {
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+}
+
+.bl-layers__tool:hover {
+	background: var(--bl-studio-sunk);
+	color: var(--bl-studio-ink);
+}
+
+.bl-layers__tree {
+	flex-grow: 1;
+	min-height: 0;
+	margin: 0;
+	padding: 0 10px 12px;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.bl-layers__row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 34px;
+	margin: 0 0 1px;
+	padding-right: 6px;
+	border-radius: 10px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+	cursor: pointer;
+	transition: background-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-layers__row:hover {
+	background: var(--bl-studio-sunk);
+}
+
+.bl-layers__row:focus-visible {
+	outline: 2px solid var(--bl-studio-primary);
+	outline-offset: -2px;
+}
+
+.bl-layers__row.is-on {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	font-weight: 600;
+}
+
+.bl-layers__row.is-hidden .bl-layers__name,
+.bl-layers__row.is-hidden .bl-layers__icon {
+	opacity: 0.45;
+}
+
+.bl-layers__caret,
+.bl-layers__caret-sp {
+	width: 18px;
+	height: 18px;
+	border-radius: 6px;
+}
+
+.bl-layers__caret:hover {
+	background: var(--bl-studio-outline);
+}
+
+.bl-layers__caret svg {
+	transition: transform var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-layers__caret.is-open svg {
+	transform: rotate(90deg);
+}
+
+/*
+ * wp-admin styles `[role="treeitem"] span[aria-hidden]` as an absolutely positioned dashicon, and
+ * that out-specifies a single class: the icon leaves the row and lands on the caret, a row off.
+ * The attribute in this selector is what wins it back, so it states every property core sets.
+ */
+.bl-layers__row > .bl-layers__icon[aria-hidden] {
+	position: static;
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 18px;
+	height: 18px;
+	color: var(--bl-studio-ink-variant);
+	font-family: inherit;
+	font-size: inherit;
+}
+
+.bl-layers__row.is-on > .bl-layers__icon[aria-hidden] {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-layers__icon svg {
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+}
+
+.bl-layers__name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-layers__snip {
+	margin-left: 6px;
+	color: var(--bl-studio-ink-variant);
+	font-weight: 400;
+	opacity: 0.75;
+}
+
+.bl-layers__rename {
+	flex: 1;
+	min-width: 0;
+	height: 26px;
+	padding: 0 8px;
+	border: 0;
+	border-radius: 7px;
+	background: var(--bl-studio-paper);
+	box-shadow: 0 0 0 2px var(--bl-studio-primary);
+	color: var(--bl-studio-ink);
+	font: inherit;
+	font-size: 13px;
+	outline: none;
+}
+
+.bl-layers__flags {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: none;
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-layers__flags small {
+	font-size: 11.5px;
+	font-weight: 400;
+}
+
+.bl-layers__acts {
+	display: none;
+	align-items: center;
+	gap: 1px;
+	flex: none;
+}
+
+.bl-layers__row:hover .bl-layers__acts,
+.bl-layers__row.is-on .bl-layers__acts,
+.bl-layers__row:focus-within .bl-layers__acts {
+	display: flex;
+}
+
+.bl-layers__row:hover .bl-layers__flags,
+.bl-layers__row.is-on .bl-layers__flags,
+.bl-layers__row:focus-within .bl-layers__flags {
+	display: none;
+}
+
+.bl-layers__act {
+	width: 26px;
+	height: 26px;
+	border-radius: 8px;
+}
+
+.bl-layers__act:hover {
+	background: var(--bl-studio-paper);
+	box-shadow: 0 1px 2px rgb(28 25 23 / 12%);
+	color: var(--bl-studio-ink);
+}
+
+.bl-layers__row.is-on .bl-layers__act {
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-layers__act:disabled {
+	opacity: 0.35;
+	cursor: default;
+	box-shadow: none;
+	background: none;
+}
+
+.bl-layers__groupbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 12px 8px;
+	padding: 8px 8px 8px 14px;
+	border-radius: 12px;
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bl-layers__groupbar span {
+	flex: 1;
+}
+
+/* Find: the style values a query matched, listed under their layer. */
+.bl-layers__found {
+	margin: 0;
+	padding: 0 22px 6px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-layers__hits {
+	display: grid;
+	gap: 1px;
+	margin: -1px 0 4px;
+	padding-left: 34px;
+}
+
+.bl-layers__hits button {
+	overflow: hidden;
+	padding: 2px 8px;
+	border: 0;
+	border-radius: 6px;
+	background: none;
+	color: var(--bl-studio-primary);
+	font: 11px/16px ui-monospace, "SF Mono", menlo, monospace;
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.bl-layers__hits button:hover,
+.bl-layers__hits button:focus-visible {
+	background: var(--bl-studio-selected);
+}
+
+.bl-layers__hits small {
+	padding: 0 8px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 11px;
+}
+
+.bl-layers__foot {
+	margin: 0;
+	padding: 8px 24px 16px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-layers__popover .components-popover__content {
+	border: 0;
+	border-radius: 14px;
+	box-shadow: 0 18px 40px -12px rgb(0 0 0 / 45%);
+	outline: 0;
+}
+
+.bl-layers__menu {
+	display: flex;
+	flex-direction: column;
+	width: 220px;
+	padding: 6px;
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.bl-layers__menu button[role="menuitem"] {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 7px 10px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: #1c1917;
+	font: inherit;
+	font-size: 13px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-layers__menu button[role="menuitem"]:hover:not(:disabled) {
+	background: #f5f5f4;
+}
+
+.bl-layers__menu button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.bl-layers__menu .is-danger {
+	color: #c81e4d;
+}
+
+.bl-layers__menu kbd {
+	padding: 0;
+	background: none;
+	color: #78716c;
+	font-family: inherit;
+	font-size: 11px;
+}
+
+.bl-layers__menu hr {
+	height: 1px;
+	margin: 4px 6px;
+	border: 0;
+	background: #f0efed;
+}
+
+.bl-layers__menulabel {
+	padding: 6px 10px 4px;
+	color: #78716c;
+	font-size: 11.5px;
+	font-weight: 600;
+}
+
+.bl-layers__screens {
+	display: flex;
+	gap: 4px;
+	padding: 0 8px 6px;
+}
+
+.bl-layers__screens button {
+	padding: 5px 10px;
+	border: 0;
+	border-radius: 9999px;
+	background: #f5f5f4;
+	color: #1c1917;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.bl-layers__screens button.is-on {
+	background: #002bff;
+	color: #fff;
+}
+
+/* ---------- the canvas hint ---------- */
+
+/* At the foot of the clear area, so an open sidebar never sits on it. */
+.bl-studio__hint {
+	position: absolute;
+	bottom: calc(var(--bl-studio-clear-bottom, 0px) + 14px);
+	left: calc(var(--bl-studio-clear-left, 0px) + 16px);
+	right: calc(var(--bl-studio-clear-right, 0px) + 16px);
+	width: fit-content;
+	margin: 0 auto;
+	padding: 6px 12px;
+	border-radius: 9999px;
+	background: rgb(32 33 36 / 80%);
+	color: #9aa0a6;
+	font-size: 12px;
+	text-align: center;
+	pointer-events: none;
+}
+
+/* ---------- the tree: what each row holds ---------- */
+
+.bl-studio__nodesnip {
+	color: var(--bl-studio-ink-variant);
+	font-weight: 400;
+}
+
+.bl-studio__node--on .bl-studio__nodesnip {
+	color: var(--bl-studio-on-selected);
+	opacity: 0.8;
+}
+
+/* ---------- the inspector with nothing selected ---------- */
+
+.bl-studio__overview {
+	display: grid;
+}
+
+.bl-studio__overgroup {
+	display: grid;
+	gap: 8px;
+	padding: 16px 24px;
+	border-bottom: 1px solid var(--bl-studio-hair);
+}
+
+.bl-studio__overlead {
+	margin: 0;
+	color: var(--bl-studio-ink);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.bl-studio__overtext {
+	margin: 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.bl-studio__overhead {
+	margin: 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bl-studio__facts {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 6px 14px;
+	margin: 0;
+	font-size: 13px;
+}
+
+.bl-studio__facts dt {
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-studio__facts dd {
+	margin: 0;
+	color: var(--bl-studio-ink);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the Motion tab ---------- */
+
+/*
+ * One view at a time — the list, a record's keyframes, the starters — each the full height of the
+ * rail. Sub-views replace the list and back out with an arrow; nothing stacks under anything.
+ */
+.bl-motion {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 4px 20px 24px;
+}
+
+.bl-motion__head,
+.bl-motion__subhead {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.bl-motion__subhead {
+	margin-left: -12px;
+}
+
+.bl-motion__title {
+	min-width: 0;
+	overflow: hidden;
+	font-size: 15px;
+	font-weight: 600;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-motion__back {
+	flex-shrink: 0;
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border: 0;
+	border-radius: 20px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	cursor: pointer;
+}
+
+.bl-motion__back:hover {
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__namebox {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	flex-grow: 1;
+}
+
+.bl-motion__name {
+	width: 100%;
+	height: 32px;
+	margin-left: -8px;
+	padding: 0 8px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background: none;
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.bl-motion__name:hover,
+.bl-motion__name:focus {
+	border-color: var(--bl-studio-outline);
+	background: var(--bl-studio-paper);
+}
+
+.bl-motion__namemeta {
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-motion__empty {
+	margin: 8px 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.bl-motion__sec {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.bl-motion__label {
+	margin: 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.bl-motion__labelrow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.bl-motion__tools {
+	display: flex;
+	gap: 2px;
+}
+
+.bl-motion__tiles {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.bl-motion__tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	padding: 12px 4px 10px;
+	border: 1px solid var(--bl-studio-hair);
+	border-radius: 12px;
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: border-color var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-motion__tile:hover {
+	border-color: var(--bl-studio-outline);
+}
+
+.bl-motion__tile--on,
+.bl-motion__tile--on:hover {
+	border-color: var(--bl-studio-primary);
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-motion__tile--new {
+	border-style: dashed;
+	color: var(--bl-studio-primary);
+}
+
+.bl-motion__tilename {
+	max-width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* The swatch every animation previews on: a filled square, so motion of any kind reads on it. */
+.bl-motion__pv {
+	display: block;
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	border-radius: 7px;
+	background: var(--bl-studio-primary);
+}
+
+.bl-motion__plus {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	font-size: 22px;
+	line-height: 1;
+}
+
+.bl-motion__dot {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #e37400;
+}
+
+.bl-motion__seg {
+	display: flex;
+	gap: 2px;
+	padding: 3px;
+	border-radius: 10px;
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__segbtn {
+	flex: 1 1 0;
+	height: 34px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-motion__segbtn--on {
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-ink);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+.bl-motion__segbtn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* Numbers live in a tinted group, as the inspector draws them. */
+.bl-motion__group {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 14px;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__slider {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 13px;
+}
+
+.bl-motion__sliderhead {
+	display: flex;
+	justify-content: space-between;
+}
+
+.bl-motion__slider input {
+	width: 100%;
+	margin: 0;
+	accent-color: var(--bl-studio-primary);
+}
+
+.bl-motion__value {
+	color: var(--bl-studio-ink-variant);
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+}
+
+.bl-motion__switch {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.bl-motion__switch input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--bl-studio-primary);
+}
+
+.bl-motion__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	height: 48px;
+	padding: 0 16px;
+	border: 1px solid var(--bl-studio-outline);
+	border-radius: 12px;
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-motion__rowmeta {
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.bl-motion__link {
+	align-self: flex-start;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--bl-studio-primary);
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bl-motion__icon {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border: 0;
+	border-radius: 6px;
+	background: none;
+	color: var(--bl-studio-primary);
+	font-family: inherit;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.bl-motion__icon:hover {
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__icon:disabled {
+	color: var(--bl-studio-ink-faint);
+	cursor: not-allowed;
+}
+
+/* The keyframe track: stops on a line, at their offset. */
+.bl-motion__track {
+	position: relative;
+	height: 40px;
+	margin: 0 10px;
+}
+
+.bl-motion__rail {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	left: 0;
+	height: 2px;
+	margin-top: -1px;
+	background: var(--bl-studio-outline);
+}
+
+.bl-motion__stop {
+	position: absolute;
+	top: 50%;
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	margin: -10px 0 0 -10px;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+}
+
+.bl-motion__stop i {
+	display: block;
+	width: 12px;
+	height: 12px;
+	border: 2px solid var(--bl-studio-ink-variant);
+	border-radius: 2px;
+	background: var(--bl-studio-paper);
+	transform: rotate(45deg);
+}
+
+.bl-motion__stop--on i {
+	border-color: var(--bl-studio-primary);
+	background: var(--bl-studio-primary);
+	box-shadow: 0 0 0 4px var(--bl-studio-selected);
+}
+
+.bl-motion__offset {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--bl-studio-ink-variant);
+	font-size: 13px;
+}
+
+.bl-motion__offset input {
+	width: 64px;
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid var(--bl-studio-outline);
+	border-radius: 6px;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 13px;
+}
+
+.bl-motion__decl {
+	display: grid;
+	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) 28px;
+	align-items: center;
+	gap: 8px;
+}
+
+.bl-motion__prop {
+	overflow: hidden;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.bl-motion__declvalue {
+	min-width: 0;
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid var(--bl-studio-outline);
+	border-radius: 6px;
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 12px;
+}
+
+.bl-motion__add select {
+	width: 100%;
+	height: 36px;
+	padding: 0 10px;
+	border: 1px dashed var(--bl-studio-outline);
+	border-radius: 8px;
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-primary);
+	font-family: inherit;
+	font-size: 13px;
+}
+
+.bl-motion__starters {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bl-motion__starter {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--bl-studio-hair);
+	border-radius: 12px;
+	background: var(--bl-studio-paper);
+	color: var(--bl-studio-ink);
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-motion__starter:hover {
+	border-color: var(--bl-studio-outline);
+}
+
+.bl-motion__starter--on,
+.bl-motion__starter--on:hover {
+	border-color: var(--bl-studio-primary);
+	background: var(--bl-studio-selected);
+}
+
+.bl-motion__pvbox {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 10px;
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__startertext,
+.bl-motion__arrivaltext {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.bl-motion__startertext strong,
+.bl-motion__arrivaltext strong {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.bl-motion__startertext small,
+.bl-motion__arrivaltext small {
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+}
+
+.bl-motion__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.bl-motion__arrivals {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 14px;
+	border-radius: 12px;
+	background: var(--bl-studio-sunk);
+}
+
+.bl-motion__arrival {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+}
+
+.bl-motion__foot {
+	margin: 0;
+	color: var(--bl-studio-ink-variant);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.bl-motion__foot--warn {
+	color: #8c4a00;
+}
+
+/* A door that could not be taken says why, under the doors. */
+.bl-studio__doorproblem {
+	margin: 0;
+	padding: 10px 24px;
+	background: #fce8e6;
+	color: #a50e0e;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.bl-studio-sheet__carried {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.bl-studio-sheet__carry {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+}
+
+.bl-studio-sheet__carry .bl-motion__pv {
+	width: 20px;
+	height: 20px;
+	border-radius: 5px;
+}
+
+/* ---------- remote entries on the shelf ---------- */
+
+/* A remote entry has no tree to draw until it is opened, so it shows the picture its source sent. */
+.bl-library__img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.bl-library__tier {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	z-index: 1;
+	height: 20px;
+	padding: 0 8px;
+	border-radius: 10px;
+	background: #1c1917;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 20px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.bl-library__opening {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	background: rgb(255 255 255 / 75%);
+	color: var(--bl-studio-ink);
+	font-size: 13px;
+	font-weight: 500;
+}
+
+/* ---------- library: the marketplace look ---------- */
+
+
+.bl-studio--library .bl-library__name {
+	font-family: var(--bl-lib-display);
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+/* Every pill becomes a rounded rectangle; every card and panel a softer one. */
+.bl-studio--library :is(
+	.bl-library__site, .bl-library__btn, .bl-library__iconbtn, .bl-library__textbtn, .bl-library__row,
+	.bl-library__field, .bl-library__pill, .bl-library__setbtn, .bl-library__chip, .bl-library__act,
+	.bl-library__lens, .bl-library__notice
+) {
+	border-radius: var(--bl-lib-r);
+}
+
+.bl-studio--library :is(.bl-library__badge, .bl-library__tier, .bl-library__dot) {
+	border-radius: 4px;
+}
+
+.bl-studio--library :is(.bl-library__card, .bl-library__set, .bl-library__head, .bl-library__import, .bl-library__newmenu, .bl-library__problem) {
+	border-radius: var(--bl-lib-rl);
+}
+
+/* Header controls: 40px, hairline-framed, as the marketplace's. */
+.bl-studio--library .bl-library__iconbtn {
+	width: 40px;
+	height: 40px;
+}
+
+.bl-studio--library .bl-library__site {
+	background: var(--bl-lib-rail);
+	box-shadow: inset 0 0 0 1px var(--bl-lib-hair);
+	font-family: var(--bl-lib-mono);
+	font-size: 12px;
+}
+
+.bl-studio--library :is(.bl-library__btn--filled, .bl-library__new) {
+	background: var(--bl-lib-primary);
+	color: #fff;
+}
+
+.bl-studio--library :is(.bl-library__btn--filled, .bl-library__new):hover {
+	background: var(--bl-lib-primary-hover);
+}
+
+/* Search: a framed field, not a sunk pill. */
+.bl-studio--library .bl-library__field {
+	height: 44px;
+	border: 1px solid var(--bl-lib-hair);
+	background: var(--bl-lib-paper);
+}
+
+.bl-studio--library .bl-library__field:focus-within {
+	border-color: var(--bl-lib-primary);
+	box-shadow: 0 0 0 1px var(--bl-lib-primary);
+}
+
+/* Labels and counts in mono caps, as the marketplace writes them. */
+.bl-studio--library :is(.bl-library__found, .bl-library__shape, .bl-library__count, .bl-library__chipcount, .bl-library__badge) {
+	font-family: var(--bl-lib-mono);
+	letter-spacing: 0.04em;
+}
+
+.bl-studio--library .bl-library__found {
+	text-transform: uppercase;
+	font-size: 12px;
+	color: var(--bl-lib-ink-variant);
+}
+
+/* The rail: the marketplace's filters. Selected is ink, as the marketplace's segmented filters. */
+.bl-studio--library .bl-library__rail .bl-library__row--on,
+.bl-studio--library .bl-library__rail .bl-library__row--on:hover,
+.bl-studio--library .bl-library__rail .bl-library__chips [aria-pressed="true"] {
+	border-color: var(--bl-lib-ink);
+	background: var(--bl-lib-ink);
+	color: #fff;
+}
+
+.bl-studio--library .bl-library__rail .bl-library__row:hover {
+	background: var(--bl-lib-sunk);
+}
+
+.bl-studio--library .bl-library__rail .bl-library__count {
+	color: var(--bl-lib-ink-variant);
+}
+
+.bl-studio--library .bl-library__rail .bl-library__chips button {
+	border-color: var(--bl-lib-hair);
+	font-size: 13px;
+}
+
+/* Cards: a hairline frame, a 16:10 preview like the marketplace's, a grotesk title. */
+.bl-studio--library .bl-library__card {
+	overflow: hidden;
+	border: 1px solid var(--bl-lib-hair);
+	box-shadow: none;
+}
+
+.bl-studio--library .bl-library__card:hover {
+	border-color: var(--bl-lib-outline);
+	box-shadow: 0 6px 20px rgb(11 13 18 / 8%);
+}
+
+.bl-studio--library .bl-library__thumb,
+.bl-studio--library .bl-library__acts {
+	height: auto;
+	aspect-ratio: 16 / 10;
+}
+
+.bl-studio--library .bl-library__thumb {
+	border-bottom: 1px solid var(--bl-lib-hair);
+}
+
+.bl-studio--library .bl-library__title {
+	font-family: var(--bl-lib-display);
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.bl-studio--library .bl-library__act {
+	color: var(--bl-lib-ink);
+	box-shadow: none;
+}
+
+.bl-studio--library .bl-library__act--add {
+	border-color: var(--bl-lib-primary);
+	background: var(--bl-lib-primary);
+	color: #fff;
+}
+
+.bl-studio--library .bl-library__tier {
+	background: var(--bl-lib-ink);
+	font-family: var(--bl-lib-mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bl-studio--library :focus-visible {
+	outline: 2px solid var(--bl-lib-primary);
+	outline-offset: 2px;
+}
+
+/* ---------- library: the live preview ---------- */
+
+/* The marketplace's preview, over the shelf: path bar, the design running on a stage, details. */
+.bl-preview {
+	--bl-pv-ink: #0b0d12;
+	--bl-pv-muted: #565d6b;
+	--bl-pv-hair: #e2e5eb;
+	--bl-pv-primary: #002bff;
+
+	width: min(1240px, calc(100vw - 48px));
+	max-width: none;
+	height: min(820px, calc(100vh - 48px));
+	max-height: none;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--bl-pv-hair);
+	border-radius: 14px;
+	background: #fff;
+	color: var(--bl-pv-ink);
+	font-family: geist, "Instrument Sans", -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+	box-shadow: 0 24px 80px rgb(11 13 18 / 28%);
+}
+
+.bl-preview[open] {
+	display: flex;
+	flex-direction: column;
+}
+
+.bl-preview::backdrop {
+	background: rgb(11 13 18 / 55%);
+}
+
+.bl-preview__bar {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	height: 56px;
+	padding: 0 12px 0 20px;
+	border-bottom: 1px solid var(--bl-pv-hair);
+}
+
+.bl-preview__path {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--bl-pv-muted);
+	font: 500 12px/1 "JetBrains Mono", ui-monospace, menlo, monospace;
+	letter-spacing: 0.08em;
+	text-overflow: ellipsis;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.bl-preview__widths {
+	display: flex;
+	gap: 2px;
+	padding: 3px;
+	border-radius: 8px;
+	background: #f6f7f9;
+}
+
+.bl-preview__widths button {
+	height: 28px;
+	padding: 0 10px;
+	border: 0;
+	border-radius: 6px;
+	background: none;
+	color: var(--bl-pv-muted);
+	font: 500 12px var(--bl-pv-font, inherit);
+	cursor: pointer;
+}
+
+.bl-preview__widths button[aria-checked="true"] {
+	background: #fff;
+	color: var(--bl-pv-ink);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 0 0 1px var(--bl-pv-hair);
+}
+
+.bl-preview__link {
+	color: var(--bl-pv-primary);
+	font: 500 12px/1 "JetBrains Mono", ui-monospace, menlo, monospace;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.bl-preview__link:hover {
+	text-decoration: underline;
+}
+
+.bl-preview__close {
+	display: grid;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-pv-ink);
+	cursor: pointer;
+}
+
+.bl-preview__close:hover {
+	background: #f6f7f9;
+}
+
+.bl-preview__body {
+	flex: 1;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	min-height: 0;
+}
+
+.bl-preview__stage {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	overflow: hidden;
+	background-color: #f6f7f9;
+	background-image: radial-gradient(#d3d7df 1px, transparent 1px);
+	background-size: 16px 16px;
+}
+
+.bl-preview__stage iframe {
+	display: block;
+	max-width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+	transition: width 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bl-preview__loading {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: var(--bl-pv-muted);
+	font: 500 12px "JetBrains Mono", ui-monospace, menlo, monospace;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bl-preview__details {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 24px;
+	overflow-y: auto;
+	border-left: 1px solid var(--bl-pv-hair);
+}
+
+.bl-preview__eyebrow {
+	color: var(--bl-pv-muted);
+	font: 500 12px/1 "JetBrains Mono", ui-monospace, menlo, monospace;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bl-preview__title {
+	margin: 0;
+	font: 700 28px/1.1 "Schibsted Grotesk", geist, "Helvetica Neue", arial, sans-serif;
+	letter-spacing: -0.03em;
+}
+
+.bl-preview__excerpt {
+	margin: 0;
+	color: #2b303b;
+	font-size: 15px;
+	line-height: 1.6;
+}
+
+.bl-preview__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.bl-preview__tag {
+	padding: 4px 8px;
+	border: 1px solid #c6cbd5;
+	border-radius: 6px;
+	font: 500 11px/1 "JetBrains Mono", ui-monospace, menlo, monospace;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bl-preview__tag--pro {
+	border-color: var(--bl-pv-ink);
+	background: var(--bl-pv-ink);
+	color: #fff;
+}
+
+.bl-preview__acts {
+	display: grid;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.bl-preview__btn {
+	height: 42px;
+	border: 1px solid #c6cbd5;
+	border-radius: 8px;
+	background: #fff;
+	color: var(--bl-pv-ink);
+	font: 500 14px inherit;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+.bl-preview__btn:hover:not(:disabled) {
+	border-color: var(--bl-pv-ink);
+}
+
+.bl-preview__btn--primary {
+	border-color: var(--bl-pv-primary);
+	background: var(--bl-pv-primary);
+	color: #fff;
+}
+
+.bl-preview__btn--primary:hover:not(:disabled) {
+	border-color: #02c;
+	background: #02c;
+}
+
+.bl-preview__btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.bl-preview__note {
+	margin: 0;
+	color: var(--bl-pv-muted);
+	font-size: 13px;
+}
+
+.bl-preview :focus-visible {
+	outline: 2px solid var(--bl-pv-primary);
+	outline-offset: 2px;
+}
+
+@media (width <= 860px) {
+	.bl-preview__body {
+		grid-template-columns: 1fr;
+		grid-template-rows: minmax(0, 1fr) auto;
+	}
+
+	.bl-preview__details {
+		border-top: 1px solid var(--bl-pv-hair);
+		border-left: 0;
+	}
+
+	.bl-preview__widths {
+		display: none;
+	}
+}
+
+/* ---------- library: a marketplace entry's card ---------- */
+
+/*
+ * The marketplace's own card — the design running in a 640×400 frame scaled to the card, name,
+ * one line, tags — with rounded corners, and the shelf's two actions under it. The name's button
+ * stretches over the card, so a click anywhere but the actions opens the full preview.
+ */
+.bl-mcard {
+	position: relative;
+	display: grid;
+	grid-template-rows: auto 1fr;
+	overflow: hidden;
+	border: 1px solid var(--bl-lib-hair);
+	border-radius: var(--bl-lib-rl);
+	background: var(--bl-lib-paper);
+	transition: border-color var(--bl-studio-fast) var(--bl-studio-ease), box-shadow var(--bl-studio-fast) var(--bl-studio-ease);
+}
+
+.bl-mcard:hover {
+	border-color: var(--bl-lib-ink);
+}
+
+.bl-mcard:has(.bl-mcard__open:focus-visible) {
+	outline: 2px solid var(--bl-lib-primary);
+	outline-offset: 2px;
+}
+
+.bl-mcard__preview {
+	position: relative;
+	overflow: hidden;
+	aspect-ratio: 640 / 400;
+	border-bottom: 1px solid var(--bl-lib-hair);
+	background-color: var(--bl-lib-rail);
+	background-image: radial-gradient(#d3d7df 1px, transparent 1.4px);
+	background-position: -8px -8px;
+	background-size: 16px 16px;
+}
+
+.bl-mcard__preview iframe {
+	width: 640px;
+	height: 400px;
+	border: 0;
+	background: var(--bl-lib-paper);
+	transform: scale(var(--bl-mcard-scale, 0.5));
+	transform-origin: 0 0;
+	pointer-events: none;
+}
+
+.bl-mcard__zoom {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 8px;
+	border-radius: 6px;
+	background: var(--bl-lib-ink);
+	color: #fff;
+	font: 500 11px/1 var(--bl-lib-mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	opacity: 0;
+	transform: translateY(-4px);
+	transition: opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bl-mcard:hover .bl-mcard__zoom {
+	opacity: 1;
+	transform: none;
+}
+
+.bl-mcard__opening {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	background: rgb(255 255 255 / 80%);
+	font: 500 12px var(--bl-lib-mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bl-mcard__icon {
+	flex: none;
+	width: 12px;
+	height: 12px;
+}
+
+.bl-mcard__body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 16px;
+}
+
+.bl-mcard__title {
+	margin: 0;
+	font: 700 18px/1.2 var(--bl-lib-display);
+	letter-spacing: -0.02em;
+}
+
+.bl-mcard__open {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.bl-mcard__open::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.bl-mcard__open:focus-visible {
+	outline: none;
+}
+
+.bl-mcard__desc {
+	display: -webkit-box;
+	margin: 0;
+	overflow: hidden;
+	color: #2b303b;
+	font-size: 13px;
+	line-height: 1.5;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.bl-mcard__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding-top: 4px;
+}
+
+.bl-mcard__tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 24px;
+	padding: 2px 8px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: 6px;
+	background: var(--bl-lib-paper);
+	color: #2b303b;
+	font: 500 11px/1 var(--bl-lib-mono);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.bl-mcard__tag--pro {
+	border-color: var(--bl-lib-ink);
+	background: var(--bl-lib-ink);
+	color: #fff;
+}
+
+/* Above the stretched name, so they take their own clicks. */
+.bl-mcard__acts {
+	position: relative;
+	z-index: 2;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 8px;
+	margin-top: auto;
+	padding-top: 6px;
+}
+
+.bl-mcard__btn {
+	height: 36px;
+	padding: 0 14px;
+	border: 1px solid var(--bl-lib-outline);
+	border-radius: var(--bl-lib-r);
+	background: var(--bl-lib-paper);
+	color: var(--bl-lib-ink);
+	font: 500 13px var(--bl-lib-font);
+	cursor: pointer;
+}
+
+.bl-mcard__btn:hover:not(:disabled) {
+	border-color: var(--bl-lib-ink);
+}
+
+.bl-mcard__btn--primary {
+	border-color: var(--bl-lib-primary);
+	background: var(--bl-lib-primary);
+	color: #fff;
+}
+
+.bl-mcard__btn--primary:hover:not(:disabled) {
+	border-color: var(--bl-lib-primary-hover);
+	background: var(--bl-lib-primary-hover);
+}
+
+.bl-mcard__btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.bl-mcard__note {
+	position: relative;
+	z-index: 2;
+	margin: 0;
+	color: var(--bl-lib-ink-variant);
+	font-size: 12px;
+}
+
+/*
+ * **A focus scope** (`studio.focus()`): the bar under the centre toolbar says where the scope is
+ * and how to leave it, and the left rail is headed by the way back. The dimming of everything
+ * outside the scope is a `<style>` the shell writes for the scope's client id (`focus-model.ts`).
+ */
+.bl-studio--focused .bl-studio__centre {
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.bl-studio__bar--focus {
+	min-width: 0;
+	max-width: 100%;
+	height: 44px;
+	gap: 8px;
+	padding: 0 4px 0 12px;
+	border-radius: 14px;
+	background: var(--bl-studio-rail);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+	pointer-events: auto;
+}
+
+.bl-studio__crumbs {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--bl-studio-ink-variant);
+}
+
+.bl-studio__crumb {
+	flex-shrink: 1;
+	min-width: 0;
+	height: 30px;
+	padding: 0 8px;
+	overflow: hidden;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	font-family: inherit;
+	font-size: 13px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	cursor: pointer;
+}
+
+.bl-studio__crumb:hover {
+	background: var(--bl-studio-hair);
+	color: var(--bl-studio-ink);
+}
+
+.bl-studio__crumb[aria-current="location"] {
+	color: var(--bl-studio-ink);
+	font-weight: 600;
+}
+
+.bl-studio__crumb--scope {
+	background: var(--bl-studio-selected);
+	color: var(--bl-studio-on-selected);
+}
+
+.bl-studio__scopehead {
+	flex-shrink: 0;
+	padding: 12px 16px 0;
+}
+
+.bl-studio__scopeback {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 32px;
+	padding: 0 10px 0 6px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--bl-studio-ink-variant);
+	font-family: inherit;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.bl-studio__scopeback:hover {
+	background: var(--bl-studio-hair);
+	color: var(--bl-studio-ink);
+}

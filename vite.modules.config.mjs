@@ -1,91 +1,62 @@
 import { defineConfig } from 'vite';
+import { wp_scripts } from '@kucrut/vite-for-wp/plugins';
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import process from 'node:process';
+import { collectSourceDeps } from './scripts/vite-plugin-wp-assets.mjs';
 
 /**
- * Front-end **Script Module** build — separate from the classic-IIFE `vite.config.mjs`.
+ * One Pro module (`modules/<name>`), built by `scripts/build-modules.mjs` with `BLICKS_MODULE` set.
  *
- * WordPress Interactivity API view scripts are ES modules, the OPPOSITE of the classic block
- * scripts: they keep real `import`/`export`, and `@wordpress/interactivity` must stay a BARE
- * specifier so WP's front-end import map resolves it at runtime (do NOT rewrite it to a `wp.*`
- * global, and do NOT IIFE-wrap). So they get their own Rollup pass with `format: 'es'`.
+ * Its entry is `modules/<name>/resources/index.ts(x)`, and the bundle goes to
+ * `modules/<name>/build/index.js` with an `index.asset.php` beside it: the classic-script contract
+ * the plugin's own bundles keep, so the module's provider enqueues it the way Pro will after the
+ * move. `@wordpress/*` and React are externalised to WordPress's globals; anything else the
+ * module needs from Blicks it reads off `window.blicks`, never by import (eslint enforces it).
  *
- * Discovers `resources/blocks/<name>/view.ts` → emits `build/blocks/<name>/view.js` (ESM) plus a
- * `view.asset.php` manifest (deps `@wordpress/interactivity`, content hash version) that
- * `register_block_type` reads for the block.json `viewScriptModule` handle.
- *
- * Runs with `emptyOutDir: false` so it layers onto the classic build's `build/` output.
+ * No `@` alias: the alias is how the plugin's own code reaches `resources/`, and a module must not.
  */
-const BLOCKS_DIR = 'resources/blocks';
+const name = process.env.BLICKS_MODULE ?? '';
+const dir = resolve( 'modules', name );
+const entry = [ 'index.tsx', 'index.ts' ].map( ( file ) => resolve( dir, 'resources', file ) ).find( ( file ) => existsSync( file ) );
 
-/** WP-provided script modules kept as bare imports (resolved by the front-end import map). */
-const WP_MODULES = [ '@wordpress/interactivity', '@wordpress/interactivity-router' ];
-
-function discoverViewScripts() {
-	const entries = {};
-	if ( ! existsSync( BLOCKS_DIR ) ) return entries;
-	for ( const dir of readdirSync( BLOCKS_DIR, { withFileTypes: true } ) ) {
-		if ( ! dir.isDirectory() ) continue;
-		for ( const ext of [ 'view.ts', 'view.js' ] ) {
-			const file = resolve( BLOCKS_DIR, dir.name, ext );
-			if ( existsSync( file ) ) {
-				entries[ `blocks/${ dir.name }/view` ] = file;
-				break;
-			}
-		}
-	}
-	return entries;
-}
-
-/** Emit a `*.asset.php` next to each view module so PHP reads its script-module dependencies. */
-function viewAssets() {
-	return {
-		name: 'blicks-view-assets',
-		apply: 'build',
-		generateBundle( _options, bundle ) {
-			for ( const [ fileName, chunk ] of Object.entries( bundle ) ) {
-				if ( chunk.type !== 'chunk' || ! chunk.isEntry ) continue;
-				const deps = ( chunk.imports || [] ).filter( ( id ) => WP_MODULES.includes( id ) );
-				const list = deps.map( ( d ) => `'${ d }'` ).join( ', ' );
-				const version = createHash( 'sha1' ).update( chunk.code ).digest( 'hex' ).slice( 0, 20 );
-				this.emitFile( {
-					type: 'asset',
-					fileName: fileName.replace( /\.js$/, '.asset.php' ),
-					source: `<?php return array( 'dependencies' => array( ${ list } ), 'version' => '${ version }' );\n`,
-				} );
-			}
-		},
-	};
-}
-
-const input = discoverViewScripts();
-
-/* global process, console */
-if ( Object.keys( input ).length === 0 ) {
-	// No Interactivity API blocks in the tree right now — rollup errors on an empty input map.
-	console.log( '[vite.modules.config] no view.ts entries found, skipping.' );
-	process.exit( 0 );
+if ( ! /^[a-z][a-z0-9-]*$/.test( name ) || ! entry ) {
+	throw new Error( `vite.modules.config.mjs: no module "${ name }" with a resources/index.ts(x).` );
 }
 
 export default defineConfig( {
-	plugins: [ viewAssets() ],
-	esbuild: { jsx: 'automatic' },
-	resolve: { alias: { '@': resolve( 'resources' ) } },
-	build: {
-		outDir: 'build',
-		emptyOutDir: false,            // layer onto the classic build, don't wipe it
-		manifest: false,
-		cssCodeSplit: false,
-		rollupOptions: {
-			input,
-			external: WP_MODULES,
-			preserveEntrySignatures: 'strict',
-			output: {
-				format: 'es',
-				entryFileNames: '[name].js',     // build/blocks/<name>/view.js
-				chunkFileNames: 'blocks/_shared/[name]-[hash].js',
+	plugins: [
+		wp_scripts(),
+		{
+			name: 'blicks-module-asset',
+			enforce: 'post',
+			renderChunk( code, chunk ) {
+				return chunk.isEntry ? { code: `(function(){\n${ code }\n})();\n`, map: null } : null;
 			},
+			generateBundle( _options, bundle ) {
+				for ( const chunk of Object.values( bundle ) ) {
+					if ( 'chunk' !== chunk.type || ! chunk.isEntry ) continue;
+					const deps = [ ...collectSourceDeps( chunk.moduleIds ) ].sort();
+					const version = createHash( 'sha1' ).update( chunk.code ).digest( 'hex' ).slice( 0, 20 );
+					this.emitFile( {
+						type: 'asset',
+						fileName: chunk.fileName.replace( /\.js$/, '.asset.php' ),
+						source: `<?php\ndefined( 'ABSPATH' ) || exit;\nreturn array( 'dependencies' => array( ${ deps.map( ( d ) => `'${ d }'` ).join( ', ' ) } ), 'version' => '${ version }' );\n`,
+					} );
+				}
+			},
+		},
+	],
+	esbuild: { jsx: 'automatic' },
+	build: {
+		outDir: resolve( dir, 'build' ),
+		emptyOutDir: true,
+		manifest: false,
+		rollupOptions: {
+			input: { index: entry },
+			preserveEntrySignatures: false,
+			output: { entryFileNames: '[name].js', assetFileNames: '[name][extname]' },
 		},
 	},
 } );

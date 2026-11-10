@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Blicks\Style\Breakpoints;
 use Blicks\Style\Tokens;
+use Blicks\Models\SettingModel;
 use Blicks\Settings\AdminSettings;
 
 /**
@@ -23,22 +24,34 @@ use Blicks\Settings\AdminSettings;
  */
 final class Store {
 
-	private const OPTION = 'blicks_design_system';
+	/** Someone's own values — everything they set, apart from the palette in use. Key in `blicks_settings`. */
+	private const VALUES_SETTING = 'design.values';
+	/** Where custom slugs were kept before the plugin's tables; read once and moved. */
 	private const SLUGS_OPTION = 'blicks_design_custom_slugs';
+	/** Key in the `blicks_settings` table. */
+	private const SLUGS_SETTING = 'design.custom_slugs';
 
 	/**
-	 * The live override set = the active theme's effective settings bag. Themes own their settings
-	 * now (see {@see DesignThemes}); this single read is the seam the snapshot + CSS pipeline uses.
+	 * The live override set: the palette's colours with someone's own values on top. This single
+	 * read is the seam the snapshot + CSS pipeline uses.
 	 *
 	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
 	 */
 	public static function getOverrides(): array {
-		return DesignThemes::activeBag();
+		$own = self::values();
+		$palette = DesignThemes::activeBag();
+
+		return [
+			'tokens' => array_replace_recursive( $palette['tokens'], $own['tokens'] ),
+			'breakpoints' => $own['breakpoints'],
+			'typeRoles' => $own['typeRoles'],
+		];
 	}
 
 	/**
-	 * Persist a token payload onto the **active theme** (Save and theme-apply both land here), and
+	 * Save a token payload as someone's own values (the Design system's Save lands here), and
 	 * forward-sync the changed values to the user Global Styles entity when theme.json sync is on.
+	 * A colour equal to the palette's is the palette's, not theirs, so the next palette repaints it.
 	 *
 	 * @param array<string, mixed> $payload
 	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
@@ -52,14 +65,112 @@ final class Store {
 			GlobalStylesWriter::persistAll( $changed['tokens'], $changed['breakpoints'], $changed['typeRoles'] );
 		}
 
-		return DesignThemes::saveActiveOverrides( $overrides );
+		self::persistValues( self::withoutPalette( $overrides, DesignThemes::activeBag() ) );
+
+		return self::getOverrides();
 	}
 
-	/** One-time cleanup: the live override set is now owned per-theme, so drop the legacy global option. */
-	public static function purgeLegacyOption(): void {
-		if ( function_exists( 'delete_option' ) ) {
-			delete_option( self::OPTION );
+	/**
+	 * Use a palette: its colours replace any of the same colours someone set themselves; every other
+	 * value of theirs stays.
+	 */
+	public static function usePalette( string $id ): void {
+		DesignThemes::setActive( $id );
+		$palette = DesignThemes::activeBag();
+		self::persistValues( self::withoutValues( self::values(), $palette ) );
+	}
+
+	/**
+	 * Replace someone's own values and the palette in use at once — a kit being used.
+	 *
+	 * @param array<string, mixed> $values
+	 */
+	public static function replaceValues( string $palette, array $values ): void {
+		if ( null !== DesignThemes::find( $palette ) ) {
+			DesignThemes::setActive( $palette );
 		}
+		self::persistValues( self::withoutPalette( Overrides::normalize( $values ), DesignThemes::activeBag() ) );
+	}
+
+	/**
+	 * Someone's own values. Before kits these lived inside each palette, so the first read moves
+	 * them out: the palette in use hands its values over, every other palette with values of its
+	 * own becomes a kit, and palettes keep only their colours. Nothing anyone saved is dropped.
+	 *
+	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
+	 */
+	public static function values(): array {
+		$stored = SettingModel::getValue( self::VALUES_SETTING, null );
+		if ( is_array( $stored ) ) {
+			return Overrides::normalize( $stored );
+		}
+
+		$legacy = DesignThemes::legacy();
+		$bagOf = static function ( string $id ) use ( $legacy ): ?array {
+			foreach ( $legacy['custom'] as $theme ) {
+				if ( $theme['id'] === $id ) {
+					return Overrides::normalize( $theme['tokens'] );
+				}
+			}
+			$builtin = DesignThemes::builtinBag( $id );
+
+			return null === $builtin ? null : Overrides::normalize( $legacy['builtinOverrides'][ $id ] ?? $builtin );
+		};
+
+		foreach ( $legacy['custom'] as $theme ) {
+			$bag = Overrides::normalize( $theme['tokens'] );
+			if ( DesignThemes::colorsOnly( $bag ) !== $bag ) {
+				DesignKits::adopt( $theme['name'], $theme['id'] === $legacy['active'] ? DesignLanguages::activeId() : DesignLanguages::DEFAULT, $theme['id'], $bag );
+			}
+		}
+		foreach ( $legacy['builtinOverrides'] as $id => $bag ) {
+			$name = (string) ( DesignThemes::find( $id )['name'] ?? $id );
+			/* translators: %s: palette name. */
+			DesignKits::adopt( sprintf( __( '%s, your values', 'blicks' ), $name ), $id === $legacy['active'] ? DesignLanguages::activeId() : DesignLanguages::DEFAULT, $id, $bag );
+		}
+
+		$own = $bagOf( $legacy['active'] ) ?? self::emptyBag();
+		DesignThemes::settleAsPalettes();
+		$own = self::withoutPalette( $own, DesignThemes::activeBag() );
+		self::persistValues( $own );
+
+		return $own;
+	}
+
+	/**
+	 * Drop the colours that equal the palette's own — those are the palette's, not someone's.
+	 *
+	 * @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} $values
+	 * @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} $palette
+	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
+	 */
+	public static function withoutPalette( array $values, array $palette ): array {
+		foreach ( $palette['tokens'] as $category => $tokens ) {
+			foreach ( $tokens as $slug => $value ) {
+				if ( ( $values['tokens'][ $category ][ $slug ] ?? null ) === $value ) {
+					unset( $values['tokens'][ $category ][ $slug ] );
+				}
+			}
+			if ( [] === ( $values['tokens'][ $category ] ?? null ) ) {
+				unset( $values['tokens'][ $category ] );
+			}
+		}
+
+		return $values;
+	}
+
+	/** @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} $values */
+	private static function persistValues( array $values ): void {
+		SettingModel::setValue( self::VALUES_SETTING, $values );
+	}
+
+	/** @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>} */
+	private static function emptyBag(): array {
+		return [
+			'tokens' => [],
+			'breakpoints' => [],
+			'typeRoles' => [],
+		];
 	}
 
 	/**
@@ -70,11 +181,7 @@ final class Store {
 	 * @return array<string, list<string>>
 	 */
 	public static function getCustomSlugs(): array {
-		if ( ! function_exists( 'get_option' ) ) {
-			return [];
-		}
-
-		$value = get_option( self::SLUGS_OPTION, [] );
+		$value = SettingModel::adoptOption( self::SLUGS_OPTION, self::SLUGS_SETTING, [] );
 		if ( ! is_array( $value ) ) {
 			return [];
 		}
@@ -123,29 +230,25 @@ final class Store {
 			}
 		}
 
-		if ( function_exists( 'update_option' ) ) {
-			update_option( self::SLUGS_OPTION, $existing, false );
-		}
+		SettingModel::setValue( self::SLUGS_SETTING, $existing );
 
 		return $existing;
 	}
 
 	/**
-	 * Reset a token group: drop its local option overrides and any custom slugs. Values fall back to
-	 * the theme.json projection. Tokens already synced to theme.json (forward-only) are not clawed
+	 * Reset a token group: drop someone's own values in it and any custom slugs. Values fall back to
+	 * the palette (for colours) and the theme.json projection. Tokens already synced to theme.json (forward-only) are not clawed
 	 * back — they're legitimately part of the user Global Styles now.
 	 */
 	public static function resetCategory( string $category ): void {
-		$overrides = self::getOverrides();
-		unset( $overrides['tokens'][ $category ] );
-		DesignThemes::saveActiveOverrides( $overrides );
+		$own = self::values();
+		unset( $own['tokens'][ $category ] );
+		self::persistValues( $own );
 
 		$slugs = self::getCustomSlugs();
 		if ( isset( $slugs[ $category ] ) ) {
 			unset( $slugs[ $category ] );
-			if ( function_exists( 'update_option' ) ) {
-				update_option( self::SLUGS_OPTION, $slugs, false );
-			}
+			SettingModel::setValue( self::SLUGS_SETTING, $slugs );
 		}
 	}
 

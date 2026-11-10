@@ -35,11 +35,63 @@ foreach (
     }
 }
 
+if (!class_exists('WP_Block_Type')) {
+    /**
+     * Only what `BlockSupport` reads. Real WordPress carries far more; a fuller stub would just be
+     * a second thing to keep true.
+     */
+    class WP_Block_Type
+    {
+        public string $name;
+
+        /** @var array<string, mixed> */
+        public array $supports;
+
+        /** @param array<string, mixed> $supports */
+        public function __construct(string $name, array $supports = [])
+        {
+            $this->name = $name;
+            $this->supports = $supports;
+        }
+    }
+}
+
+if (!class_exists('WP_Block_Type_Registry')) {
+    /** Delegates to the test's FakeRegistry so a test can both seed it and count lookups. */
+    class WP_Block_Type_Registry
+    {
+        private static ?self $instance = null;
+
+        public static function get_instance(): self
+        {
+            return self::$instance ??= new self();
+        }
+
+        public function get_registered(string $name): ?WP_Block_Type
+        {
+            $fake = 'Blicks\\Tests\\Unit\\Core\\FakeRegistry';
+
+            if (!class_exists($fake)) {
+                return null;
+            }
+
+            ++$fake::$lookups;
+
+            return $fake::$types[$name] ?? null;
+        }
+    }
+}
+
 if (!class_exists('WP_Error')) {
     class WP_Error
     {
-        public function __construct(private string $code = '', private string $message = '')
+        public function __construct(private string $code = '', private string $message = '', private mixed $data = '')
         {
+        }
+
+        public function get_error_data(): mixed
+        {
+            return $this->data;
         }
 
         public function get_error_code(): string
@@ -129,6 +181,13 @@ if (!function_exists('wp_kses_post')) {
     }
 }
 
+if (!function_exists('esc_attr')) {
+    function esc_attr(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
 if (!function_exists('wp_strip_all_tags')) {
     function wp_strip_all_tags(string $text, bool $remove_breaks = false): string
     {
@@ -158,11 +217,51 @@ if (!function_exists('get_option')) {
     }
 }
 
+if (!function_exists('delete_option')) {
+    function delete_option(string $option): bool
+    {
+        unset($GLOBALS['wp_options'][$option]);
+        return true;
+    }
+}
+
 if (!function_exists('update_option')) {
     function update_option(string $option, mixed $value, ?bool $autoload = null): bool
     {
         $GLOBALS['wp_options'][$option] = $value;
         return true;
+    }
+}
+
+// No theme in the unit suite, so theme.json reads come back empty — the same result the
+// plugin got from its own `function_exists` fallbacks before the 7.0 floor removed them.
+if (!function_exists('wp_get_global_settings')) {
+    function wp_get_global_settings(array $path = [], array $context = []): mixed
+    {
+        return [];
+    }
+}
+
+if (!function_exists('wp_get_global_styles')) {
+    function wp_get_global_styles(array $path = [], array $context = []): mixed
+    {
+        return [];
+    }
+}
+
+if (!function_exists('wp_theme_has_theme_json')) {
+    function wp_theme_has_theme_json(): bool
+    {
+        return false;
+    }
+}
+
+if (!function_exists('wp_generate_uuid4')) {
+    function wp_generate_uuid4(): string
+    {
+        $hex = bin2hex(random_bytes(16));
+
+        return sprintf('%s-%s-4%s-%s-%s', substr($hex, 0, 8), substr($hex, 8, 4), substr($hex, 13, 3), substr($hex, 16, 4), substr($hex, 20, 12));
     }
 }
 
@@ -457,3 +556,11 @@ if (!function_exists('current_user_can')) {
         return 'do_not_allow' !== $capability;
     }
 }
+
+// The plugin's own tables, in memory, fresh for every test (see phpunit.xml).
+require_once __DIR__ . '/Support/FakeTables.php';
+require_once __DIR__ . '/Support/FreshTables.php';
+// What the Loop data layer calls: transients, HTTP, cron, post types and meta.
+require_once __DIR__ . '/Support/DataStubs.php';
+// What the Studio's EntityRef calls: posts, block templates, and the post update.
+require_once __DIR__ . '/Support/StudioStubs.php';

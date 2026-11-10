@@ -1,0 +1,167 @@
+---
+title: "Studio API"
+description: "Add modes, panels, patterns and sources to the Blicks Studio from another plugin, narrow it to one block, and open trees stored outside the post."
+---
+
+The Studio publishes its registries on `window.blicks.studio`. A plugin that adds to it declares
+`blicks-studio` as a script dependency (or names its handle in
+[`blicks_studio_modes`](/developers/php-hooks#blicks_studio_modes)), so its script runs after the
+registries exist and before the Studio first opens.
+
+Header Studio and Dialog Studio, both coming in Blicks Pro, are built on this API alone, so the
+examples below use their header and dialog modes. Nothing here needs Pro.
+
+Every call checks what it is given and refuses a mistake with a console error naming the problem.
+Nothing throws: another plugin's bug cannot take the Studio down.
+
+```js
+const studio = window.blicks?.studio;
+
+if ( studio && studio.version >= 3 ) {
+	// …register here
+}
+```
+
+`studio.version` is bumped when a registration shape changes. Version 3 added everything below
+marked **API 3**; every version 2 registration keeps its shape.
+
+## Registries
+
+| Call | Adds |
+|---|---|
+| `registerMode( mode )` | A way of composing: what a tree is recognised by, and what draws it. |
+| `registerNewItem( item )` | An entry in the library's **+ New** menu. |
+| `registerPatterns( { id, entries } )` | Patterns shelved with the built-ins. |
+| `registerPanel( { id, label, render, modes } )` | A tab in the right rail beside the inspector. |
+| `registerSource( { id, label, load } )` | An asynchronous shelf in the library. |
+
+Each has an `unregister…( id )` twin, and registering an id again replaces the earlier entry.
+
+## Modes
+
+```js
+studio.registerMode( {
+	id: 'header',
+	label: 'Header',
+	priority: 10,
+	matches: ( blocks ) => blocks.length === 1 && blocks[ 0 ].name === 'blicks/header',
+	Canvas: HeaderCanvas,
+	widths: true,
+	persist: { label: 'Save header', ...studio.entity },  // API 3
+	tree: ( blocks ) => headerTree( blocks ),             // API 3
+} );
+```
+
+The mode is read off the mounted tree, never chosen: the registered mode with the highest
+`priority` whose `matches` accepts the tree wins. The built-in Section matches everything at
+priority 0.
+
+### Canvas props
+
+| Prop | |
+|---|---|
+| `width` | `desktop`, `tablet` or `phone`, for a mode with `widths`. |
+| `zoom` | The canvas zoom, in percent. |
+| `playing` | Bumped each time Play is pressed. |
+| `compact` | **API 3.** `true` at phone width. A mode with a phone form of its own (a header's drawer, a dialog's bottom sheet) draws it instead of its wide form at 390px. |
+| `focus` | **API 3.** The current focus scope, or `null`. See below. |
+
+### `tree` (API 3)
+
+`tree( blocks )` returns nodes `{ clientId, label, note?, children? }` that name the Layers rows in
+the mode's own words: *Top bar*, *Products · Mega*. Rows still follow the block tree and select by
+client id; a node only renames its block. A name the author gave a block wins over the mode's. A
+`tree` that throws is ignored.
+
+### `hidePanels` (API 3)
+
+Rail tabs that mean nothing in the mode, by panel id: `hidePanels: [ 'motion' ]` for a header,
+which has no keyframes to play. The tabs stay for every other mode.
+
+### `persist` (API 3)
+
+A mode whose tree lives somewhere other than the post that opened the Studio, such as a template
+part or a saved dialog.
+
+| Field | |
+|---|---|
+| `label` | The filled door, in place of **Insert**: *Save header*. |
+| `load( ref )` | Resolves `{ blocks, label?, note? }`. `note` is shown with the label: *Used on 12 pages*. |
+| `save( blocks, ref )` | Resolves when stored; rejects with an `Error` whose message is shown at the door. |
+
+After a save the Studio stays open. Leaving asks only if the tree changed since the last save.
+
+`studio.entity` is a ready `load`/`save` pair for the two kinds the server's
+[`EntityRef` route](/developers/php-hooks#the-entity-route) stores, so most modes spread it into
+`persist` and write no REST code.
+
+## Opening a stored tree: `openRef` (API 3)
+
+```js
+await studio.openRef( 'header', { kind: 'template-part', id: 'twentytwentyfive//header' } );
+await studio.openRef( 'dialog', { kind: 'post', type: 'blicks_dialog', id: 12 } );
+```
+
+Opens the Studio on what the mode's `persist.load( ref )` returns, in that mode, with the ref kept
+for its save. Resolves `true` once open, `false` when refused (no such mode, a mode without
+`persist`, a ref that is not an object, something already mounted) or when the load failed. The
+ref is any JSON object; the Studio never reads inside it.
+
+A screen without the Studio links to one with the editor's address and
+`?blicks-studio=ref:<mode>:<ref as JSON>`; the Studio reopens a stored tree the same way after a
+reload.
+
+## Focus scopes (API 3)
+
+```js
+studio.focus( clientId, { label: 'Products panel', exitLabel: 'Back to the header' } );
+studio.unfocus();
+```
+
+Narrows the Studio to one block's inner blocks: a mega menu's panel, a dialog's content, a Loop's
+card. While a scope is set:
+
+- the canvas dims everything outside it, and a press on the dimmed part leaves;
+- Layers lists only the scope's blocks under `label`, with `exitLabel` above them;
+- a bar under the toolbar shows the breadcrumb from the top of the tree through the scope;
+- the inserter offers what the scope's block allows (`allowedBlocks`), and inserts into it;
+- Escape leaves, after first clearing a selection.
+
+A scope is a view, not a separate edit: Undo and the doors act on the whole tree. It is dropped
+when its block is deleted, when something else is mounted and when the Studio closes.
+
+`focus()` returns `false` with nothing mounted or without a client id and a label. `exitLabel` is
+optional and falls back to *Back*. A mode reads the scope from its canvas's `focus` prop.
+
+## Rail panels
+
+```js
+studio.registerPanel( {
+	id: 'dialog-triggers',
+	label: 'Triggers',
+	modes: [ 'dialog' ],                          // API 3: only in this mode's rail
+	render: ( { blocks, selection, applyBurst, mode, ref } ) => <Triggers ref={ ref } />,
+} );
+```
+
+A panel renders inside the Studio's block-editor provider, so `useSelect` and `useDispatch` on
+`core/block-editor` read and write the mounted tree. Its props:
+
+| Prop | |
+|---|---|
+| `blocks` | The mounted tree. |
+| `context` | What the mode's `context( blocks )` reports, or `{}`. |
+| `applyBurst( run )` | Run several writes as one Undo step. |
+| `selection` | `{ clientId, name }` of the selected block, or `null`. |
+| `play` | `{ count, replay }`, the Play button's clock. |
+| `mode` | The id of the mode the tree is open in (API 3). |
+| `ref` | The stored entity the tree was opened from with `openRef`, or `null` (API 3). |
+
+Without `modes` the tab shows in every mode.
+
+## Other calls
+
+| Call | |
+|---|---|
+| `openBlock( clientId )` | Open the Studio on a block of the post being edited. |
+| `cardDesigns` | The Loop's saved card designs. |

@@ -31,6 +31,13 @@ require_once $_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
+		// The modules' own integration tests run with the rest; each skips itself when its
+		// module is not loaded, so without this they pass by never running. A site that names
+		// modules itself keeps its choice.
+		if ( ! defined( 'BLICKS_DEV_MODULES' ) ) {
+			define( 'BLICKS_DEV_MODULES', 'header-studio,dialog-studio' );
+		}
+
 		require dirname( __DIR__, 2 ) . '/blicks.php';
 	}
 );

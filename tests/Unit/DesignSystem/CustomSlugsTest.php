@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Blicks\Tests\Unit\DesignSystem;
 
 use Blicks\DesignSystem\Catalogue;
-use Blicks\DesignSystem\DesignThemes;
 use Blicks\DesignSystem\Overrides;
 use Blicks\DesignSystem\Store;
 use PHPUnit\Framework\TestCase;
@@ -30,12 +29,12 @@ final class CustomSlugsTest extends TestCase
     {
         $registry = Store::registerCustomSlugs([
             'color' => ['Brand Soft', 'primary'], // 'primary' is a base slug → skipped
-            'ring' => ['tertiary'],
+            'opacity' => ['tertiary'],
             'bogus' => ['nope'],                   // unknown category → skipped
         ]);
 
         $this->assertSame(['brand-soft'], $registry['color']);
-        $this->assertSame(['tertiary'], $registry['ring']);
+        $this->assertSame(['tertiary'], $registry['opacity']);
         $this->assertArrayNotHasKey('bogus', $registry);
 
         // Persisted + de-duplicated on re-read.
@@ -46,29 +45,28 @@ final class CustomSlugsTest extends TestCase
 
     public function test_custom_slug_unions_into_catalogue(): void
     {
-        Store::registerCustomSlugs([ 'ring' => ['tertiary'] ]);
+        Store::registerCustomSlugs([ 'opacity' => ['tertiary'] ]);
 
         $catalogue = Catalogue::effectiveCatalogue([]);
-        $this->assertContains('tertiary', $catalogue['ring']);
+        $this->assertContains('tertiary', $catalogue['opacity']);
         // Base slugs still present.
-        $this->assertContains('brand', $catalogue['ring']);
+        $this->assertContains('scrim', $catalogue['opacity']);
     }
 
     public function test_reset_category_clears_overrides_and_custom_slugs(): void
     {
-        Store::registerCustomSlugs([ 'ring' => ['tertiary'] ]);
-        // Overrides live on the active theme now, not a standalone option.
-        DesignThemes::saveActiveOverrides([
-            'tokens' => [ 'ring' => [ 'brand' => '0 0 0 3px red' ], 'color' => [ 'primary' => '#111' ] ],
+        Store::registerCustomSlugs([ 'opacity' => ['tertiary'] ]);
+        Store::saveOverrides([
+            'tokens' => [ 'opacity' => [ 'scrim' => '0.7' ], 'color' => [ 'primary' => '#111' ] ],
             'breakpoints' => [],
             'typeRoles' => [],
         ]);
 
-        Store::resetCategory('ring');
+        Store::resetCategory('opacity');
 
         $overrides = Store::getOverrides();
-        $this->assertArrayNotHasKey('ring', $overrides['tokens']);
+        $this->assertArrayNotHasKey('opacity', $overrides['tokens']);
         $this->assertArrayHasKey('color', $overrides['tokens']); // untouched category survives
-        $this->assertArrayNotHasKey('ring', Store::getCustomSlugs());
+        $this->assertArrayNotHasKey('opacity', Store::getCustomSlugs());
     }
 }

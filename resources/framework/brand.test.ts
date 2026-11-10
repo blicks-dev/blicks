@@ -1,14 +1,14 @@
 /**
  * The Blicks logo is drawn in three places that cannot import each other:
  *
- *   • `resources/framework/brand.tsx`   — the editor (Theme Settings sidebar)
+ *   • `resources/framework/brand.tsx`   — the editor (the Studio's header button)
  *   • `resources/admin/icons.tsx`       — the wp-admin app header
  *   • `docs/favicon.svg`                — the docs site, a static file
  *
  * The first two are separate Vite entries, and entries here are self-contained by construction
  * (see the `blicks-iife-wrap` note in `brand.tsx`); the third is not JavaScript at all. So the
  * geometry is copied, and this test is what keeps the copies honest: a logo that drifts between
- * the admin header, the editor sidebar and the favicon is worse than no logo.
+ * the admin header, the editor and the favicon is worse than no logo.
  *
  * Only the geometry is compared. The paint differs on purpose — the components inherit
  * `currentColor` so the mark takes its chrome's colour, while the favicon is a fixed `#0d1117`

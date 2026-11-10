@@ -78,40 +78,28 @@ final class DesignThemesTest extends TestCase
         $this->assertSame('#059669', DesignThemes::activeBag()['tokens']['color']['primary']);
     }
 
-    public function test_save_active_overrides_records_builtin_layer_and_marks_edited(): void
+    public function test_palettes_keep_colours_only(): void
     {
-        DesignThemes::saveActiveOverrides(['tokens' => ['color' => ['primary' => '#abc123']]]);
+        $created = DesignThemes::create('Mixed', [
+            'tokens' => ['color' => ['primary' => '#123456'], 'radius' => ['md' => '3px']],
+            'breakpoints' => ['tablet' => 900],
+        ]);
+        $palette = $created['themes'][count($created['themes']) - 1];
 
-        $indigo = DesignThemes::find('indigo');
-        $this->assertTrue($indigo['edited']);
-        $this->assertSame('#abc123', $indigo['tokens']['tokens']['color']['primary']);
-        $this->assertSame('#abc123', DesignThemes::activeBag()['tokens']['color']['primary']);
-    }
-
-    public function test_save_active_overrides_equal_to_preset_drops_the_layer(): void
-    {
-        // Re-saving the curated values verbatim should leave the theme pristine, not flag it edited.
-        DesignThemes::saveActiveOverrides(DesignThemes::find('indigo')['tokens']);
-
+        $this->assertSame(['color' => ['primary' => '#123456']], $palette['tokens']['tokens']);
+        $this->assertSame([], $palette['tokens']['breakpoints']);
         $this->assertFalse(DesignThemes::find('indigo')['edited']);
     }
 
-    public function test_reset_theme_restores_builtin_and_empties_custom(): void
+    public function test_reset_empties_a_palette_of_your_own_and_leaves_builtins_as_shipped(): void
     {
-        DesignThemes::saveActiveOverrides(['tokens' => ['color' => ['primary' => '#abc123']]]);
-        $this->assertTrue(DesignThemes::find('indigo')['edited']);
-
         DesignThemes::resetTheme('indigo');
-        $indigo = DesignThemes::find('indigo');
-        $this->assertFalse($indigo['edited']);
-        $this->assertSame('#4f46e5', $indigo['tokens']['tokens']['color']['primary']);
+        $this->assertSame('#4f46e5', DesignThemes::find('indigo')['tokens']['tokens']['color']['primary']);
 
         $created = DesignThemes::create('Draft', ['tokens' => ['color' => ['primary' => '#222222']]]);
         $id = $created['themes'][count($created['themes']) - 1]['id'];
         DesignThemes::resetTheme($id);
-        $reset = DesignThemes::find($id);
-        $this->assertFalse($reset['edited']);
-        $this->assertSame([], $reset['tokens']['tokens']);
+        $this->assertSame([], DesignThemes::find($id)['tokens']['tokens']);
     }
 
     /**

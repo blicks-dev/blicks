@@ -1,0 +1,35 @@
+{
+	"$comment": "Controls every visible block allows, on top of its own. block.json lists stay explicit (the server and layout tools read them as written); baseline-controls.test.ts holds every block to this list. An exception is a control the block already sets through its own setting, so allowing it too would give one value two sources. Field and Input leave out gridChild: a Field's place in the Form's grid is its Width setting, and an Input sits in its Field, which is a flex column, never a grid.",
+	"controls": [
+		"spacing.*",
+		"border.*",
+		"effects.*",
+		"animation.*",
+		"layout.width",
+		"layout.minWidth",
+		"layout.maxWidth",
+		"layout.height",
+		"layout.minHeight",
+		"layout.maxHeight",
+		"flexChild.*",
+		"gridChild.*",
+		"colors.background",
+		"background.*"
+	],
+	"exempt": [],
+	"except": {
+		"blicks/section": [
+			"layout.width",
+			"layout.minWidth",
+			"layout.maxWidth",
+			"layout.height",
+			"layout.minHeight",
+			"layout.maxHeight"
+		],
+		"blicks/field": [ "gridChild.*" ],
+		"blicks/input": [ "gridChild.*" ],
+		"blicks/image": [
+			"layout.width"
+		]
+	}
+}

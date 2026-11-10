@@ -11,7 +11,7 @@ import {
 	makeMatcher,
 	validateOrEmpty,
 } from '@/controls/common';
-import { lengthOrTokenPattern, lengthOrTokenPatternMulti, resolveTokenValues } from '@/controls/token-utils';
+import { lengthOrTokenPattern, resolveTokenValues } from '@/controls/token-utils';
 import { ColorRow } from '@/controls/ColorRow';
 import { IconValueField, type IconChoice } from '@/controls/IconValueField';
 import { FieldGroup, LengthField, ValueField } from '@/controls/ValueField';
@@ -98,10 +98,8 @@ function sideOf( value: any, key: string ): string {
 const BORDER_PATTERN = /^(0|\d+(\.\d+)?(px|%|em|rem)|thin|medium|thick)$/;
 const BORDER_SUGGESTIONS = [ '0', '1px', '2px', 'thin', 'thick' ];
 // Width sides resolve token slugs against the dedicated borderWidth scale, radius corners
-// against the radius scale (see `valOrToken` in the style engine). Also accepts the old spacing
-// scale so values saved before the borderWidth category existed keep validating (the engine's
-// `fallbackCategory` resolves them the same way).
-const BORDER_WIDTH_PATTERN = lengthOrTokenPatternMulti( [ 'borderWidth', 'spacing' ], BORDER_PATTERN );
+// against the radius scale (see `valOrToken` in the style engine).
+const BORDER_WIDTH_PATTERN = lengthOrTokenPattern( 'borderWidth', BORDER_PATTERN );
 const RADIUS_PATTERN = lengthOrTokenPattern( 'radius', LENGTH_PATTERN );
 // `auto`/`1fr`/`100vh` from the generic length set are meaningless for a corner radius.
 const RADIUS_LITERALS = [ '0', '2px', '4px', '8px', '16px', '50%', '9999px' ];
@@ -355,7 +353,7 @@ export function BorderControl( { attributes, setAttributes, state, breakpoint, i
 
 					{ showColor && (
 					<ColorRow
-						hint={ __( 'Border colour', 'blicks' ) }
+						hint={ __( 'Border color', 'blicks' ) }
 						value={ sideColor }
 						onChange={ onColorChange }
 					/>

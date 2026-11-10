@@ -60,11 +60,10 @@ export function paletteStoreValue( slug: string ): string {
 	return isToken( 'color', slug ) ? slug : `var(--blicks-color-${ slug })`;
 }
 
-// Matches either namespace: `--blicks-color-{slug}` (design-system presets) or the legacy
-// `--wp--preset--color--{slug}` (values saved by the earlier theme-palette attempt).
-const VAR_RE = /^var\(\s*--(?:blicks-color-|wp--preset--color--)([a-zA-Z0-9-]+)\s*\)$/;
+// `--blicks-color-{slug}` — the design-system preset var a palette pick is stored as.
+const VAR_RE = /^var\(\s*--blicks-color-([a-zA-Z0-9-]+)\s*\)$/;
 
-/** The palette slug a stored value points at — handles a bare Blicks slug and either var form. */
+/** The palette slug a stored value points at — handles a bare Blicks slug and the var form. */
 export function paletteSlugOfValue( value: string ): string | null {
 	if ( ! value ) return null;
 	const match = value.match( VAR_RE );

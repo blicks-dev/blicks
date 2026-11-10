@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Models\SettingModel;
 use Blicks\Style\CssValue;
 
 /**
@@ -28,7 +29,10 @@ use Blicks\Style\CssValue;
  */
 final class Animations {
 
+	/** Where animations were kept before the plugin's tables; read once and moved. */
 	private const OPTION = 'blicks_design_animations';
+	/** Key in the `blicks_settings` table. */
+	private const SETTING = 'design.animations';
 
 	private const MAX_ANIMATIONS = 60;
 	private const MAX_STEPS = 20;
@@ -184,6 +188,26 @@ final class Animations {
 					'fillMode' => 'forwards',
 				]
 			),
+			$make(
+				'fade-in',
+				__( 'Fade in', 'blicks' ),
+				__( 'Fades from invisible as it scrolls into view.', 'blicks' ),
+				[
+					'duration' => '600ms',
+					'easing' => 'ease-out',
+					'fillMode' => 'both',
+				]
+			),
+			$make(
+				'zoom-in',
+				__( 'Zoom in', 'blicks' ),
+				__( 'Grows slightly into place as it scrolls into view.', 'blicks' ),
+				[
+					'duration' => '600ms',
+					'easing' => 'ease-out',
+					'fillMode' => 'both',
+				]
+			),
 		];
 	}
 
@@ -220,11 +244,7 @@ final class Animations {
 	 * @return list<array{slug:string,label:string,defaults:array<string,string>,steps:list<array{offset:int,declarations:array<string,string>}>}>
 	 */
 	public static function all(): array {
-		if ( ! function_exists( 'get_option' ) ) {
-			return [];
-		}
-
-		$raw = get_option( self::OPTION, [] );
+		$raw = SettingModel::adoptOption( self::OPTION, self::SETTING, [] );
 		if ( ! is_array( $raw ) ) {
 			return [];
 		}
@@ -338,7 +358,7 @@ final class Animations {
 	 * @return list<array<string,mixed>>
 	 */
 	private static function stored(): array {
-		$raw = function_exists( 'get_option' ) ? get_option( self::OPTION, [] ) : [];
+		$raw = SettingModel::adoptOption( self::OPTION, self::SETTING, [] );
 
 		return is_array( $raw ) ? array_values( array_filter( $raw, 'is_array' ) ) : [];
 	}
@@ -350,9 +370,40 @@ final class Animations {
 
 	/** @param list<array<string,mixed>> $animations */
 	private static function persist( array $animations ): void {
-		if ( function_exists( 'update_option' ) ) {
-			update_option( self::OPTION, $animations, false );
+		SettingModel::setValue( self::SETTING, $animations );
+	}
+
+	/**
+	 * Every property a keyframe step may set, custom properties included — what the Studio's
+	 * keyframe editor offers. Published rather than copied, so the two can never disagree.
+	 *
+	 * @return list<string>
+	 */
+	public static function allowedProperties(): array {
+		return array_merge( self::ALLOWED_PROPERTIES, self::ALLOWED_CUSTOM_PROPERTIES );
+	}
+
+	/**
+	 * A list of animation records from outside the library — the copy a saved pattern carries —
+	 * cleaned exactly as a stored one is. Anything that fails is dropped, and the list is capped.
+	 *
+	 * @param mixed $raw
+	 * @return list<array{slug:string,label:string,defaults:array<string,string>,steps:list<array{offset:int,declarations:array<string,string>}>}>
+	 */
+	public static function sanitizeList( $raw ): array {
+		if ( ! is_array( $raw ) ) {
+			return [];
 		}
+
+		$out = [];
+		foreach ( $raw as $entry ) {
+			$clean = is_array( $entry ) ? self::sanitize( $entry ) : null;
+			if ( null !== $clean ) {
+				$out[ $clean['slug'] ] = $clean;
+			}
+		}
+
+		return array_slice( array_values( $out ), 0, self::MAX_ANIMATIONS );
 	}
 
 	/**

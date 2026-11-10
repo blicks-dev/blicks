@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { normalizeActivity, normalizeAnimations, normalizeDiagnostics, normalizeDashboardSummary, countOverrides, timeAgo, parseRgb, compositeOver, contrastRatio, contrastGrade, splitTopLevel, parseClamp, topLevelTokens, parseShadow, formatShadow, parseGradient, formatGradient, isGradientPosition, isColorValue, parseTransition, formatTransition, describeTransform, parseRing, formatRing, describeRing, parseBorder, formatBorder, aspectRatioOf, countRecordChanges, countNestedChanges } from './data';
-import type { ShadowParts, GradientParts, TransitionParts, RingParts, BorderParts } from './data';
+import { normalizeActivity, normalizeAnimations, normalizeDiagnostics, normalizeDashboardSummary, countOverrides, timeAgo, parseRgb, compositeOver, contrastRatio, contrastGrade, splitTopLevel, parseClamp, topLevelTokens, parseShadow, formatShadow, parseGradient, formatGradient, isGradientPosition, isColorValue, parseTransition, formatTransition, describeTransform, aspectRatioOf, countRecordChanges, countNestedChanges } from './data';
+import type { ShadowParts, GradientParts, TransitionParts } from './data';
 
 describe( 'normalizeActivity', () => {
 	it( 'keeps entries that carry a parseable timestamp', () => {
@@ -455,79 +455,6 @@ describe( 'describeTransform', () => {
 
 	it( 'hands back anything it cannot read, rather than inventing a reading', () => {
 		expect( describeTransform( 'perspective(400px)' ) ).toBe( 'perspective(400px)' );
-	} );
-} );
-
-describe( 'parseRing', () => {
-	it( 'reads a plain ring as thickness and colour', () => {
-		expect( parseRing( '0 0 0 3px rgba(0, 43, 255, 0.35)' ) ).toEqual( {
-			thickness: '3px', offset: '0', offsetColor: '', blur: '', color: 'rgba(0, 43, 255, 0.35)',
-		} );
-	} );
-
-	it( 'reads the offset pair as a gap, and the ring as the difference of the two spreads', () => {
-		expect( parseRing( '0 0 0 2px #ffffff, 0 0 0 5px #002bff' ) ).toEqual( {
-			thickness: '3px', offset: '2px', offsetColor: '#ffffff', blur: '', color: '#002bff',
-		} );
-	} );
-
-	it( 'keeps a glow\u2019s blur', () => {
-		expect( parseRing( '0 0 6px 2px #002bff' ) ).toMatchObject( { thickness: '2px', blur: '6px' } );
-	} );
-
-	it( 'refuses anything that is not a ring', () => {
-		expect( parseRing( 'inset 0 0 0 3px red' ) ).toBeNull();
-		expect( parseRing( '0 2px 0 3px red' ) ).toBeNull();          // shifted: a shadow, not a ring
-		expect( parseRing( '0 0 0 5px red, 0 0 0 2px blue' ) ).toBeNull(); // outer thinner than inner
-		expect( parseRing( '0 0 0 1px a, 0 0 0 2px b, 0 0 0 3px c' ) ).toBeNull();
-		expect( parseRing( 'none' ) ).toBeNull();
-	} );
-
-	it( 'round-trips through formatRing', () => {
-		for ( const value of [
-			'0 0 0 3px rgba(0, 43, 255, 0.35)',
-			'0 0 0 2px #ffffff, 0 0 0 5px #002bff',
-			'0 0 6px 2px #002bff',
-		] ) {
-			expect( formatRing( parseRing( value ) as RingParts ) ).toBe( value );
-		}
-	} );
-
-	it( 'adds the offset back into the outer spread when writing a gap', () => {
-		expect( formatRing( { thickness: '3px', offset: '2px', offsetColor: '#fff', blur: '', color: 'red' } ) )
-			.toBe( '0 0 0 2px #fff, 0 0 0 5px red' );
-	} );
-} );
-
-describe( 'describeRing', () => {
-	it( 'says what the browser rendered', () => {
-		expect( describeRing( 'rgba(0, 43, 255, 0.35) 0px 0px 0px 3px' ) ).toBe( '3px' );
-		expect( describeRing( 'rgb(255, 255, 255) 0px 0px 0px 2px, rgb(0, 43, 255) 0px 0px 0px 5px' ) ).toBe( '2px gap \u00b7 3px' );
-		expect( describeRing( 'none' ) ).toBe( '' );
-	} );
-} );
-
-describe( 'parseBorder', () => {
-	it( 'reads width, style and colour in any order', () => {
-		expect( parseBorder( '1px solid #111827' ) ).toEqual( { width: '1px', style: 'solid', color: '#111827' } );
-		expect( parseBorder( 'dashed 2px rgb(0 43 255 / 0.4)' ) ).toEqual( { width: '2px', style: 'dashed', color: 'rgb(0 43 255 / 0.4)' } );
-		expect( parseBorder( 'dotted' ) ).toEqual( { width: '', style: 'dotted', color: '' } );
-		// A `var()` is sorted by what our own tokens are called, since it could be either.
-		expect( parseBorder( 'var(--blicks-border-width-hair) solid currentColor' ) )
-			.toEqual( { width: 'var(--blicks-border-width-hair)', style: 'solid', color: 'currentColor' } );
-		expect( parseBorder( 'var(--gap) solid red' ) ).toBeNull();
-	} );
-
-	it( 'refuses a shorthand with a token to spare', () => {
-		expect( parseBorder( '1px solid red blue' ) ).toBeNull();
-		expect( parseBorder( '1px 2px solid' ) ).toBeNull();
-		expect( parseBorder( '' ) ).toBeNull();
-	} );
-
-	it( 'round-trips through formatBorder', () => {
-		for ( const value of [ '1px solid #111827', '2px dashed #002bff', 'dotted' ] ) {
-			expect( formatBorder( parseBorder( value ) as BorderParts ) ).toBe( value );
-		}
 	} );
 } );
 

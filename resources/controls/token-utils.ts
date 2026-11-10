@@ -14,7 +14,7 @@
  * (e.g. an older cached editor bundle, or `color`/`fontFamily` which have their own
  * dedicated bridges — see `color/palette.ts` and `typography/font-library.ts`).
  */
-import { TOKENS } from '@/design-system/tokens';
+import { isToken, TOKENS } from '@/design-system/tokens';
 import type { TokenCategory } from '@/framework/types';
 import { titleCase, tokenVar } from '@/framework/design-system';
 
@@ -23,6 +23,8 @@ export type TokenOption = {
 	label: string;
 	varName: string;
 	css: string;
+	/** What picking it stores: see tokenStoreValue(). */
+	value: string;
 };
 
 type LiveTokenRow = { slug: string; name: string; value: string };
@@ -52,26 +54,37 @@ function slugsFor( category: TokenCategory ): readonly string[] {
 export function tokenOptions( category: TokenCategory ): TokenOption[] {
 	return slugsFor( category ).map( slug => {
 		const varName = tokenVar( category, slug );
-		return { slug, label: titleCase( slug ), varName, css: `var(${ varName })` };
+		return { slug, label: titleCase( slug ), varName, css: `var(${ varName })`, value: tokenStoreValue( category, slug ) };
 	} );
+}
+
+/**
+ * What a picked token is stored as. The engine resolves a bare slug only when it is in
+ * `tokens.json` — both engines read that one static list. A theme's own preset (Twenty
+ * Twenty-Five's spacing `50`, its colour `contrast`) is printed as `--blicks-<category>-<slug>`
+ * but would be written raw as a bare slug: `50` became `50px`, `contrast` no colour at all. So a
+ * slug the engine does not know is stored as its variable, which carries the theme's real value.
+ *
+ * Shadows keep the bare slug: the shadow builder takes only an engine slug or layers, and drops a
+ * `var()` just as it drops an unknown slug.
+ */
+export function tokenStoreValue( category: TokenCategory, slug: string ): string {
+	return isToken( category, slug ) || category === 'shadow' ? slug : `var(${ tokenVar( category, slug ) })`;
+}
+
+/** The slug a stored value points at: a bare slug, or `var(--blicks-<category>-<slug>)`. */
+export function tokenSlugOfValue( category: TokenCategory, value: string ): string {
+	const prefix = tokenVar( category, '' ).replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+	const match = new RegExp( `^var\\(\\s*${ prefix }([a-zA-Z0-9-]+)\\s*\\)$` ).exec( value.trim() );
+	return match ? match[ 1 ] : value;
 }
 
 /** `base` validation pattern extended to also accept the category's token slugs. */
 export function lengthOrTokenPattern( category: TokenCategory, base: RegExp ): RegExp {
-	return lengthOrTokenPatternMulti( [ category ], base );
-}
-
-/**
- * Like `lengthOrTokenPattern`, but accepts slugs from several categories at once — for a control
- * whose token category changed and needs to keep validating pre-migration saved values against
- * the old category too (the style engine's `valOrToken()`/`ElementStyle::valOrToken()` has the
- * matching `fallbackCategory` resolution).
- */
-export function lengthOrTokenPatternMulti( categories: readonly TokenCategory[], base: RegExp ): RegExp {
 	const literal = base.source.replace( /^\^/, '' ).replace( /\$$/, '' );
-	const slugs = categories
-		.flatMap( category => slugsFor( category ) )
-		.map( slug => slug.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ) )
+	// The stored forms: a bare engine slug, or a theme preset's `var(--blicks-…)`.
+	const slugs = slugsFor( category )
+		.map( slug => tokenStoreValue( category, slug ).replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ) )
 		.join( '|' );
 
 	return new RegExp( `^(?:${ literal }|${ slugs })$` );
@@ -79,13 +92,13 @@ export function lengthOrTokenPatternMulti( categories: readonly TokenCategory[],
 
 /** Datalist suggestions: token slugs first, then literal examples (deduped). */
 export function tokenSuggestions( category: TokenCategory, extra: readonly string[] = [] ): string[] {
-	return [ ...new Set( [ ...slugsFor( category ), ...extra ] ) ];
+	return [ ...new Set( [ ...slugsFor( category ).map( ( slug ) => tokenStoreValue( category, slug ) ), ...extra ] ) ];
 }
 
 /**
  * Resolve the category's current CSS values from the live document. The editor
- * canvas iframe is preferred — it always carries the runtime `--blicks-*` vars
- * (and any unsaved Theme Settings draft pins); the top document is the fallback.
+ * canvas iframe is preferred — it always carries the runtime `--blicks-*` vars;
+ * the top document is the fallback.
  * Iterates the same slug list as `tokenOptions()` so previews line up with the
  * options actually offered.
  */

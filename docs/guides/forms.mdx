@@ -1,0 +1,171 @@
+---
+title: "Forms"
+description: "Build a contact, sign-up or call-back form from Form, Field and Input blocks, read what visitors send in Entries, and keep spam out."
+---
+
+A form is three kinds of block. **Form** is the frame: it sends, saves and emails. **Field** is
+one question, made of a label, a control and a line of help. **Input** is the control inside a
+Field — the box, list or choices a visitor fills in — and it is styled on its own.
+
+The label and the help are ordinary **Text** blocks, so you type them on the canvas like any other
+text.
+
+## Start from a template
+
+An empty Form shows **Start this form** with **Pick a template…**:
+
+| Template | What it holds |
+|---|---|
+| **Contact** | Name and Email side by side, Phone and a Topic dropdown, a Message, a consent box, and **Send message** |
+| **Newsletter** | An Email field and a **Subscribe** button in one row, with a line saying what the address is used for |
+| **Newsletter card** | A heading, a line of text, Email, a consent box and **Subscribe** |
+| **Call back** | Name, Phone, a **Best time to call** choice (Morning, Afternoon, Evening) and **Call me back** |
+| **Blank** | One Email field and a **Send** button |
+
+Change it later under **Settings ▸ Kind ▸ Template**. Changing it replaces the blocks inside the
+form, so Blicks asks first.
+
+## Build it
+
+<Frame caption="A Form's Settings tab. The warnings at the top name what still stops it from working.">
+	<img src="/images/inspector/form-1-settings.png" alt="The Form Settings tab: Add a field, Kind with Template and Mark fields, Sending, After sending and Spam" style={{ maxWidth: '280px' }} />
+</Frame>
+
+<Steps>
+	<Step title="Add fields">
+		A Form holds Fields, Buttons, Headings, Text and Boxes. A Field can only live inside a Form.
+	</Step>
+	<Step title="Pick each field's type">
+		**Short text**, **Long text**, **Email**, **Phone**, **Number**, **Date**, **Time**, **Slider**, **Dropdown**, **Choices**, **Consent** or **Hidden**.
+	</Step>
+	<Step title="Set the width">
+		A form is a six-column grid. A Field's **Width** is **Full**, **2/3**, **Half** or **1/3**. On phones, and anywhere the form is narrower than 480px, every field takes the full row.
+	</Step>
+	<Step title="Add a sending Button">
+		Set a Button's **On click** to **Send form**. A Button set to **Clear form** empties the fields. The inspector warns you when no Button sends the form.
+	</Step>
+</Steps>
+
+Some types have more than one **Appearance**: Choices can be a **List**, **Chips**, **Cards** or
+**Segments**; Consent a **Box** or a **Switch**; Number a **Field** or a **Stepper**.
+
+Every field needs a **Name** — it is the key its answer is saved under. The inspector warns about
+a field with no name (its answer is not saved) and about two fields sharing one (entries keep only
+the first).
+
+### Required fields and messages
+
+Under **Rules**, turn on **Required**, and use **When it is missing or wrong** to write your own
+message. Without one, each type has a plain default, such as "Enter an email address like
+name@example.com." or "Tick this box to send the form."
+
+**Mark fields** on the Form chooses how required and optional fields are labelled: **(optional)**
+(the default), **\* required**, **Both** or **None**.
+
+The browser checks the form before it is sent, with the same rules and messages the server uses,
+and lists how many fields need a fix. The server checks again whatever arrives: it reads only the
+fields saved in the form, caps lengths (500 characters for short text, 5,000 for long text), and
+accepts a Dropdown or Choices answer only when it matches one of the options.
+
+## What happens when someone sends it
+
+Under **Sending**:
+
+- **Save each entry** keeps every send in **Blicks ▸ Entries**.
+- **Email it** sends each entry by email. **To** defaults to the site admin's address; separate
+  several with commas. They are never shown on the page. **Subject** can include a field's value
+  with a `{name}` tag, such as `New entry: {email}`. **Reply to the sender** makes replies go to the
+  first Email field.
+
+Email goes out through WordPress's own mail function, as a table of each label and answer with a
+link back to the entry. Spam is never emailed.
+
+Under **After sending ▸ Show**, choose what the visitor sees:
+
+- **Message** — a title and a line of text in place of the form.
+- **Page** — another published page.
+- **Dialog** — a Dialog on the same page. See [Dialogs](/guides/dialogs).
+
+## Entries
+
+**Blicks ▸ Entries** lists everything your forms have saved, 20 to a page.
+
+- Filter by **Form** and by **Status**: **New**, **Handled** or **Spam**.
+- **Search entries** looks through the answers.
+- Open an entry to read it, see the page it came from, why it was marked as spam, and what was done
+  with it (saved, emailed). **Reply by email**, mark it, or delete it.
+- **Export CSV** downloads the entries the Form filter shows: received time, status, page, then one
+  column per field. Cells that a spreadsheet would read as a formula are made safe.
+
+Deleting an entry is permanent.
+
+<Note>
+Entries need the `manage_options` capability by default — administrators. A developer can change
+that with the `blicks_entries_capability` filter.
+</Note>
+
+### Privacy
+
+- An entry stores the answers, the page, the time, the browser's user agent and a salted hash of
+  the visitor's IP address. The IP address itself is never stored.
+- Entries appear in **Tools ▸ Export Personal Data** and **Tools ▸ Erase Personal Data**, matched by
+  an email address in the answers.
+- Blicks adds suggested text for your privacy policy under **Settings ▸ Privacy**.
+- Entries are kept until you delete them. They are removed with the rest of Blicks' data only when
+  **When Blicks is deleted** is set to **Remove everything** in **Blicks ▸ Settings**.
+
+## Spam checks
+
+These run on every form and cannot be turned off:
+
+- **A hidden trap field.** People never see it; a bot that fills it in is told the form was sent,
+  and the entry goes to Spam.
+- **A minimum wait.** **Wait at least (seconds)** defaults to 3. A send faster than that is treated as a bot's.
+- **A signed, single-use token**, fetched when a visitor first focuses the form and tied to that
+  form and page.
+- **A same-site check** on where the send came from.
+- **A rate limit** of five sends a minute per visitor per form.
+
+A send without JavaScript is kept as Spam rather than lost, and is not emailed.
+
+### Optional challenge
+
+Under **Challenge**, a form can also use **reCAPTCHA v3 · invisible**, **reCAPTCHA v2 · checkbox**
+or **Cloudflare Turnstile**. Add the keys first in **Blicks ▸ Settings ▸ Forms**.
+
+<Warning>
+A challenge loads the provider's script on pages that show that form, and your server contacts
+Google or Cloudflare to check each send. With **Challenge** set to **None** (the default), forms
+load no outside script and make no outside request.
+</Warning>
+
+A send that fails the challenge is saved as Spam, never dropped. For reCAPTCHA v3, **Block below
+(score)** sets the cut-off (0.5 by default; the site-wide default is **Lowest reCAPTCHA v3 score**
+in Settings). If the provider cannot be reached, the entry is kept with the note "Challenge not
+checked".
+
+## What forms do not do
+
+The free plugin has no file uploads, payments or multi-step forms. The twelve field types above
+are the set; a companion plugin can register more.
+
+## For developers
+
+PHP filters run in this order on a send: `blicks_form_values`, `blicks_form_errors`,
+`blicks_form_entry`, `blicks_form_response`. The `blicks_form_sent` action fires after a send is
+accepted, saved and emailed.
+
+```php
+add_action( 'blicks_form_sent', function ( $entry_id, $form, $values ) {
+	// Hand the answers to a CRM, a mailing list…
+}, 10, 3 );
+```
+
+New field types are registered on both sides: `blicks_form_field_types` and
+`blicks_form_field_type_{type}` (with `render`, `validate` and `display` callbacks) in PHP, and
+`window.blicks.forms.registerFieldType()` in the editor. See
+[Extension API](/developers/extension-api#forms).
+
+On the page, each `<form>` dispatches bubbling DOM events: `blicks:form-input`,
+`blicks:form-validate` (listeners may change `detail.errors`), `blicks:form-beforesend`
+(cancelable) and `blicks:form-sent`.

@@ -6,15 +6,39 @@
 		min-width: 0;
 	}
 
-	/* Semantic surface tags (article/aside/figure) read as cards/panels, so they get default
-	   padding; div/span stay zero-opinion. `:where()` keeps specificity 0 so Styles ▸ Spacing
-	   overrides without a fight. `figure` also drops its default browser margin. */
-	:where( article, aside, figure ).bl-box {
-		padding: var( --blicks-spacing-md, 1.25rem );
+	/* On top: every child shares the one grid cell, so later children layer over earlier ones
+	   (words over a picture). The parent's placement comes from the style tree. */
+	.bl-box--layers > * {
+		grid-area: 1 / 1;
 	}
 
-	:where( figure ).bl-box {
+	/* Divider: an <hr> drawn by its background, so its colour, thickness and length are ordinary
+	   style values. The browser's own rule would add a border on top. */
+	hr.bl-box--divider {
+		border: 0;
 		margin: 0;
+		height: 1px;
+		background: currentcolor;
+	}
+
+	.bl-box--spacer {
+		height: 2rem;
+	}
+
+	/* The design language's surface (DesignLanguages.php): a sheen over the card's own fill and a
+	   blur behind it. Both are unset under Minimal. */
+	.bl-box--card,
+	.bl-box--panel {
+		background-image: var(--blicks-surface-sheen, none);
+		backdrop-filter: var(--blicks-surface-blur, none);
+	}
+
+	.bl-box--badge {
+		display: inline-flex;
+		align-items: center;
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
 	}
 
 	/* Stretched-link card: the overlay <a> covers the box; nested interactive content stays
@@ -30,17 +54,53 @@
 		border-radius: inherit;
 	}
 
+	/* Keyboard focus lands on the overlay link, whose own outline a clipping box (overflow: hidden,
+	   a rounded card) cuts off — so the box draws the ring. Layered and weightless: a focus style
+	   set on the box in the inspector (the engine's `focus` state also matches this) wins. */
+	.bl-box__link:focus-visible {
+		outline: none;
+	}
+
+	:where( .bl-box--linked:has( > .bl-box__link:focus-visible ) ) {
+		outline: 2px solid currentcolor;
+		outline-offset: 2px;
+	}
+
 	.bl-box--linked :where( a:not( .bl-box__link ), button, input, select, textarea, label, [tabindex] ) {
 		position: relative;
 		z-index: 2;
 	}
 }
 
-/* Editor: keep a dashed outline on a selected Box (or while a child is selected) so an
-   unstyled/transparent box stays visible. Editor-only — `.is-selected` never appears on the front
-   end. Uses `outline` so it never overrides a user-set border or background-color. */
+/* The design language's surface, applied to the card's own fill and edge (DesignLanguages.php).
+   Those come from the engine's `.bl-bg` / `.bl-bc` classes, so these sit outside the layer, one
+   class stronger, and are built from the same variables: with the language unset, the mix is 100%
+   of the fill and the edge falls back to the card's own, so nothing changes. Glass mixes the fill
+   toward transparent, Claymorphism toward a pastel tint; a hand-set fill is mixed the same way. */
+.bl-box--card.bl-bg,
+.bl-box--panel.bl-bg {
+	background-color: color-mix( in srgb, var( --bl-bg, transparent ) var( --blicks-surface-opacity, 100% ), var( --blicks-surface-tint, transparent ) );
+}
+
+.bl-box--card.bl-bc,
+.bl-box--panel.bl-bc {
+	border-color:
+		var( --blicks-surface-border-color, var( --bl-bct, currentcolor ) )
+		var( --blicks-surface-border-color, var( --bl-bcr, currentcolor ) )
+		var( --blicks-surface-border-color, var( --bl-bcb, currentcolor ) )
+		var( --blicks-surface-border-color, var( --bl-bcl, currentcolor ) );
+}
+
+/* Editor: keep a dashed outline on a selected Box (or while a child is selected) so an unstyled
+   box stays visible, and show a spacer's room. Editor-only — `.is-selected` never reaches the
+   front end. `outline` never overrides a user-set border or background. */
 .bl-box.is-selected,
-.bl-box.has-child-selected {
+.bl-box.has-child-selected,
+.bl-box--spacer.is-selected {
 	outline: 1px dashed var( --wp-admin-theme-color, #3858e9 );
 	outline-offset: -1px;
+}
+
+.block-editor-block-list__layout .bl-box--spacer {
+	background: repeating-linear-gradient( 0deg, transparent 0 4px, rgb( 0 0 0 / 6% ) 4px 5px );
 }

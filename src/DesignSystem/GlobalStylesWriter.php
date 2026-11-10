@@ -191,12 +191,7 @@ final class GlobalStylesWriter {
 	}
 
 	public static function isAvailable(): bool {
-		return function_exists( 'wp_theme_has_theme_json' )
-			&& wp_theme_has_theme_json()
-			&& class_exists( 'WP_Theme_JSON_Resolver' )
-			&& method_exists( 'WP_Theme_JSON_Resolver', 'get_user_global_styles_post_id' )
-			&& function_exists( 'get_post' )
-			&& function_exists( 'wp_update_post' );
+		return wp_theme_has_theme_json();
 	}
 
 	/**

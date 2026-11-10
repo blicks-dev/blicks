@@ -1,0 +1,171 @@
+---
+title: "Extension API"
+description: "Build a companion plugin against Blicks Extension API 2: the version guard, script dependencies, and the PHP and JavaScript surface that stays stable."
+---
+
+A companion plugin — new blocks, Studio modes, admin screens, field types — talks to Blicks through
+one versioned surface. Blicks 2.0 ships **Extension API 2**.
+
+| | Blicks 1.x | Blicks 2.0 |
+|---|---|---|
+| PHP `BLICKS_API_VERSION` | `'1'` | `'2'` |
+| JavaScript `window.blicks.version` | `1` | `2` |
+| `BLICKS_VERSION` | `1.x` | `2.0.0` |
+| WordPress / PHP minimum | 6.6 / 8.1 | **7.0** / 8.1 |
+
+The number goes up only when something is **removed or changes meaning**. Additions never move it.
+The PHP and JavaScript numbers always move together.
+
+Coming from 1.x? See [Migrating from API v1](/developers/migrating-from-v1).
+
+## Check the version first
+
+A companion ships separately and will be installed next to a Blicks it was not built for. Check
+before you touch anything.
+
+```php
+// PHP — strict: the surface's meaning changes between versions.
+if ( ! defined( 'BLICKS_API_VERSION' ) || '2' !== BLICKS_API_VERSION ) {
+	// Show an admin notice and stop.
+	return;
+}
+if ( version_compare( BLICKS_VERSION, '2.0.0', '<' ) ) {
+	return;
+}
+```
+
+```js
+// JavaScript — degrade, never throw.
+const blicks = window.blicks;
+if ( ! blicks || blicks.version < 2 ) {
+	return;
+}
+```
+
+## Script dependencies
+
+| Where | Depend on |
+|---|---|
+| The post and site editor | `blicks-editor` |
+| Blicks Studio (modes, panels) | `blicks-studio` |
+| Blicks admin screens | `blicks-admin` |
+
+A missing handle makes WordPress drop your script without a word, so depend on the handle for the
+screen you run on. `blicks-block-library` loads only on Blicks' own admin pages; do not depend on it
+from the editor.
+
+## JavaScript: `window.blicks`
+
+| Namespace | What it is for |
+|---|---|
+| `blocks.defineBlock( metadata, settings )` | Register a block that behaves like a Blicks block: the style engine, the inspector, and the `blicks` attribute. A block can supply its own `panels: { Settings, Style }`. |
+| `values` | `getValue`, `setValue`, `setValues`, `setValueSlots`, `hasOverrides` — read and write the style tree. Use `setValues` / `setValueSlots` to write several values at once: separate writes overwrite each other. |
+| `data` | `blockSelect`, `blockDispatch`, `setBlockRegistry` — `core/block-editor` through whichever registry is in force, so a nested editor (such as the Studio) reads its own tree, not the post. |
+| `inspector` | `registerContext`, `unregisterContext`, `hasAncestorOfName` — when a conditional inspector section may show. |
+| `ui` | `SettingsCard`, `OptionCards`, `SegmentedSetting`, `FieldRow`, `HelpTip`, `useBlockHelp`, and `ui.v2` — the inspector kit (`Sec`, `Steps`, `SegIcons`, `SegText`, `Chips`, `Opts`, `Swatches`, `Switch`, `Field`, `Select`, `Slider`, `SubView`, `Note`, `Sub`, `Icon`), so your panels look like the rest. |
+| `engine` | The style engine, read-only, and the validator. **New in 2.** See [Engine and validation](/developers/engine-api). |
+| `constants` | `STATES`, `STATE_LABELS`, `DEFAULT_BREAKPOINTS`, `UI_VARS`, `UI_DARK_VARS`. |
+| `forms` | Form field types and events. See [Forms](#forms) below. |
+| `admin.registerView` | Add a screen to the Blicks admin. |
+| `studio` | Modes, panels, patterns and sources for Blicks Studio. It has its own `version` (currently 3). See [Studio API](/developers/studio-api). |
+| `icons` | `register`, `registerAlias`, `list`, `search` — the icon library. |
+
+Every namespace is added to `window.blicks` without replacing what another bundle put there.
+
+### What is not on the surface
+
+**Style control ids are not registrable.** A control exists in the engine's schema, which is
+generated into every copy of the engine at build time. A companion block uses the ids Blicks ships
+and lists them in its own `supports.blicks.controls`. A genuinely new id is a pull request to
+Blicks, not an API call.
+
+**The inspector's internals** — its section registry and control components — are not published.
+`defineBlock` wires the inspector from your block's metadata.
+
+## PHP
+
+These classes and methods are pinned by tests and stay stable within API 2:
+
+| Class | Methods |
+|---|---|
+| `Blicks\Core\ServiceProvider` (abstract, extend it) | `register` |
+| `Blicks\Core\Attributes\Action`, `Filter` | constructor `( hook, priority = 10, args = 1 )` |
+| `Blicks\Core\Assets\Asset` | `script`, `style` |
+| `Blicks\Core\Assets\ScriptAsset` | `deps`, `version`, `footer`, `enqueue` |
+| `Blicks\Core\Assets\StyleAsset` | `deps`, `version`, `addInlineStyle`, `enqueue` |
+| `Blicks\Core\Http\Rest` | `get`, `post`, `patch`, `delete` |
+| `Blicks\Core\Http\RestRoute` | `permission`, `schema`, `toArgs` |
+| `Blicks\Core\Plugin` | `path` |
+| `Blicks\Style\ElementStyle` | `blockProps`, `build`, `registerRule`, `registerCssValueBuilder` (static), `controls`, `allowsControl`, `problems`, `valueSchema` |
+| `Blicks\Style\EngineSchema` | `describe`, `control`, `controlIds` |
+| `Blicks\Style\Tokens` | `isToken` |
+| `Blicks\DesignSystem\Catalogue` | `snapshot` (optional `$languageId`) |
+| `Blicks\Style\CssValue` | `clean`, `url` |
+| `Blicks\Style\Sanitize` | `styleTagContent` |
+| `Blicks\Style\Dimension` | `clean` |
+| `Blicks\Style\ScopedCss` | `css`, `reset` |
+| `Blicks\Providers\AdminServiceProvider` | `views`, `pageSlugs`, `externalViews`, `viewForSlug`, and the `blicks_admin_views` filter |
+| `Blicks\Ai\Abilities\CoreAbilities` | `validate` |
+
+Rows from `ElementStyle::controls()` carry a `valueSchema` key: the JSON Schema of the control's
+value.
+
+Anything not listed is internal and may change in any release — including `Blicks\Style\Schema`,
+the generated tables behind the engine. Read the engine through `EngineSchema` instead.
+
+The filters other plugins use are on [PHP hooks](/developers/php-hooks).
+
+## Interface colors
+
+Blicks' own interface palette is a contract, so a companion panel can match it without copying hex
+values. The variables are `--bl-ui-*` (and `--bl-ui-dark-*` for dark surfaces), declared on Blicks'
+admin screens (`.blicks-admin`) and in the block inspector (`.bl-ins2`). Their names are listed in
+`window.blicks.constants.UI_VARS` and `UI_DARK_VARS`.
+
+Always read one with a fallback, because your markup may render where the palette is not declared:
+
+```css
+.acme-panel {
+	color: var( --bl-ui-fg-muted, #5a5a5a );
+	border-color: var( --bl-ui-border, #e4e4e7 );
+}
+```
+
+The families are grounds (`paper`, `canvas`, `surface-alt`, `surface-sunk`), ink (`fg`, `fg-2`,
+`fg-muted`, `fg-subtle` — the last step legal for text — and `fg-faint`, for non-text only), lines,
+brand (follows the wp-admin color scheme; never small text on it), status (`danger`, `warn`,
+`success`), `code-*`, the `dark-*` set, accents, motion, type, `field-h` and `radius`.
+
+Values may be retuned between releases; their contrast floors will not be broken. Motion variables
+are yours to wrap in `prefers-reduced-motion`.
+
+## Forms
+
+`window.blicks.forms` lets a companion add field types and react to forms:
+
+| Member | |
+|---|---|
+| `registerFieldType( { type, label, icon?, description?, group?, controls?, defaults? } )` | Returns `true` when registered |
+| `unregisterFieldType( type )`, `getFieldType( type )`, `getFieldTypes()`, `isKnownType( type )` | |
+| `subscribe( listener )` | Returns an unsubscribe function |
+| `filters.allowedBlocks` | The `@wordpress/hooks` filter name, `'blicks.form.allowedBlocks'`, for blocks a Form may hold directly |
+| `events` | The DOM event names: `blicks:form-input`, `blicks:form-validate`, `blicks:form-beforesend`, `blicks:form-sent` |
+
+The `blicks.forms.ready` action runs when the API is published, so a script that loaded earlier can
+wait for it:
+
+```js
+wp.hooks.addAction( 'blicks.forms.ready', 'acme/forms', ( forms ) => {
+	forms.registerFieldType( { type: 'acme-rating', label: 'Rating' } );
+} );
+```
+
+A field type also needs its server side: `blicks_form_field_types` and
+`blicks_form_field_type_{type}` with `render`, `validate` and `display` callbacks. A field whose
+type's plugin is inactive is not shown on the page and sends nothing. The send pipeline's filters
+and the `blicks_form_sent` action are listed in the [Forms guide](/guides/forms#for-developers).
+
+## Reserved block names
+
+`blicks/scene`, `blicks/scene-box`, `blicks/scene-text` and `blicks/scene-image` are reserved for
+Blicks Pro. Do not register them.

@@ -4,7 +4,7 @@ description: "An inline SVG icon that inherits current text color."
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/icon/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/icon/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,22 +25,29 @@ Generated from `packages/blicks/resources/blocks/icon/block.json` and `readme.md
 | HTML editing | `false` |
 | Anchor | `false` |
 | Align | `-` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`gridChild.*` · `colors.text` · `spacing.*` · `effects.*` · `border.*` · `layout.*`
+`gridChild.*` · `colors.text` · `colors.background` · `background.*` · `spacing.*` · `effects.*` · `border.*` · `layout.*` · `animation.*` · `flexChild.*` · `position.*`
 
 ## Attributes
 
 | Attribute | Type | Default |
 |---|---|---|
 | `blicks` | `object` | `&#123;&#125;` |
+| `filled` | `boolean` | `false` |
+| `flipH` | `boolean` | `false` |
+| `flipV` | `boolean` | `false` |
 | `icon` | `string` | `"star"` |
 | `label` | `string` | `""` |
+| `linkTarget` | `string` | `""` |
+| `rel` | `string` | `""` |
 | `size` | `string` | `"1.5rem"` |
 | `strokeWidth` | `number` | `2` |
+| `turn` | `number` | `0` |
 | `uniqueId` | `string` | — |
+| `url` | `string` | `""` |
 
 ## Help
 
@@ -62,9 +69,21 @@ Sets the icon size.
 
 Controls the line weight for stroke-based icons.
 
+### filled
+
+Fills the shape with the icon color (`bl-icon--filled`). Suits closed shapes such as stars, hearts and circles; open line icons lose their inner detail.
+
 ### label
 
-Adds an accessible label. Leave it empty when the icon is decorative.
+Adds an accessible label. Leave it empty when the icon is decorative. A linked icon always needs one.
+
+### flipH, flipV, turn
+
+Mirror the drawing left to right or top to bottom, and turn it by a quarter (90, 180 or 270 degrees).
+
+### url, linkTarget, rel
+
+Make the icon a link, optionally opening in a new tab.
 
 ## Tips
 

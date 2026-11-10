@@ -1,0 +1,123 @@
+---
+title: "Engine and validation"
+description: "Read the Blicks style engine's description from PHP or JavaScript, and validate a style tree or a whole block tree before you write it."
+---
+
+Every style control, state, screen size and part the engine knows is described in one schema. Blicks
+2.0 publishes a read-only view of it, the same in PHP and JavaScript, plus the validator Studio and
+the AI layer run before they write anything. New in Extension API 2.
+
+## The style tree
+
+A Blicks block stores its styles in its `blicks` attribute:
+
+```js
+attributes.blicks[ controlId ][ slot ][ breakpoint ] = value;
+```
+
+- **`controlId`** — such as `spacing.padding` or `colors.background`.
+- **`slot`** — a state (`default`, `hover`, `focus`, `active`, `group`, `groupActive`, `on`,
+  `groupOn`, `play`, `reduced`), a part (`before`, `after`), or a part and a state together
+  (`before:hover`).
+- **`breakpoint`** — `base`, `tablet` or `mobile`.
+
+```js
+{
+	"colors.background": {
+		"default": { "base": "card" },
+		"hover": { "base": "muted" },
+		"before:hover": { "base": "primary" }
+	}
+}
+```
+
+Some states apply only to some controls — the description's `stateControls` lists which. A part is
+a pseudo-element, written as scoped CSS for that block only.
+
+## Reading the description
+
+```php
+$engine = Blicks\Style\EngineSchema::describe();          // the whole description, cached
+$padding = Blicks\Style\EngineSchema::control( 'spacing.padding' ); // one control, or null
+$ids = Blicks\Style\EngineSchema::controlIds();           // every id, in emission order
+```
+
+```js
+const engine = window.blicks.engine.schema();      // deep-frozen
+const padding = window.blicks.engine.control( 'spacing.padding' );
+```
+
+Both return the same shape:
+
+```jsonc
+{
+	"version": 1,                // the format of this object
+	"controls": [ {
+		"id": "spacing.padding",
+		"section": "…",          // the inspector section that owns it
+		"valueShape": "sides",   // sides | corners | scalar
+		"category": "…",
+		"scoped": false,
+		"parts": true,           // can be written on before / after
+		"partOnly": false,
+		"flag": null,            // caution | niche | null
+		"value": { "shape": "…", "tokens": "…", "values": [] }
+	} ],
+	"states": [ { "id": "hover", "key": "…" } ],
+	"stateControls": { "<state>": [ "<control id>" ] },
+	"breakpoints": [ { "id": "base", "key": "", "maxWidth": null } ],
+	"parts": [ "before", "after" ],
+	"sections": [ { "id": "…", "controls": [] } ],
+	"relations": [ { "kind": "enables", "from": "…", "to": "…", "note": "…" } ],
+	"valueShapes": { "<shape>": { /* JSON Schema */ } },
+	"valueTree": { /* how values nest: slot, then breakpoint */ },
+	"typeRoles": [ "display", "h1" ]
+}
+```
+
+`relations` record how controls depend on each other — `enables`, `enablesChildren`, `expands`,
+`writes`, `conflicts` and `twin` — so a tool can hide a setting that does nothing, or refuse one
+that contradicts another.
+
+The description covers built-in controls. A rule added with `ElementStyle::registerRule()` shows in
+`ElementStyle::controls()`, not here.
+
+## Validating
+
+`window.blicks.engine` also answers whether a tree is something the engine would apply:
+
+| Member | Does |
+|---|---|
+| `schema()`, `control( id )`, `valueSchema( id )` | The description; one control's JSON Schema |
+| `isBlicksBlock( name )` | Registered, and opted in with `supports.blicks` |
+| `blockControls( name )` | The block's `supports.blicks.controls`; `[]` if it opted in with no list; `null` if it is not a Blicks block |
+| `allowsControl( id, allowList )` | Matches exact ids and one-level globs (`spacing.*`) |
+| `problems( blicks, allowList? )` | Every value in one style tree the engine would not apply |
+| `validateBlocks( blocks )` | Walks `{ name, attributes, innerBlocks }` → `{ valid, problems }`, with paths like `blocks[0].innerBlocks[2]` |
+
+A problem names its `reason`: `unknown-block`, `invalid-block`, `unknown-control`, `not-allowed`,
+`unknown-slot`, `unknown-breakpoint`, `not-on-part` or `invalid-value`. None of these calls throws.
+
+```js
+const { valid, problems } = window.blicks.engine.validateBlocks( blocks );
+if ( ! valid ) {
+	problems.forEach( ( p ) => console.warn( p.path, p.reason ) );
+}
+```
+
+The PHP side matches:
+
+```php
+$problems = Blicks\Style\ElementStyle::problems( $blicks, $allowList );
+$schema   = Blicks\Style\ElementStyle::valueSchema( 'spacing.padding' );
+$result   = Blicks\Ai\Abilities\CoreAbilities::validate( $blocks ); // the body of validate-layout
+```
+
+`CoreAbilities::validate()` is the check behind the MCP `validate-layout` tool, and it runs without
+WordPress loaded.
+
+<Note>
+Write saved markup through Blicks rather than building it yourself. Anything that serializes Blicks
+blocks on its own has to follow every markup change; delegating to `Blicks\Ai\Spec\*` and the
+`blicks_spec_shapes` filter keeps one implementation.
+</Note>

@@ -1,5 +1,17 @@
 import { isToken } from '@/design-system/tokens';
 import { cleanCssUrl, cleanCssValue } from './css-value';
+import {
+	BP_KEY,
+	BP_MAX,
+	BP_ORDER,
+	CORNERS,
+	PART_CONTROLS,
+	PART_PROPS,
+	RULES,
+	SIDES,
+	STATE_KEY,
+} from '@/engine/schema.gen';
+import { allowedSlots, ELEMENT_PART, isElementSlot, isPart, parseSlot, partSuffix, selectorFor, slotMedia, slotSelectorSuffix } from '@/framework/parts';
 
 /**
  * The single Blicks style engine — turns the `blicks` value tree into the **class list + inline
@@ -13,38 +25,9 @@ import { cleanCssUrl, cleanCssValue } from './css-value';
  *
  * No per-block `<style>` for tier 1/2 and no per-request CSS generation — just a cheap value→var
  * mapping that works identically in `edit()` (live preview), `save()` (static blocks) and PHP
- * render (dynamic). Naming MUST stay in sync with resources/runtime/runtime.scss and the PHP mirror
- * (src/Style/ElementStyle.php).
+ * render (dynamic). The tables come from resources/engine/schema.json, which also generates the PHP
+ * mirror's (src/Style/Schema.php) and the runtime stylesheet's maps (resources/runtime/_engine.scss).
  */
-
-// state → marker/var key (default has no key)
-const STATE_KEY: Record< string, string > = {
-	default: '',
-	hover: 'hov',
-	focus: 'foc',
-	active: 'act',
-};
-
-// breakpoint id → marker/var key (base has no key)
-const BP_KEY: Record< string, string > = {
-	base: '',
-	tablet: 'tab',
-	mobile: 'mob',
-};
-
-const SIDES: Array< [ 'top' | 'right' | 'bottom' | 'left', string ] > = [
-	[ 'top', 't' ],
-	[ 'right', 'r' ],
-	[ 'bottom', 'b' ],
-	[ 'left', 'l' ],
-];
-
-const CORNERS: Array< [ 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft', string ] > = [
-	[ 'topLeft', 'tl' ],
-	[ 'topRight', 'tr' ],
-	[ 'bottomRight', 'br' ],
-	[ 'bottomLeft', 'bl' ],
-];
 
 /**
  * A scoped emit descriptor — the WA mechanisms. Present only on rules that need a real selector
@@ -82,13 +65,6 @@ interface StyleMapRule extends ScopedSpec {
 	/** Token / builder category. sides/inset use `spacing`; corners use `radius`. */
 	category?: string;
 	/**
-	 * Second category checked (sides/inset/corners path only) when a slug isn't found in `category`
-	 * — lets a rule's token category change without breaking values saved under the old one (e.g.
-	 * `border.width` moved from `spacing` to a dedicated `borderWidth` scale; old saved `spacing`
-	 * slugs still resolve).
-	 */
-	fallbackCategory?: string;
-	/**
 	 * sides/corners only: the value is a keyword or colour, not a length. Skips the length
 	 * normaliser (no bare-number → `px`) and resolves token slugs through the same category lookup
 	 * the `single` path uses.
@@ -96,169 +72,28 @@ interface StyleMapRule extends ScopedSpec {
 	raw?: boolean;
 	/** sides/corners only: what an unset side emits. Defaults to `0` (the length case). */
 	emptyValue?: string;
+	/**
+	 * Renders only on a **part** — it has no runtime consumer class, so a value in an element slot
+	 * emits nothing. `decoration.content` is the case: `content` on the block's own box is
+	 * meaningless at best and destructive at worst.
+	 */
+	partOnly?: boolean;
 }
 
-const LAYOUT_SINGLES: Array< [ string, string, string, string? ] > = [
-	// [attr, cls, var, category?]
-	[ 'layout.display', 'd', '--bl-d' ],
-	[ 'layout.flexDirection', 'fd', '--bl-fd' ],
-	[ 'layout.justifyContent', 'jc', '--bl-jc' ],
-	[ 'layout.alignItems', 'ai', '--bl-ai' ],
-	[ 'layout.flexWrap', 'fw', '--bl-fw' ],
-	[ 'layout.gapRow', 'gap-r', '--bl-gap-r', 'spacing' ],
-	[ 'layout.gapColumn', 'gap-c', '--bl-gap-c', 'spacing' ],
-	[ 'layout.gridColumns', 'cols', '--bl-cols' ],
-	[ 'layout.gridRows', 'rows', '--bl-rows' ],
-	[ 'layout.justifyItems', 'ji', '--bl-ji' ],
-	[ 'layout.width', 'w', '--bl-w', 'width' ],
-	[ 'layout.height', 'h', '--bl-h', 'width' ],
-	[ 'layout.overflow', 'ov', '--bl-ov' ],
-	// Wave B — layout extensions
-	[ 'layout.overflowX',      'ovx',   '--bl-ovx'   ],
-	[ 'layout.overflowY',      'ovy',   '--bl-ovy'    ],
-	[ 'layout.scrollSnapType', 'sst',   '--bl-sst'    ],
-	[ 'layout.gridAreas',      'areas', '--bl-areas'  ],
-	[ 'layout.gridAutoFlow',   'gaf',   '--bl-gaf'    ],
-	[ 'layout.containerType',  'ct',    '--bl-ct'     ],
-	[ 'layout.containerName',  'cn',    '--bl-cn'     ],
-	[ 'layout.aspectRatio',    'ar',    '--bl-ar',     'aspect' ],
-	[ 'layout.objectFit',      'of',    '--bl-of'     ],
-	// Wave G — layout completeness (align-content, grid auto tracks, box sizing, box behavior,
-	// scroll extras, direction)
-	[ 'layout.alignContent',        'ac',   '--bl-ac'   ],
-	[ 'layout.gridAutoColumns',     'gac',  '--bl-gac'  ],
-	[ 'layout.gridAutoRows',        'gar',  '--bl-gar'  ],
-	[ 'layout.minWidth',            'miw',  '--bl-miw', 'width' ],
-	[ 'layout.maxWidth',            'maw',  '--bl-maw', 'width' ],
-	[ 'layout.minHeight',           'mih',  '--bl-mih', 'width' ],
-	[ 'layout.maxHeight',           'mah',  '--bl-mah', 'width' ],
-	[ 'layout.boxSizing',           'bxz',  '--bl-bxz'  ],
-	[ 'layout.visibility',          'vis',  '--bl-vis'  ],
-	[ 'layout.float',               'flt2', '--bl-flt2' ],
-	[ 'layout.clear',               'clr',  '--bl-clr'  ],
-	[ 'layout.isolation',           'iso',  '--bl-iso'  ],
-	[ 'layout.resize',              'rsz',  '--bl-rsz'  ],
-	[ 'layout.scrollBehavior',      'sb',   '--bl-sb'   ],
-	[ 'layout.overscrollBehavior',  'osb',  '--bl-osb'  ],
-	[ 'layout.scrollSnapStop',      'sss',  '--bl-sss'  ],
-	[ 'layout.direction',           'dir',  '--bl-dir'  ],
-	// Wave H — containment/perf + truncation (high real-world usage: CSS Containment,
-	// content-visibility offscreen-skip, and the -webkit-line-clamp truncation hack).
-	[ 'layout.contain',              'ctn', '--bl-ctn' ],
-	[ 'layout.contentVisibility',    'cv',  '--bl-cv'  ],
-	[ 'layout.containIntrinsicSize', 'cis', '--bl-cis' ],
-	// `lc`'s runtime.scss rule bundles 3 fixed companion declarations (display/box-orient/
-	// overflow) alongside the var-driven line count — see the dedicated Line-clamp block there.
-	[ 'layout.lineClamp',            'lc',  '--bl-lc'  ],
-];
-
-const SINGLES: Array< [ string, string, string, string? ] > = [
-	...LAYOUT_SINGLES,
-	// NB: `border.style` / `border.color` are NOT here — they're `sides` rules in STYLE_MAP below.
-	[ 'position.type', 'pos', '--bl-pos' ],
-	[ 'position.zIndex', 'zi', '--bl-zi', 'zIndex' ],
-	[ 'colors.background', 'bg', '--bl-bg', 'color' ],
-	[ 'colors.text', 'tx', '--bl-tx', 'color' ],
-	[ 'background.image', 'bg-img', '--bl-bg-img', 'image' ],
-	[ 'background.gradient', 'bg-grad', '--bl-bg-grad', 'gradient' ],
-	[ 'background.size', 'bg-size', '--bl-bg-size' ],
-	[ 'background.position', 'bg-pos', '--bl-bg-pos' ],
-	[ 'background.repeat', 'bg-repeat', '--bl-bg-repeat' ],
-	[ 'background.attachment', 'bg-attach', '--bl-bg-attach' ],
-	// Wave C — color/background extensions
-	[ 'background.blendMode', 'bg-blend', '--bl-bg-blend' ],
-	[ 'colors.clipText',      'cliptext', '--bl-cliptext' ],
-	[ 'typography.fontFamily', 'ff', '--bl-ff', 'fontFamily' ],
-	[ 'typography.fontSize', 'fs', '--bl-fs', 'fontSize' ],
-	[ 'typography.lineHeight', 'lh', '--bl-lh', 'leading' ],
-	[ 'typography.fontWeight', 'fwt', '--bl-fwt' ],
-	[ 'typography.fontStyle', 'fst', '--bl-fst' ],
-	[ 'typography.letterSpacing', 'ls', '--bl-ls' ],
-	[ 'typography.wordSpacing', 'ws', '--bl-ws' ],
-	[ 'typography.textTransform', 'tt', '--bl-tt' ],
-	[ 'typography.textDecoration', 'td', '--bl-td' ],
-	[ 'typography.textAlign', 'ta', '--bl-ta' ],
-	// Wave C — typography extensions
-	[ 'typography.writingMode',     'wm', '--bl-wm' ],
-	[ 'typography.textOrientation', 'to', '--bl-to' ],
-	[ 'effects.opacity', 'op', '--bl-op', 'opacity' ],
-	[ 'effects.cursor', 'cur', '--bl-cur' ],
-	[ 'effects.blendMode', 'bm', '--bl-bm' ],
-	[ 'effects.boxShadow', 'bsh', '--bl-bsh', 'boxShadow' ],
-	[ 'effects.textShadow', 'tsh', '--bl-tsh', 'textShadow' ],
-	[ 'effects.transition', 'tr', '--bl-tr', 'transition' ],
-	[ 'effects.transform', 'tfm', '--bl-tfm', 'transform' ],
-	[ 'effects.filter', 'flt', '--bl-flt', 'filter' ],
-	// Wave D — effects extensions
-	[ 'effects.clipPath',        'clip', '--bl-clip', 'clipPath'       ],
-	[ 'effects.backdropFilter',  'bdf',  '--bl-bdf',  'backdropFilter' ],
-	[ 'effects.mask',            'mask', '--bl-mask', 'mask'           ],
-	[ 'effects.transformOrigin', 'tfo',  '--bl-tfo'   ],
-	[ 'effects.transformStyle',  'tfs',  '--bl-tfs'   ],
-	[ 'effects.perspective',     'psp',  '--bl-psp'   ],
-	// Wave E — animation section
-	[ 'animation.name',        'anim-name',  '--bl-anim-name'  ],
-	[ 'animation.duration',    'anim-dur',   '--bl-anim-dur'   ],
-	[ 'animation.easing',      'anim-ease',  '--bl-anim-ease'  ],
-	[ 'animation.iteration',   'anim-iter',  '--bl-anim-iter'  ],
-	[ 'animation.direction',   'anim-dir',   '--bl-anim-dir'   ],
-	[ 'animation.fillMode',    'anim-fill',  '--bl-anim-fill'  ],
-	[ 'animation.delay',       'anim-delay', '--bl-anim-delay' ],
-	[ 'animation.timeline',    'anim-tl',    '--bl-anim-tl'    ],
-	[ 'animation.range',       'anim-range', '--bl-anim-range' ],
-	[ 'animation.targetAngle', 'anim-ang',   '--bl-ang'        ],
-	[ 'animation.target',      'anim-p',     '--bl-p-target'   ],
-	// Wave F — counters (parent-side reset, child-side increment)
-	[ 'decoration.counterReset',     'cnt-r', '--bl-cnt-r' ],
-	[ 'decoration.counterIncrement', 'cnt-i', '--bl-cnt-i' ],
-	[ 'gridChild.columnSpan', 'gcs', '--bl-gcs' ],
-	[ 'gridChild.rowSpan', 'grs', '--bl-grs' ],
-	[ 'gridChild.alignSelf', 'gas', '--bl-gas' ],
-	[ 'gridChild.justifySelf', 'gjs', '--bl-gjs' ],
-	[ 'gridChild.order', 'go', '--bl-go' ],
-	// Wave B — grid-child extensions
-	[ 'gridChild.gridArea',        'ga',  '--bl-ga'  ],
-	[ 'gridChild.scrollSnapAlign', 'ssa', '--bl-ssa' ],
-	// Wave B — columns section
-	[ 'columns.columnCount', 'cc',   '--bl-cc'   ],
-	[ 'columns.columnWidth', 'cw',   '--bl-cw',   'width' ],
-	[ 'columns.columnGap',   'cgap', '--bl-cgap', 'spacing' ],
-	// Wave G — flex-child (the flexbox parallel to gridChild)
-	[ 'flexChild.grow',      'fg',  '--bl-fg'  ],
-	[ 'flexChild.shrink',    'fsk', '--bl-fsk' ],
-	[ 'flexChild.basis',     'fb',  '--bl-fb',  'width' ],
-	[ 'flexChild.alignSelf', 'fas', '--bl-fas' ],
-	[ 'flexChild.order',     'fco', '--bl-fco' ],
-];
+/**
+ * The attribute → CSS emission table, generated from resources/engine/schema.json — the one place
+ * a control is declared (see scripts/gen-engine.mjs). Order matters only for the rare exact-array
+ * class assertions (expanded boxes first, then singles). Copied so `pushRule()` and the parity
+ * probes can extend it at runtime without touching the generated module.
+ */
+export const STYLE_MAP: StyleMapRule[] = RULES.map( ( rule ) => ( { ...rule } ) );
 
 /**
- * The single source of truth for attribute → CSS emission. Order matters only for the rare exact-
- * array class assertions (expanded boxes first, then singles). Future advanced capabilities (Waves
- * B–F) add rows here — including scoped ones via the ScopedSpec fields.
+ * The controls a **part** can render — those the scoped emitter has a property for. Generated with
+ * the emitter's own table, so the inspector cannot offer a control the emitter would drop, nor hide
+ * one it renders.
  */
-export const STYLE_MAP: StyleMapRule[] = [
-	{ attr: 'spacing.padding', cls: 'pad', kind: 'sides', v: 'p', category: 'spacing' },
-	{ attr: 'spacing.margin', cls: 'mar', kind: 'sides', v: 'm', category: 'spacing' },
-	{ attr: 'border.width', cls: 'bw', kind: 'sides', v: 'bw', category: 'borderWidth', fallbackCategory: 'spacing' },
-	// Style/colour are per-side too (4-value `border-style` / `border-color` shorthands), so a red
-	// top can sit over a grey bottom. `raw: true` keeps the length normaliser away from them: an
-	// unset side must fall back to the property's own initial value, not `0`, and `2` must not
-	// become `2px`.
-	{ attr: 'border.style', cls: 'bs', kind: 'sides', v: 'bs', raw: true, emptyValue: 'none' },
-	{ attr: 'border.color', cls: 'bc', kind: 'sides', v: 'bc', category: 'color', raw: true, emptyValue: 'currentcolor' },
-	{ attr: 'border.radius', cls: 'br', kind: 'corners', v: 'br', category: 'radius' },
-	{ attr: 'position.inset', cls: 'inset', kind: 'inset', v: 'pos', category: 'spacing' },
-	// Library preset: a picked type role → global class `bl-type--{role}` (runtime.scss). No var.
-	{ attr: 'typography.role', cls: 'type', kind: 'enum', v: '' },
-	...SINGLES.map(
-		( [ attr, cls, v, category ] ): StyleMapRule => ( { attr, cls, kind: 'single', v, category } )
-	),
-	// Wave B: columns break-inside emits a child selector rule, not a class+var on the element.
-	{ attr: 'columns.breakInside', cls: 'cbi', kind: 'single', v: '--bl-cbi', prop: 'break-inside', selectorSuffix: ' > *' },
-	// Wave F: pseudo-element decoration — builder returns the full body, no `prop`.
-	{ attr: 'decoration.before', cls: 'deco-b', kind: 'single', v: '--bl-deco-b', category: 'decoration', selectorSuffix: '::before' },
-	{ attr: 'decoration.after',  cls: 'deco-a', kind: 'single', v: '--bl-deco-a', category: 'decoration', selectorSuffix: '::after' },
-];
+export const PARTABLE_CONTROLS: ReadonlySet< string > = new Set( PART_CONTROLS );
 
 /**
  * Non-length side value (`raw` rules): a keyword (`solid`) or colour passes through, a token slug
@@ -289,7 +124,7 @@ function expandSideValue( value: unknown, keys: Array< [ string, string ] > ): a
 }
 
 /** Normalise a length or resolve a spacing/radius token (sides/inset/corners path). */
-function valOrToken( category: string, v: unknown, fallbackCategory?: string ): string {
+function valOrToken( category: string, v: unknown ): string {
 	const s = String( v ?? '' ).trim();
 	if ( s === '' ) return '0';
 	// A bare number is a literal length, NEVER a token slug. Critically, "0" must stay "0" — the
@@ -298,9 +133,6 @@ function valOrToken( category: string, v: unknown, fallbackCategory?: string ): 
 	if ( /^-?\d*\.?\d+$/.test( s ) ) return s === '0' ? '0' : `${ s }px`;
 	if ( isToken( category as any, s ) ) {
 		return `var(--blicks-${ category }-${ s })`;
-	}
-	if ( fallbackCategory && isToken( fallbackCategory as any, s ) ) {
-		return `var(--blicks-${ fallbackCategory }-${ s })`;
 	}
 	// Mirror of ElementStyle::valOrToken(): `0` for a rejected length.
 	return cleanCssValue( s ) || '0';
@@ -316,22 +148,113 @@ function imageBuilder( v: unknown ): string {
 	return clean ? `url("${ clean }")` : '';
 }
 
+/** A colour that may be a palette token slug (`primary`) or any CSS colour. */
+function colourOrToken( v: unknown ): string {
+	const s = String( v ?? '' ).trim();
+	if ( ! s ) return '';
+	return isToken( 'color', s ) ? `var(--blicks-color-${ s })` : cleanCssValue( s );
+}
+
+/** One `box-shadow` layer, or '' when any part of it fails validation. */
+function shadowLayer( layer: any ): string {
+	if ( ! layer || typeof layer !== 'object' ) return '';
+	// A token layer: the theme's own shadow, stacked with drawn ones (a depth edge under it).
+	if ( layer.token !== undefined ) {
+		const slug = String( layer.token ).trim();
+		return isToken( 'shadow', slug ) ? `var(--blicks-shadow-${ slug })` : '';
+	}
+	const parts = [ layer.x, layer.y, layer.blur, layer.spread ].map( ( n ) => cleanCssValue( n ?? '0px' ) || '' );
+	const colour = colourOrToken( layer.color ?? 'rgba(0,0,0,0.1)' );
+	if ( parts.some( ( p ) => ! p ) || ! colour ) return '';
+	return `${ layer.inset ? 'inset ' : '' }${ parts.join( ' ' ) } ${ colour }`;
+}
+
+/**
+ * `box-shadow`: a shadow-token slug (`md`), one layer `{ x, y, blur, spread, color, inset }`, or a
+ * list of layers stacked first-on-top — depth, glow and the shadow setting share the property, so
+ * they have to arrive as one value. A layer that fails validation drops the whole value rather than
+ * shifting the stack.
+ */
 function boxShadowBuilder( v: unknown ): string {
-	// A bare string is a shadow-token slug (`md`) → resolve to the alias var.
 	if ( typeof v === 'string' ) {
 		const slug = v.trim();
 		return isToken( 'shadow', slug ) ? `var(--blicks-shadow-${ slug })` : '';
 	}
-	const s = v as any;
-	if ( ! s || ( ! s.x && ! s.y ) ) return '';
-	const inset = s.inset ? 'inset ' : '';
-	return `${ inset }${ s.x || '0px' } ${ s.y || '0px' } ${ s.blur || '0px' } ${ s.spread || '0px' } ${ s.color || 'rgba(0,0,0,0.1)' }`;
+	const layers = Array.isArray( v ) ? v : [ v ];
+	const out = layers.map( shadowLayer );
+	return out.length && out.every( Boolean ) ? out.join( ', ' ) : '';
 }
 
+const OUTLINE_STYLES = /^(solid|dashed|dotted|double|none)$/;
+
+/**
+ * `outline`: a raw outline string, or `{ width, style, color }` — width defaults to `2px`, style to
+ * `solid`, colour to `currentColor` (a palette slug resolves). The offset is its own control.
+ */
+function outlineBuilder( v: unknown ): string {
+	if ( typeof v === 'string' ) return v.trim();
+	if ( ! v || typeof v !== 'object' ) return '';
+	const o = v as any;
+	const width = cleanCssValue( o.width ?? '2px' );
+	const style = OUTLINE_STYLES.test( String( o.style ?? 'solid' ) ) ? String( o.style ?? 'solid' ) : '';
+	const colour = colourOrToken( o.color ?? 'currentColor' );
+	return width && style && colour ? `${ width } ${ style } ${ colour }` : '';
+}
+
+const BG_REPEAT = /^(repeat|no-repeat|repeat-x|repeat-y|space|round)$/;
+const BG_ATTACH = /^(scroll|fixed|local)$/;
+
+/** One background layer: a gradient, a picture or a flat tint, with its own placement. */
+function backgroundLayer( layer: any ): string {
+	if ( ! layer || typeof layer !== 'object' ) return '';
+	let image = '';
+	if ( layer.type === 'gradient' ) image = cleanCssValue( gradientBuilder( layer.value ) );
+	else if ( layer.type === 'tint' ) {
+		const colour = colourOrToken( layer.color );
+		const opacity = Math.max( 0, Math.min( 100, Number( layer.opacity ?? 100 ) ) );
+		if ( colour && Number.isFinite( opacity ) ) {
+			const c = `color-mix(in srgb, ${ colour } ${ opacity }%, transparent)`;
+			image = `linear-gradient(${ c }, ${ c })`;
+		}
+	} else if ( layer.type === 'image' ) {
+		const url = cleanCssUrl( layer.url );
+		if ( url ) {
+			// A picture always carries its placement, so a later layer's defaults cannot leak into it.
+			const position = cleanCssValue( layer.position ?? '0% 0%' ) || '0% 0%';
+			const size = cleanCssValue( layer.size ?? 'auto' ) || 'auto';
+			const repeat = BG_REPEAT.test( String( layer.repeat ?? '' ) ) ? layer.repeat : 'no-repeat';
+			const attach = BG_ATTACH.test( String( layer.attachment ?? '' ) ) && layer.attachment !== 'scroll' ? ` ${ layer.attachment }` : '';
+			return `url("${ url }") ${ position } / ${ size } ${ repeat }${ attach }`;
+		}
+	}
+	return image;
+}
+
+/**
+ * `background.layers`: a list of layers, top first, written as the `background` shorthand so each
+ * layer keeps its own size, position, repeat and attachment. The flat colour stays with
+ * `colors.background`, whose runtime rule comes after this one. Self-validating: every piece is
+ * checked, and an unusable layer is dropped.
+ */
+function backgroundLayersBuilder( v: unknown ): string {
+	if ( ! Array.isArray( v ) ) return '';
+	return v.map( backgroundLayer ).filter( Boolean ).join( ', ' );
+}
+
+/** One text-shadow layer; a side is unset only when missing or empty (`"0"` is an offset). */
+function textShadowLayer( s: any ): string {
+	const set = ( x: unknown ) => ( typeof x === 'string' || typeof x === 'number' ) && String( x ) !== '';
+	if ( ! s || typeof s !== 'object' || ( ! set( s.x ) && ! set( s.y ) ) ) return '';
+	const part = ( k: string, fallback: string ) => ( set( s[ k ] ) ? String( s[ k ] ) : fallback );
+	return `${ part( 'x', '0px' ) } ${ part( 'y', '0px' ) } ${ part( 'blur', '0px' ) } ${ part( 'color', 'rgba(0,0,0,0.1)' ) }`;
+}
+
+/** One layer `{ x, y, blur, color }`, or a list stacked first-on-top. */
 function textShadowBuilder( v: unknown ): string {
-	const s = v as any;
-	if ( ! s || ( ! s.x && ! s.y ) ) return '';
-	return `${ s.x || '0px' } ${ s.y || '0px' } ${ s.blur || '0px' } ${ s.color || 'rgba(0,0,0,0.1)' }`;
+	if ( ! v || typeof v !== 'object' ) return '';
+	const layers = Array.isArray( v ) ? v : [ v ];
+	const out = layers.map( textShadowLayer );
+	return out.length && out.every( Boolean ) ? out.join( ', ' ) : '';
 }
 
 function gradientBuilder( v: unknown ): string {
@@ -463,117 +386,6 @@ function normalizeContent( raw: unknown ): string {
 	return '"' + inner.replace( /\\/g, '\\\\' ).replace( /"/g, '\\"' ) + '"';
 }
 
-/** Wave F — pseudo-element decoration: returns the full `key:val;…` body (no surrounding braces). */
-function decorationBuilder( v: unknown ): string {
-	// Only the structured object — a bare string would reach the scoped rule unchecked.
-	if ( ! v || typeof v !== 'object' ) return '';
-	const d = v as any;
-	if ( d.enabled === false ) return '';
-	// Every value is interpolated into `.bl-{id}::before{ … }`, so each is validated whole and a
-	// failing one is dropped — mirror of ElementStyle::decorationBuilder() / decoPart().
-	const part = ( prop: string, value: unknown ): string => {
-		const clean = cleanCssValue( value );
-		return clean ? `${ prop }:${ clean }` : '';
-	};
-	const parts: string[] = [];
-	parts.push( `content:${ normalizeContent( d.content ) }` );
-	// Pseudo-elements need positioning to behave like overlays/orbs.
-	parts.push( `position:${ cleanCssValue( d.position ?? 'absolute' ) || 'absolute' }` );
-	if ( d.background ) {
-		const bg = typeof d.background === 'object' ? gradientBuilder( d.background ) : d.background;
-		parts.push( part( 'background', bg ) );
-	}
-	parts.push( part( 'background-color', d.bgColor ) );
-	parts.push( part( 'width', d.width ) );
-	parts.push( part( 'height', d.height ) );
-	if ( d.inset !== undefined ) {
-		if ( typeof d.inset === 'object' && d.inset !== null ) {
-			const i = d.inset;
-			for ( const side of [ 'top', 'right', 'bottom', 'left' ] ) {
-				parts.push( `${ side }:${ cleanCssValue( i[ side ] ?? 'auto' ) || 'auto' }` );
-			}
-		} else {
-			parts.push( part( 'inset', d.inset ) );
-		}
-	}
-	parts.push( part( 'border-radius', d.borderRadius ) );
-	parts.push( part( 'border', d.border ) );
-	parts.push( part( 'padding', d.padding ) );
-	// Text / centering props — let a pseudo-element act as a badge, label, or numbered marker.
-	parts.push( part( 'display', d.display ) );
-	parts.push( part( 'align-items', d.alignItems ) );
-	parts.push( part( 'justify-content', d.justifyContent ) );
-	parts.push( part( 'color', d.color ) );
-	parts.push( part( 'font-size', d.fontSize ) );
-	parts.push( part( 'font-weight', d.fontWeight ) );
-	parts.push( part( 'line-height', d.lineHeight ) );
-	parts.push( part( 'letter-spacing', d.letterSpacing ) );
-	parts.push( part( 'text-align', d.textAlign ) );
-	if ( d.zIndex !== undefined && d.zIndex !== null && d.zIndex !== '' ) parts.push( part( 'z-index', d.zIndex ) );
-	if ( d.blur ) {
-		const blur = cleanCssValue( d.blur );
-		if ( blur ) parts.push( `filter:blur(${ blur })` );
-	}
-	if ( d.opacity !== undefined && d.opacity !== null && d.opacity !== '' ) parts.push( part( 'opacity', d.opacity ) );
-	parts.push( part( 'mix-blend-mode', d.mixBlendMode ) );
-	parts.push( part( 'transform', d.transform ) );
-	parts.push( part( 'pointer-events', d.pointerEvents ) );
-	// Extended box surface — a pseudo-element is a full styleable box. Pass-through props
-	// (key → CSS property), each validated whole; kept in lock-step with the PHP mirror.
-	for ( const [ key, prop ] of DECO_EXTRA ) {
-		const val = d[ key ];
-		if ( val !== undefined && val !== null && String( val ).trim() !== '' ) {
-			parts.push( part( prop, val ) );
-		}
-	}
-	// Vendor-prefixed pairs.
-	if ( d.mask ) {
-		const m = cleanCssValue( d.mask );
-		if ( m ) parts.push( `-webkit-mask:${ m }`, `mask:${ m }` );
-	}
-	if ( d.backgroundClip ) {
-		const c = cleanCssValue( d.backgroundClip );
-		if ( c ) parts.push( `-webkit-background-clip:${ c }`, `background-clip:${ c }` );
-	}
-	const kept = parts.filter( ( p ) => p !== '' );
-	return kept.length > 1 ? kept.join( ';' ) : '';
-}
-
-/** Extended pseudo-element props (pure pass-through key → CSS property). Order is part of the
- *  JS↔PHP contract — append only, never reorder, or scoped-CSS parity drifts. */
-const DECO_EXTRA: Array< [ string, string ] > = [
-	[ 'margin', 'margin' ],
-	[ 'minWidth', 'min-width' ],
-	[ 'maxWidth', 'max-width' ],
-	[ 'minHeight', 'min-height' ],
-	[ 'maxHeight', 'max-height' ],
-	[ 'outline', 'outline' ],
-	[ 'boxShadow', 'box-shadow' ],
-	[ 'flexDirection', 'flex-direction' ],
-	[ 'flexWrap', 'flex-wrap' ],
-	[ 'gap', 'gap' ],
-	[ 'fontFamily', 'font-family' ],
-	[ 'fontStyle', 'font-style' ],
-	[ 'textTransform', 'text-transform' ],
-	[ 'textDecoration', 'text-decoration' ],
-	[ 'whiteSpace', 'white-space' ],
-	[ 'wordSpacing', 'word-spacing' ],
-	[ 'backgroundImage', 'background-image' ],
-	[ 'backgroundSize', 'background-size' ],
-	[ 'backgroundPosition', 'background-position' ],
-	[ 'backgroundRepeat', 'background-repeat' ],
-	[ 'backdropFilter', 'backdrop-filter' ],
-	[ 'clipPath', 'clip-path' ],
-	[ 'filter', 'filter' ],
-	[ 'transformOrigin', 'transform-origin' ],
-	[ 'rotate', 'rotate' ],
-	[ 'scale', 'scale' ],
-	[ 'transition', 'transition' ],
-	[ 'animation', 'animation' ],
-	[ 'aspectRatio', 'aspect-ratio' ],
-	[ 'overflow', 'overflow' ],
-	[ 'cursor', 'cursor' ],
-];
 
 /** Wave D — transform builder: structured object → composed CSS string. Pass-through for strings/tokens. */
 function transformBuilder( v: unknown ): string {
@@ -602,6 +414,7 @@ function transformBuilder( v: unknown ): string {
 const CSS_VALUE_BUILDERS: Record< string, CssValueBuilder > = {
 	image: imageBuilder,
 	boxShadow: boxShadowBuilder,
+	outline: outlineBuilder,
 	textShadow: textShadowBuilder,
 	gradient: gradientBuilder,
 	// Wave D
@@ -609,8 +422,9 @@ const CSS_VALUE_BUILDERS: Record< string, CssValueBuilder > = {
 	backdropFilter: backdropFilterBuilder,
 	mask: maskBuilder,
 	transform: transformBuilder,
-	// Wave F
-	decoration: decorationBuilder,
+	// The part axis: a pseudo-element's `content`, quoted and escaped.
+	content: normalizeContent,
+	backgroundLayers: backgroundLayersBuilder,
 };
 
 export function registerCssValueBuilder( category: string, builder: CssValueBuilder ): void {
@@ -632,11 +446,12 @@ export function cssValueForCategory( category: string | undefined, v: unknown ):
 }
 
 /**
- * Builders whose output legitimately holds characters cleanCssValue() refuses — `decoration` is a
- * `key:val;…` body, `image` a `url("…")` — and which validate their own inputs instead. Mirror of
+ * Builders whose output legitimately holds characters cleanCssValue() refuses — `content` is a
+ * quoted string, `image` and `backgroundLayers` hold `url("…")` — and which validate their own
+ * inputs instead. Mirror of
  * ElementStyle::SELF_VALIDATING_CATEGORIES.
  */
-const SELF_VALIDATING_CATEGORIES = new Set( [ 'decoration', 'image' ] );
+const SELF_VALIDATING_CATEGORIES = new Set( [ 'content', 'image', 'backgroundLayers' ] );
 
 function slotKey( stateKey: string, bpKey: string ): string {
 	return [ stateKey, bpKey ].filter( Boolean ).join( '-' );
@@ -663,12 +478,19 @@ function expandKeys( kind: StyleMapRule[ 'kind' ] ): Array< [ string, string ] >
 	return kind === 'corners' ? CORNERS : SIDES;
 }
 
-/** Pull a representative scalar value (default/base, else first set) from a control's value tree. */
+/**
+ * Pull a representative scalar value (default/base, else first set) from a control's value tree.
+ *
+ * Only **element** slots count. The rules that read this — library presets and the child-selector
+ * rules — describe the element or its subtree, so a value set on `::before` must not become the
+ * element's: a type role picked for a pseudo-element would otherwise land on the block.
+ */
 function representativeValue( tree: any ): unknown {
 	if ( ! tree || typeof tree !== 'object' ) return undefined;
 	const base = tree?.default?.base;
 	if ( isSet( base ) ) return base;
-	for ( const byBp of Object.values< any >( tree ) ) {
+	for ( const [ slot, byBp ] of Object.entries< any >( tree ) ) {
+		if ( ! isElementSlot( slot ) ) continue;
 		for ( const value of Object.values< any >( byBp ?? {} ) ) {
 			if ( isSet( value ) ) return value;
 		}
@@ -703,16 +525,123 @@ function emitScoped( rule: StyleMapRule, tree: any, uniqueId: string, scopedCss:
 	if ( ! isSet( value ) ) return;
 
 	const selector = `.bl-${ uniqueId }${ rule.selectorSuffix ?? '' }`;
-	let body: string;
-	if ( rule.prop ) {
-		body = `${ selector }{${ rule.prop }:${ cssValueForCategory( rule.category, value ) }}`;
-	} else {
-		// Builder-only body: the builder returns the entire `key:val;…` payload (Wave F).
-		const inner = cssValueForCategory( rule.category, value );
-		if ( ! inner ) return;
-		body = `${ selector }{${ inner }}`;
-	}
+	const body = rule.prop
+		? `${ selector }{${ rule.prop }:${ cssValueForCategory( rule.category, value ) }}`
+		: `${ selector }{${ cssValueForCategory( rule.category, value ) }}`;
 	scopedCss.push( wrapMotionRule( rule, wrapAtRule( rule, body ) ) );
+}
+
+/** `border-radius` → its corner longhands in CORNERS order (tl, tr, br, bl). */
+function cornerLonghands( prop: string ): string[] {
+	const [ head, ...rest ] = prop.split( '-' );
+	return [ 'top-left', 'top-right', 'bottom-right', 'bottom-left' ].map( ( c ) => `${ head }-${ c }-${ rest.join( '-' ) }` );
+}
+
+/** `position.inset`'s four properties, in SIDES order. */
+const INSET_PROPS = [ 'top', 'right', 'bottom', 'left' ];
+
+/** `layout.lineClamp` truncates nothing without the -webkit-box hack its runtime rule carries. */
+const LINE_CLAMP_FIXED = 'display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;';
+
+/** `colors.clipText`'s static trio — the value is a toggle, not a property value. */
+const CLIP_TEXT_DECLS = 'background-clip:text;-webkit-background-clip:text;color:transparent';
+
+/** The guards runtime.scss wraps round animation on the element, reproduced for parts. */
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
+const TIMELINE_SUPPORTS = '(animation-timeline: scroll())';
+/** runtime.scss's `at-state` guard on hover rules: a tap on a touch screen must not leave them stuck on. */
+const HOVER_QUERY = '(hover: hover)';
+
+/** One declaration, with the `-webkit-` twin the property needs (mirrors `webkit: true` in SCSS). */
+function partDecl( prop: string, value: string, webkit?: boolean ): string {
+	if ( ! value ) return '';
+	return webkit ? `-webkit-${ prop }:${ value };${ prop }:${ value }` : `${ prop }:${ value }`;
+}
+
+/**
+ * What one rule contributes to a scoped **part** rule — the declarations the static consumer class
+ * would have applied, written out because a pseudo-element has no class to carry.
+ *
+ * Returns `''` for anything a part cannot express (see `PART_CONTROLS`).
+ */
+function partDeclarations( rule: StyleMapRule, rawValue: unknown ): string {
+	if ( ! PARTABLE_CONTROLS.has( rule.attr ) ) return '';
+	const part = PART_PROPS[ rule.cls ];
+
+	if ( rule.kind === 'single' ) {
+		if ( ! isSet( rawValue ) ) return '';
+		if ( rule.cls === 'cliptext' ) return CLIP_TEXT_DECLS;
+		const value = cssValueForCategory( rule.category, rawValue );
+		if ( ! value ) return '';
+		if ( rule.cls === 'lc' ) return `${ LINE_CLAMP_FIXED }-webkit-line-clamp:${ value }`;
+		return part ? partDecl( part.prop, value, part.webkit ) : '';
+	}
+
+	// Expanded box: sides / inset / corners, resolved exactly as the tier-1/2 path resolves them.
+	if ( ! rawValue ) return '';
+	const keys = expandKeys( rule.kind );
+	const value = expandSideValue( rawValue, keys ) as any;
+	const sides = keys.map( ( [ side ] ) => {
+		// Four properties, not the `inset` shorthand: an unset side has to stay `auto`, which is
+		// what the runtime rule falls back to.
+		if ( rule.kind === 'inset' && ! isSet( value[ side ] ) ) return 'auto';
+		return rule.raw
+			? rawOrToken( rule.category, value[ side ], rule.emptyValue ?? '0' )
+			: valOrToken( rule.category ?? 'spacing', value[ side ] );
+	} );
+
+	if ( rule.kind === 'inset' ) return INSET_PROPS.map( ( prop, i ) => `${ prop }:${ sides[ i ] }` ).join( ';' );
+	// Longhands for corners, as on the element: a two-value corner is invalid in the shorthand.
+	if ( rule.kind === 'corners' && part ) return cornerLonghands( part.prop ).map( ( prop, i ) => `${ prop }:${ sides[ i ] }` ).join( ';' );
+	return part ? `${ part.prop }:${ sides.join( ' ' ) }` : '';
+}
+
+/** The guard a declaration's property sits behind on the element, if any. */
+const GUARD_BY_PROP: Record< string, string > = Object.fromEntries(
+	Object.values( PART_PROPS ).filter( ( p ) => p.guard ).map( ( p ) => [ p.prop, p.guard as string ] )
+);
+
+/**
+ * Turn the declarations collected per (breakpoint, selector suffix) into scoped CSS rules.
+ *
+ * Grouped rather than emitted per control, so a pseudo-element with twelve properties set is one
+ * rule, and breakpoints come out widest first whatever order the value tree iterated in.
+ */
+function emitPartRules( buckets: Map< string, string[] >, uniqueId: string, scopedCss: string[], styled: Set< string >, authored: Set< string > ): void {
+	// A pseudo-element with no `content` generates no box, so everything set on it would do
+	// nothing. Default `content:""` into the base slot of each styled part the user gave none to.
+	for ( const part of styled ) {
+		if ( authored.has( part ) ) continue;
+		const key = `|${ partSuffix( part ) }`;
+		buckets.set( key, [ 'content:""', ...( buckets.get( key ) ?? [] ) ] );
+	}
+
+	for ( const bpKey of BP_ORDER ) {
+		for ( const [ key, decls ] of buckets ) {
+			const [ bucketBp, suffix ] = key.split( '|' );
+			if ( bucketBp !== bpKey || decls.length === 0 ) continue;
+
+			// Reproduce what runtime.scss wraps animation in on the element, so a `::before` does
+			// not animate through a reduced-motion preference the block itself honours.
+			const groups: Record< string, string[] > = { plain: [], motion: [], timeline: [] };
+			for ( const decl of decls ) groups[ GUARD_BY_PROP[ decl.slice( 0, decl.indexOf( ':' ) ) ] ?? 'plain' ].push( decl );
+
+			// Plain CSS cannot nest two @media rules, so a guard under a breakpoint is one `and` query.
+			const hover = ( suffix ?? '' ).startsWith( ':hover' ) ? HOVER_QUERY : '';
+			const media = slotMedia( suffix ?? '' );
+			const wrap = ( body: string, extra = '' ): string => {
+				const query = [ hover, media, bpKey ? `(max-width: ${ BP_MAX[ bpKey ] })` : '', extra ].filter( Boolean ).join( ' and ' );
+				return query ? `@media ${ query }{${ body }}` : body;
+			};
+			const rule = ( list: string[] ): string => `${ selectorFor( `.bl-${ uniqueId }`, suffix ?? '' ) }{${ list.join( ';' ) }}`;
+
+			if ( groups.plain.length ) scopedCss.push( wrap( rule( groups.plain ) ) );
+			if ( groups.motion.length ) scopedCss.push( wrap( rule( groups.motion ), REDUCED_MOTION_QUERY ) );
+			if ( groups.timeline.length ) {
+				scopedCss.push( wrap( `@supports ${ TIMELINE_SUPPORTS }{${ rule( groups.timeline ) }}`, REDUCED_MOTION_QUERY ) );
+			}
+		}
+	}
 }
 
 export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): ElementStyle {
@@ -723,9 +652,43 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 
 	const uniqueId = String( opts.uniqueId ?? '' ).replace( /[^a-zA-Z0-9_-]/g, '' );
 
+	/** `${bpKey}|${selectorSuffix}` → declarations, for every part slot. */
+	const partBuckets = new Map< string, string[] >();
+	/** Parts that got at least one declaration, and those the user gave `content` to. */
+	const styledParts = new Set< string >();
+	const authoredContent = new Set< string >();
+
+	/**
+	 * Route one slot's value to the part buckets. Returns false when the slot styles the element
+	 * itself — the tier-1/2 path. A part slot changes only `scopedCss`, never a class or var:
+	 * otherwise styling a pseudo-element would quietly restyle its host.
+	 */
+	const collectPart = ( rule: StyleMapRule, slot: string, bp: string, value: unknown ): boolean => {
+		const { part } = parseSlot( slot );
+		if ( part === ELEMENT_PART ) return false;
+		// Without an instance id there is no selector to hang the rule on. Dropping beats emitting
+		// `.bl-::before`, which would match every Blicks block on the page.
+		if ( ! uniqueId ) return true;
+		const decls = partDeclarations( rule, value );
+		if ( ! decls ) return true;
+		styledParts.add( part );
+		if ( rule.partOnly && rule.category === 'content' ) authoredContent.add( part );
+		const key = `${ BP_KEY[ bp ] ?? '' }|${ slotSelectorSuffix( slot ) }`;
+		partBuckets.set( key, [ ...( partBuckets.get( key ) ?? [] ), decls ] );
+		return true;
+	};
+
 	for ( const rule of STYLE_MAP ) {
-		const tree = blicks[ rule.attr ];
+		const tree = blicks[ rule.attr ] && typeof blicks[ rule.attr ] === 'object' ? allowedSlots( rule.attr, blicks[ rule.attr ] ) : blicks[ rule.attr ];
 		if ( ! tree ) continue;
+
+		// Part-only controls never reach the element.
+		if ( rule.partOnly ) {
+			for ( const [ slot, byBp ] of Object.entries< any >( tree ) ) {
+				for ( const [ bp, value ] of Object.entries< any >( byBp ?? {} ) ) collectPart( rule, slot, bp, value );
+			}
+			continue;
+		}
 
 		// Scoped (tier-3) rules emit a real selector / @property instead of class+var.
 		if ( rule.selectorSuffix || rule.atRule || rule.keyframes || rule.registerProperty ) {
@@ -742,48 +705,130 @@ export function buildElementStyle( blicks: any, opts: BuildOptions = {} ): Eleme
 
 		if ( rule.kind === 'single' ) {
 			let hasValue = false;
-			for ( const [ state, byBp ] of Object.entries< any >( tree ) ) {
-				const stateKey = STATE_KEY[ state ] ?? '';
+			for ( const [ slot, byBp ] of Object.entries< any >( tree ) ) {
+				const stateKey = STATE_KEY[ slot ] ?? '';
 				for ( const [ bp, value ] of Object.entries< any >( byBp ) ) {
+					if ( collectPart( rule, slot, bp, value ) ) continue;
 					if ( ! isSet( value ) ) continue;
+					// A value that fails validation writes no var, so it gets no class either: a
+					// consumer class with nothing behind it applies its fallback (`background: none`)
+					// and would undo the theme instead of doing nothing.
+					const css = cssValueForCategory( rule.category, value );
+					if ( css === '' ) continue;
 					hasValue = true;
 					const key = slotKey( stateKey, BP_KEY[ bp ] ?? '' );
 					if ( key ) classes.push( `bl-${ rule.cls }--${ key }` );
 					const suf = key ? `-${ key }` : '';
-					const css = cssValueForCategory( rule.category, value );
-					if ( css !== '' ) vars[ `${ rule.v }${ suf }` ] = css;
+					vars[ `${ rule.v }${ suf }` ] = css;
 				}
 			}
 			if ( hasValue ) classes.push( `bl-${ rule.cls }` );
 			continue;
 		}
 
-		// Expanded box: sides / inset / corners. The class is present whenever the control is.
-		classes.push( `bl-${ rule.cls }` );
+		// Expanded box: sides / inset / corners. The class is present whenever the control has an
+		// element slot — NOT when every slot is a part. `.bl-pad` with no `--bl-pt` behind it is
+		// invalid at computed-value time, which would drop the host's padding to 0.
+		if ( Object.keys( tree ).some( isElementSlot ) ) classes.push( `bl-${ rule.cls }` );
 		const keys = expandKeys( rule.kind );
 		const dash = rule.kind === 'inset' ? '-' : '';
-		for ( const [ state, byBp ] of Object.entries< any >( tree ) ) {
-			const stateKey = STATE_KEY[ state ] ?? '';
+		for ( const [ slot, byBp ] of Object.entries< any >( tree ) ) {
+			const stateKey = STATE_KEY[ slot ] ?? '';
 			for ( const [ bp, rawValue ] of Object.entries< any >( byBp ) ) {
+				if ( collectPart( rule, slot, bp, rawValue ) ) continue;
 				if ( ! rawValue ) continue;
 				const value = expandSideValue( rawValue, keys );
 				const key = slotKey( stateKey, BP_KEY[ bp ] ?? '' );
 				if ( key ) classes.push( `bl-${ rule.cls }--${ key }` );
 				const suf = key ? `-${ key }` : '';
 				for ( const [ prop, letter ] of keys ) {
-					vars[ `--bl-${ rule.v }${ dash }${ letter }${ suf }` ] = rule.raw
-						? rawOrToken( rule.category, ( value as any )[ prop ], rule.emptyValue ?? '0' )
-						: valOrToken(
-							rule.category ?? 'spacing',
-							( value as any )[ prop ],
-							rule.fallbackCategory
-						);
+					const side = ( value as any )[ prop ];
+					// An unset inset side is `auto`, as on a part: `0` would pin that edge too, and a
+					// box placed by two sides would stretch to the other two.
+					vars[ `--bl-${ rule.v }${ dash }${ letter }${ suf }` ] = rule.kind === 'inset' && ! isSet( side )
+						? 'auto'
+						: rule.raw
+							? rawOrToken( rule.category, side, rule.emptyValue ?? '0' )
+							: valOrToken( rule.category ?? 'spacing', side );
 				}
 			}
 		}
 	}
 
+	emitPartRules( partBuckets, uniqueId, scopedCss, styledParts, authoredContent );
+
 	const result: ElementStyle = { classes: Array.from( new Set( classes ) ), vars };
 	if ( scopedCss.length > 0 ) result.scopedCss = scopedCss;
 	return result;
+}
+
+// ── problems ─────────────────────────────────────────────────────────────────
+
+export type StyleProblemReason = 'unknown-control' | 'not-allowed' | 'unknown-slot' | 'unknown-breakpoint' | 'not-on-part' | 'invalid-value';
+
+export interface StyleProblem {
+	id: string;
+	slot?: string;
+	breakpoint?: string;
+	reason: StyleProblemReason;
+	/** The value that will not be applied, where there is one. */
+	value?: unknown;
+}
+
+/** One side or corner the box path would replace with its fallback. */
+function sideRejected( rule: StyleMapRule, v: unknown ): boolean {
+	const s = String( v ?? '' ).trim();
+	if ( s === '' ) return false;
+	if ( ! rule.raw && /^-?\d*\.?\d+$/.test( s ) ) return false;
+	const category = rule.raw ? rule.category : rule.category ?? 'spacing';
+	if ( category && isToken( category as any, s ) ) return false;
+	return cleanCssValue( s ) === '';
+}
+
+/** Would this one value build to nothing? Mirrors the emission paths above. */
+function valueRejected( rule: StyleMapRule, value: unknown ): boolean {
+	if ( ! isSet( value ) ) return false;
+	if ( rule.kind === 'enum' ) return ! String( value ).replace( /[^a-z0-9-]/g, '' );
+	if ( rule.kind === 'single' ) return cssValueForCategory( rule.category, value ) === '';
+	if ( typeof value === 'string' || typeof value === 'number' ) return sideRejected( rule, value );
+	if ( ! value || typeof value !== 'object' ) return true;
+	return Object.values( value as Record< string, unknown > ).some( ( v ) => sideRejected( rule, v ) );
+}
+
+/**
+ * Every value in a style tree that the engine would not apply, and why. `buildElementStyle` drops
+ * these quietly so one bad value never breaks a page; this is the same judgement made out loud, for
+ * the editor to show and for layout tools to report. Pass the block's `supports.blicks.controls` to
+ * also catch controls the block does not allow. Mirror of ElementStyle::problems().
+ */
+export function findStyleProblems( blicks: any, allowList?: readonly string[] ): StyleProblem[] {
+	const problems: StyleProblem[] = [];
+	if ( ! blicks || typeof blicks !== 'object' ) return problems;
+	const allowed = ( id: string ) => ! allowList || allowList.includes( id ) || allowList.includes( `${ id.split( '.' )[ 0 ] }.*` );
+	for ( const [ id, tree ] of Object.entries< any >( blicks ) ) {
+		if ( id.startsWith( 'meta.' ) ) continue;
+		const rule = STYLE_MAP.find( ( r ) => r.attr === id );
+		if ( ! rule ) {
+			problems.push( { id, reason: 'unknown-control' } );
+			continue;
+		}
+		if ( ! allowed( id ) ) {
+			problems.push( { id, reason: 'not-allowed' } );
+			continue;
+		}
+		if ( ! tree || typeof tree !== 'object' ) continue;
+		for ( const [ slot, byBp ] of Object.entries< any >( tree ) ) {
+			const [ part, state ] = slot.includes( ':' ) ? slot.split( ':' ) : isPart( slot ) && slot !== 'default' ? [ slot, 'default' ] : [ ELEMENT_PART, slot ];
+			if ( ! isPart( part ) || ! ( state in STATE_KEY ) ) {
+				problems.push( { id, slot, reason: 'unknown-slot' } );
+				continue;
+			}
+			for ( const [ bp, value ] of Object.entries< any >( byBp ?? {} ) ) {
+				if ( ! ( bp in BP_KEY ) ) problems.push( { id, slot, breakpoint: bp, reason: 'unknown-breakpoint', value } );
+				else if ( part !== ELEMENT_PART && ! PARTABLE_CONTROLS.has( id ) ) problems.push( { id, slot, breakpoint: bp, reason: 'not-on-part', value } );
+				else if ( valueRejected( rule, value ) ) problems.push( { id, slot, breakpoint: bp, reason: 'invalid-value', value } );
+			}
+		}
+	}
+	return problems;
 }

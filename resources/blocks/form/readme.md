@@ -1,0 +1,57 @@
+## Description
+
+Form is a contact or sign-up form made of ordinary blocks: **Field** blocks, a **Button** set to **On click › Form › Send it** (and, if you like, another set to **Clear it**), and any Heading, Text, Stack, Grid or Box around them. It saves each entry to **Blicks › Entries**, emails it, and then shows a message, goes to a page or opens a dialog. Spam is kept out by a hidden trap field, a minimum wait, and, if you choose, reCAPTCHA or Cloudflare Turnstile.
+
+An empty Form offers five templates: **Contact**, **Newsletter**, **Newsletter card**, **Call back** and **Blank**. Each adds blocks you can edit, move or delete.
+
+The Form is dynamic: the post stores only its inner blocks, and the `<form>` is written when the page renders, so its addresses and keys can change without editing the post.
+
+## Layout
+
+The form is a 6-column grid. A Field's **Width** (Full, 2/3, Half, 1/3) takes 6, 4, 3 or 2 columns; every other block takes the whole row unless its **In a grid › Columns** says otherwise. When the form is narrower than 480px, every field takes the row. **Gap** in Style sets the space between rows and columns.
+
+## Controls
+
+### template
+
+The template the form started from. Choosing another in Settings replaces the blocks inside the form, after asking.
+
+### save
+
+**Save each entry** to Blicks › Entries.
+
+### email
+
+**Email it** to **To** (empty: the site admin email; several addresses separated by commas). **Subject** may use `{name}` tags for a field's value, e.g. `New entry: {email}`. **Reply to the sender** sets the email's Reply-To to the Email field's address. The addresses are never written to the page.
+
+### after
+
+What happens after sending: **Message** shows **Title** and **Message** in place of the form; **Page** goes to a published page; **Dialog** opens a Dialog block on the page.
+
+### spam
+
+The hidden trap field is always on. **Wait at least** rejects sends faster than this many seconds after the page loaded (0 to 60). **Challenge** adds reCAPTCHA v3 (invisible), reCAPTCHA v2 (a box to tick) or Cloudflare Turnstile; its keys are set once in Blicks › Settings › Forms, and the provider's script loads only on pages with that form. For v3, **Block below** is the lowest score that passes; lower scores go to Entries › Spam.
+
+### marker
+
+**Mark fields**: what follows each field's label. **(optional)** after the labels of fields that can be left empty (the default); **\* required**, a red `*` after required ones; **Both**, `*` on required fields and "Optional" on the others; or **None**. Consent boxes are never marked.
+
+### look
+
+How every field in the form looks: **Filled**, **Outlined** or **Line**.
+
+### labels
+
+Where field labels sit: **Above**, **Inside**, or **Hidden** (still read out by screen readers).
+
+## Alignment
+
+The toolbar's alignment sets the form **Wide** or **Full** width, as the theme draws those.
+
+## Editor notes
+
+The Form warns, in Settings and on the canvas, when no Button sends it, when two fields share a name, and when a field has no name. A field pasted or duplicated into the form with a name already in use gets `_2`, `_3` added.
+
+## Without JavaScript
+
+The form still posts. The entry is kept as spam (it cannot be checked the same way) and the visitor comes back to the page with the sent message shown.

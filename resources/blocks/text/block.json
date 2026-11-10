@@ -4,22 +4,22 @@
 	"name": "blicks/text",
 	"title": "Text",
 	"category": "blicks",
-	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M5 7.8L19 7.8L19 6.2L5 6.2ZM5 11.8L17 11.8L17 10.2L5 10.2ZM5 15.8L19 15.8L19 14.2L5 14.2Z\" fill=\"currentColor\"/><path d=\"M5 19.8L13 19.8L13 18.2L5 18.2Z\" fill=\"#002bff\"/></svg>",
-	"description": "A rich paragraph block for body copy.",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.25 4.5H19.75A1.25 1.25 0 0 1 21 5.75V5.75A1.25 1.25 0 0 1 19.75 7H4.25A1.25 1.25 0 0 1 3 5.75V5.75A1.25 1.25 0 0 1 4.25 4.5ZM4.25 10.75H19.75A1.25 1.25 0 0 1 21 12V12A1.25 1.25 0 0 1 19.75 13.25H4.25A1.25 1.25 0 0 1 3 12V12A1.25 1.25 0 0 1 4.25 10.75Z\" fill=\"currentColor\"/><path d=\"M4.25 17H12.75A1.25 1.25 0 0 1 14 18.25V18.25A1.25 1.25 0 0 1 12.75 19.5H4.25A1.25 1.25 0 0 1 3 18.25V18.25A1.25 1.25 0 0 1 4.25 17Z\" fill=\"#002bff\"/></svg>",
+	"description": "A rich paragraph for body copy, with type roles, links and inline formatting, styled from the design system.",
 	"textdomain": "blicks",
 	"supports": {
 		"html": false,
 		"className": false,
 		"blicks": {
-			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "columns.*",
-				"spacing.*", "border.*", "effects.*" ],
-			"states": [ "default", "hover", "focus", "active" ]
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "colors.clipText", "layout.display", "columns.*",
+				"spacing.*", "border.*", "effects.*", "animation.*", "layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "layout.lineClamp", "flexChild.*", "background.*", "layout.overflow", "layout.isolation", "position.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
 		}
 	},
 	"attributes": {
 		"uniqueId": { "type": "string" },
 		"blicks":   { "type": "object", "default": {} },
-		"content":  { "type": "string", "default": "" },
+		"content":  { "type": "string", "default": "", "bindable": { "selector": ":root" } },
 		"tag":      { "type": "string", "default": "p" },
 		"variant":  { "type": "string", "default": "default" },
 		"dropCap":  { "type": "boolean", "default": false }

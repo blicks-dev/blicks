@@ -1,0 +1,574 @@
+{
+	"_comment": "Shared parity table for the part axis: vars.ts (parts.test.ts) and ElementStyle.php (PartsTest.php) both run every case and must produce the same strings. scopedCss null means no scoped CSS at all.",
+	"cases": [
+		{
+			"name": "writes a scoped rule instead of a class and var",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";background-color:#f00}"
+			],
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "leaves the host box alone when only a part has padding",
+			"blicks": {
+				"spacing.padding": {
+					"before": {
+						"base": {
+							"top": "8px"
+						}
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";padding:8px 0 0 0}"
+			],
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "crosses parts with states",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					},
+					"before:hover": {
+						"base": "#00f"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";background-color:#f00}",
+				"@media (hover: hover){.bl-x1:hover::before{background-color:#00f}}"
+			]
+		},
+		{
+			"name": "crosses parts with breakpoints, widest first",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00",
+						"mobile": "#0f0",
+						"tablet": "#00f"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";background-color:#f00}",
+				"@media (max-width: 782px){.bl-x1::before{background-color:#00f}}",
+				"@media (max-width: 600px){.bl-x1::before{background-color:#0f0}}"
+			]
+		},
+		{
+			"name": "groups every property of one slot into one rule, in schema order",
+			"blicks": {
+				"spacing.padding": {
+					"before": {
+						"base": {
+							"top": "4px",
+							"right": "8px",
+							"bottom": "4px",
+							"left": "8px"
+						}
+					}
+				},
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					}
+				},
+				"decoration.content": {
+					"before": {
+						"base": "New"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{padding:4px 8px 4px 8px;background-color:#f00;content:\"New\"}"
+			]
+		},
+		{
+			"name": "defaults content into the base slot only",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					},
+					"before:hover": {
+						"base": "#00f",
+						"mobile": "#0f0"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";background-color:#f00}",
+				"@media (hover: hover){.bl-x1:hover::before{background-color:#00f}}",
+				"@media (hover: hover) and (max-width: 600px){.bl-x1:hover::before{background-color:#0f0}}"
+			]
+		},
+		{
+			"name": "does not default content over content the user set",
+			"blicks": {
+				"decoration.content": {
+					"before": {
+						"base": "Hi"
+					}
+				},
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{background-color:#f00;content:\"Hi\"}"
+			]
+		},
+		{
+			"name": "quotes and escapes content",
+			"blicks": {
+				"decoration.content": {
+					"after": {
+						"base": "a \"b\""
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::after{content:\"a \\\"b\\\"\"}"
+			]
+		},
+		{
+			"name": "passes a counter() content through",
+			"blicks": {
+				"decoration.content": {
+					"after": {
+						"base": "counter(item)"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::after{content:counter(item)}"
+			]
+		},
+		{
+			"name": "strips a newline and a tag opener from content",
+			"blicks": {
+				"decoration.content": {
+					"after": {
+						"base": "a\n}</style>"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::after{content:\"a}/style>\"}"
+			]
+		},
+		{
+			"name": "never puts content on the element",
+			"blicks": {
+				"decoration.content": {
+					"default": {
+						"base": "x"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "expands inset to four properties, unset sides auto",
+			"blicks": {
+				"position.inset": {
+					"before": {
+						"base": {
+							"top": "0",
+							"left": "0"
+						}
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";top:0;right:auto;bottom:auto;left:0}"
+			]
+		},
+		{
+			"name": "gives clip-path its webkit twin",
+			"blicks": {
+				"effects.clipPath": {
+					"before": {
+						"base": "circle(50%)"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";-webkit-clip-path:circle(50%);clip-path:circle(50%)}"
+			]
+		},
+		{
+			"name": "carries the line-clamp companions",
+			"blicks": {
+				"layout.lineClamp": {
+					"before": {
+						"base": "2"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;-webkit-line-clamp:2}"
+			]
+		},
+		{
+			"name": "writes the clip-to-text trio",
+			"blicks": {
+				"colors.clipText": {
+					"after": {
+						"base": "1"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::after{content:\"\";background-clip:text;-webkit-background-clip:text;color:transparent}"
+			]
+		},
+		{
+			"name": "keeps animation behind the reduced-motion guard",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					}
+				},
+				"animation.name": {
+					"before": {
+						"base": "bl-pulse"
+					}
+				},
+				"animation.duration": {
+					"before": {
+						"base": "1.2s"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";background-color:#f00}",
+				"@media (prefers-reduced-motion: no-preference){.bl-x1::before{animation-name:bl-pulse;animation-duration:1.2s}}"
+			]
+		},
+		{
+			"name": "joins the motion guard to a breakpoint",
+			"blicks": {
+				"animation.name": {
+					"before": {
+						"tablet": "bl-pulse"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\"}",
+				"@media (max-width: 782px) and (prefers-reduced-motion: no-preference){.bl-x1::before{animation-name:bl-pulse}}"
+			]
+		},
+		{
+			"name": "gates a scroll timeline on support and motion",
+			"blicks": {
+				"animation.timeline": {
+					"before": {
+						"base": "scroll()"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\"}",
+				"@media (prefers-reduced-motion: no-preference){@supports (animation-timeline: scroll()){.bl-x1::before{animation-timeline:scroll()}}}"
+			]
+		},
+		{
+			"name": "drops a library preset on a part",
+			"blicks": {
+				"typography.role": {
+					"before": {
+						"base": "h2"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "drops a keyframe custom property on a part",
+			"blicks": {
+				"animation.target": {
+					"before": {
+						"base": "0.5"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "emits nothing without an instance id",
+			"blicks": {
+				"colors.background": {
+					"before": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "",
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "keeps the element output when a part is added beside it",
+			"blicks": {
+				"colors.text": {
+					"default": {
+						"base": "#000"
+					},
+					"hover": {
+						"base": "#333"
+					},
+					"before": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::before{content:\"\";color:#f00}"
+			],
+			"classes": [
+				"bl-tx--hov",
+				"bl-tx"
+			],
+			"vars": {
+				"--bl-tx": "#000",
+				"--bl-tx-hov": "#333"
+			}
+		},
+		{
+			"name": "writes corners as longhands so a two-value radius survives",
+			"uniqueId": "x1",
+			"blicks": {
+				"border.radius": {
+					"before": {
+						"base": {
+							"topLeft": "255px 15px",
+							"topRight": "15px 225px",
+							"bottomRight": "225px 15px",
+							"bottomLeft": "15px 255px"
+						}
+					}
+				}
+			},
+			"scopedCss": [
+				".bl-x1::before{content:\"\";border-top-left-radius:255px 15px;border-top-right-radius:15px 225px;border-bottom-right-radius:225px 15px;border-bottom-left-radius:15px 255px}"
+			]
+		},
+		{
+			"name": "plays a part when the nearest card is pointed at or focused",
+			"blicks": {
+				"colors.background": {
+					"before:group": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				":where(.bl-group--card:is(:hover, :focus-visible, :has(:focus-visible))) .bl-x1.bl-x1:not(:where(.bl-group--card:not(:hover, :focus-visible, :has(:focus-visible))) *)::before{background-color:#f00}",
+				".bl-x1::before{content:\"\"}"
+			],
+			"classes": [],
+			"vars": {}
+		},
+		{
+			"name": "plays a part while the nearest card is pressed",
+			"blicks": {
+				"colors.background": {
+					"before:groupActive": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				":where(.bl-group--card:active) .bl-x1.bl-x1:not(:where(.bl-group--card:not(:active)) *)::before{background-color:#f00}",
+				".bl-x1::before{content:\"\"}"
+			]
+		},
+		{
+			"name": "plays a part while the nearest card is on, even inside a card that is off",
+			"blicks": {
+				"colors.background": {
+					"before:groupOn": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				":where(.bl-group--card[data-bl-active]) .bl-x1.bl-x1:not(:where(.bl-group--card[data-bl-active] .bl-group--card:not([data-bl-active])) *)::before{background-color:#f00}",
+				".bl-x1::before{content:\"\"}"
+			]
+		},
+		{
+			"name": "gives the element's pressed-card state a class and var",
+			"blicks": {
+				"colors.background": {
+					"groupActive": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [
+				"bl-bg--gra",
+				"bl-bg"
+			],
+			"vars": {
+				"--bl-bg-gra": "#f00"
+			}
+		},
+		{
+			"name": "gives the element's reduced-motion state a class and var",
+			"blicks": {
+				"effects.opacity": {
+					"reduced": {
+						"base": "0"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [
+				"bl-op--rdm",
+				"bl-op"
+			],
+			"vars": {
+				"--bl-op-rdm": "0"
+			}
+		},
+		{
+			"name": "drops a value a limited state does not style",
+			"blicks": {
+				"spacing.padding": {
+					"groupActive": {
+						"base": "8px"
+					}
+				},
+				"layout.width": {
+					"after:reduced": {
+						"base": "10px"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [],
+			"vars": {},
+			"scopedCss": null
+		},
+		{
+			"name": "plays a part's reduced-motion look under its query, joined to a breakpoint",
+			"blicks": {
+				"effects.opacity": {
+					"after:reduced": {
+						"base": "0.25",
+						"mobile": "0.5"
+					}
+				},
+				"colors.background": {
+					"after": {
+						"base": "#0f0"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1::after{content:\"\";background-color:#0f0}",
+				"@media (prefers-reduced-motion: reduce){.bl-x1::after{opacity:0.25}}",
+				"@media (prefers-reduced-motion: reduce) and (max-width: 600px){.bl-x1::after{opacity:0.5}}"
+			]
+		},
+		{
+			"name": "plays a focus part on keyboard focus only, or when a linked box's overlay link has it",
+			"blicks": {
+				"colors.background": {
+					"before:focus": {
+						"base": "#f00"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"scopedCss": [
+				".bl-x1:is(:focus-visible, :where(:has(> .bl-box__link:focus-visible)))::before{background-color:#f00}",
+				".bl-x1::before{content:\"\"}"
+			]
+		},
+		{
+			"name": "gives the element's group state a class and var like any state",
+			"blicks": {
+				"effects.opacity": {
+					"default": {
+						"base": "0"
+					},
+					"group": {
+						"base": "1"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [
+				"bl-op--grp",
+				"bl-op"
+			],
+			"vars": {
+				"--bl-op": "0",
+				"--bl-op-grp": "1"
+			}
+		},
+		{
+			"name": "marks a card with one class and no var",
+			"blicks": {
+				"layout.group": {
+					"default": {
+						"base": "card"
+					}
+				}
+			},
+			"uniqueId": "x1",
+			"classes": [
+				"bl-group--card"
+			],
+			"vars": {}
+		}
+	]
+}

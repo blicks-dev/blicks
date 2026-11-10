@@ -10,6 +10,7 @@
 	<testsuites>
 		<testsuite name="Integration">
 			<directory>tests</directory>
+			<directory>../../modules/*/tests/integration</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

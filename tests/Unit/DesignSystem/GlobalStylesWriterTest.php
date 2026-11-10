@@ -78,8 +78,6 @@ final class GlobalStylesWriterTest extends TestCase
             'zIndex' => ['toast' => '1000'],
             'opacity' => ['scrim' => '0.55'],
             'borderWidth' => ['strong' => '2px'],
-            'borderStyle' => ['dashed' => '1px dashed #002bff'],
-            'ring' => ['brand' => '0 0 0 3px rgba(0, 43, 255, 0.35)'],
             'width' => ['wide' => '1360px'],
             'aspect' => ['wide' => '16 / 9'],
             'leading' => ['snug' => '1.3'],

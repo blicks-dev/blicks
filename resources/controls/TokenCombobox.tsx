@@ -34,7 +34,7 @@ export function tokenComboboxOptions( category: TokenCategory, literals: readonl
 	for ( const opt of tokenOptions( category ) ) {
 		if ( seen.has( opt.slug ) ) continue;
 		seen.add( opt.slug );
-		opts.push( { value: opt.slug, label: opt.label, hint: opt.css } );
+		opts.push( { value: opt.value, label: opt.label, hint: opt.css } );
 	}
 	return opts;
 }

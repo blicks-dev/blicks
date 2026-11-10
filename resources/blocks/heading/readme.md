@@ -12,6 +12,12 @@ Sets the heading level from H1 to H6. Choose the level from document structure f
 
 The editable heading text.
 
+### anchor
+
+The heading's `id`, so a link can jump to it (`#getting-around`). Settings offers one made from the words.
+
+To make a heading look like another level without changing what screen readers hear, set `typography.role` (`display`, `h1`–`h4`) and keep `level` for the outline.
+
 ## Tips
 
 - Use one H1 for the main page title.

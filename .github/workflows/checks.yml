@@ -42,8 +42,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      # `pnpm lint:css` is not gated: stylelint reports 38 auto-fixable errors.
-      # Add it here once `pnpm lint:css --fix` has been run and the diff reviewed.
+      - name: Lint CSS
+        run: pnpm lint:css
 
       # Parses committed golden markup against today's save() — the block
       # validation-drift guard.
@@ -150,7 +150,7 @@ jobs:
         # The two versions readme.txt commits to: the "Requires at least" floor and current.
         # Move the floor here whenever readme.txt's changes. Note this suite is PHP-only, so it
         # cannot see a missing script handle — 6.5 passed here while the editor was dead on it.
-        wp: [ '6.6', 'latest' ]
+        wp: [ '7.0', 'latest' ]
     steps:
       - uses: actions/checkout@v7
 
@@ -208,9 +208,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The suite mounts this working tree as the plugin, so Playground runs whatever is on
-      # disk. It does not build for you: an unbuilt tree registers no blocks.
+      # disk. It does not build for you: an unbuilt tree registers no blocks. Dialog Studio is
+      # built too, or its spec skips itself; this job's tree is never packaged.
       - name: Build
         run: pnpm build
+        env:
+          BLICKS_DEV_MODULES: dialog-studio
 
       # uupcode/utilities is a runtime dependency, so the plugin cannot boot without it.
       - name: Install plugin dependencies
@@ -222,9 +225,10 @@ jobs:
         working-directory: tests/e2e
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chromium
+      # Both browsers the config has a project for: the dialog and form specs also run in WebKit.
+      - name: Install Chromium and WebKit
         working-directory: tests/e2e
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       # WordPress runs on PHP-WASM here — no Docker and no database, unlike the integration job.
       - name: End-to-end tests

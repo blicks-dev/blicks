@@ -1,0 +1,181 @@
+[
+	{
+		"title": "header, default",
+		"block": {
+			"name": "blicks/header",
+			"attributes": {
+				"uniqueId": "h0000001"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/header {\"uniqueId\":\"h0000001\"} -->\n<header class=\"bl-header bl-h0000001\"></header>\n<!-- /wp:blicks/header -->"
+	},
+	{
+		"title": "header, every option",
+		"block": {
+			"name": "blicks/header",
+			"attributes": {
+				"uniqueId": "h0000002",
+				"sticky": true,
+				"shrink": true,
+				"overHero": true,
+				"hideOnScroll": true,
+				"mobile": "accordion",
+				"drawerAt": "always"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/header {\"uniqueId\":\"h0000002\",\"sticky\":true,\"shrink\":true,\"overHero\":true,\"hideOnScroll\":true,\"mobile\":\"accordion\",\"drawerAt\":\"always\"} -->\n<header class=\"bl-header bl-h0000002 bl-header--sticky bl-header--shrink bl-header--over bl-header--hide bl-header--accordion bl-header--drawer-always\"></header>\n<!-- /wp:blicks/header -->"
+	},
+	{
+		"title": "header, unknown options fall back",
+		"block": {
+			"name": "blicks/header",
+			"attributes": {
+				"uniqueId": "h0000003",
+				"mobile": "sideways",
+				"drawerAt": "huge"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/header {\"uniqueId\":\"h0000003\",\"mobile\":\"sideways\",\"drawerAt\":\"huge\"} -->\n<header class=\"bl-header bl-h0000003\"></header>\n<!-- /wp:blicks/header -->"
+	},
+	{
+		"title": "row, stacked, hidden on phones",
+		"block": {
+			"name": "blicks/header-row",
+			"attributes": {
+				"uniqueId": "h0000004",
+				"preset": "stacked",
+				"visibility": {
+					"mobile": true
+				}
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/header-area",
+					"attributes": {
+						"uniqueId": "h0000005"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/header-row {\"uniqueId\":\"h0000004\",\"preset\":\"stacked\",\"visibility\":{\"mobile\":true}} -->\n<div class=\"bl-header-row bl-h0000004 bl-hide-mobile bl-header-row--stacked\"><!-- wp:blicks/header-area {\"uniqueId\":\"h0000005\"} -->\n<div class=\"bl-header-area bl-h0000005 bl-header-area--start\"></div>\n<!-- /wp:blicks/header-area --></div>\n<!-- /wp:blicks/header-row -->"
+	},
+	{
+		"title": "area, centre, last on phones",
+		"block": {
+			"name": "blicks/header-area",
+			"attributes": {
+				"uniqueId": "h0000006",
+				"slot": "centre",
+				"blicks": {
+					"flexChild.order": {
+						"default": {
+							"mobile": "99"
+						}
+					}
+				}
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/header-area {\"uniqueId\":\"h0000006\",\"blicks\":{\"flexChild.order\":{\"default\":{\"mobile\":\"99\"}}},\"slot\":\"centre\"} -->\n<div class=\"bl-header-area bl-h0000006 bl-fco--mob bl-fco bl-header-area--centre\" style=\"--bl-fco-mob:99\"></div>\n<!-- /wp:blicks/header-area -->"
+	},
+	{
+		"title": "nav, named",
+		"block": {
+			"name": "blicks/nav",
+			"attributes": {
+				"uniqueId": "h0000007",
+				"label": "Primary & more"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/nav-item",
+					"attributes": {
+						"uniqueId": "h0000008",
+						"label": "Home",
+						"url": "/"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/nav {\"uniqueId\":\"h0000007\",\"label\":\"Primary \\u0026 more\"} -->\n<nav class=\"bl-nav bl-h0000007\" aria-label=\"Primary &amp; more\"><ul class=\"bl-nav__list\"><!-- wp:blicks/nav-item {\"uniqueId\":\"h0000008\",\"label\":\"Home\",\"url\":\"/\"} -->\n<li class=\"bl-nav-item bl-h0000008\"><a class=\"bl-nav-item__link\" href=\"/\">Home</a></li>\n<!-- /wp:blicks/nav-item --></ul></nav>\n<!-- /wp:blicks/nav -->"
+	},
+	{
+		"title": "nav item, link in a new tab",
+		"block": {
+			"name": "blicks/nav-item",
+			"attributes": {
+				"uniqueId": "h0000009",
+				"label": "Docs <em>v2</em>",
+				"url": "https://example.test/docs?a=1&b=2",
+				"linkTarget": "_blank"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/nav-item {\"uniqueId\":\"h0000009\",\"label\":\"Docs \\u003cem\\u003ev2\\u003c/em\\u003e\",\"url\":\"https://example.test/docs?a=1\\u0026b=2\",\"linkTarget\":\"_blank\"} -->\n<li class=\"bl-nav-item bl-h0000009\"><a class=\"bl-nav-item__link\" href=\"https://example.test/docs?a=1&amp;b=2\" target=\"_blank\" rel=\"noopener\">Docs <em>v2</em></a></li>\n<!-- /wp:blicks/nav-item -->"
+	},
+	{
+		"title": "nav item, no link yet",
+		"block": {
+			"name": "blicks/nav-item",
+			"attributes": {
+				"uniqueId": "h000000a",
+				"label": "Soon"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/nav-item {\"uniqueId\":\"h000000a\",\"label\":\"Soon\"} -->\n<li class=\"bl-nav-item bl-h000000a\"><a class=\"bl-nav-item__link\">Soon</a></li>\n<!-- /wp:blicks/nav-item -->"
+	},
+	{
+		"title": "nav item, with a mega menu",
+		"block": {
+			"name": "blicks/nav-item",
+			"attributes": {
+				"uniqueId": "h000000b",
+				"label": "Products",
+				"url": "/ignored",
+				"hasPanel": true
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/mega-panel",
+					"attributes": {
+						"uniqueId": "h000000c"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/nav-item {\"uniqueId\":\"h000000b\",\"label\":\"Products\",\"url\":\"/ignored\",\"hasPanel\":true} -->\n<li class=\"bl-nav-item bl-h000000b has-panel\"><button class=\"bl-nav-item__toggle\" type=\"button\" aria-expanded=\"false\">Products</button><!-- wp:blicks/mega-panel {\"uniqueId\":\"h000000c\"} -->\n<div class=\"bl-mega-panel bl-h000000c\"></div>\n<!-- /wp:blicks/mega-panel --></li>\n<!-- /wp:blicks/nav-item -->"
+	},
+	{
+		"title": "mega panel, content width, no animation",
+		"block": {
+			"name": "blicks/mega-panel",
+			"attributes": {
+				"uniqueId": "h000000d",
+				"width": "content",
+				"animation": "none",
+				"delay": 300
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/mega-panel {\"uniqueId\":\"h000000d\",\"delay\":300,\"animation\":\"none\",\"width\":\"content\"} -->\n<div class=\"bl-mega-panel bl-h000000d bl-mega-panel--w-content bl-mega-panel--m-none\"></div>\n<!-- /wp:blicks/mega-panel -->"
+	},
+	{
+		"title": "link list, a menu",
+		"block": {
+			"name": "blicks/link-list",
+			"attributes": {
+				"uniqueId": "h000000e",
+				"menu": "classic:3:12"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/link-list {\"uniqueId\":\"h000000e\",\"menu\":\"classic:3:12\"} /-->"
+	}
+]

@@ -1,7 +1,9 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { tokenVar, titleCase } from '../data';
-import { DESIGN_SECTIONS, TOKEN_CATEGORY_KEYS } from '../constants';
+import { TOKEN_CATEGORY_KEYS } from '../constants';
+import { designNav, sectionForCategory } from '../design-model';
+import { bootstrap } from '../bootstrap';
 import type { AdminView, DesignSystemSnapshot } from '../types';
 
 type Command = {
@@ -45,8 +47,10 @@ export function CommandPalette( {
 	const commands = useMemo< Command[] >( () => {
 		const views: Array< { id: AdminView; label: string } > = [
 			{ id: 'overview', label: __( 'Overview', 'blicks' ) },
-			{ id: 'design', label: __( 'Design System', 'blicks' ) },
+			{ id: 'design', label: __( 'Design system', 'blicks' ) },
 			{ id: 'settings', label: __( 'Settings', 'blicks' ) },
+			{ id: 'mcp', label: __( 'MCP', 'blicks' ) },
+			...bootstrap().externalViews.map( entry => ( { id: entry.id as AdminView, label: entry.label } ) ),
 		];
 
 		const viewCommands: Command[] = views.map( view => ( {
@@ -57,7 +61,7 @@ export function CommandPalette( {
 			run: () => onNavigate( view.id ),
 		} ) );
 
-		const sectionCommands: Command[] = DESIGN_SECTIONS.map( section => ( {
+		const sectionCommands: Command[] = designNav().flatMap( group => group.items ).map( section => ( {
 			id: `section:${ section.id }`,
 			title: section.label,
 			hint: __( 'Design system section', 'blicks' ),
@@ -76,7 +80,7 @@ export function CommandPalette( {
 					titleCase( category )
 				),
 				group: __( 'Tokens', 'blicks' ),
-				run: () => onOpenDesignSection( designSectionForCategory( category ) ),
+				run: () => onOpenDesignSection( sectionForCategory( category ) ),
 			} ) );
 		} );
 
@@ -181,26 +185,3 @@ export function CommandPalette( {
 }
 
 // Token categories map onto the design view's section anchors.
-function designSectionForCategory( category: string ): string {
-	switch ( category ) {
-		case 'color': return 'color';
-		case 'spacing': return 'space';
-		case 'fontSize':
-		case 'fontFamily':
-		case 'leading': return 'type';
-		case 'radius': return 'radius';
-		case 'shadow': return 'shadow';
-		case 'gradient': return 'gradient';
-		case 'transition':
-		case 'transform':
-		case 'filter': return 'motion';
-		case 'zIndex': return 'z';
-		case 'opacity': return 'opacity';
-		case 'borderWidth':
-		case 'borderStyle': return 'border';
-		case 'ring': return 'ring';
-		case 'width':
-		case 'aspect': return 'sizing';
-		default: return 'themes';
-	}
-}

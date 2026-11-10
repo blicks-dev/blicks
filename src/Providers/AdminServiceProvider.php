@@ -57,6 +57,16 @@ final class AdminServiceProvider extends ServiceProvider {
 				'label' => __( 'Settings', 'blicks' ),
 				'capability' => self::DEFAULT_CAPABILITY,
 			],
+			'blicks-mcp' => [
+				'view' => 'mcp',
+				'label' => __( 'MCP', 'blicks' ),
+				'capability' => self::DEFAULT_CAPABILITY,
+			],
+			'blicks-entries' => [
+				'view' => 'entries',
+				'label' => __( 'Entries', 'blicks' ),
+				'capability' => self::entriesCapability(),
+			],
 		];
 
 		/**
@@ -78,6 +88,14 @@ final class AdminServiceProvider extends ServiceProvider {
 		// *and* puts its keys first, so the built-ins both win and stay at the top of the menu.
 		// array_merge() would have listed every registered page above Overview.
 		return $builtin + self::normalizeViews( $filtered, $builtin );
+	}
+
+	/** Who opens Blicks › Entries: the same capability its REST routes check. */
+	private static function entriesCapability(): string {
+		/** This filter is documented in src/Forms/Entries.php */
+		$capability = apply_filters( 'blicks_entries_capability', 'manage_options' );
+
+		return is_string( $capability ) && '' !== $capability ? $capability : 'manage_options';
 	}
 
 	/**

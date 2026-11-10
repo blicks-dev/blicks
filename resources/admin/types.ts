@@ -26,7 +26,7 @@ export type DesignThemeTokens = {
 export type DesignTheme = { id: string; name: string; builtin: boolean; edited: boolean; tokens: DesignThemeTokens };
 export type ThemesState = { active: string; themes: DesignTheme[] };
 /** The views this plugin ships. Exhaustive, so a `switch` over them can still be checked. */
-export type BuiltinView = 'overview' | 'design' | 'settings';
+export type BuiltinView = 'overview' | 'design' | 'settings' | 'mcp' | 'entries';
 
 /**
  * Any view the app can route to — a built-in, or one a companion plugin registered.
@@ -59,6 +59,12 @@ export type EditorStyle = {
 	__unstableType?: string;
 };
 
+/** A design language: how the site is drawn, apart from its colors (DesignLanguages.php). */
+export type DesignLanguage = { id: string; name: string; description: string; traits: string[]; sample: Record< string, string > };
+export type LanguageState = { active: string; languages: DesignLanguage[] };
+/** A kit: a design language, a palette and someone's own values, saved together (DesignKits.php). */
+export type DesignKit = { id: string; name: string; language: string; palette: string; count: number };
+
 export type DesignSystemSnapshot = {
 	mode: 'readOnly';
 	source: {
@@ -72,6 +78,7 @@ export type DesignSystemSnapshot = {
 	typeRoles: TypeRoleSnapshot;
 	fontLibrary: FontFamily[];
 	overrides: DesignOverrides;
+	language: LanguageState;
 	breakpoints: Breakpoint[];
 	counts: {
 		colors: number;
@@ -85,9 +92,9 @@ export type DesignSystemSnapshot = {
 };
 
 export type AdminSettingsSnapshot = {
-	defaultInspectorPanel: 'settings' | 'styles' | 'advanced';
-	helpVisibility: 'show' | 'hide';
 	deleteDataOnUninstall: boolean;
+	/** The Studio library's Marketplace shelf. Off until an administrator turns it on. */
+	marketplace: boolean;
 	designSystem: {
 		themeJsonSync: boolean;
 		themeJsonSupported: boolean;

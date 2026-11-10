@@ -93,16 +93,22 @@ final class Catalogue {
 
 	/**
 	 * @param array<string, mixed>|null $overrides
+	 * @param string|null                $languageId Draw it in this design language instead of the
+	 *                                               site's: the Studio library previews patterns
+	 *                                               in any language. Unknown ids fall back.
 	 * @return array<string, mixed>
 	 */
-	public static function snapshot( ?array $overrides = null ): array {
+	public static function snapshot( ?array $overrides = null, ?string $languageId = null ): array {
 		$settings = ThemeProjection::currentSettings();
 		$tokens = self::effectiveCatalogue( $settings );
 		$breakpoints = ThemeProjection::breakpointsFromSettings( $settings, Breakpoints::defaults() );
 		$overrides = null === $overrides ? Store::getOverrides() : Overrides::normalize( $overrides );
-		$projectedValues = ThemeProjection::fromSettings( $settings, $tokens );
+		// The design language sits between the theme and your own values: it is the base a token
+		// resets to, and what your overrides change.
+		$language = ( null === $languageId ? null : DesignLanguages::find( $languageId ) ) ?? DesignLanguages::active();
+		$projectedValues = ThemeProjection::applyOverrides( ThemeProjection::fromSettings( $settings, $tokens ), [ 'tokens' => $language['tokens'] ] );
 
-		$roleBase = TypeRoleProjection::current();
+		$roleBase = TypeRoleProjection::applyOverrides( TypeRoleProjection::current(), $language['typeRoles'] );
 		$roleValues = TypeRoleProjection::applyOverrides(
 			$roleBase,
 			is_array( $overrides['typeRoles'] ?? null ) ? $overrides['typeRoles'] : []
@@ -130,6 +136,7 @@ final class Catalogue {
 				'values' => $roleValues,
 			],
 			'overrides' => $overrides,
+			'language' => [ 'active' => $language['id'] ] + DesignLanguages::summary(),
 			'breakpoints' => self::applyBreakpointOverrides( $breakpoints, $overrides['breakpoints'] ),
 			'fontLibrary' => $fontLibrary,
 			'counts' => [

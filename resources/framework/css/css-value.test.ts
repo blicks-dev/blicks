@@ -30,7 +30,8 @@ describe( 'cleanCssValue — PHP scalar semantics', () => {
 		expect( cleanCssValue( undefined ) ).toBe( '' );
 		expect( cleanCssValue( [ '12px' ] ) ).toBe( '' );
 		expect( cleanCssValue( { a: 1 } ) ).toBe( '' );
-		expect( cleanCssValue( 'a'.repeat( 501 ) ) ).toBe( '' );
+		expect( cleanCssValue( 'a'.repeat( 2001 ) ) ).toBe( '' );
+		expect( cleanCssValue( 'a'.repeat( 2000 ) ) ).toBe( 'a'.repeat( 2000 ) );
 	} );
 
 	it( 'casts numbers and trims like PHP', () => {

@@ -1,0 +1,136 @@
+/* Dialog Studio: the dialog mode's canvas and rail tabs. Scoped to `.bl-ds-*`. */
+
+/* ---------------------------------------------------------------- the stage */
+
+.bl-ds-stage,
+.bl-studio__sheet.bl-ds-stage {
+	position: relative;
+	min-height: 640px;
+	padding: 0;
+	margin-inline: auto;
+	overflow: hidden;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 0 0 1px rgb(16 24 40 / 8%), 0 24px 60px -30px rgb(16 24 40 / 35%);
+}
+
+.bl-studio__sheet.bl-ds-stage.is-phone {
+	min-height: 760px;
+	border-radius: 28px;
+	box-shadow: 0 0 0 8px #15171c, 0 24px 60px -30px rgb(16 24 40 / 35%);
+}
+
+/* The page behind: a sketch of a site, never the site. */
+.bl-ds-page { position: absolute; inset: 0; display: grid; align-content: start; gap: 24px; pointer-events: none; }
+.bl-ds-page__bar { display: flex; gap: 16px; align-items: center; height: 56px; padding: 0 20px; border-bottom: 1px solid #eceef2; }
+.bl-ds-page__bar i { width: 20px; height: 20px; border-radius: 6px; background: #15171c; }
+.bl-ds-page__bar span { width: 56px; height: 8px; border-radius: 4px; background: #e3e6ec; }
+.bl-ds-page__hero { display: grid; gap: 12px; padding: 32px 40px 0; }
+.bl-ds-page__hero b { width: min(520px, 80%); height: 28px; border-radius: 6px; background: #d9dde5; }
+.bl-ds-page__hero span { width: min(420px, 70%); height: 10px; border-radius: 5px; background: #e8ebf0; }
+.bl-ds-page__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 40px; }
+.bl-ds-stage.is-phone .bl-ds-page__cards { grid-template-columns: minmax(0, 1fr); padding: 0 20px; }
+.bl-ds-page__cards span { height: 120px; border-radius: 12px; background: #f1f2f5; }
+
+.bl-ds-backdrop { position: absolute; inset: 0; pointer-events: none; }
+.bl-ds-backdrop.is-dark { background: rgb(15 17 21 / 52%); }
+.bl-ds-backdrop.is-light { background: rgb(255 255 255 / 62%); }
+.bl-ds-backdrop.is-blur { backdrop-filter: blur(4px); }
+
+/* The frame fills the stage; the dialog places itself in it by its own kind classes. */
+.bl-ds-frame { position: absolute; inset: 0; overflow: auto; padding: 48px 24px; box-sizing: border-box; }
+
+/* The block's in-place card is post-editor chrome: not here. */
+.bl-ds-frame .bl-dialog.is-edit > .bl-dialog__card { display: none; }
+
+.bl-ds-frame .bl-dialog.is-edit {
+	max-width: var(--bl-maw, 560px);
+	box-shadow: 0 24px 60px -20px rgb(16 24 40 / 45%), 0 0 0 1px rgb(16 24 40 / 6%);
+}
+
+.bl-ds-frame .bl-dialog.is-edit > .bl-dialog__close { top: 8px; }
+
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--top { margin-block-start: 24px; }
+
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--drawer,
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--sheet,
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--full {
+	position: absolute;
+	margin: 0;
+	overflow: auto;
+}
+
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--drawer { top: 0; bottom: 0; width: min(380px, 86%); max-width: var(--bl-maw, 86%); }
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--from-end { inset-inline-end: 0; border-radius: 18px 0 0 18px; }
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--from-start { inset-inline-start: 0; border-radius: 0 18px 18px 0; }
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--sheet { inset-inline: 0; bottom: 0; max-width: none; max-height: 72%; border-radius: 20px 20px 0 0; }
+.bl-ds-frame .bl-dialog.is-edit.bl-dialog--full { inset: 0; max-width: none; border-radius: 0; }
+
+/* A modal's phone form, at the phone width. */
+.bl-ds-stage.is-compact .bl-dialog.is-edit.bl-dialog--modal { max-width: none; }
+.bl-ds-stage.is-compact .bl-dialog.is-edit.bl-dialog--phone-sheet { position: absolute; inset-inline: 0; bottom: 0; margin: 0; max-height: 72%; overflow: auto; border-radius: 20px 20px 0 0; }
+.bl-ds-stage.is-compact .bl-dialog.is-edit.bl-dialog--phone-full { position: absolute; inset: 0; margin: 0; border-radius: 0; overflow: auto; }
+
+/* Not blocking the page: a corner card, no backdrop. */
+.bl-ds-frame.is-nonmodal .bl-dialog.is-edit.bl-dialog--sheet { inset-inline: 16px; bottom: 16px; border-radius: 16px; }
+
+@media (prefers-reduced-motion: no-preference) {
+	.bl-ds-frame .bl-dialog.is-edit { animation: bl-ds-in 200ms cubic-bezier(.2, 0, 0, 1); }
+}
+
+@keyframes bl-ds-in { from { opacity: 0; } }
+
+/* ---------------------------------------------------------------- rail tabs */
+
+.bl-ds-panel { display: grid; gap: 16px; padding: 12px 16px 24px; font-size: 13px; }
+.bl-ds-panel__sec { display: grid; gap: 10px; }
+.bl-ds-panel__sec h3 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: #5f6571; }
+.bl-ds-panel__note { margin: 0; font-size: 12px; line-height: 17px; color: #5f6571; }
+.bl-ds-panel__unsaved { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fff4e5; color: #7a4100; font-size: 12px; }
+.bl-ds-sum { margin: 0; padding: 10px 12px; border-radius: 8px; background: #eef2ff; font-size: 12px; line-height: 17px; }
+
+.bl-ds-seg { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; border-radius: 8px; background: #f0f0f0; }
+.bl-ds-seg button { flex: 1 1 auto; min-height: 32px; padding: 0 8px; border: 0; border-radius: 6px; background: none; font: inherit; color: #1e1e1e; cursor: pointer; }
+.bl-ds-seg button.is-on { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 15%); font-weight: 600; }
+.bl-ds-seg button:focus-visible { outline: 2px solid var(--wp-admin-theme-color, #3858e9); outline-offset: 1px; }
+
+.bl-ds-num { display: flex; align-items: end; gap: 6px; }
+.bl-ds-num > :first-child { flex: 0 1 120px; }
+.bl-ds-num > span { padding-bottom: 10px; color: #5f6571; }
+
+.bl-ds-places { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.bl-ds-places legend { margin-bottom: 4px; font-weight: 600; }
+.bl-ds-add { display: flex; align-items: end; gap: 8px; }
+.bl-ds-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bl-ds-chip { min-height: 28px; padding: 0 10px; border: 0; border-radius: 999px; background: #f0f0f0; font: inherit; cursor: pointer; }
+.bl-ds-checks { display: flex; flex-wrap: wrap; gap: 12px; }
+.bl-ds-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bl-ds-list { margin: 0; padding-inline-start: 18px; }
+
+/* ---------------------------------------------------------------- + New › Dialog */
+
+.bl-ds-new { display: grid; gap: 12px; }
+.bl-ds-new p { margin: 0; color: #5f6571; }
+.bl-ds-new ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bl-ds-new__item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 12px; border: 0; border-radius: 10px; background: #f6f7f9; font: inherit; text-align: start; cursor: pointer; }
+.bl-ds-new__item:hover, .bl-ds-new__item:focus-visible { background: #eef2ff; }
+.bl-ds-new__item span { display: grid; }
+.bl-ds-new__item small { color: #5f6571; }
+.bl-ds-new__problem { color: #b32d2e; }
+
+/* ---------------------------------------------------------------- Results */
+
+.bl-ds-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bl-ds-stats div { display: grid; gap: 2px; padding: 10px; border-radius: 8px; background: #f6f7f9; font-size: 11px; color: #5f6571; }
+.bl-ds-stats b { font-size: 18px; line-height: 22px; color: #1e1e1e; }
+.bl-ds-bars { display: flex; align-items: end; gap: 2px; height: 64px; margin: 0; padding: 0; list-style: none; }
+.bl-ds-bars li { flex: 1; min-height: 1px; border-radius: 2px 2px 0 0; background: #3858e9; }
+
+/* ---------------------------------------------------------------- Blicks › Dialogs */
+
+.bl-ds-admin { display: grid; gap: 16px; max-width: 1200px; }
+.bl-ds-admin__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.bl-ds-admin__head h1 { margin: 0 0 4px; }
+.bl-ds-admin__head p { margin: 0; color: #5f6571; }
+.bl-ds-admin__table td { vertical-align: middle; }
+.bl-ds-admin__table small { color: #5f6571; }

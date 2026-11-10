@@ -62,6 +62,20 @@ describe( 'css-coverage', () => {
 			if ( section === 'decoration' ) {
 				continue; // ::before/::after — handled by the decoration control, not a property map
 			}
+			if ( section === 'sceneItem' ) {
+				// `left`/`top`/`width`/`height` are already mapped to the position and layout
+				// controls, which is where an imported stylesheet's declarations belong. Claiming
+				// them for this section too would report a scene-only control as the thing that
+				// covers every `left` on the web.
+				continue;
+			}
+			if ( section === 'scene' ) {
+				// The stage's track counts are not a CSS declaration anybody can write, so no
+				// imported stylesheet can contain one. `scene.cols` has no property counterpart —
+				// it is a divisor in the Scene block's own calc(), and mapping it here would claim
+				// a coverage this importer cannot actually offer.
+				continue;
+			}
 			expect( mappedSections.has( section as any ) ).toBe( true );
 		}
 	} );

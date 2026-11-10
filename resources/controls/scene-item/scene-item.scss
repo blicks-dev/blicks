@@ -1,0 +1,3 @@
+/* Everything this panel needs comes from `.bl-layout` and from the shared `.dim` rule in
+   `scene-child.scss`, which lists this panel because all three scene controls render the same
+   `CellField`. Kept as a file so the import in the control does not have to be special-cased. */

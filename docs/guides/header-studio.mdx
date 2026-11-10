@@ -1,0 +1,97 @@
+---
+title: "Header Studio"
+description: "Design your site header in Blicks Studio — rows, mega menus, a phone drawer and scroll behavior — saved as your block theme's header template part."
+---
+
+<Info>
+**Header Studio is coming in Blicks Pro**, which has not been released yet. The free plugin does not include it. The free blocks it
+builds with, such as [Menu link](/reference/blocks/menu-link) and [Dialog](/reference/blocks/dialog),
+work without it.
+</Info>
+
+Header Studio is a header mode inside Blicks Studio. A header is your block theme's **template
+part** in the header area, so a header you save here is the same one the Site Editor shows, and
+choosing which template uses which header stays in the Site Editor.
+
+<Note>
+Header Studio needs a block theme. On a theme that keeps its header in PHP, it says so and does not
+open.
+</Note>
+
+## Open it
+
+- **In the Site Editor** — select the header template part and choose **Edit in Header Studio** in
+  the block toolbar.
+- **Blicks ▸ Headers** — lists the site's headers, whether each was made in Header Studio or with
+  theme blocks, whether it comes from the theme or was edited on this site, and which templates use
+  it. **Edit in Header Studio** opens one; **New header** starts another.
+- **In the Studio** — **+ New ▸ Header**. Name it, then start from one of the starters or from your
+  theme's current header.
+
+## Starters
+
+Twelve starters: **Classic**, **Centered**, **Stacked**, **Minimal centered**, **Classic split**,
+**Announcement bar**, **Over the hero**, **Hide on scroll**, **Search first**, **Simple dropdown**,
+**Two tiers** and **Mega menu: columns**. They are also offered in the Site Editor's header design
+picker.
+
+Starting from your theme's header converts it into a Classic header. Nothing is saved until you
+choose **Save header**.
+
+## The canvas
+
+The real header is drawn over a sketch of a page at desktop (1200px), tablet (782px) or phone
+(390px) width. At a width where the header uses its drawer, the canvas shows the drawer open.
+
+## Header settings
+
+The **Header** tab sets the whole header:
+
+- **Layout** — **Classic**, **Centered** or **Stacked**.
+- **Top bar** — a thin row above the main one, for news or contact links.
+- **Main row height (px)**.
+- **On scroll** — **Stays at the top**, **Shrinks after scrolling**, **Clear over the first
+  section** (no background until the page scrolls) and **Hides while scrolling down** (comes back
+  as soon as the page scrolls up).
+- **Phones and tablets** — **Menu in a drawer on** tablets and phones (the default), phones only,
+  every screen, or never; and whether **Mega menus open as** the next screen of the drawer or expand
+  in place.
+
+## Menu items and mega menus
+
+Select a menu item to edit it in the **Item** tab: its label and link, **Opens in a new tab**, and
+whether it shows, moves last or hides **On phones**.
+
+**Add a mega menu** gives the item a panel. **Edit panel** narrows the Studio to that panel; **Back
+to the header** returns. A panel holds Boxes, Headings, Text, Images, Buttons, a Loop, Menu links
+and Link lists. To fill one quickly:
+
+- **Start over from** your pages, as columns or as one list.
+- **Fill from a WordPress menu** turns a menu's sub-items into link lists.
+
+Under **Opening**, a panel opens on **Hover** or **Click**, after a short delay (150 ms by
+default), with a fade, a slide down or no animation, and can close when the page scrolls. **Size**
+sets its width to the content, the full window, or its own fit.
+
+## Save
+
+**Save header** writes the site's own copy of the template part, as the Site Editor does when you
+edit a theme's header. The note beside the title counts the templates that use this header.
+
+## On the page
+
+- **Mega menus** follow the WAI-ARIA disclosure pattern for navigation: each opens from a button
+  with `aria-expanded`. <kbd>Esc</kbd> closes it and returns focus; moving focus away or clicking
+  outside closes it too. Hover opens a panel only for a mouse — a keyboard or a tap always uses the
+  button.
+- **The drawer** is a [Dialog](/guides/dialogs), so focus, <kbd>Esc</kbd>, scroll locking and focus
+  return behave the same way. Without JavaScript the menu shows stacked in place.
+- **Hides while scrolling down** never hides the header while focus is inside it, while the drawer
+  is open, or for a visitor who has asked for reduced motion.
+
+## Menu link (free)
+
+**Menu link** is a free block for menus and link columns: a label with an optional line of
+description, an icon and a badge (for example "New"). Type the label and the line under it on the
+canvas; leave the line empty for a plain link. It goes anywhere — a mega menu panel, a footer
+column, a sidebar.

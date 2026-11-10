@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { getValue, setValue } from '@/framework/values';
 import { STATE_LABELS } from '@/framework/states';
+import { parseSlot } from '@/framework/parts';
 import { FieldHead, SubReset, setOrClear } from '@/controls/common';
 import './states.scss';
 
@@ -53,6 +54,8 @@ interface Override {
  */
 export function StatesControl( { attributes, setAttributes, state, breakpoint, states, setState }: Props ) {
 	const available = states && states.length > 1 ? states : [ 'default' ];
+	// `state` is the composed slot (`before:hover` while a part is selected); the picker is the state half.
+	const current = parseSlot( state ).state;
 	const cursor = getValue( attributes, 'effects.cursor', state, breakpoint ) || '';
 
 	const tree: Record< string, Record< string, Record< string, unknown > > > = attributes?.blicks ?? {};
@@ -80,8 +83,8 @@ export function StatesControl( { attributes, setAttributes, state, breakpoint, s
 							key={ s }
 							type="button"
 							role="radio"
-							aria-checked={ state === s }
-							className={ state === s ? 'on' : '' }
+							aria-checked={ current === s }
+							className={ current === s ? 'on' : '' }
 							title={ s === 'default' ? __( 'Base styles', 'blicks' ) : `:${ s }` }
 							disabled={ ! setState }
 							onClick={ () => setState?.( s ) }
@@ -91,10 +94,10 @@ export function StatesControl( { attributes, setAttributes, state, breakpoint, s
 					) ) }
 				</div>
 				<p className="bl-states__hint">
-					{ state === 'default'
+					{ current === 'default'
 						? __( 'Editing base styles — every state inherits from here.', 'blicks' )
 						: /* translators: %s: a CSS pseudo-class, e.g. :hover */
-						  __( 'Editing %s — only changed properties override the base.', 'blicks' ).replace( '%s', `:${ state }` ) }
+						  __( 'Editing %s — only changed properties override the base.', 'blicks' ).replace( '%s', `:${ current }` ) }
 				</p>
 			</div>
 
@@ -105,7 +108,7 @@ export function StatesControl( { attributes, setAttributes, state, breakpoint, s
 						{ /* translators: %s: the current state's label */
 						  __( 'Nothing overridden for %s yet. Change any property in another facet while this state is active and it lands here.', 'blicks' ).replace(
 								'%s',
-								state === 'default' ? __( 'the base state', 'blicks' ) : `:${ state }`
+								current === 'default' ? __( 'the base state', 'blicks' ) : `:${ current }`
 						  ) }
 					</p>
 				) : (

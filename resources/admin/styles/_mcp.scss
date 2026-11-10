@@ -1,0 +1,80 @@
+// MCP page: connect an AI agent. Connecting is a real sequence, so it is numbered, and each step
+// opens only once the one before it has what it needs. What an agent may do is said before access
+// is turned on.
+.blicks-admin .mc-in { display: grid; align-content: start; gap: 20px; width: 100%; max-width: 920px; padding: 32px 40px 96px; }
+.blicks-admin .mc-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.blicks-admin .mc-head h1 { margin: 0 0 4px; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+.blicks-admin .mc-head p { max-width: 64ch; margin: 0; color: var(--ink-2); }
+.blicks-admin .mc-off { display: grid; justify-items: start; gap: 14px; padding: 28px; border-radius: var(--r-lg); background: var(--canvas); }
+.blicks-admin .mc-off p { max-width: 60ch; margin: 0; color: var(--ink-2); }
+
+.blicks-admin .perm { display: grid; width: 100%; overflow: hidden; border: 0; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .perm > div { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .perm > div:last-child { border-bottom: 0; }
+.blicks-admin .perm i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r); background: var(--tint); color: var(--on-tint); font: 600 12px/1 var(--code); font-style: normal; }
+.blicks-admin .perm .perm-w i { background: var(--note-bg); color: var(--note); }
+.blicks-admin .perm b { font-weight: 600; }
+.blicks-admin .perm span { display: block; color: var(--ink-2); font-size: 13px; }
+
+.blicks-admin .consent { display: grid; gap: 14px; width: 100%; padding: 20px; border: 0; box-shadow: var(--shadow-card), 0 0 0 2px var(--primary); border-radius: var(--r-lg); background: var(--paper); }
+.blicks-admin .consent h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.blicks-admin .consent .ack { display: flex; align-items: flex-start; gap: 10px; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .consent .ack input { flex-shrink: 0; width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--primary); }
+.blicks-admin .consent .row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+.blicks-admin .mc-status { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 16px 20px; }
+.blicks-admin .mc-status > div { flex: 1 1 260px; min-width: 0; }
+.blicks-admin .mc-status b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.blicks-admin .mc-status .live { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.blicks-admin .mc-status span { display: block; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .mc-status .urlbox { flex: 1 1 100%; }
+.blicks-admin .mc-confirm { padding: 0 20px 16px; }
+.blicks-admin .mc-confirm .confirm { margin: 0; }
+.blicks-admin .urlbox { display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--control-h); padding: 0 4px 0 12px; border: 0; border-radius: var(--r); background: var(--field); font: 12px var(--code); }
+.blicks-admin .urlbox code { flex: 1; min-width: 0; overflow: hidden; background: none; text-overflow: ellipsis; white-space: nowrap; }
+
+.blicks-admin .connect { display: grid; margin: 0; padding: 0; list-style: none; }
+.blicks-admin .cstep { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; margin: 0; padding: 18px 20px 20px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .cstep:last-child { border-bottom: 0; }
+.blicks-admin .cstep .num { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--outline); color: var(--ink-3); font: 600 12px/1 var(--code); }
+.blicks-admin .cstep.done .num { background: var(--primary); box-shadow: none; color: var(--on-primary); }
+.blicks-admin .cstep.now .num { box-shadow: inset 0 0 0 1.5px var(--primary); color: var(--primary); }
+.blicks-admin .cstep.locked { opacity: 0.55; }
+.blicks-admin .cstep-b { display: grid; gap: 12px; min-width: 0; }
+.blicks-admin .cstep-b > b { font-weight: 600; }
+.blicks-admin .cstep-b > span { margin-top: -8px; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .cstep-b .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.blicks-admin .clients { display: flex; flex-wrap: wrap; justify-self: start; max-width: 100%; gap: 2px; padding: 3px; overflow: hidden; border-radius: var(--r-track); background: var(--field); }
+.blicks-admin .clients button { height: 34px; padding: 0 14px; border: 0; border-radius: var(--r-thumb); background: none; color: var(--ink-2); font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.blicks-admin .clients button:last-child { border-right: 0; }
+.blicks-admin .clients button[aria-checked="true"] { background: var(--paper); box-shadow: var(--shadow-thumb); color: var(--ink); font-weight: 600; }
+.blicks-admin .clients button:disabled { cursor: default; }
+.blicks-admin .how { display: flex; gap: 16px; font-size: 13px; }
+.blicks-admin .how button { padding: 0 0 4px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--ink-2); font-weight: 500; cursor: pointer; }
+.blicks-admin .how button[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--ink); font-weight: 600; }
+.blicks-admin pre.cfg { margin: 0; padding: 14px 16px; overflow-x: auto; border-radius: var(--r); background: var(--canvas); color: var(--ink); font: 12px/1.6 var(--code); white-space: pre; }
+.blicks-admin .cfg-path { display: grid; gap: 4px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .once { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--r); background: var(--note-bg); color: var(--note); font-size: 12.5px; }
+.blicks-admin .result { padding: 10px 12px; border-radius: var(--r); font-size: 13px; }
+.blicks-admin .result.ok { background: var(--ok-bg); color: var(--ok); }
+.blicks-admin .result.bad { background: var(--warn-bg); color: var(--warn); }
+
+.blicks-admin .agents { margin: 0; padding: 0; list-style: none; }
+.blicks-admin .agents li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; margin: 0; padding: 12px 20px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .agents li:last-child { border-bottom: 0; }
+.blicks-admin .agents b { font-weight: 600; }
+.blicks-admin .agents span { display: block; color: var(--ink-3); font-size: 12.5px; }
+.blicks-admin .agents .acts { display: flex; gap: 6px; }
+
+.blicks-admin .agents .confirm-del,
+.blicks-admin .agents .rename { grid-column: 1 / -1; }
+.blicks-admin .agents .confirm-del span { color: inherit; font-size: 12.5px; }
+.blicks-admin .agents .rename { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.blicks-admin .agents .rename .vfield { flex: 1 1 220px; }
+.blicks-admin .agents-empty { margin: 0; padding: 20px; color: var(--ink-2); font-size: 13px; }
+
+@media (width <= 782px) {
+	.blicks-admin .mc-in { padding: 24px 16px 64px; }
+	.blicks-admin .cstep { grid-template-columns: 1fr; gap: 10px; padding: 16px; }
+	.blicks-admin .agents li { grid-template-columns: 1fr; }
+}

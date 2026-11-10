@@ -78,7 +78,6 @@
 
 	/* sharp corners everywhere — no radii — and match the `.dim`/`.inp-num` field
 	   metrics so a `<Combobox>` dropped into a facet looks native, not borrowed. */
-	--bl-editor-radius: var(--bl-ui-radius);
 	--bl-combobox-h: var(--bl-ui-field-h);
 	--bl-combobox-fs: var(--bl-ui-text-md);
 
@@ -171,7 +170,7 @@
 
 	.ins-toptab {
 		position: relative;
-		padding: 12px 14px 12px;
+		padding: 12px 14px;
 		font-size: var(--bl-ui-text-md);
 		font-weight: 500;
 		color: var(--fg-muted);
@@ -403,6 +402,7 @@
 		gap: 8px;
 		padding: 12px 0 8px;
 		border: 0;
+
 		/* The one horizontal rule in the facet, and it means exactly one thing: a new top-level
 		   section starts here. `--border`, not `--divider` — at the lighter weight the sections
 		   ran together. */
@@ -470,6 +470,7 @@
 		/* On top of the body's own 8px gap, so a nested disclosure still stands off its siblings by
 		   the 10 above and 16 below it had before the body started spacing them. */
 		margin-top: 2px;
+
 		/* A nested block closes as well as opens: without this the row after it starts flush
 		   against the last nested field and the two levels merge again. */
 		margin-bottom: 8px;
@@ -768,6 +769,7 @@
 	}
 
 	/* text/number input */
+
 	/* The text inset matches `.sel select` below (padding + the shared 1px border). A
 	   field and a select stacked in one column start their text on the same x — they
 	   were 2px apart, which is the kind of thing you feel as "untidy" without being
@@ -1271,7 +1273,6 @@
 	}
 
 	.typelib-row .tl-meta em {
-		font-style: normal;
 		font: 500 var(--bl-ui-text-2xs)/1 var(--font-mono);
 		letter-spacing: 0.06em;
 		color: var(--fg-muted);
@@ -1839,13 +1840,16 @@
    Facet rail shell — rail + pane. Replaces the .ins-tab strip
    and per-tab .panel split. One facet fills the pane at a time.
    ============================================================ */
+/* stylelint-disable-next-line no-duplicate-selectors -- this section reopens the root on purpose: it layers over the tab-strip rules above, and folding it into the first block would change their cascade order. */
 .bl-ins {
 	.ins-body {
 		display: flex;
+
 		/* stretch, not flex-start — the rail column then runs the pane's full height instead of
 		   shrink-wrapping its buttons and leaving a bare step below the last facet. */
 		align-items: stretch;
 		min-height: 0;
+
 		/* The expanding rail pushes the pane past the right edge; clip the overhang rather than let
 		   the sidebar grow a horizontal scrollbar. `clip`, not `hidden`: `hidden` would make this a
 		   scroll container and the sticky ContextBar inside the pane would anchor to it (a box that
@@ -1855,6 +1859,7 @@
 	}
 
 	/* ---------- the rail (Style tab sub-nav) ---------- */
+
 	/* The rail widens in flow and slides the pane right, rather than floating over it. The pane
 	   keeps a fixed width throughout (see `.ins-pane`), so nothing inside it reflows or resizes as
 	   the rail opens — it only moves, and the overhang is clipped by `.ins-body`.
@@ -1868,6 +1873,7 @@
 		align-self: stretch;
 		z-index: 6;
 		transition: width 0.16s var(--ease), flex-basis 0.16s var(--ease);
+
 		/* Collapse the moment the pointer leaves — the delay below is intent, not decoration, and
 		   waiting to close would be the annoying half. */
 		transition-delay: 0s;
@@ -1880,6 +1886,7 @@
 		flex-direction: column;
 		gap: 1px;
 		padding: 4px 0 8px;
+
 		/* Clips the labels while collapsed — the list is laid out at full width the whole time so
 		   the buttons never re-wrap mid-transition. */
 		overflow: hidden;
@@ -2002,6 +2009,7 @@
 	}
 
 	/* ---------- the pane ---------- */
+
 	/* Width is pinned to "sidebar minus the collapsed rail" and never negotiated, so opening the
 	   rail slides the pane right instead of squeezing it — at a 280px sidebar a shrinking pane
 	   would re-wrap every field the moment the pointer touched the rail. */
@@ -2012,6 +2020,7 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
+
 		/* lets facet content react to the *pane* width (sidebar − rail), not the viewport */
 		container: ins-pane / inline-size;
 	}
@@ -2022,6 +2031,7 @@
 		flex-basis: 100%;
 	}
 
+	/* stylelint-disable-next-line no-duplicate-selectors -- the rail shell's sticky override of the toolbar above; it must keep its place after the base rule. */
 	.ins-toolbar {
 		position: sticky;
 		top: 0;
@@ -2097,6 +2107,7 @@
 			opacity: 0;
 			transform: translateX(6px);
 		}
+
 		to {
 			opacity: 1;
 			transform: none;
@@ -2104,6 +2115,7 @@
 	}
 
 	/* ---------- compact context bar (state select + device trio) ---------- */
+
 	/* Compact state <select>; the dot tints on any non-default state so an active override is
 	   visible without opening the menu. */
 	.stsel {
@@ -2162,9 +2174,6 @@
 		flex: 0 0 auto;
 		border: 1px solid var(--border-strong);
 		background: var(--border);
-	}
-
-	.dev {
 		margin-left: auto;
 	}
 
@@ -2260,7 +2269,7 @@
 		box-sizing: border-box;
 		border: 1px solid var(--border);
 		background: var(--surface-sunk);
-		padding: 0 22px 0 22px;
+		padding: 0 22px;
 		font-size: var(--bl-ui-text-xs);
 		color: var(--fg);
 

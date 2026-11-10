@@ -66,9 +66,13 @@ async function collectBlocks() {
 		const readmePath = path.join(dir, 'readme.md');
 
 		try {
+			// A readme is optional: a block without one still gets a page from its block.json.
 			const [blockJsonRaw, readme] = await Promise.all([
 				readFile(blockJsonPath, 'utf8'),
-				readFile(readmePath, 'utf8'),
+				readFile(readmePath, 'utf8').catch((error) => {
+					if (error?.code === 'ENOENT') return '';
+					throw error;
+				}),
 			]);
 			const blockJson = JSON.parse(blockJsonRaw);
 			blocks.push({
@@ -147,7 +151,7 @@ description: "${description}"
 ---
 
 <Info>
-Generated from \`packages/blicks/resources/blocks/${block.slug}/block.json\` and \`readme.md\`. Do not hand-edit this page.
+Generated from \`resources/blocks/${block.slug}/block.json\` and \`readme.md\`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -184,10 +188,10 @@ function indexPage(blocks) {
 
 	return `---
 title: "Block Reference"
-description: "Generated reference for Blicks blocks."
+description: "Reference for every Blicks block, generated from the source: what each block is for, its attributes, defaults and controls."
 ---
 
-Generated from \`packages/blicks/resources/blocks/*/block.json\` and each block \`readme.md\`.
+Generated from \`resources/blocks/*/block.json\` and each block \`readme.md\`.
 
 <CardGroup cols={2}>
 ${cards}

@@ -91,12 +91,13 @@ const SYSTEM_FAMILIES: FamilyOption[] = [
  * a Font Library family that shares its slug with a Blicks token is folded in.
  */
 function buildFamilyOptions( library: FontFamilyEntry[] ): FamilyOption[] {
-	const blicksTokens: FamilyOption[] = tokenOptions( 'fontFamily' ).map( ( option ) => ( {
+	const familyTokens = tokenOptions( 'fontFamily' );
+	const blicksTokens: FamilyOption[] = familyTokens.map( ( option ) => ( {
 		label: FAMILY_TOKEN_LABELS[ option.slug ] ?? option.label,
-		value: option.slug,
+		value: option.value,
 		origin: 'blicks' as const,
 	} ) );
-	const blicksSlugs = new Set( blicksTokens.map( ( option ) => option.value ) );
+	const blicksSlugs = new Set( familyTokens.map( ( option ) => option.slug ) );
 
 	const libraryOptions: FamilyOption[] = library
 		.filter( ( entry ) => ! blicksSlugs.has( entry.slug ) )
@@ -766,7 +767,7 @@ export function TypographyControl( { attributes, setAttributes, state, breakpoin
 						breakpoint={ breakpoint }
 						slots={ TEXT_FILL_SLOTS }
 						layout="popover"
-						label={ __( 'Font colour', 'blicks' ) }
+						label={ __( 'Font color', 'blicks' ) }
 						cap="COLOR"
 						clipToText
 						query={ query }

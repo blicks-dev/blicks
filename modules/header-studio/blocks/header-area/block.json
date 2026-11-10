@@ -1,0 +1,60 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/header-area",
+	"title": "Header area",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.5 9H6.5A1.5 1.5 0 0 1 8 10.5V13.5A1.5 1.5 0 0 1 6.5 15H4.5A1.5 1.5 0 0 1 3 13.5V10.5A1.5 1.5 0 0 1 4.5 9ZM17.5 9H19.5A1.5 1.5 0 0 1 21 10.5V13.5A1.5 1.5 0 0 1 19.5 15H17.5A1.5 1.5 0 0 1 16 13.5V10.5A1.5 1.5 0 0 1 17.5 9Z\" fill=\"currentColor\"/><path d=\"M11.0 9H13.0A1.5 1.5 0 0 1 14.5 10.5V13.5A1.5 1.5 0 0 1 13.0 15H11.0A1.5 1.5 0 0 1 9.5 13.5V10.5A1.5 1.5 0 0 1 11.0 9Z\" fill=\"#002bff\"/></svg>",
+	"description": "The start, centre or end of a header row, holding a logo, a menu, buttons or search.",
+	"keywords": [
+		"header",
+		"area"
+	],
+	"textdomain": "blicks-pro",
+	"parent": [
+		"blicks/header-row"
+	],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"layout.gapColumn",
+				"layout.justifyContent",
+				"flexChild.order"
+			],
+			"states": [
+				"default"
+			]
+		}
+	},
+	"attributes": {
+		"uniqueId": {
+			"type": "string"
+		},
+		"blicks": {
+			"type": "object",
+			"default": {}
+		},
+		"slot": {
+			"type": "string",
+			"default": "start"
+		}
+	},
+	"example": {
+		"attributes": {
+			"slot": "end"
+		},
+		"innerBlocks": [
+			{
+				"name": "blicks/text",
+				"attributes": {
+					"content": "Sign in",
+					"tag": "span"
+				}
+			}
+		]
+	},
+	"editorScript": "blicks-pro-header-studio",
+	"style": "blicks-pro-header-studio"
+}

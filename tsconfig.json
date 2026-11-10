@@ -12,7 +12,7 @@
         "allowJs": true,
         "noEmit": true,
         "types": ["vite/client", "node"],
-        "paths": { "@/*": ["./resources/*"] }
+        "paths": { "@/*": ["./resources/*"], "@blicks/test-runtime": ["./resources/test/blicks-runtime.ts"] }
     },
-    "include": ["resources"]
+    "include": ["resources", "modules"]
 }

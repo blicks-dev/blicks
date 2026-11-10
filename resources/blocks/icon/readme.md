@@ -16,9 +16,21 @@ Sets the icon size.
 
 Controls the line weight for stroke-based icons.
 
+### filled
+
+Fills the shape with the icon color (`bl-icon--filled`). Suits closed shapes such as stars, hearts and circles; open line icons lose their inner detail.
+
 ### label
 
-Adds an accessible label. Leave it empty when the icon is decorative.
+Adds an accessible label. Leave it empty when the icon is decorative. A linked icon always needs one.
+
+### flipH, flipV, turn
+
+Mirror the drawing left to right or top to bottom, and turn it by a quarter (90, 180 or 270 degrees).
+
+### url, linkTarget, rel
+
+Make the icon a link, optionally opening in a new tab.
 
 ## Tips
 

@@ -12,10 +12,10 @@
 			"undo", "redo", "redo-2", "undo-2"
 		],
 		"ui": [
-			"menu", "x", "plus", "minus", "more-horizontal", "more-vertical",
+			"menu", "x", "plus", "minus", "equal", "more-horizontal", "more-vertical",
 			"search", "filter", "settings", "settings-2", "sliders", "sliders-horizontal",
 			"arrow-down-up", "arrow-up-down", "list", "grid-2x2", "grid-3x3",
-			"layout-grid", "layout-list", "columns-2", "columns-3", "rows-2", "rows-3",
+			"layout-grid", "layout-list", "layout-dashboard", "columns-2", "columns-3", "rows-2", "rows-3",
 			"panel-left", "panel-right", "panel-top", "panel-bottom",
 			"sidebar", "table", "kanban", "ellipsis", "ellipsis-vertical",
 			"maximize", "minimize", "maximize-2", "minimize-2",
@@ -75,7 +75,7 @@
 		],
 		"tech": [
 			"monitor", "smartphone", "tablet", "laptop", "laptop-2",
-			"mouse-pointer", "mouse-pointer-2", "keyboard", "server", "cpu",
+			"mouse-pointer", "mouse-pointer-2", "mouse-pointer-click", "keyboard", "server", "cpu",
 			"wifi", "wifi-off", "bluetooth", "cast", "plug", "plug-2",
 			"power", "power-off", "battery", "battery-full", "battery-low", "battery-charging",
 			"signal", "signal-zero", "satellite"
@@ -109,13 +109,13 @@
 			"locate", "locate-fixed", "milestone"
 		],
 		"charts": [
-			"bar-chart", "bar-chart-2", "bar-chart-3", "bar-chart-4", "bar-chart-horizontal",
+			"bar-chart", "bar-chart-2", "chart-column", "bar-chart-3", "bar-chart-4", "bar-chart-horizontal",
 			"line-chart", "pie-chart", "area-chart", "scatter-chart", "candlestick-chart",
 			"trending-up", "trending-down", "activity", "gauge", "target",
 			"crosshair", "sigma"
 		],
 		"security": [
-			"lock", "lock-keyhole", "lock-keyhole-open", "unlock", "key", "key-round",
+			"lock", "lock-keyhole", "lock-keyhole-open", "unlock", "key", "key-round", "log-in", "log-out",
 			"key-square", "fingerprint", "eye", "eye-off",
 			"scan", "scan-line", "qr-code", "shield-ban", "shield-question", "user-lock"
 		],

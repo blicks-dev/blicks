@@ -311,19 +311,6 @@ const ISOLATION_CHOICES: IconChoice[] = [
 		</svg> ),
 ];
 
-const DIRECTION_TEXT_CHOICES: IconChoice[] = [
-	choice( 'ltr', 'Left to right',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="15" y2="12" />
-			<line x1="4" y1="17" x2="13" y2="17" /><polyline points="17 14 20 17 17 20" />
-		</svg> ),
-	choice( 'rtl', 'Right to left',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<line x1="4" y1="7" x2="20" y2="7" /><line x1="9" y1="12" x2="20" y2="12" />
-			<line x1="11" y1="17" x2="20" y2="17" /><polyline points="7 14 4 17 7 20" />
-		</svg> ),
-];
-
 /* ---- common values as icons, rarer ones in the dropdown ---- */
 
 const SNAP_TYPE_CHOICES: IconChoice[] = [
@@ -341,39 +328,6 @@ const SNAP_TYPE_CHOICES: IconChoice[] = [
 		</svg> ),
 ];
 const SNAP_TYPE_OPTIONS = opts( [ 'none', 'x mandatory', 'y mandatory', 'both mandatory', 'x proximity', 'y proximity' ] );
-
-/* `none` gets no icon: an empty field already means none, and at this width the icon it would
-   cost is width the current value needs to stay legible. Same for `clear`. */
-const FLOAT_CHOICES: IconChoice[] = [
-	choice( 'left', 'Float left',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<rect x="3" y="5" width="8" height="8" fill="currentColor" stroke="none" />
-			<line x1="13" y1="7" x2="21" y2="7" /><line x1="13" y1="11" x2="21" y2="11" /><line x1="3" y1="17" x2="21" y2="17" />
-		</svg> ),
-	choice( 'right', 'Float right',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<rect x="13" y="5" width="8" height="8" fill="currentColor" stroke="none" />
-			<line x1="3" y1="7" x2="11" y2="7" /><line x1="3" y1="11" x2="11" y2="11" /><line x1="3" y1="17" x2="21" y2="17" />
-		</svg> ),
-];
-const FLOAT_OPTIONS = opts( [ 'left', 'right', 'inline-start', 'inline-end', 'none' ] );
-
-const CLEAR_CHOICES: IconChoice[] = [
-	choice( 'left', 'Clear left',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<line x1="3" y1="6" x2="10" y2="6" /><line x1="3" y1="14" x2="21" y2="14" /><line x1="3" y1="18" x2="21" y2="18" />
-		</svg> ),
-	choice( 'right', 'Clear right',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<line x1="14" y1="6" x2="21" y2="6" /><line x1="3" y1="14" x2="21" y2="14" /><line x1="3" y1="18" x2="21" y2="18" />
-		</svg> ),
-	choice( 'both', 'Clear both',
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-			<line x1="3" y1="6" x2="8" y2="6" /><line x1="16" y1="6" x2="21" y2="6" />
-			<line x1="3" y1="14" x2="21" y2="14" /><line x1="3" y1="18" x2="21" y2="18" />
-		</svg> ),
-];
-const CLEAR_OPTIONS = opts( [ 'left', 'right', 'both', 'inline-start', 'inline-end', 'none' ] );
 
 interface Props {
 	attributes: any;
@@ -417,7 +371,7 @@ const K = {
 	size: [ 'size', 'width', 'height', 'min', 'max', 'aspect', 'ratio', 'object', 'fit', 'box', 'sizing', 'resize', 'truncate', 'lines', 'clamp' ],
 	overflow: [ 'overflow', 'scroll', 'clip', 'visible', 'hidden', 'auto' ],
 	snap: [ 'scroll', 'snap', 'axis', 'behavior', 'behaviour', 'overscroll', 'stop', 'smooth' ],
-	more: [ 'more', 'container', 'query', 'contain', 'containment', 'content', 'visibility', 'intrinsic', 'float', 'clear', 'isolation', 'direction', 'ltr', 'rtl' ],
+	more: [ 'more', 'container', 'query', 'contain', 'containment', 'content', 'visibility', 'intrinsic', 'isolation' ],
 };
 
 export const LAYOUT_KEYWORDS: string[] = [ ...new Set( Object.values( K ).flat() ) ];
@@ -448,14 +402,11 @@ export function LayoutControl( { attributes, setAttributes, state, breakpoint, i
 	const maxHeight = getValue( attributes, 'layout.maxHeight', state, breakpoint ) || '';
 	const boxSizing = getValue( attributes, 'layout.boxSizing', state, breakpoint ) || '';
 	const visibility = getValue( attributes, 'layout.visibility', state, breakpoint ) || '';
-	const float = getValue( attributes, 'layout.float', state, breakpoint ) || '';
-	const clear = getValue( attributes, 'layout.clear', state, breakpoint ) || '';
 	const isolation = getValue( attributes, 'layout.isolation', state, breakpoint ) || '';
 	const resize = getValue( attributes, 'layout.resize', state, breakpoint ) || '';
 	const scrollBehavior = getValue( attributes, 'layout.scrollBehavior', state, breakpoint ) || '';
 	const overscrollBehavior = getValue( attributes, 'layout.overscrollBehavior', state, breakpoint ) || '';
 	const scrollSnapStop = getValue( attributes, 'layout.scrollSnapStop', state, breakpoint ) || '';
-	const direction = getValue( attributes, 'layout.direction', state, breakpoint ) || '';
 	const contain = getValue( attributes, 'layout.contain', state, breakpoint ) || '';
 	const contentVisibility = getValue( attributes, 'layout.contentVisibility', state, breakpoint ) || '';
 	const containIntrinsicSize = getValue( attributes, 'layout.containIntrinsicSize', state, breakpoint ) || '';
@@ -766,7 +717,7 @@ export function LayoutControl( { attributes, setAttributes, state, breakpoint, i
 						label="RATIO"
 						hint="Aspect ratio"
 						values={ [ 'auto', '1/1', '4/3', '3/2', '16/9', '21/9', '9/16' ] }
-						extra={ tokenOptions( 'aspect' ).map( ( opt ) => ( { value: opt.slug, label: opt.label, hint: opt.css } ) ) }
+						extra={ tokenOptions( 'aspect' ).map( ( opt ) => ( { value: opt.value, label: opt.label, hint: opt.css } ) ) }
 						pattern={ RATIO_PATTERN }
 						value={ aspectRatio }
 						placeholder="auto"
@@ -934,8 +885,8 @@ export function LayoutControl( { attributes, setAttributes, state, breakpoint, i
 			</MoreSettings>
 			) }
 
-			{ ( can( 'layout.containerType' ) || can( 'layout.containerName' ) || can( 'layout.contain' ) || can( 'layout.contentVisibility' ) || can( 'layout.containIntrinsicSize' ) || can( 'layout.visibility' ) || can( 'layout.float' ) || can( 'layout.clear' ) || can( 'layout.isolation' ) || can( 'layout.direction' ) ) && m( K.more ) && (
-			<MoreSettings forceOpen={ searching } label="More" defaultOpen={ Boolean( containerType || containerName || contain || contentVisibility || containIntrinsicSize || visibility || float || clear || isolation || direction ) }>
+			{ ( can( 'layout.containerType' ) || can( 'layout.containerName' ) || can( 'layout.contain' ) || can( 'layout.contentVisibility' ) || can( 'layout.containIntrinsicSize' ) || can( 'layout.visibility' ) || can( 'layout.isolation' ) ) && m( K.more ) && (
+			<MoreSettings forceOpen={ searching } label="More" defaultOpen={ Boolean( containerType || containerName || contain || contentVisibility || containIntrinsicSize || visibility || isolation ) }>
 			<div className="bl-fields">
 				{ can( 'layout.containerType' ) && (
 				<IconField
@@ -1007,26 +958,6 @@ export function LayoutControl( { attributes, setAttributes, state, breakpoint, i
 					onReset={ () => setValue( attributes, setAttributes, 'layout.visibility', state, breakpoint, '' ) }
 				/>
 				) }
-				{ can( 'layout.float' ) && (
-				<IconValueField
-					before={ <span className="bl-valuefield__cap" title="Float">FLOAT</span> }
-					value={ float }
-					choices={ FLOAT_CHOICES }
-					options={ FLOAT_OPTIONS }
-					placeholder="none"
-					onChange={ ( next ) => setOrClear( attributes, setAttributes, 'layout.float', state, breakpoint, next ) }
-				/>
-				) }
-				{ can( 'layout.clear' ) && (
-				<IconValueField
-					before={ <span className="bl-valuefield__cap" title="Clear">CLEAR</span> }
-					value={ clear }
-					choices={ CLEAR_CHOICES }
-					options={ CLEAR_OPTIONS }
-					placeholder="none"
-					onChange={ ( next ) => setOrClear( attributes, setAttributes, 'layout.clear', state, breakpoint, next ) }
-				/>
-				) }
 				{ can( 'layout.isolation' ) && (
 				<IconField
 					label="ISOLATE"
@@ -1035,16 +966,6 @@ export function LayoutControl( { attributes, setAttributes, state, breakpoint, i
 					choices={ ISOLATION_CHOICES }
 					onChange={ ( next ) => setOrClear( attributes, setAttributes, 'layout.isolation', state, breakpoint, next ) }
 					onReset={ () => setValue( attributes, setAttributes, 'layout.isolation', state, breakpoint, '' ) }
-				/>
-				) }
-				{ can( 'layout.direction' ) && (
-				<IconField
-					label="DIR"
-					hint="Text direction"
-					value={ direction }
-					choices={ DIRECTION_TEXT_CHOICES }
-					onChange={ ( next ) => setOrClear( attributes, setAttributes, 'layout.direction', state, breakpoint, next ) }
-					onReset={ () => setValue( attributes, setAttributes, 'layout.direction', state, breakpoint, '' ) }
 				/>
 				) }
 			</div>

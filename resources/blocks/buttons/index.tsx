@@ -1,40 +1,15 @@
-import { ToolbarButton } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
 import {
-	ButtonsControls,
+	ButtonsMotion,
+	ButtonsSettings,
+	ButtonsStyle,
+	ButtonsToolbar,
 	buttonsDirection,
 	buttonsGapValue,
 	buttonsJustifyValue,
-	setButtonsOrientation,
+	buttonsLayout,
 } from './controls';
-
-function ButtonsToolbar( {
-	attributes,
-	setAttributes,
-}: {
-	attributes: any;
-	setAttributes: ( a: any ) => void;
-} ) {
-	const isVertical = attributes.orientation === 'vertical';
-	return (
-		<>
-			<ToolbarButton
-				icon="columns"
-				label={ __( 'Arrange horizontally', 'blicks' ) }
-				isPressed={ ! isVertical }
-				onClick={ () => setButtonsOrientation( attributes, setAttributes, 'horizontal' ) }
-			/>
-			<ToolbarButton
-				icon="editor-ul"
-				label={ __( 'Arrange vertically', 'blicks' ) }
-				isPressed={ isVertical }
-				onClick={ () => setButtonsOrientation( attributes, setAttributes, 'vertical' ) }
-			/>
-		</>
-	);
-}
 
 defineBlock( metadata, {
 	innerBlocks: {
@@ -45,9 +20,13 @@ defineBlock( metadata, {
 		templateInsertUpdatesSelection: true,
 		templateLock: false,
 		orientation: ( attributes ) =>
-			attributes.orientation === 'vertical' ? 'vertical' : 'horizontal',
+			buttonsLayout( attributes ).orientation === 'vertical' ? 'vertical' : 'horizontal',
 	},
-	Controls: ButtonsControls,
+	panels: {
+		Settings: ButtonsSettings,
+		Style: ButtonsStyle,
+		Motion: ButtonsMotion,
+	},
 	Toolbar: ButtonsToolbar,
 	render( { attributes, blockProps, children } ) {
 		// Attr-derived vars are DEFAULTS; blockProps.style spreads last so the inline vars

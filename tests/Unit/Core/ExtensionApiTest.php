@@ -14,9 +14,13 @@ use PHPUnit\Framework\TestCase;
  *
  * These tests are the substitute. A failure here means one of two things: the change was
  * accidental and should be reverted, or it was deliberate — in which case, once this plugin has
- * shipped, `BLICKS_API_VERSION` must be bumped and Pro's guard updated in the same release. While
- * it is still unreleased there is nothing installed to break, so the surface may change inside
- * version 1; this list is the contract.
+ * shipped, `BLICKS_API_VERSION` must be bumped and Pro's guard updated in the same release.
+ *
+ * Version 2 is Blicks 2.0's surface. It was re-pinned for the clean break: the PHP classes below
+ * all carried over from 1, the engine gained a read-only description (`EngineSchema`) and the
+ * validator Pro and the AI layer already called (`ElementStyle::problems()`, `CoreAbilities::validate()`)
+ * joined the list, and the blocks removed in 2.0 must stay removed. While 2.0 is unreleased the
+ * surface may still change inside version 2; this list is the contract.
  */
 final class ExtensionApiTest extends TestCase
 {
@@ -36,8 +40,18 @@ final class ExtensionApiTest extends TestCase
                 // be styled, and what a given block is allowed to style. Pro validates against
                 // them before writing a style tree, so losing either turns a refusal into a
                 // silently ignored control.
-                ['blockProps', 'build', 'registerRule', 'registerCssValueBuilder', 'controls', 'allowsControl'],
+                //
+                // `problems` is the same judgement build() makes silently, made out loud: the
+                // validator Studio and the AI layer run before writing; `valueSchema` is one
+                // control's JSON Schema, for a model's tool definition.
+                ['blockProps', 'build', 'registerRule', 'registerCssValueBuilder', 'controls', 'allowsControl', 'problems', 'valueSchema'],
             ],
+            // The engine, described read-only — the PHP mirror of `window.blicks.engine.schema()`.
+            // Pro, Studio and the AI validator read control ids, value shapes, slots and relations
+            // from it rather than from the generated `Schema` tables, which stay internal.
+            'EngineSchema' => [\Blicks\Style\EngineSchema::class, ['describe', 'control', 'controlIds']],
+            // A whole layout validated the way `blicks/validate-layout` does, without WordPress.
+            'CoreAbilities' => [\Blicks\Ai\Abilities\CoreAbilities::class, ['validate']],
             // The three below are listed with ONLY the methods Pro actually calls. Every extra
             // name here is a promise that constrains refactoring in this plugin, so the list
             // tracks real consumption rather than the whole public surface of each class.
@@ -54,6 +68,9 @@ final class ExtensionApiTest extends TestCase
             'Sanitize' => [\Blicks\Style\Sanitize::class, ['styleTagContent']],
             'Dimension' => [\Blicks\Style\Dimension::class, ['clean']],
             'ScopedCss' => [\Blicks\Style\ScopedCss::class, ['css', 'reset']],
+            // Pro's providers hook WordPress through these attributes, read by ServiceProvider.
+            'Action' => [\Blicks\Core\Attributes\Action::class, ['__construct']],
+            'Filter' => [\Blicks\Core\Attributes\Filter::class, ['__construct']],
         ];
     }
 
@@ -107,10 +124,32 @@ final class ExtensionApiTest extends TestCase
         $source = file_get_contents(dirname(__DIR__, 3) . '/blicks.php');
 
         $this->assertMatchesRegularExpression(
-            "/define\(\s*'BLICKS_API_VERSION',\s*'(\d+)'\s*\)/",
+            "/define\(\s*'BLICKS_API_VERSION',\s*'2'\s*\)/",
             (string) $source,
-            'BLICKS_API_VERSION must be defined as an integer string'
+            'BLICKS_API_VERSION is 2 for Blicks 2.0 — the surface pinned in this file'
         );
+    }
+
+    /** The JS half carries the same number, so a companion checking either side gets one answer. */
+    public function test_the_js_api_version_matches(): void
+    {
+        $source = (string) file_get_contents(dirname(__DIR__, 3) . '/resources/framework/public-api.ts');
+
+        $this->assertStringContainsString('export const API_VERSION = 2;', $source);
+    }
+
+    /**
+     * Stack, Grid, Spacer and Divider became Box kinds in 2.0. Re-adding one would hand a companion
+     * a block name the clean break promised was gone, and the reserved Pro names must never be
+     * registered here — two plugins in one namespace, and load order decides which one loses.
+     */
+    public function test_removed_and_reserved_blocks_are_not_shipped(): void
+    {
+        $blocks = dirname(__DIR__, 3) . '/resources/blocks';
+
+        foreach (['stack', 'grid', 'spacer', 'divider', 'scene', 'scene-box', 'scene-text', 'scene-image'] as $name) {
+            $this->assertFileDoesNotExist("{$blocks}/{$name}/block.json", "blicks/{$name} must not be registered by the free plugin");
+        }
     }
 
     /**

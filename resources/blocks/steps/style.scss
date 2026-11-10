@@ -1,0 +1,301 @@
+/*
+ * Steps: an ordered list of Steps, across or down. Each Step is a grid — its marker, the line on to
+ * the next marker, an optional label and status, and its own blocks — and every look is read from
+ * classes and custom properties on the `<ol>`:
+ *
+ *   --bl-st-mc   marker colour        --bl-st-ms   marker scale
+ *   --bl-st-line line colour         --bl-st-gap  space between steps
+ *   --bl-li-icon an icon marker's mask (one rule per icon used on the page, as the List's)
+ */
+
+$tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+
+// Down, a step is [label] marker | words, with the line running down under the marker.
+@mixin down {
+	.bl-step {
+		display: grid;
+		grid-template-columns: var(--bl-st-size) minmax(0, 1fr);
+		column-gap: 1em;
+		padding-block-end: var(--bl-st-gap);
+		padding-inline-end: 0;
+	}
+
+	.bl-step:last-child {
+		padding-block-end: 0;
+	}
+
+	// A number with no shape is as wide as it is drawn.
+	&.bl-steps--plain .bl-step {
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
+
+	.bl-step__marker {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.bl-step__status {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+	}
+
+	.bl-step__body {
+		grid-column: 2;
+		grid-row: 2 / span 20;
+	}
+
+	.bl-step:not(:has(> .bl-step__status)) > .bl-step__body {
+		grid-row: 1 / span 20;
+		margin-block-start: calc((var(--bl-st-size) - 1lh) / 2);
+	}
+
+	.bl-step::after {
+		grid-column: 1;
+		grid-row: 2 / span 20;
+		align-self: stretch;
+		justify-self: center;
+		width: 2px;
+		height: auto;
+		margin-block: 6px calc(6px - var(--bl-st-gap));
+	}
+}
+
+@layer blicks.base {
+	:where(.bl-steps) {
+		--bl-st-mc: currentcolor;
+		--bl-st-ms: 1;
+		--bl-st-gap: 1.75em;
+	}
+
+	.bl-steps {
+		--bl-st-size: calc(2.1em * var(--bl-st-ms));
+
+		box-sizing: border-box;
+		margin-block: 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: bl-step;
+	}
+
+	.bl-steps--gap-tight { --bl-st-gap: 1em; }
+	.bl-steps--gap-roomy { --bl-st-gap: 2.75em; }
+
+	.bl-step {
+		position: relative;
+		min-width: 0;
+		counter-increment: bl-step;
+	}
+
+	/* ---------- The marker: a filled circle holding a number, an icon or a tick ---------- */
+	.bl-step__marker {
+		display: grid;
+		place-items: center;
+		box-sizing: border-box;
+		width: var(--bl-st-size);
+		height: var(--bl-st-size);
+		border-radius: 50%;
+		background: var(--bl-st-mc);
+		color: var(--blicks-color-background, #fff);
+	}
+
+	.bl-step__marker::before {
+		content: counter(bl-step);
+		font-size: calc(0.95em * var(--bl-st-ms));
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		line-height: 1;
+	}
+
+	.bl-steps--n-01 .bl-step__marker::before { content: counter(bl-step, decimal-leading-zero); }
+
+	.bl-steps--icons .bl-step__marker::before,
+	.bl-steps--tick .bl-step--done .bl-step__marker::before {
+		content: "";
+		width: 50%;
+		height: 50%;
+		background: currentcolor;
+		mask: var(--bl-li-icon) center / contain no-repeat;
+	}
+
+	.bl-steps--tick .bl-step--done .bl-step__marker::before {
+		mask-image: #{$tick};
+	}
+
+	.bl-steps--dots {
+		--bl-st-size: calc(0.9em * var(--bl-st-ms));
+	}
+
+	.bl-steps--dots .bl-step__marker::before { content: none; }
+	.bl-steps--square .bl-step__marker { border-radius: 6px; }
+
+	// No shape: the number itself, large — the "how it works" numeral.
+	.bl-steps--plain .bl-step__marker {
+		width: auto;
+		min-width: var(--bl-st-size);
+		height: auto;
+		place-items: start;
+		border-radius: 0;
+		background: none;
+		color: var(--bl-st-mc);
+	}
+
+	.bl-steps--plain .bl-step__marker::before {
+		font-size: calc(3em * var(--bl-st-ms));
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+
+	// The stroke is the marker colour: `currentcolor` here would be the transparent fill.
+	.bl-steps--outline .bl-step__marker::before {
+		color: transparent;
+		-webkit-text-stroke: 1.5px var(--bl-st-mc);
+	}
+
+	.bl-steps--outline .bl-step--next .bl-step__marker::before {
+		-webkit-text-stroke-color: color-mix(in srgb, currentcolor 30%, transparent);
+	}
+
+	/* ---------- Where each step stands ---------- */
+	.bl-step--cur .bl-step__marker {
+		background: var(--blicks-color-background, #fff);
+		color: var(--bl-st-mc);
+		box-shadow: inset 0 0 0 2px var(--bl-st-mc), 0 0 0 4px color-mix(in srgb, var(--bl-st-mc) 16%, transparent);
+	}
+
+	.bl-step--next .bl-step__marker {
+		background: var(--blicks-color-background, #fff);
+		color: color-mix(in srgb, currentcolor 45%, transparent);
+		box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentcolor 18%, transparent);
+	}
+
+	.bl-steps--plain :is(.bl-step--cur, .bl-step--next) .bl-step__marker {
+		background: none;
+		box-shadow: none;
+	}
+
+	.bl-steps--outline .bl-step--cur .bl-step__marker::before {
+		color: var(--bl-st-mc);
+		-webkit-text-stroke: 0;
+	}
+
+	.bl-step--next > :is(.bl-step__body, .bl-step__status, .bl-step__label) {
+		opacity: 0.55;
+	}
+
+	.bl-step__status {
+		font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+		font-size: 0.7em;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, currentcolor 55%, transparent);
+	}
+
+	.bl-step--cur > .bl-step__status { color: var(--bl-st-mc); }
+
+	.bl-step__label {
+		display: none;
+	}
+
+	/* ---------- The line on to the next step ---------- */
+	.bl-step::after {
+		content: none;
+	}
+
+	.bl-steps--join .bl-step:not(:last-child)::after {
+		content: "";
+		background: var(--bl-st-line, color-mix(in srgb, currentcolor 18%, transparent));
+	}
+
+	.bl-steps--join:not(.bl-steps--has-current) .bl-step:not(:last-child)::after,
+	.bl-steps--join .bl-step--done:not(:last-child)::after {
+		background: var(--bl-st-line, var(--bl-st-mc));
+	}
+
+	.bl-steps--dashed .bl-step:not(:last-child)::after {
+		mask: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+	}
+
+	/* ---------- Across: marker and line on one row, the words under them ---------- */
+	.bl-steps--across {
+		display: grid;
+		grid-auto-columns: minmax(0, 1fr);
+		grid-auto-flow: column;
+	}
+
+	.bl-steps--across .bl-step {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
+		align-content: start;
+		padding-inline-end: var(--bl-st-gap);
+	}
+
+	.bl-steps--across .bl-step:last-child {
+		padding-inline-end: 0;
+	}
+
+	.bl-steps--across .bl-step__marker { grid-column: 1; grid-row: 1; }
+	.bl-steps--across .bl-step__status { grid-column: 1 / -1; grid-row: 2; margin-block-start: 0.75em; }
+	.bl-steps--across .bl-step__body { grid-column: 1 / -1; grid-row: 3; margin-block-start: 0.6em; }
+
+	.bl-steps--across .bl-step::after {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+		height: 2px;
+		margin-inline: 10px calc(10px - var(--bl-st-gap));
+	}
+
+	/* ---------- Down: a timeline when each step has a label ---------- */
+	.bl-steps--down {
+		@include down;
+	}
+
+	.bl-steps--dashed.bl-steps--down .bl-step::after {
+		mask-image: repeating-linear-gradient(180deg, #000 0 5px, transparent 5px 9px);
+	}
+
+	.bl-steps--labels .bl-step {
+		grid-template-columns: 7em var(--bl-st-size) minmax(0, 1fr);
+	}
+
+	.bl-steps--labels .bl-step__label {
+		display: block;
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
+		font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+		font-size: 0.8em;
+		text-align: end;
+		color: color-mix(in srgb, currentcolor 60%, transparent);
+	}
+
+	.bl-steps--labels .bl-step__marker,
+	.bl-steps--labels .bl-step::after { grid-column: 2; }
+
+	.bl-steps--labels .bl-step__status,
+	.bl-steps--labels .bl-step__body { grid-column: 3; }
+
+	// Phones always get Down.
+	@media (width <= 600px) {
+		.bl-steps--across {
+			display: block;
+
+			@include down;
+		}
+
+		.bl-steps--across .bl-step::after {
+			margin-inline: 0;
+		}
+
+		.bl-steps--dashed.bl-steps--across .bl-step::after {
+			mask-image: repeating-linear-gradient(180deg, #000 0 5px, transparent 5px 9px);
+		}
+	}
+}
+
+/* Editor-only: the label is typed beside the marker. */
+.bl-step__label[contenteditable] {
+	min-width: 2em;
+}

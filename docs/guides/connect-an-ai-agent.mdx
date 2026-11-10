@@ -1,0 +1,113 @@
+---
+title: "Connect an AI agent"
+description: "Let Claude Code, Claude Desktop, Cursor or Codex read and build Blicks pages through MCP."
+---
+
+The free plugin ships an [MCP](https://modelcontextprotocol.io) server. Once it is on, an AI agent —
+Claude Code, Claude Desktop, Codex, Cursor or any other MCP client — can list the Blicks blocks, read
+your design system, check a layout, read a page, create a draft and replace a page's blocks, through
+the same validation the block editor uses.
+
+The tools are WordPress **abilities**, registered through the Abilities API that WordPress 7.0
+includes, and offered on Blicks' own MCP server only.
+
+<Info>
+MCP access is **off** until an administrator turns it on. While it is off, Blicks registers no MCP
+server and no abilities at all, and agent passwords sign in nowhere.
+</Info>
+
+## Turn it on and connect a client
+
+1. Go to **Blicks → MCP** and choose **Turn on MCP access**. Read what an agent may do, tick the
+   acknowledgement and confirm.
+2. Under **Connect an agent**, **Choose your client** — Claude Code, Claude Desktop, Codex, Cursor or
+   Other — and choose **Create password and show setup**. Blicks creates a WordPress application
+   password named after the client, for your account.
+3. Copy the password (it is shown once), then either paste the setup prompt into the agent or put
+   the configuration in the client's own file. The setup prompt never contains the password: the
+   agent adds the server with a `PASTE-PASSWORD-HERE` placeholder and tells you which file to edit.
+   The Claude Code command reads the password at a silent prompt, so it stays out of your shell
+   history. Never paste the password into a chat.
+4. Run the test prompt in the client, then **Check connection**. WordPress notes when the password
+   first signs in.
+
+The server address is `https://your-site.example/wp-json/blicks/mcp`. Clients that speak MCP over stdio
+connect through `@automattic/mcp-wordpress-remote`, which the generated configuration sets up. Clients
+that speak streamable HTTP can connect to the address directly with a Basic `Authorization` header made
+from your username and the application password.
+
+## What an agent can do
+
+| Tool | What it does | Who may call it |
+|---|---|---|
+| `blicks-list-blocks` | Every Blicks block, with a one-line description | Anyone who can edit posts |
+| `blicks-describe-block` | A block's attributes, every style control it accepts with the JSON Schema of the control's value, its states, and the token slugs each scale offers | Anyone who can edit posts |
+| `blicks-get-design-system` | The site's tokens, breakpoints and keyframe animations | Anyone who can edit posts |
+| `blicks-save-animation` | Adds a keyframe animation to the design system, or replaces the one with the same slug | Administrators (`manage_options`) |
+| `blicks-validate-layout` | Checks blocks and returns every problem with a path, a `reason` and what to write instead — including style values the engine would silently drop | Anyone who can edit posts |
+| `blicks-list-posts` | Pages or posts **you can edit**, newest change first | Anyone who can edit posts |
+| `blicks-get-post-layout` | One post's blocks, with their style values | Whoever can edit **that** post |
+| `blicks-update-post-layout` | Replaces one post's blocks. `dryRun: true` checks without saving | Whoever can edit **that** post |
+| `blicks-create-page` | A new draft, optionally with blocks. Never published | Whoever can create that post type |
+| `blicks-set-post-status` | Draft, pending, publish or private | Whoever can edit that post — and publish it, for publish or private |
+
+Read tools are annotated `readOnlyHint`; `update-post-layout` and `set-post-status` are annotated
+`destructiveHint`, so a client knows to ask you before calling them.
+
+Connected agents are listed under **Connected agents** on the MCP screen, where you can rename or
+revoke each one.
+
+### Layouts
+
+A block is `{ "name", "attributes", "blicks", "innerBlocks" }`, where `blicks` holds style values as
+`{ "<control>": { "<state>": { "<breakpoint>": value } } }` — `describe-block` gives the exact controls
+and value shapes. Blocks from other plugins come back from `get-post-layout` as `{ "name", "markup" }`.
+An agent can keep, move or remove them — sent back exactly as they came — but cannot create or change
+one: agents author Blicks blocks only. That is deliberate. WordPress renders many blocks on the server
+from settings no HTML check can see, so the only blocks an agent may write are ones whose markup
+Blicks generates itself.
+
+## What keeps it safe
+
+- **It acts as you.** An agent signs in with an application password for your account, so it can do
+  what your account can do in the editor and nothing more. It never sees posts you cannot edit, and
+  counts only those.
+- **The password is for MCP only.** An agent password signs in nowhere but `/wp-json/blicks/mcp`:
+  not the rest of the REST API, not XML-RPC, not any other plugin's API, and not at all while MCP
+  access is off. The MCP screen
+  accepts only a signed-in browser, so an agent cannot mint itself another password.
+- **No script, whoever it signs in as.** WordPress lets administrators and editors post unfiltered
+  HTML; an agent acting for them still may not. Script elements, event handlers, frames, forms,
+  MathML, SVG beyond plain drawing shapes, unfinished tags and links other than `http`, `https`,
+  `mailto` and `tel` are refused for every account — encoded spellings such as `java&#115;cript:`
+  included. The page is checked block by block and as a whole, as a browser will receive it.
+- **Pages only.** Templates, template parts, patterns, navigation menus, media and the trash are out
+  of reach. Another plugin's block that contains Blicks blocks cannot be rewritten over MCP.
+- **Refused, not repaired.** A write is checked whole before anything is saved: the block exists, its
+  attributes are declared and of the right type, every style value is one the engine would apply, links
+  use `http`, `https`, `mailto` or `tel`, and the markup is exactly what the editor would save. If your
+  role cannot post unfiltered HTML, anything WordPress would strip on save — an icon's SVG, say — is
+  refused with the block named, rather than quietly removed. Nothing is written while anything is wrong.
+- **Undo is a revision.** The previous content is saved as a revision before every write, and the
+  response names it. A post someone else has open in the editor is not written.
+- **Bounded.** At most 500 blocks, 24 levels deep and 512 KB per write.
+- **No custom code.** No tool accepts CSS, JavaScript or PHP, and Blicks makes no remote requests.
+
+Revoke an agent under **Blicks → MCP** or **Users → Profile → Application Passwords**. Turning MCP
+access off stops every agent at once; their passwords stay, so turning it back on reconnects them.
+
+## Versioning
+
+The server reports a tool-set version (`1.1.0` in Blicks 2.0) in its `serverInfo`. An added tool bumps the minor
+version; a changed or removed tool bumps the major. The address itself is not versioned, so a release
+never breaks a client you have already set up.
+
+## For developers
+
+A companion plugin can add blocks to the catalogue agents read (`blicks_ai_block_catalog`), teach
+the serializer to write them (`blicks_spec_shapes`) and offer its own abilities as tools
+(`blicks_mcp_tools`). See [PHP hooks](/developers/php-hooks#ai-agents).
+
+The validation behind `validate-layout` is callable directly, without WordPress, as
+`Blicks\Ai\Abilities\CoreAbilities::validate( $blocks )`, and in the editor as
+`window.blicks.engine.validateBlocks()`. See [Engine and validation](/developers/engine-api).

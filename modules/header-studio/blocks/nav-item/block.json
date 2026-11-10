@@ -1,0 +1,89 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/nav-item",
+	"title": "Menu item",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.5 9H13.5A1.5 1.5 0 0 1 15 10.5V13.5A1.5 1.5 0 0 1 13.5 15H4.5A1.5 1.5 0 0 1 3 13.5V10.5A1.5 1.5 0 0 1 4.5 9Z\" fill=\"currentColor\"/><path d=\"M18 10.5H20A1 1 0 0 1 21 11.5V12.5A1 1 0 0 1 20 13.5H18A1 1 0 0 1 17 12.5V11.5A1 1 0 0 1 18 10.5Z\" fill=\"#002bff\"/></svg>",
+	"description": "One item of the header menu: a link, or a button that opens its mega menu.",
+	"keywords": [
+		"menu item",
+		"link",
+		"mega menu"
+	],
+	"textdomain": "blicks-pro",
+	"parent": [
+		"blicks/nav"
+	],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"colors.text",
+				"colors.background",
+				"border.radius",
+				"spacing.padding",
+				"flexChild.order",
+				"typography.fontFamily",
+				"typography.fontSize",
+				"typography.fontWeight",
+				"typography.letterSpacing",
+				"typography.textTransform"
+			],
+			"states": [
+				"default",
+				"hover",
+				"focus"
+			],
+			"derived": [ "hasPanel" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": {
+			"type": "string"
+		},
+		"blicks": {
+			"type": "object",
+			"default": {}
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"url": {
+			"type": "string",
+			"default": ""
+		},
+		"linkTarget": {
+			"type": "string",
+			"default": ""
+		},
+		"hasPanel": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"example": {
+		"attributes": {
+			"label": "Products",
+			"hasPanel": true
+		},
+		"innerBlocks": [
+			{
+				"name": "blicks/mega-panel",
+				"innerBlocks": [
+					{
+						"name": "blicks/menu-link",
+						"attributes": {
+							"label": "Analytics",
+							"url": "/analytics"
+						}
+					}
+				]
+			}
+		]
+	},
+	"editorScript": "blicks-pro-header-studio",
+	"style": "blicks-pro-header-studio"
+}

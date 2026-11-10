@@ -1,0 +1,53 @@
+/* Scene-child control — reuses `.bl-layout` so grid2/sub/sub-row/field come from the layout +
+   foundation rules, the same way flex-child.scss and grid-child.scss do. Only the `.dim` input
+   and the two alignment rows need styling here. Scoped to `.bl-ins`.
+
+   The scene GRID and scene ITEM panels are listed alongside because all three render the same
+   `CellField`, and `.dim` is that field's wrapper — it carries the height and the border, so a
+   panel left off this list gets inputs with no box at all and rows that overlap each other. One
+   rule with three consumers, rather than the same block copied into three stylesheets. */
+.bl-ins .bl-scene-child,
+.bl-ins .bl-scene-grid,
+.bl-ins .bl-scene-item {
+	font-size: var(--bl-ui-text-md);
+
+	.dim {
+		display: flex;
+		align-items: center;
+		height: 38px;
+		border: 1px solid var(--border-strong);
+		background: var(--paper);
+
+		&:focus-within {
+			border-color: var(--brand);
+			box-shadow: 0 0 0 2px var(--brand);
+		}
+
+		input {
+			flex: 1;
+			min-width: 0;
+			height: 100%;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			padding: 0 10px;
+			font: inherit;
+			font-size: var(--bl-ui-text-md);
+			color: var(--fg);
+		}
+	}
+
+	/* The two alignment rows sit side by side — horizontal on the left, vertical on the right —
+	   so the pair reads as one 6-button control rather than two unrelated segmented rows. */
+	&__align {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin-bottom: 10px;
+
+		.seg-row button svg {
+			width: 16px;
+			height: 16px;
+		}
+	}
+}

@@ -1,10 +1,10 @@
 ---
 title: "Text"
-description: "A rich paragraph block for body copy."
+description: "A rich paragraph for body copy, with type roles, links and inline formatting, styled from the design system."
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/text/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/text/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,11 +25,11 @@ Generated from `packages/blicks/resources/blocks/text/block.json` and `readme.md
 | HTML editing | `false` |
 | Anchor | `false` |
 | Align | `-` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `columns.*` · `spacing.*` · `border.*` · `effects.*`
+`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `colors.clipText` · `layout.display` · `columns.*` · `spacing.*` · `border.*` · `effects.*` · `animation.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `layout.lineClamp` · `flexChild.*` · `background.*` · `layout.overflow` · `layout.isolation` · `position.*`
 
 ## Attributes
 
@@ -54,8 +54,20 @@ Text renders a rich paragraph. Use it for body copy, descriptions, captions, fea
 
 The editable paragraph content. Supports inline formatting such as bold, italic, and links.
 
+### tag
+
+The HTML element: a paragraph (default), a div, a span or small print.
+
+### variant
+
+Kept for Text saved before type roles: `lead` draws the Lead style. Kind now writes `typography.role` (body, lead, small, caption) and sets `variant` back to `default`, so the two never disagree. Write the role.
+
+### dropCap
+
+Enlarges the first letter, for an opening paragraph.
+
 ## Tips
 
 - Keep Text blocks focused; use multiple Text blocks instead of one long mixed-purpose paragraph.
-- Pair Text with Heading inside Stack for consistent content groups.
+- Pair Text with Heading inside a stacked Box for consistent content groups.
 - Use typography controls for alignment and text styling instead of adding custom classes.

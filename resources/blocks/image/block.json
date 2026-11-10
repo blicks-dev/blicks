@@ -4,30 +4,43 @@
 	"name": "blicks/image",
 	"title": "Image",
 	"category": "blicks",
-	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M3.2 4.2L20.8 4.2L20.8 19.8L3.2 19.8ZM4.8 18.2L19.2 18.2L19.2 5.8L4.8 5.8ZM7.066 17.566L10.7 13.931L13.3 16.531L14.917 14.915L16.862 17.483L18.138 16.517L15.083 12.485L13.3 14.269L10.7 11.669L5.934 16.434Z\" fill=\"currentColor\"/><path d=\"M6.8 10a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0Z\" fill=\"#002bff\"/></svg>",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M5 3.5H19A2.5 2.5 0 0 1 21.5 6V18A2.5 2.5 0 0 1 19 20.5H5A2.5 2.5 0 0 1 2.5 18V6A2.5 2.5 0 0 1 5 3.5ZM5 5.5A0.5 0.5 0 0 0 4.5 6V18A0.5 0.5 0 0 0 5 18.5H19A0.5 0.5 0 0 0 19.5 18V6A0.5 0.5 0 0 0 19 5.5ZM4 18.6L9.5 12.5L13 16L15.5 13.5L20 18.6Z\" fill=\"currentColor\"/><path d=\"M6.5 9A2 2 0 1 1 10.5 9A2 2 0 1 1 6.5 9Z\" fill=\"#002bff\"/></svg>",
 	"description": "A responsive media block with optional link and caption.",
 	"textdomain": "blicks",
 	"supports": {
 		"html": false,
 		"className": false,
 		"blicks": {
-			"controls": [ "gridChild.*", "border.*", "spacing.*", "effects.*", "layout.*", "position.*" ],
-			"states": [ "default", "hover", "focus", "active" ]
+			"controls": [ "gridChild.*", "border.*", "spacing.*", "effects.*", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "position.*", "animation.*", "flexChild.*", "colors.background", "background.*", "layout.overflow", "layout.isolation", "decoration.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
 		}
 	},
 	"attributes": {
 		"uniqueId":    { "type": "string" },
 		"blicks":      { "type": "object", "default": {} },
 		"id":          { "type": "number" },
-		"url":         { "type": "string", "default": "" },
-		"alt":         { "type": "string", "default": "" },
+		"url":         { "type": "string", "default": "", "bindable": { "selector": "img", "attribute": "src", "kind": "image" } },
+		"alt":         { "type": "string", "default": "", "bindable": { "selector": "img", "attribute": "alt" } },
 		"aspectRatio": { "type": "string", "default": "auto" },
 		"objectFit":   { "type": "string", "default": "cover" },
 		"sizeSlug":    { "type": "string", "default": "full" },
 		"duotone":     { "type": "object" },
 		"linkTo":      { "type": "string", "default": "none" },
-		"href":        { "type": "string", "default": "" },
-		"caption":     { "type": "string", "default": "" }
+		"href":        { "type": "string", "default": "", "bindable": { "selector": "a", "attribute": "href", "kind": "url" } },
+		"caption":     { "type": "string", "default": "" },
+		"decorative":  { "type": "boolean", "default": false },
+		"focus":       { "type": "string", "default": "" },
+		"width":       { "type": "string", "default": "" },
+		"lineUp":      { "type": "string", "default": "" },
+		"phoneFull":   { "type": "boolean", "default": true },
+		"capPos":      { "type": "string", "default": "below" },
+		"capAlign":    { "type": "string", "default": "" },
+		"linkTarget":  { "type": "string", "default": "" },
+		"eager":       { "type": "boolean", "default": false },
+		"adjust":      { "type": "object" },
+		"dim":         { "type": "string", "default": "" },
+		"hover":       { "type": "string", "default": "" },
+		"inline":      { "type": "boolean", "default": false }
 	},
 	"editorScript": "blicks-editor",
 	"style":        "file:./index.css"

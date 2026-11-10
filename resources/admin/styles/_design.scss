@@ -1,0 +1,436 @@
+/* ---------- Design system ----------
+   Sections on the left, one open in the middle, the person's own site on the right. Each
+   column scrolls on its own; below 1200px they stack and the page scrolls instead. */
+
+.blicks-admin .ds-body { display: flex; flex-grow: 1; min-height: 0; }
+
+/* ---------- section nav ---------- */
+.blicks-admin .ds-body > .nav { flex-shrink: 0; width: 256px; padding: 12px 12px 24px; overflow: auto; border-right: 1px solid var(--hair); background: var(--rail); }
+.blicks-admin .nav .search { display: flex; align-items: center; gap: 8px; height: 36px; margin: 4px 4px 8px; padding: 0 8px 0 10px; border: 0; border-radius: var(--pill); background: var(--field); color: var(--ink-2); }
+.blicks-admin .nav .search:focus-within { background: var(--paper); box-shadow: var(--shadow-focus); }
+.blicks-admin .nav .search input { flex-grow: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: none; box-shadow: none; font-size: 13px; }
+.blicks-admin .nav-list h2 { margin: 20px 16px 6px; color: var(--ink-3); font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; }
+.blicks-admin .nav-list h2:first-child { margin-top: 8px; }
+
+.blicks-admin .nav-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	height: 36px;
+	padding: 0 10px 0 14px;
+	border-radius: var(--r);
+	color: var(--ink-2);
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+	transition: background-color var(--fast) var(--ease);
+}
+
+.blicks-admin .nav-item:hover { background: var(--scrim); color: var(--ink); }
+.blicks-admin .nav-item:focus-visible { outline-offset: -2px; }
+.blicks-admin .nav-item[aria-current="page"] { background: var(--tint); color: var(--on-tint); font-weight: 600; }
+.blicks-admin .nav-item[aria-current="page"]::before { content: none; }
+.blicks-admin .nav-item .n { margin-left: auto; color: var(--ink-3); font: 11px var(--code); }
+.blicks-admin .nav-item[aria-current="page"] .n { color: inherit; }
+.blicks-admin .nav-item .dot { width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--primary); }
+.blicks-admin .nav-item .dot + .n { margin-left: 8px; }
+.blicks-admin .nav-foot { display: grid; gap: 4px; margin: 24px 16px 0; padding-top: 16px; border-top: 1px solid var(--hair); color: var(--ink-2); font-size: 12px; }
+.blicks-admin .nav-foot b { color: var(--ink); font-weight: 500; }
+
+/* ---------- the open section ---------- */
+.blicks-admin .ds-body > .main { flex-grow: 1; min-width: 0; overflow: auto; }
+.blicks-admin .main-in { max-width: 760px; padding: 32px 40px 96px; container-type: inline-size; }
+.blicks-admin .head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.blicks-admin .head h1 { margin-bottom: 4px; font-size: 30px; font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; }
+.blicks-admin .head p { max-width: 60ch; color: var(--ink-2); }
+.blicks-admin .head > .pill { flex-shrink: 0; margin-left: auto; }
+.blicks-admin .sub { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 32px 0 12px; }
+.blicks-admin .sub h3 { font-size: 16px; font-weight: 600; }
+.blicks-admin .sub p { color: var(--ink-3); font-size: 13px; }
+.blicks-admin .head + .sub { margin-top: 0; }
+.blicks-admin .main-in .hint { margin: -8px 0 16px; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .warn-t { color: var(--warn); }
+.blicks-admin .res-h { display: flex; align-items: baseline; gap: 8px; margin: 28px 0 10px; color: var(--ink-2); font-size: 13px; font-weight: 500; }
+.blicks-admin .res-h:first-of-type { margin-top: 0; }
+.blicks-admin .res-h .link-btn { font-size: 12px; }
+
+/* A token: specimen, name, value. Its parts open under it, in place. */
+.blicks-admin .list { overflow: hidden; border: 0; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .tok { border-bottom: 1px solid var(--hair); transition: background-color var(--fast) var(--ease); }
+.blicks-admin .tok:last-child { border-bottom: 0; }
+.blicks-admin .tok:hover { background: color-mix(in srgb, var(--sunk) 55%, var(--paper)); }
+.blicks-admin .tok-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 220px) 32px; align-items: center; gap: 16px; min-height: 64px; padding: 8px 12px 8px 16px; }
+.blicks-admin .tok-row.has-more { grid-template-columns: 64px minmax(0, 1fr) minmax(0, 220px) 32px 32px; }
+.blicks-admin .tok-name { min-width: 0; }
+.blicks-admin .tok-name b { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.blicks-admin .tok-name span { display: block; overflow: hidden; color: var(--ink-3); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.blicks-admin .tok-name code { display: block; margin-top: 2px; overflow: hidden; color: var(--ink-3); font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+.blicks-admin .tok.fixed .tok-val { padding-left: 12px; color: var(--ink-3); font-size: 13px; }
+.blicks-admin .chg { flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+.blicks-admin .src-own { padding: 0 5px; border-radius: var(--r-xs); background: var(--tint); color: var(--on-tint); font: 500 10px/16px var(--code); }
+.blicks-admin .tok-row .more svg { transition: transform var(--fast) var(--ease); }
+.blicks-admin .tok-row .more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* Specimens sit on a build plate: the same faint dot grid as the preview canvas. */
+.blicks-admin .spec { display: grid; place-items: center; width: 64px; height: 48px; border-radius: var(--r); background: var(--plate); }
+.blicks-admin .bar { justify-self: start; min-width: 2px; max-width: 64px; height: 12px; margin-left: 4px; border-radius: 1px; background: var(--primary); }
+.blicks-admin .rad { justify-self: center; width: 40px; height: 40px; border: 2px solid var(--ink-2); border-right: 0; border-bottom: 0; transform: translate(6px, 6px); }
+.blicks-admin .shd { width: 44px; height: 32px; border-radius: var(--r-lg); background: var(--bl-ui-paper); }
+.blicks-admin .grd { width: 52px; height: 36px; border-radius: var(--r); }
+.blicks-admin .bdr { width: 52px; height: 32px; border-radius: var(--r-lg); background: var(--paper); }
+.blicks-admin .btn-s { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 10px; border: 1px solid var(--primary); border-radius: var(--r); background: var(--primary); color: var(--on-primary); font-size: 11px; font-weight: 600; line-height: 1; }
+.blicks-admin .op { position: relative; width: 52px; height: 36px; overflow: hidden; border-radius: var(--r); background: repeating-conic-gradient(var(--hair) 0 25%, var(--paper) 0 50%) 0 0 / 12px 12px; }
+.blicks-admin .op i { position: absolute; inset: 0; background: var(--ink); }
+.blicks-admin .asp { max-width: 48px; max-height: 40px; border: 1.5px solid var(--ink-2); border-radius: var(--r); }
+.blicks-admin .lead-s { display: grid; width: 52px; }
+.blicks-admin .lead-s i { display: block; height: 3px; border-radius: 2px; background: var(--ink-3); }
+.blicks-admin .fx { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r); background: var(--primary); color: var(--on-primary); font-size: 11px; font-weight: 500; transition: all 300ms var(--ease); }
+.blicks-admin .fx-transform:hover, .blicks-admin .fx-transform:focus-visible { transform: var(--fx); }
+.blicks-admin .fx-filter:hover, .blicks-admin .fx-filter:focus-visible { filter: var(--fx); }
+.blicks-admin .track { position: relative; width: 56px; height: 24px; padding: 0; border: 0; border-radius: var(--pill); background: var(--paper); box-shadow: inset 0 0 0 1px var(--outline); }
+.blicks-admin .track i { position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); }
+.blicks-admin .track.go i { left: 36px; }
+.blicks-admin .zbadge { color: var(--ink-2); font-size: 18px; font-weight: 500; }
+.blicks-admin .zbadge.sm { font-size: 13px; }
+.blicks-admin .spec .sw { width: 36px; height: 36px; border-radius: var(--r); }
+
+/* Color pairs: a surface with the text that sits on it, and whether people can read it. */
+.blicks-admin .pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.blicks-admin .pair { overflow: hidden; border: 0; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .pair-demo { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 76px; padding: 18px 16px; }
+.blicks-admin .pair-demo .aa { font-size: 26px; font-weight: 600; line-height: 1; }
+.blicks-admin .pair-demo .tx { min-width: 0; font-size: 13px; line-height: 1.35; }
+.blicks-admin .pair-demo .tx b { display: block; font-size: 14px; font-weight: 600; }
+.blicks-admin .pair-demo code { display: block; margin-top: 2px; overflow: hidden; font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; opacity: 0.7; }
+.blicks-admin .pair-rows { display: grid; gap: 8px; padding: 12px; border-top: 1px solid var(--hair); }
+.blicks-admin .pair-grade { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .grade { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: var(--r-xs); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.blicks-admin .grade.ok { background: var(--ok-bg); color: var(--ok); }
+.blicks-admin .grade.mid { background: var(--tint); color: var(--on-tint); }
+.blicks-admin .grade.bad { background: var(--warn-bg); color: var(--warn); }
+.blicks-admin .crow { display: grid; grid-template-columns: 32px 56px minmax(96px, 1fr) 32px; align-items: center; gap: 10px; }
+.blicks-admin .crow .k { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .crow .vfield { height: 32px; }
+
+/* Themes */
+.blicks-admin .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.blicks-admin .theme-c { position: relative; display: grid; min-width: 0; }
+
+.blicks-admin .theme {
+	position: relative;
+	display: grid;
+	height: 100%;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--hair);
+	border-radius: var(--r-lg);
+	background: var(--paper);
+	text-align: left;
+	transition: border-color var(--fast) var(--ease);
+}
+
+.blicks-admin .theme:hover { border-color: var(--ink-3); }
+.blicks-admin .theme[aria-checked="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.blicks-admin .theme .mini { display: grid; gap: 8px; height: 104px; padding: 16px; background: var(--bl-ui-paper); color: var(--bl-ui-fg); }
+.blicks-admin .theme .mini b { max-width: 14ch; font-size: 15px; font-weight: 700; line-height: 1.15; }
+.blicks-admin .theme .mini .row { display: flex; align-items: center; gap: 6px; }
+.blicks-admin .theme .mini .b1 { height: 22px; padding: 0 10px; border-radius: var(--r-lg); font: 600 10px/22px var(--sans); }
+.blicks-admin .theme .mini .b2 { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%); }
+.blicks-admin .theme .meta { display: flex; align-items: center; gap: 8px; padding: 12px 44px 12px 14px; border-top: 1px solid var(--hair); }
+.blicks-admin .theme .meta b { display: block; font-weight: 500; }
+.blicks-admin .theme .meta span span { display: block; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .theme .meta .on { display: grid; place-items: center; width: 24px; height: 24px; margin-left: auto; border-radius: var(--r); background: var(--primary); color: var(--on-primary); }
+.blicks-admin .etag { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: var(--r-xs); background: var(--note-bg); color: var(--note); font: 500 10px/16px var(--code); }
+.blicks-admin .tmenu-btn { position: absolute; right: 8px; bottom: 9px; z-index: 2; }
+.blicks-admin .theme-c .menu-pop { right: 8px; bottom: 48px; }
+.blicks-admin .theme.new { place-content: center; justify-items: center; gap: 6px; min-height: 160px; border-style: dashed; color: var(--primary); font-weight: 500; }
+.blicks-admin .theme.new span { color: var(--ink-3); font-size: 12px; font-weight: 400; }
+.blicks-admin .theme.new-form { gap: 10px; min-height: 160px; padding: 16px; border-color: var(--primary); }
+.blicks-admin .theme.new-form b { font-weight: 600; }
+.blicks-admin .theme.new-form .hint-s { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .theme.new-form .row { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Type */
+.blicks-admin .fam { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.blicks-admin .fam-card { display: grid; gap: 10px; padding: 16px; border: 0; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .fam-card .big { color: var(--ink); font-size: 34px; line-height: 1; }
+.blicks-admin .fam-card .k { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .fam-f { display: flex; align-items: center; gap: 4px; }
+.blicks-admin .fam-f .vfield { flex-grow: 1; }
+.blicks-admin .libline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .libline span { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 8px; border-radius: var(--r); background: var(--paper); box-shadow: inset 0 0 0 1px var(--hair); color: var(--ink); font-size: 13px; }
+.blicks-admin .libline span i { font-size: 18px; font-style: normal; line-height: 1; }
+.blicks-admin .role { border-bottom: 1px solid var(--hair); }
+.blicks-admin .role:last-child { border-bottom: 0; }
+
+.blicks-admin .role-row {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr) auto 32px;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	min-height: 56px;
+	padding: 10px 12px 10px 16px;
+	border: 0;
+	background: none;
+	text-align: left;
+}
+
+.blicks-admin .role-row:hover { background: color-mix(in srgb, var(--sunk) 55%, var(--paper)); }
+.blicks-admin .role-row:focus-visible { outline-offset: -2px; }
+.blicks-admin .role-row .k { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .role-row .spec-t { min-width: 0; overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
+.blicks-admin .role-row .m { color: var(--ink-3); font: 12px var(--code); white-space: nowrap; }
+.blicks-admin .role-row .chev { display: grid; color: var(--ink-2); transition: transform var(--fast) var(--ease); }
+.blicks-admin .role-row .chev svg { width: 20px; height: 20px; }
+.blicks-admin .role.open .chev { transform: rotate(180deg); }
+.blicks-admin .role-edit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 4px 16px 20px 128px; }
+.blicks-admin .role-edit > label { display: grid; gap: 4px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .role-edit .full { grid-column: 1 / -1; }
+
+/* Screen sizes */
+.blicks-admin .ruler { position: relative; height: 72px; margin: 4px 0 20px; overflow: hidden; border-radius: var(--r-lg); background: var(--sunk); }
+.blicks-admin .band { position: absolute; top: 0; bottom: 0; display: grid; align-content: center; justify-items: start; gap: 2px; padding: 0 12px; overflow: hidden; border-right: 2px solid var(--paper); color: var(--ink-2); font-size: 12px; white-space: nowrap; }
+.blicks-admin .band b { color: var(--ink); font-size: 13px; font-weight: 500; }
+.blicks-admin .band.now { background: var(--tint); box-shadow: inset 0 3px 0 var(--primary); color: var(--on-tint); }
+.blicks-admin .band.now b { color: var(--on-tint); }
+
+/* Where it's saved */
+.blicks-admin .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.blicks-admin .flow div { display: grid; gap: 4px; padding: 16px; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .flow span { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .flow b { font-weight: 500; }
+.blicks-admin pre.out { margin: 0; padding: 16px; overflow-x: auto; border-radius: var(--r-lg); background: var(--sunk); color: var(--ink); font: 12px/1.6 var(--code); }
+.blicks-admin .out-note { margin-top: 16px; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .out-note a { color: var(--primary); font-weight: 600; }
+
+/* Parts editors, own tokens */
+.blicks-admin .parts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; padding: 4px 16px 18px 96px; }
+.blicks-admin .part { display: grid; gap: 4px; min-width: 0; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .parts .wide { grid-column: span 2; }
+.blicks-admin .parts .full, .blicks-admin .parts .note, .blicks-admin .stops, .blicks-admin .gbar { grid-column: 1 / -1; }
+.blicks-admin .parts .note { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .parts .chk { display: flex; align-items: center; align-self: end; gap: 8px; height: 34px; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .parts .chk input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); }
+.blicks-admin .stops { display: grid; gap: 8px; }
+.blicks-admin .stop { display: grid; grid-template-columns: 28px minmax(0, 1fr) 96px 32px; align-items: center; gap: 8px; }
+.blicks-admin .stop .sw { width: 28px; height: 28px; }
+.blicks-admin .gbar { height: 20px; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--hair); }
+
+.blicks-admin .addtok {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 48px;
+	padding: 0 16px;
+	border: 0;
+	border-top: 1px dashed var(--outline);
+	background: none;
+	color: var(--primary);
+	font-weight: 600;
+	text-align: left;
+}
+
+.blicks-admin .addtok:hover { background: var(--tint); }
+.blicks-admin .addtok:focus-visible { outline-offset: -2px; }
+.blicks-admin .list > .addtok:first-child { border-top: 0; }
+.blicks-admin .addnew { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 12px 12px 12px 16px; border-top: 1px dashed var(--primary); background: var(--tint); }
+.blicks-admin .addnew .pill:not(.pill--filled) { background: var(--paper); }
+.blicks-admin .addmsg { grid-column: 1 / -1; color: var(--on-tint); font-size: 12px; }
+.blicks-admin .addmsg.bad { color: var(--warn); }
+
+/* Animations: each plays on its own stage, on the same dot grid as every specimen. */
+.blicks-admin .anim-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; align-items: center; gap: 16px; min-height: 72px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .anim-row:last-child { border-bottom: 0; }
+.blicks-admin .anim-row .confirm-del { grid-column: 1 / -1; }
+.blicks-admin .stage { position: relative; display: grid; place-items: center; width: 88px; height: 56px; padding: 0; overflow: hidden; border: 0; border-radius: var(--r); background: var(--plate); box-shadow: inset 0 0 0 1px var(--hair); }
+.blicks-admin .stage i { display: block; width: 26px; height: 26px; border-radius: var(--r-xs); background: var(--primary); }
+.blicks-admin .stage.big { width: 120px; height: 96px; }
+.blicks-admin .stage.big i { width: 34px; height: 34px; }
+.blicks-admin .anim-name { min-width: 0; }
+.blicks-admin .anim-name b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.blicks-admin .anim-name span { display: block; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .anim-name code { display: block; margin-top: 2px; color: var(--ink-3); font-size: 10.5px; }
+.blicks-admin .anim-acts { display: flex; align-items: center; gap: 6px; }
+.blicks-admin .anim-acts .fixed { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .anim-ed { display: grid; gap: 16px; margin-bottom: 24px; padding: 16px; border: 0; box-shadow: var(--shadow-card), 0 0 0 2px var(--primary); border-radius: var(--r-lg); background: var(--paper); }
+.blicks-admin .anim-ed-top { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: start; gap: 16px; }
+.blicks-admin .anim-fields { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px 12px; }
+.blicks-admin .anim-fields label, .blicks-admin .astep label { display: grid; gap: 4px; min-width: 0; color: var(--ink-2); font-size: 12px; }
+.blicks-admin .anim-fields .hint { grid-column: 1 / -1; margin: 0; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .anim-fields .hint.bad { color: var(--warn); }
+.blicks-admin .steps { display: grid; gap: 10px; }
+.blicks-admin .astep { display: grid; grid-template-columns: 88px minmax(0, 1fr) 32px; align-items: start; gap: 12px; padding: 12px; border-radius: var(--r); background: var(--sunk); }
+.blicks-admin .decls { display: grid; gap: 6px; }
+.blicks-admin .decl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px; align-items: center; gap: 6px; }
+.blicks-admin .decls .link-btn { justify-self: start; font-size: 13px; }
+.blicks-admin .anim-ed-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.blicks-admin .anim-ed-foot p { flex: 1 1 240px; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .result { padding: 10px 12px; border-radius: var(--r); font-size: 13px; }
+.blicks-admin .result.bad { background: var(--warn-bg); color: var(--warn); }
+
+/* ---------- the preview: the person's own site ----------
+   Painted only from the tokens being edited (the `--c-*`, `--s-*`… set inline), never from
+   the chrome. Fallbacks keep it drawn while values load. */
+.blicks-admin .pv { flex-shrink: 0; width: 400px; padding: 20px; overflow: auto; border-left: 1px solid var(--hair); background: var(--plate-lg), var(--canvas); }
+.blicks-admin .pv-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-bottom: 12px; }
+.blicks-admin .pv-head h2 { font-size: 14px; font-weight: 600; }
+.blicks-admin .pv-head .hint { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .pv-note { min-height: 18px; margin: 12px 2px 0; color: var(--ink-2); font-size: 12px; }
+
+.blicks-admin .site {
+	border-radius: var(--r-lg);
+	background: var(--c-background, #fff);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+	color: var(--c-foreground, #09090b);
+	font-family: var(--f-sans, var(--sans));
+
+	--lk-backdrop: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--c-accent, #06b6d4) 70%, transparent), transparent 60%), radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--c-primary, #4f46e5) 80%, transparent), transparent 65%), linear-gradient(135deg, color-mix(in srgb, var(--c-primary, #4f46e5) 35%, var(--c-background, #fff)), color-mix(in srgb, var(--c-accent, #06b6d4) 35%, var(--c-background, #fff)));
+}
+
+.blicks-admin .site,
+.blicks-admin .site * { transition: background-color 280ms var(--ease), color 280ms var(--ease), border-color 280ms var(--ease), border-radius 280ms var(--ease), box-shadow 280ms var(--ease), text-shadow 280ms var(--ease), backdrop-filter 280ms var(--ease), letter-spacing 280ms var(--ease); }
+.blicks-admin .site [data-uses] { position: relative; }
+.blicks-admin .site-in { display: grid; }
+.blicks-admin .site-nav { display: flex; align-items: center; gap: var(--s-md, 1rem); padding: var(--s-sm, 0.75rem) var(--s-lg, 1.5rem); border-bottom: var(--bw-hair, 1px) solid var(--c-border, #e4e4e7); border-radius: var(--r-lg) var(--r-lg) 0 0; font-size: 12px; }
+.blicks-admin .site-nav .logo { font-size: 14px; font-weight: 700; }
+.blicks-admin .site-nav [data-uses] { color: var(--c-muted-foreground, #71717a); }
+.blicks-admin .site-hero { display: grid; gap: var(--s-sm, 0.75rem); padding: var(--s-xl, 2rem) var(--s-lg, 1.5rem); }
+.blicks-admin .site .eyebrow { color: var(--c-primary, #4f46e5); font-family: var(--t-mono-family, var(--code)); font-size: var(--t-mono-size, 11px); font-weight: var(--t-mono-weight, 500); letter-spacing: var(--t-mono-track, 0.1em); text-transform: var(--t-mono-transform, uppercase); }
+.blicks-admin .site .h { font-family: var(--t-h1-family, inherit); font-size: calc(var(--t-h1-size, 2.25rem) * 0.8); font-weight: var(--t-h1-weight, 700); line-height: var(--t-h1-lh, 1.1); letter-spacing: var(--t-h1-track, -0.02em); text-wrap: balance; }
+.blicks-admin .site .lead { color: var(--c-muted-foreground, #71717a); font-size: calc(var(--t-lead-size, 1.25rem) * 0.75); line-height: var(--t-lead-lh, 1.6); }
+.blicks-admin .site .btns { display: flex; flex-wrap: wrap; gap: var(--s-xs, 0.5rem); margin-top: var(--s-xs, 0.5rem); }
+.blicks-admin .site .b { display: inline-flex; align-items: center; min-height: var(--btn-height, 0); padding: var(--btn-py, var(--s-xs, 0.5rem)) var(--btn-px, var(--s-md, 1rem)); border: var(--btn-bw, var(--bw-hair, 1px)) solid transparent; border-radius: var(--btn-radius, var(--r-md, 0.5rem)); font-size: var(--btn-fs, 13px); font-weight: var(--btn-fw, 600); }
+.blicks-admin .site .b.p { background: var(--c-primary, #18181b); background-image: var(--lk-btn-sheen, none); border-color: var(--lk-btn-border, transparent); box-shadow: var(--lk-btn-shadow, var(--sh-sm, none)); color: var(--c-primary-foreground, #fafafa); text-shadow: var(--lk-btn-ts, none); }
+.blicks-admin .site .b.s { background: var(--lk-sec-bg, var(--c-secondary, #f4f4f5)); background-image: var(--lk-sec-sheen, none); border-color: var(--lk-sec-border, transparent); box-shadow: var(--lk-sec-shadow, none); color: var(--c-secondary-foreground, #18181b); }
+
+/* The cards sit on a cover in the brand gradient, the way a page often puts them, so a frosted
+   or see-through surface has something to show. */
+.blicks-admin .site-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-sm, 0.75rem); margin: 0 var(--s-lg, 1.5rem) var(--s-lg, 1.5rem); padding: var(--s-md, 1rem); border-radius: var(--r-lg, 0.75rem); background: var(--lk-backdrop); }
+.blicks-admin .site .card { display: grid; gap: 6px; min-width: 0; padding: var(--s-md, 1rem); border: var(--bw-hair, 1px) solid var(--lk-card-border, var(--c-border, #e4e4e7)); border-radius: var(--r-lg, 0.75rem); background: color-mix(in srgb, var(--c-card, #fff) var(--lk-card-opacity, 100%), var(--lk-card-tint, transparent)); background-image: var(--lk-card-sheen, none); backdrop-filter: var(--lk-card-blur, none); box-shadow: var(--sh-md, none); color: var(--c-card-foreground, #09090b); font-size: 12px; line-height: var(--ld-body, 1.55); }
+.blicks-admin .site .card .h4 { font-family: var(--t-h4-family, inherit); font-size: calc(var(--t-h4-size, 1.25rem) * 0.75); font-weight: var(--t-h4-weight, 600); }
+.blicks-admin .site .card .p { color: var(--c-muted-foreground, #71717a); }
+.blicks-admin .site .tag { justify-self: start; padding: 2px 8px; border-radius: var(--r-full, 9999px); background: var(--c-accent, #06b6d4); color: var(--c-accent-foreground, #fff); font-size: 11px; font-weight: 600; }
+.blicks-admin .site .grad { height: 56px; margin: 0 var(--s-lg, 1.5rem) var(--s-lg, 1.5rem); border-radius: var(--r-lg, 0.75rem); background: var(--g-brand, #4f46e5); }
+.blicks-admin .site .muted { display: flex; align-items: center; gap: var(--s-xs, 0.5rem); margin: 0 var(--s-lg, 1.5rem) var(--s-lg, 1.5rem); padding: var(--s-md, 1rem); border-radius: var(--r-lg, 0.75rem); background: var(--c-muted, #f4f4f5); color: var(--c-muted-foreground, #71717a); font-size: 12px; }
+.blicks-admin .site .field { flex: 1; min-width: 0; padding: 6px 10px; border: var(--bw-hair, 1px) solid var(--c-input, #e4e4e7); border-radius: var(--r-sm, 0.25rem); background: var(--c-background, #fff); }
+.blicks-admin .site .alert { color: var(--c-destructive, #dc2626); font-weight: 600; }
+
+/* Pointing at a token selects every block that reads it, the way the block editor does: a blue
+   outline and a label tag naming the token. */
+.blicks-admin .site .hl { z-index: 1; outline: 1.5px solid var(--primary); outline-offset: 2px; }
+
+.blicks-admin .site .hl::after {
+	content: attr(data-label);
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: -3.5px;
+	z-index: 2;
+	padding: 1px 6px;
+	border-radius: 2px 2px 0 0;
+	background: var(--primary);
+	color: var(--on-primary);
+	font: 500 10px/16px var(--code);
+	letter-spacing: 0;
+	text-transform: none;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.blicks-admin .site.dim [data-uses]:not(.hl, :has(.hl)) { opacity: 0.55; filter: saturate(0.3); }
+
+/* ---------- widths ----------
+   The middle column's width depends on the wp-admin menu, the section nav and the preview,
+   not on the window, so its rows answer to their own container. */
+@container (width <= 640px) {
+	.blicks-admin .pairs, .blicks-admin .fam, .blicks-admin .flow { grid-template-columns: 1fr; }
+	.blicks-admin .role-edit { grid-template-columns: 1fr 1fr; padding: 4px 16px 20px; }
+	.blicks-admin .role-row { grid-template-columns: 80px minmax(0, 1fr) 24px; }
+	.blicks-admin .role-row .m { display: none; }
+	.blicks-admin .parts { grid-template-columns: 1fr 1fr; padding: 4px 16px 18px; }
+}
+
+@container (width <= 520px) {
+	.blicks-admin .tok-row { grid-template-columns: 48px minmax(0, 1fr) 32px; }
+	.blicks-admin .tok-row.has-more { grid-template-columns: 48px minmax(0, 1fr) 32px 32px; }
+	.blicks-admin .tok-row .tok-val { grid-row: 2; grid-column: 1 / -1; }
+	.blicks-admin .spec { width: 48px; }
+	.blicks-admin .head { flex-wrap: wrap; }
+	.blicks-admin .head > .pill { margin-left: 0; }
+	.blicks-admin .addnew { grid-template-columns: 1fr 1fr; }
+	.blicks-admin .anim-ed-top { grid-template-columns: 1fr; }
+	.blicks-admin .anim-fields { grid-template-columns: 1fr 1fr; }
+	.blicks-admin .anim-fields label:first-child { grid-column: 1 / -1; }
+	.blicks-admin .astep { grid-template-columns: 1fr 32px; }
+	.blicks-admin .astep .decls { grid-row: 2; grid-column: 1 / -1; }
+	.blicks-admin .anim-row { grid-template-columns: 72px minmax(0, 1fr); }
+	.blicks-admin .anim-row .stage { width: 72px; }
+	.blicks-admin .anim-acts { grid-column: 1 / -1; }
+	.blicks-admin .stop { grid-template-columns: 28px minmax(0, 1fr) 72px 32px; }
+}
+
+@media (width <= 1400px) {
+	.blicks-admin .ds-body > .nav { width: 216px; }
+	.blicks-admin .pv { width: 320px; }
+	.blicks-admin .main-in { padding: 28px 24px 96px; }
+}
+
+@media (width <= 1200px) {
+	.blicks-admin .ds-body { flex-direction: column; overflow: auto; }
+	.blicks-admin .ds-body > .nav { width: auto; padding: 8px 16px; overflow: visible; border-right: 0; border-bottom: 1px solid var(--hair); }
+	.blicks-admin .nav .search { margin: 0 0 8px; }
+	.blicks-admin .nav-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
+	.blicks-admin .nav-list h2, .blicks-admin .nav-foot, .blicks-admin .nav-item .n { display: none; }
+	.blicks-admin .nav-item { flex-shrink: 0; width: auto; padding: 0 14px; }
+	.blicks-admin .ds-body > .main, .blicks-admin .pv { flex-shrink: 0; overflow: visible; }
+	.blicks-admin .pv { width: auto; padding: 20px 16px; border-top: 1px solid var(--hair); border-left: 0; }
+	.blicks-admin .site { max-width: 480px; }
+}
+
+@media (width <= 782px) {
+	.blicks-admin .main-in { padding: 24px 16px 64px; }
+}
+
+/* ---------- Design language ----------
+   Each card draws the same sample in its language with the colors on the page; the live site
+   switches to a language while it is pointed at (see LanguageView). */
+.blicks-admin .lk-note { margin: -8px 0 20px; padding: 10px 12px; border-radius: var(--r); background: radial-gradient(circle, var(--dot) 1px, transparent 1.3px) 0 0 / 10px 10px, var(--sunk); color: var(--ink-2); font-size: 12.5px; }
+.blicks-admin .looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.blicks-admin .look { display: grid; grid-template-rows: auto 1fr; padding: 0; overflow: hidden; border: 1px solid var(--hair); border-radius: var(--r-lg); background: var(--paper); color: var(--ink); text-align: left; cursor: pointer; transition: border-color var(--fast) var(--ease); }
+.blicks-admin .look:hover { border-color: var(--ink-3); }
+.blicks-admin .look[aria-checked="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); cursor: default; }
+.blicks-admin .look:disabled:not([aria-checked="true"]) { opacity: 0.6; cursor: default; }
+.blicks-admin .look .plate { display: block; padding: 12px; border-bottom: 1px solid var(--hair); background: radial-gradient(circle, var(--dot) 1px, transparent 1.3px) 0 0 / 10px 10px, var(--sunk); }
+.blicks-admin .site.lk-site { display: grid; gap: 8px; overflow: hidden; padding: 14px 14px 12px; border-radius: var(--r); box-shadow: 0 1px 2px rgb(0 0 0 / 10%); pointer-events: none; }
+.blicks-admin .lk-site .h { font-size: 17px; line-height: 1.15; }
+.blicks-admin .lk-site .lead { font-size: 11px; }
+.blicks-admin .lk-site .btns { margin-top: 2px; }
+.blicks-admin .lk-site .b { padding: 5px 10px; font-size: 11px; }
+.blicks-admin .lk-site .lk-stage { display: block; margin: 2px -14px -12px; padding: 12px 14px 14px; background: var(--lk-backdrop); }
+.blicks-admin .lk-site .card { gap: 4px; padding: 9px 10px; font-size: 10.5px; }
+.blicks-admin .lk-site .card .h4 { font-size: 12px; }
+.blicks-admin .lk-site .tag { padding: 1px 6px; font-size: 9.5px; }
+.blicks-admin .look .lk-meta { display: grid; align-content: center; padding: 10px 14px; }
+.blicks-admin .look .lk-meta b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.blicks-admin .look .lk-meta .on { display: grid; place-items: center; width: 22px; height: 22px; margin-left: auto; border-radius: var(--r); background: var(--primary); color: var(--on-primary); }
+
+/* Kits: a row each, with the palette's two colors, what it holds, and its actions. */
+.blicks-admin .kit { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 12px 12px 16px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .kit .dots { display: flex; }
+.blicks-admin .kit .dots i { width: 22px; height: 22px; border-radius: var(--r-xs); box-shadow: 0 0 0 2px var(--paper); }
+.blicks-admin .kit .dots i + i { margin-left: -6px; }
+.blicks-admin .kit-name { min-width: 0; }
+.blicks-admin .kit-name b { display: block; font-weight: 600; }
+.blicks-admin .kit-name span { display: block; overflow: hidden; color: var(--ink-2); font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
+.blicks-admin .kit-acts { display: flex; align-items: center; gap: 12px; }
+.blicks-admin .kit-acts .danger { color: var(--warn); }
+.blicks-admin .kit-rename, .blicks-admin .kit-new { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.blicks-admin .kit-rename .vfield, .blicks-admin .kit-new .vfield { flex: 1 1 200px; }
+.blicks-admin .kit-new { padding: 12px 16px; border-top: 1px dashed var(--primary); background: var(--tint); }
+.blicks-admin .kit-new .hint-s { flex-basis: 100%; margin: 0; }
+.blicks-admin .kits-empty { margin: 0; padding: 16px; color: var(--ink-2); font-size: 13px; }
+
+@media (width <= 782px) { .blicks-admin .kit { grid-template-columns: auto minmax(0, 1fr); } .blicks-admin .kit-acts, .blicks-admin .kit-rename { grid-column: 1 / -1; } }

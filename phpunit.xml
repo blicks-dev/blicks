@@ -9,7 +9,15 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <!-- Each Pro module's own unit tests (modules/README.md), until it moves to Blicks Pro. -->
+        <testsuite name="Modules">
+            <directory suffix="Test.php">modules/*/tests/Unit</directory>
+        </testsuite>
     </testsuites>
+
+    <extensions>
+        <bootstrap class="Blicks\Tests\Support\FreshTables"/>
+    </extensions>
 
     <source>
         <include>

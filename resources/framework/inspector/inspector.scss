@@ -470,6 +470,7 @@
 .bl-combobox__panel {
 	width: 240px;
 	padding: 4px;
+
 	/* no frame here — `.bl-floating-popover` (the popover root) already draws the
 	   border/background/shadow every floating Blicks panel shares. */
 }
@@ -489,6 +490,7 @@
 
 .bl-combobox__option {
 	display: grid;
+
 	/* the hint track shrinks (and ellipsizes) before the label does — a token's name matters more
 	   than the `var()` it resolves to. */
 	grid-template-columns: 14px minmax(0, 1fr) minmax(0, auto);
@@ -616,6 +618,7 @@
    than off `.bl-combobox--compact`. */
 .bl-combobox__list-title {
 	padding: 6px 8px 3px;
+
 	/* A list heading has to survive being the smallest mono text in the panel. The old 8.5px at
 	   weight 400 with 0.14em tracking was three things fighting legibility at once; weight and size
 	   carry the "this is a heading" job, so the tracking is dropped rather than piled on. */
@@ -676,7 +679,7 @@
 	color: #4a4a4a;
 	font-size: var(--bl-ui-text-sm);
 	line-height: 1.45;
-	padding: 10px 10px;
+	padding: 10px;
 	text-wrap: pretty;
 }
 
@@ -1453,7 +1456,6 @@
 	.bl-color-control *,
 	.bl-columns *,
 	.bl-decoration *,
-	.bl-deco-panel *,
 	.bl-effects-control *,
 	.bl-grid-child *,
 	.bl-layout *,

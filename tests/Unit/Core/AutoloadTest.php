@@ -87,7 +87,7 @@ final class AutoloadTest extends TestCase
 
         $this->assertLessThan(
             strpos($source, "\nPlugin::boot( __FILE__ );"),
-            strpos($source, "require_once __DIR__ . '/vendor/autoload.php'"),
+            strpos($source, "require_once __DIR__ . ( is_dir( __DIR__ . '/vendor/phpunit' ) ? '/vendor/autoload.php' : '/vendor/autoload_packages.php' );"),
             'the autoloader must be required before Plugin::boot()'
         );
     }
@@ -98,6 +98,20 @@ final class AutoloadTest extends TestCase
         $composer = json_decode((string) file_get_contents(dirname(__DIR__, 3) . '/composer.json'), true);
 
         $this->assertSame(['Blicks\\' => 'src/'], $composer['autoload']['psr-4']);
-        $this->assertSame(['php' => '>=8.1'], $composer['require'], 'the plugin must ship no production dependencies');
+    }
+
+    /**
+     * The production dependencies are exactly the bundled MCP Adapter and the autoloader that
+     * lets it coexist with other plugins' copies. Both GPL-2.0-or-later. Anything else shipped in
+     * vendor/ is a deliberate decision, made here.
+     */
+    public function test_the_only_production_dependencies_are_the_mcp_adapter_and_its_autoloader(): void
+    {
+        $composer = json_decode((string) file_get_contents(dirname(__DIR__, 3) . '/composer.json'), true);
+
+        $this->assertSame(
+            ['automattic/jetpack-autoloader', 'php', 'wordpress/mcp-adapter'],
+            (function (array $keys): array { sort($keys); return $keys; })(array_keys($composer['require']))
+        );
     }
 }

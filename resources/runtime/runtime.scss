@@ -16,18 +16,73 @@
 //   stateKey: hover→hov  focus→foc  active→act   (default → '')
 //   bpKey  : tablet→tab  mobile→mob              (base → '')
 
+@use 'sass:list';
 @use 'sass:map';
 
 // The predefined @keyframes live in _keyframes.scss so the admin bundle can reuse the exact
 // same definitions for its previews (see that file).
 @use './keyframes';
 
-$breakpoints: ( 'base': null, 'tab': 782px, 'mob': 600px );
-$states: ( '': '', 'hov': ':hover', 'foc': ':focus', 'act': ':active' );
+// Every map the loops below walk — breakpoints, states and the per-control property tables — is
+// generated from resources/engine/schema.json (scripts/gen-engine.mjs). Add a control there, not here.
+@use './engine' as *;
+
+// Where a state rule applies: under its breakpoint, for hover only on a device that can hover, and
+// for a media state (`reduced`) only under its query.
+// A tap on a touch screen sets :hover and leaves it set until the next tap elsewhere, so an unguarded
+// hover look sticks; `(hover: hover)` keeps it to pointers. Mirrored for tier 3 by `HOVER_QUERY` in
+// resources/framework/css/vars.ts and ElementStyle::HOVER_QUERY.
+@mixin at-state($bpMax, $stKey, $cls) {
+	$query: '';
+
+	// A state limited to the controls it is for (`stateControls` in the schema) skips the rest.
+	$allowed: not map.has-key($state-controls, $stKey) or list.index(map.get($state-controls, $stKey), $cls) != null;
+
+	@if $stKey == 'hov' {
+		$query: '(hover: hover)';
+	}
+
+	// A state the visitor's settings select (`reduced`) is its media query.
+	@if map.has-key($state-media, $stKey) {
+		$query: map.get($state-media, $stKey);
+	}
+
+	@if $bpMax != null and $query == '' {
+		$query: '(max-width: #{$bpMax})';
+	} @else if $bpMax != null {
+		$query: '#{$query} and (max-width: #{$bpMax})';
+	}
+
+	@if not $allowed {
+		// Nothing: this state does not style this control.
+	} @else if $query == '' {
+		@content;
+	} @else {
+		@media #{$query} {
+			@content;
+		}
+	}
+}
+
+// A state's selector for one marker class. Most states are the element's own pseudo-class
+// (`.bl-x--hov:hover`). An ancestor state (`group`) is selected by the NEAREST card around the
+// element instead: active when that card is pointed at or focused, and never when a closer card
+// is not — the `:not()` is what keeps an outer card from playing an inner card's children.
+// Both `:where()`s weigh nothing and the marker is doubled, so the rule weighs exactly what a
+// hover rule does; `group` comes before `hover` in $states, so the block's own hover wins a tie.
+// Mirrored by `stateSelector()` in resources/framework/parts.ts and Parts::stateSelector().
+@function state-selector($marker, $stKey, $pseudo) {
+	@if map.has-key($state-ancestors, $stKey) {
+		$a: map.get($state-ancestors, $stKey);
+
+		@return ':where(#{map.get($a, on)}) #{$marker}#{$marker}:not(:where(#{map.get($a, off)}) *)';
+	}
+
+	@return '#{$marker}#{$pseudo}';
+}
+
 
 // ---------- Spacing ----------
-$spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
-
 @each $cls, $cfg in $spacing {
 	$prop: map.get( $cfg, prop );
 	$v: map.get( $cfg, v );
@@ -49,17 +104,11 @@ $spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} {
 					#{$prop}: var(--bl-#{$v}t#{$suf}) var(--bl-#{$v}r#{$suf}) var(--bl-#{$v}b#{$suf}) var(--bl-#{$v}l#{$suf});
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} {
-						#{$prop}: var(--bl-#{$v}t#{$suf}) var(--bl-#{$v}r#{$suf}) var(--bl-#{$v}b#{$suf}) var(--bl-#{$v}l#{$suf});
-					}
 				}
 			}
 		}
@@ -67,85 +116,6 @@ $spacing: ( 'pad': ( prop: padding, v: 'p' ), 'mar': ( prop: margin, v: 'm' ) );
 }
 
 // ---------- Layout ----------
-$layout: (
-	'd':    ( prop: display,               default: block ),
-	'fd':   ( prop: flex-direction,        default: row ),
-	'jc':   ( prop: justify-content,       default: normal ),
-	'ai':   ( prop: align-items,           default: normal ),
-	'fw':   ( prop: flex-wrap,             default: nowrap ),
-	'gap-r':( prop: row-gap,               default: 0 ),
-	'gap-c':( prop: column-gap,            default: 0 ),
-	'cols': ( prop: grid-template-columns, default: none ),
-	'rows': ( prop: grid-template-rows,    default: none ),
-	'ji':   ( prop: justify-items,         default: normal ),
-	'w':    ( prop: width,                 default: auto ),
-	'h':    ( prop: height,                default: auto ),
-	'ov':   ( prop: overflow,              default: visible ),
-	/* Wave B — layout extensions*/
-	'ovx':  ( prop: overflow-x,           default: visible ),
-	'ovy':  ( prop: overflow-y,           default: visible ),
-	'sst':  ( prop: scroll-snap-type,     default: none ),
-	'areas':( prop: grid-template-areas,  default: none ),
-	'gaf':  ( prop: grid-auto-flow,       default: row ),
-	'ct':   ( prop: container-type,       default: normal ),
-	'cn':   ( prop: container-name,       default: none ),
-	'ar':   ( prop: aspect-ratio,         default: auto ),
-	'of':   ( prop: object-fit,           default: fill ),
-	/* border-style / border-color are per-side — see the `$multis` block below. */
-	'pos':  ( prop: position,              default: static ),
-	'zi':   ( prop: z-index,               default: auto ),
-	'bg':   ( prop: background-color,      default: transparent ),
-	'tx':   ( prop: color,                 default: inherit ),
-	'bg-img':    ( prop: background-image,      default: none ),
-	'bg-grad':   ( prop: background-image,      default: none ),
-	'bg-size':   ( prop: background-size,       default: auto ),
-	'bg-pos':    ( prop: background-position,   default: 50% 50% ),
-	'bg-repeat': ( prop: background-repeat,     default: repeat ),
-	'bg-attach': ( prop: background-attachment, default: scroll ),
-	/* Wave C — color/background extensions*/
-	'bg-blend':  ( prop: background-blend-mode, default: normal ),
-	'ff':   ( prop: font-family,           default: inherit ),
-	'fs':   ( prop: font-size,             default: inherit ),
-	'lh':   ( prop: line-height,           default: normal ),
-	'fwt':  ( prop: font-weight,           default: 400 ),
-	'fst':  ( prop: font-style,            default: normal ),
-	'ls':   ( prop: letter-spacing,        default: normal ),
-	'ws':   ( prop: word-spacing,          default: normal ),
-	'tt':   ( prop: text-transform,        default: none ),
-	'td':   ( prop: text-decoration,       default: none ),
-	'ta':   ( prop: text-align,            default: left ),
-	/* Wave C — typography extensions*/
-	'wm':   ( prop: writing-mode,          default: horizontal-tb ),
-	'to':   ( prop: text-orientation,      default: mixed ),
-	/* Wave F — counters*/
-	'cnt-r': ( prop: counter-reset,        default: none ),
-	'cnt-i': ( prop: counter-increment,    default: none ),
-	/* Wave G — layout completeness (align-content, grid auto tracks, box sizing, box behavior,
-	   scroll extras, direction) */
-	'ac':   ( prop: align-content,          default: normal ),
-	'gac':  ( prop: grid-auto-columns,      default: auto ),
-	'gar':  ( prop: grid-auto-rows,         default: auto ),
-	'miw':  ( prop: min-width,              default: auto ),
-	'maw':  ( prop: max-width,              default: none ),
-	'mih':  ( prop: min-height,             default: auto ),
-	'mah':  ( prop: max-height,             default: none ),
-	'bxz':  ( prop: box-sizing,             default: content-box ),
-	'vis':  ( prop: visibility,             default: visible ),
-	'flt2': ( prop: float,                  default: none ),
-	'clr':  ( prop: clear,                  default: none ),
-	'iso':  ( prop: isolation,              default: auto ),
-	'rsz':  ( prop: resize,                 default: none ),
-	'sb':   ( prop: scroll-behavior,        default: auto ),
-	'osb':  ( prop: overscroll-behavior,    default: auto ),
-	'sss':  ( prop: scroll-snap-stop,       default: normal ),
-	'dir':  ( prop: direction,              default: ltr ),
-	/* Wave H — containment/perf (high real-world usage). `lc` (line-clamp) is NOT here — it
-	   bundles extra fixed declarations, see the dedicated Line-clamp block below. */
-	'ctn':  ( prop: contain,                default: none ),
-	'cv':   ( prop: content-visibility,     default: visible ),
-	'cis':  ( prop: contain-intrinsic-size, default: none ),
-);
-
 @each $cls, $cfg in $layout {
 	$prop: map.get( $cfg, prop );
 	$default: map.get( $cfg, default );
@@ -166,17 +136,23 @@ $layout: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			// Editor twin for `position`: core's content.css pins every block wrapper with
+			// `.block-editor-block-list__layout .block-editor-block-list__block { position: relative }`
+			// (two classes), which outweighs the one-class marker — an absolute layer then collapses
+			// into flow in the canvas while the front end is fine. The twin prefixes the root block
+			// list — which carries both classes on one element in the post canvas iframe AND in the
+			// Studio's BlockList (no `.editor-styles-wrapper` there) — to every variant alike, so the
+			// variants keep their order among themselves (group still loses a tie to hover) and the
+			// front end, where neither class exists, is untouched.
+			@if $cls == 'pos' {
+				$selector: '#{$selector}, .is-root-container.block-editor-block-list__layout #{$selector}';
+			}
+
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} {
 					#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} {
-						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-					}
 				}
 			}
 		}
@@ -205,40 +181,20 @@ $layout: (
 			$suf: '-#{$key}';
 		}
 
-		$selector: '#{$marker}#{$pseudo}';
+		$selector: state-selector($marker, $stKey, $pseudo);
 
-		@if $bpMax == null {
+		@include at-state($bpMax, $stKey, 'lc') {
 			#{$selector} {
 				display: -webkit-box;
 				-webkit-box-orient: vertical;
 				overflow: hidden;
 				-webkit-line-clamp: var(--bl-lc#{$suf}, none);
 			}
-		} @else {
-			@media (max-width: $bpMax) {
-				#{$selector} {
-					display: -webkit-box;
-					-webkit-box-orient: vertical;
-					overflow: hidden;
-					-webkit-line-clamp: var(--bl-lc#{$suf}, none);
-				}
-			}
 		}
 	}
 }
 
 // ---------- Grid Child ----------
-$grid-child: (
-	'gcs': ( prop: grid-column,        default: 1,     span: true ),
-	'grs': ( prop: grid-row,           default: 1,     span: true ),
-	'gas': ( prop: align-self,         default: auto,  span: false ),
-	'gjs': ( prop: justify-self,       default: auto,  span: false ),
-	'go':  ( prop: order,              default: 0,     span: false ),
-	// Wave B — grid-child extensions
-	'ga':  ( prop: grid-area,          default: auto,  span: false ),
-	'ssa': ( prop: scroll-snap-align,  default: none,  span: false ),
-);
-
 @each $cls, $cfg in $grid-child {
 	$prop: map.get( $cfg, prop );
 	$default: map.get( $cfg, default );
@@ -260,24 +216,14 @@ $grid-child: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} {
 					@if $span == true {
 						#{$prop}: span var(--bl-#{$cls}#{$suf}, $default);
 					} @else {
 						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-					}
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} {
-						@if $span == true {
-							#{$prop}: span var(--bl-#{$cls}#{$suf}, $default);
-						} @else {
-							#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-						}
 					}
 				}
 			}
@@ -286,12 +232,6 @@ $grid-child: (
 }
 
 // ---------- Columns (CSS multicolumn) ----------
-$columns: (
-	'cc':   ( prop: column-count, default: auto ),
-	'cw':   ( prop: column-width, default: auto ),
-	'cgap': ( prop: column-gap,   default: normal ),
-);
-
 @each $cls, $cfg in $columns {
 	$prop: map.get( $cfg, prop );
 	$default: map.get( $cfg, default );
@@ -312,28 +252,16 @@ $columns: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
-				}
 			}
 		}
 	}
 }
 
 // ---------- Flex Child (the flexbox parallel to Grid Child) ----------
-$flex-child: (
-	'fg':  ( prop: flex-grow,   default: 0 ),
-	'fsk': ( prop: flex-shrink, default: 1 ),
-	'fb':  ( prop: flex-basis,  default: auto ),
-	'fas': ( prop: align-self,  default: auto ),
-	'fco': ( prop: order,       default: 0 ),
-);
-
 @each $cls, $cfg in $flex-child {
 	$prop: map.get( $cfg, prop );
 	$default: map.get( $cfg, default );
@@ -354,35 +282,98 @@ $flex-child: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
-				}
+			}
+		}
+	}
+}
+
+// ---------- Scene Item (a thing placed freely inside a scene box) ----------
+//
+// Unlike the cell placement below, this needs no arithmetic from a parent: a share of the box IS
+// the geometry, so these map straight onto CSS properties here rather than resolving to a `-r`
+// variable for Pro to finish. The two families look alike and are built differently for that one
+// reason.
+//
+// `auto` as the size default so a line of text sizes to its own content until somebody drags a
+// handle; `0` for the offsets so an unplaced item starts in the box's top-left rather than nowhere.
+@each $cls, $cfg in $scene-item {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: state-selector($marker, $stKey, $pseudo);
+
+			@include at-state($bpMax, $stKey, $cls) {
+				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
+			}
+		}
+	}
+}
+
+// ---------- Scene Child (an item placed on a blicks/scene grid) ----------
+//
+// Placement is a CELL RECTANGLE — a start column and row, and a span in each axis, as unitless
+// integers. Nothing here stores a pixel, which is what lets a composition reflow when the stage
+// changes size or aspect instead of merely shrinking.
+//
+// **These resolve to custom properties, not to CSS properties, and that split is load bearing.**
+// A cell index is not geometry on its own: turning it into a `left` needs the PARENT stage's track
+// count, gap and padding, so the arithmetic belongs to the Scene block and ships with it in Blicks
+// Pro. What belongs here is the part that needs this file's breakpoint and state tables — picking
+// which slot's value is in force. So the loop below resolves `--bl-scc-mobile` down to `--bl-scc-r`
+// under the right media query, and Pro's one calc() reads only the `-r` values.
+//
+// Done the other way round — Pro reading `--bl-scc-mobile` itself — Pro would need its own copy of
+// the breakpoint table, which is exactly the drift the engine's five-way contract exists to stop.
+@each $cls, $cfg in $scene-child {
+	$prop: map.get( $cfg, prop );
+	$default: map.get( $cfg, default );
+
+	@each $bpKey, $bpMax in $breakpoints {
+		@each $stKey, $pseudo in $states {
+			$key: $stKey;
+
+			@if $bpKey != 'base' {
+				@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+			}
+
+			$marker: '.bl-#{$cls}';
+			$suf: '';
+
+			@if $key != '' {
+				$marker: '.bl-#{$cls}--#{$key}';
+				$suf: '-#{$key}';
+			}
+
+			$selector: state-selector($marker, $stKey, $pseudo);
+
+			@include at-state($bpMax, $stKey, $cls) {
+				#{$selector} { #{$prop}: var(--bl-#{$cls}#{$suf}, $default); }
 			}
 		}
 	}
 }
 
 // ---------- Effects ----------
-$effects: (
-	'op':  ( prop: opacity,          default: 1 ),
-	'cur': ( prop: cursor,           default: auto ),
-	'bm':  ( prop: mix-blend-mode,   default: normal ),
-	'bsh': ( prop: box-shadow,       default: none ),
-	'tsh': ( prop: text-shadow,      default: none ),
-	'tr':  ( prop: transition,       default: none ),
-	'tfm': ( prop: transform,        default: none ),
-	'flt': ( prop: filter,           default: none ),
-	// Wave D — structured effects (plain single vars; builders compose the value string)
-	'tfo': ( prop: transform-origin, default: 50% 50% ),
-	'tfs': ( prop: transform-style,  default: flat ),
-	'psp': ( prop: perspective,      default: none ),
-);
-
 @each $cls, $cfg in $effects {
 	$prop: map.get( $cfg, prop );
 	$default: map.get( $cfg, default );
@@ -403,17 +394,11 @@ $effects: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} {
 					#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} {
-						#{$prop}: var(--bl-#{$cls}#{$suf}, $default);
-					}
 				}
 			}
 		}
@@ -424,13 +409,6 @@ $effects: (
 // Each is a 4-value shorthand assembled from four vars. Every var carries its property's own
 // initial value as a fallback: one missing var would otherwise make the whole declaration
 // invalid-at-computed-value-time, dropping ALL four sides rather than just the unset one.
-$multis: (
-	'bw': ( prop: border-width,  vars: ('bwt', 'bwr', 'bwb', 'bwl'),     fallback: 0 ),
-	'br': ( prop: border-radius, vars: ('brtl', 'brtr', 'brbr', 'brbl'), fallback: 0 ),
-	'bs': ( prop: border-style,  vars: ('bst', 'bsr', 'bsb', 'bsl'),     fallback: none ),
-	'bc': ( prop: border-color,  vars: ('bct', 'bcr', 'bcb', 'bcl'),     fallback: currentcolor )
-);
-
 @each $cls, $cfg in $multis {
 	$prop: map.get( $cfg, prop );
 	$vars-list: map.get( $cfg, vars );
@@ -452,20 +430,22 @@ $multis: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 			$val-str: '';
+			$longhands: map.get( $cfg, longhands );
 
 			@each $v in $vars-list {
 				$val-str: $val-str + ' var(--bl-#{$v}#{$suf}, #{$fallback})';
 			}
 
-			@if $bpMax == null {
+			// Corners go out as longhands (see gen-engine.mjs): one corner may hold two values.
+			@include at-state($bpMax, $stKey, $cls) {
 				#{$selector} {
-					#{$prop}: #{$val-str};
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					#{$selector} {
+					@if $longhands {
+						@for $i from 1 through list.length( $vars-list ) {
+							#{list.nth( $longhands, $i )}: var(--bl-#{list.nth( $vars-list, $i )}#{$suf}, #{$fallback});
+						}
+					} @else {
 						#{$prop}: #{$val-str};
 					}
 				}
@@ -491,23 +471,14 @@ $multis: (
 			$suf: '-#{$key}';
 		}
 
-		$selector: '#{$marker}#{$pseudo}';
+		$selector: state-selector($marker, $stKey, $pseudo);
 
-		@if $bpMax == null {
+		@include at-state($bpMax, $stKey, 'inset') {
 			#{$selector} {
 				top: var(--bl-pos-t#{$suf}, auto);
 				right: var(--bl-pos-r#{$suf}, auto);
 				bottom: var(--bl-pos-b#{$suf}, auto);
 				left: var(--bl-pos-l#{$suf}, auto);
-			}
-		} @else {
-			@media (max-width: $bpMax) {
-				#{$selector} {
-					top: var(--bl-pos-t#{$suf}, auto);
-					right: var(--bl-pos-r#{$suf}, auto);
-					bottom: var(--bl-pos-b#{$suf}, auto);
-					left: var(--bl-pos-l#{$suf}, auto);
-				}
 			}
 		}
 	}
@@ -517,11 +488,7 @@ $multis: (
 // Each rule expands the breakpoint/state matrix to keep the leak-guard rules
 // consistent with other consumer classes, and wraps the property in @supports
 // so unsupported browsers degrade gracefully (no clip, no blur, no mask).
-@each $cls, $cfg in (
-	'clip': ( prop: clip-path,        guard: 'clip-path: polygon(0 0,1px 0,1px 1px)', webkit: true ),
-	'bdf':  ( prop: backdrop-filter,  guard: 'backdrop-filter: blur(1px)',            webkit: true ),
-	'mask': ( prop: mask,             guard: 'mask: linear-gradient(black, black)',   webkit: true ),
-) {
+@each $cls, $cfg in $supported {
 	$prop: map.get( $cfg, prop );
 	$guard: map.get( $cfg, guard );
 	$webkit: map.get( $cfg, webkit );
@@ -542,25 +509,15 @@ $multis: (
 				$suf: '-#{$key}';
 			}
 
-			$selector: '#{$marker}#{$pseudo}';
+			$selector: state-selector($marker, $stKey, $pseudo);
 			$varRef: 'var(--bl-#{$cls}#{$suf})';
 
-			@if $bpMax == null {
+			@include at-state($bpMax, $stKey, $cls) {
 				@supports (#{$guard}) {
 					#{$selector} {
 						@if $webkit { -webkit-#{$prop}: #{$varRef}; }
 
 						#{$prop}: #{$varRef};
-					}
-				}
-			} @else {
-				@media (max-width: $bpMax) {
-					@supports (#{$guard}) {
-						#{$selector} {
-							@if $webkit { -webkit-#{$prop}: #{$varRef}; }
-
-							#{$prop}: #{$varRef};
-						}
 					}
 				}
 			}
@@ -581,6 +538,17 @@ $multis: (
 	}
 }
 
+// ---------- Engine variables do not inherit ----------
+// A block with only a state value (say a focus shadow) still carries the base consumer class, and
+// an unset custom property inherits: its `var(--bl-bsh, none)` would draw the parent card's shadow.
+// Registered here instead of changing the classes the engine writes, so saved markup is untouched.
+@each $v in $base-vars {
+	@property #{$v} {
+		syntax: '*';
+		inherits: false;
+	}
+}
+
 // ---------- Wave E — Motion ----------
 // @property declarations are intentionally outside the reduced-motion block:
 // the property exists; whether it animates is gated below.
@@ -596,6 +564,17 @@ $multis: (
 	inherits: false;
 }
 
+// Animation longhands by class: property and fallback, for the per-state rules below.
+$anim-states: (
+	'anim-name': ( animation-name, none ),
+	'anim-dur': ( animation-duration, 600ms ),
+	'anim-ease': ( animation-timing-function, ease ),
+	'anim-iter': ( animation-iteration-count, 1 ),
+	'anim-dir': ( animation-direction, normal ),
+	'anim-fill': ( animation-fill-mode, none ),
+	'anim-delay': ( animation-delay, 0s ),
+);
+
 @media (prefers-reduced-motion: no-preference) {
 	// Consumer class — applies the animation shorthand from inline vars set by the engine.
 	.bl-anim-name {
@@ -606,6 +585,31 @@ $multis: (
 		animation-direction:        var(--bl-anim-dir, normal);
 		animation-fill-mode:        var(--bl-anim-fill, none);
 		animation-delay:            var(--bl-anim-delay, 0s);
+	}
+
+	// The same, per state and breakpoint: a hover wobble, a press jelly, a replay (`play`). Each
+	// longhand is its own control and class, so each gets its own rule; the base class above
+	// still supplies whatever a state leaves unset.
+	@each $cls, $pv in $anim-states {
+		@each $bpKey, $bpMax in $breakpoints {
+			@each $stKey, $pseudo in $states {
+				$key: $stKey;
+
+				@if $bpKey != 'base' {
+					@if $key == '' { $key: $bpKey; } @else { $key: '#{$key}-#{$bpKey}'; }
+				}
+
+				@if $key != '' {
+					$selector: state-selector('.bl-#{$cls}--#{$key}', $stKey, $pseudo);
+
+					@include at-state($bpMax, $stKey, $cls) {
+						#{$selector} {
+							#{list.nth($pv, 1)}: var(--bl-#{$cls}-#{$key}, #{list.nth($pv, 2)});
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// Scroll/view-driven timelines — only when the browser supports it.
@@ -619,6 +623,19 @@ $multis: (
 		}
 	}
 }
+
+// ---------- Scene grid (scene.* / sceneChild.*) ----------
+//
+// The stage, its boxes and its items ship with the Scene block, which lives in Blicks Pro. What
+// stays here is the style ENGINE for them: `scene.*` and `sceneChild.*` are in the control tables,
+// so the classes and custom properties they emit must resolve in this build even though nothing
+// here renders a stage. Pro supplies the one calc() rule that turns those cell counts into
+// geometry, because that rule is the Scene block's own layout and not a property of the engine.
+//
+// Nothing to emit here. The engine's job for the grid is the variables; the previous occupant of
+// this section was `sceneChild.anchor`, whose nine translate offsets existed to address a box by
+// one of its corners. A cell rectangle has no such address, so both the control and its rules are
+// gone rather than left to mean nothing.
 
 // ---------- Visibility (Advanced ▸ Visibility) ----------
 // Front/saved markup carries `bl-hide-{bp}` → actually hidden within that breakpoint band.
@@ -651,11 +668,11 @@ $multis: (
 	font-weight: var(--blicks-type-code-font-weight, 400);
 	letter-spacing: var(--blicks-type-code-letter-spacing, normal);
 	font-size: 0.9em;
-	background: var(--blicks-color-muted, rgba(0, 0, 0, 0.06));
+	background: var(--blicks-color-muted, #f4f4f5);
 	color: var(--blicks-color-code, inherit);
 	padding: 0.1em 0.35em;
 	border-radius: 0.25em;
-	border: 1px solid var(--blicks-color-border, rgba(0, 0, 0, 0.08));
+	border: 1px solid var(--blicks-color-border, #e4e4e7);
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
 }
@@ -673,8 +690,8 @@ $multis: (
 // that one property wins while the rest of the role stays. (Setting the property directly here
 // would instead win by source order and swallow the edit.) The vars inherit but are inert on
 // children — the `.bl-{prop}` consumer rules only read them behind their own marker class.
-// Role list MUST stay in sync with TypeRoles::ROLES (PHP) + resources/design-system/type-roles.ts.
-$type-roles: display, h1, h2, h3, h4, h5, h6, body, lead, small, caption, code, mono;
+// `$type-roles` comes from resources/engine/schema.json, the same list TypeRoles::ROLES and
+// resources/design-system/type-roles.ts read.
 
 @each $role in $type-roles {
 	.bl-type--#{$role} {

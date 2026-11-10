@@ -1,0 +1,87 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/header-row",
+	"title": "Header row",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.5 9H19.5A1.5 1.5 0 0 1 21 10.5V13.5A1.5 1.5 0 0 1 19.5 15H4.5A1.5 1.5 0 0 1 3 13.5V10.5A1.5 1.5 0 0 1 4.5 9Z\" fill=\"currentColor\"/><path d=\"M6 11H8A1 1 0 0 1 9 12V12A1 1 0 0 1 8 13H6A1 1 0 0 1 5 12V12A1 1 0 0 1 6 11ZM16 11H18A1 1 0 0 1 19 12V12A1 1 0 0 1 18 13H16A1 1 0 0 1 15 12V12A1 1 0 0 1 16 11Z\" fill=\"#002bff\"/></svg>",
+	"description": "One row of a header: a start, a centre and an end area.",
+	"keywords": [
+		"header",
+		"row",
+		"top bar"
+	],
+	"textdomain": "blicks-pro",
+	"parent": [
+		"blicks/header"
+	],
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"colors.background",
+				"colors.text",
+				"background.image",
+				"background.gradient",
+				"background.size",
+				"background.position",
+				"border.width",
+				"border.style",
+				"border.color",
+				"spacing.padding",
+				"layout.minHeight",
+				"layout.gapColumn",
+				"flexChild.order",
+				"typography.fontFamily",
+				"typography.fontSize",
+				"typography.fontWeight",
+				"typography.letterSpacing",
+				"typography.textTransform"
+			],
+			"states": [
+				"default"
+			]
+		}
+	},
+	"attributes": {
+		"uniqueId": {
+			"type": "string"
+		},
+		"blicks": {
+			"type": "object",
+			"default": {}
+		},
+		"preset": {
+			"type": "string",
+			"default": "classic"
+		}
+	},
+	"example": {
+		"attributes": {
+			"preset": "centred"
+		},
+		"innerBlocks": [
+			{
+				"name": "blicks/header-area",
+				"attributes": {
+					"slot": "start"
+				}
+			},
+			{
+				"name": "blicks/header-area",
+				"attributes": {
+					"slot": "centre"
+				}
+			},
+			{
+				"name": "blicks/header-area",
+				"attributes": {
+					"slot": "end"
+				}
+			}
+		]
+	},
+	"editorScript": "blicks-pro-header-studio",
+	"style": "blicks-pro-header-studio"
+}

@@ -1,0 +1,44 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/dialog",
+	"title": "Dialog",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M6 4H18A3 3 0 0 1 21 7V17A3 3 0 0 1 18 20H6A3 3 0 0 1 3 17V7A3 3 0 0 1 6 4ZM6 6A1 1 0 0 0 5 7V17A1 1 0 0 0 6 18H18A1 1 0 0 0 19 17V7A1 1 0 0 0 18 6ZM7.75 13H16.25A1.25 1.25 0 0 1 17.5 14.25V14.25A1.25 1.25 0 0 1 16.25 15.5H7.75A1.25 1.25 0 0 1 6.5 14.25V14.25A1.25 1.25 0 0 1 7.75 13ZM14.75 9.25A1.75 1.75 0 1 1 18.25 9.25A1.75 1.75 0 1 1 14.75 9.25Z\" fill=\"currentColor\"/><path d=\"M7.75 8H13.25A1.25 1.25 0 0 1 14.5 9.25V9.25A1.25 1.25 0 0 1 13.25 10.5H7.75A1.25 1.25 0 0 1 6.5 9.25V9.25A1.25 1.25 0 0 1 7.75 8Z\" fill=\"#002bff\"/></svg>",
+	"description": "A native dialog — modal, drawer, bottom sheet or full screen — opened by a Button or a link to it.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [
+				"spacing.*", "border.*", "effects.*", "animation.*", "colors.*", "background.*", "typography.*",
+				"layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight",
+				"layout.gapRow", "layout.alignItems",
+				"flexChild.*", "gridChild.*"
+			],
+			"states": [ "default", "reduced" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":      { "type": "string" },
+		"blicks":        { "type": "object", "default": {} },
+		"title":         { "type": "string", "default": "" },
+		"anchor":        { "type": "string", "default": "" },
+		"kind":          { "type": "string", "default": "modal" },
+		"side":          { "type": "string", "default": "end" },
+		"place":         { "type": "string", "default": "center" },
+		"phone":         { "type": "string", "default": "keep" },
+		"modal":         { "type": "boolean", "default": true },
+		"closeButton":   { "type": "boolean", "default": true },
+		"closeLabel":    { "type": "string", "default": "Close" },
+		"outsideCloses": { "type": "boolean", "default": true },
+		"label":         { "type": "string", "default": "" },
+		"focus":         { "type": "string", "default": "" },
+		"backdrop":      { "type": "string", "default": "dark" },
+		"blur":          { "type": "boolean", "default": false },
+		"motion":        { "type": "string", "default": "rise" }
+	},
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

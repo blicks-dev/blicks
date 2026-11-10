@@ -5,6 +5,8 @@ import { __ } from '@wordpress/i18n';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useContext, useEffect, useMemo } from '@wordpress/element';
 import { Inspector } from '@/framework/inspector/Inspector';
+import { InspectorV2, type InspectorPanels } from '@/framework/inspector-v2/InspectorV2';
+import { StudioInspector } from '@/framework/inspector-v2/StudioInspector';
 import { buildElementStyle } from '@/framework/css/vars';
 import { applyBlockIdentity } from '@/framework/identity';
 import { cleanAttributes } from '@/framework/sanitize';
@@ -58,7 +60,18 @@ export interface InnerBlocksConfig {
 	 * focuses the first editable of the newly selected block) instead of leaving the wrapper selected.
 	 */
 	templateInsertUpdatesSelection?: boolean;
-	templateLock?: 'all' | 'insert' | 'contentOnly' | false;
+	/**
+	 * A function when the lock depends on the INSTANCE rather than the block type — a Scene is
+	 * read-only in the canvas and editable in its own full-screen editor, which is the same block
+	 * type in two states. Re-evaluated on every `edit()` render, so the block must also re-render
+	 * when whatever it keys off changes.
+	 */
+	templateLock?:
+		| 'all'
+		| 'insert'
+		| 'contentOnly'
+		| false
+		| ( ( attributes: any, clientId: string ) => 'all' | 'insert' | 'contentOnly' | false );
 	allowedBlocks?: string[];
 	orientation?: 'horizontal' | 'vertical' | ( ( attributes: any ) => 'horizontal' | 'vertical' );
 	renderAppender?: any;
@@ -68,6 +81,12 @@ export interface InnerBlocksConfig {
 	 * `render` must spread `ctx.innerBlocksProps` onto that element and ignore `ctx.children`.
 	 */
 	wrapperClassName?: string;
+	/**
+	 * Whether this instance takes children at all. A Button holds blocks only in its Blocks content
+	 * mode; in label mode nothing can be inserted or dropped and no appender shows. Saved markup is
+	 * the block's own business: `render` decides whether to print `children`.
+	 */
+	active?: ( attributes: any ) => boolean;
 }
 
 /**
@@ -121,7 +140,12 @@ export interface BlockConfig {
 	/** Block-specific inspector controls — rendered in the inspector's **Settings** tab. */
 	Controls?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	/** Block-specific toolbar items — wrapped in `<BlockControls>` (editor only). */
-	Toolbar?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
+	Toolbar?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void; clientId?: string } >;
+	/**
+	 * Opt into the v2 inspector: the block's own Settings · Style · Motion panels, in place of the
+	 * rail inspector and `Controls`/`Advanced`. Blocks move over one at a time.
+	 */
+	panels?: InspectorPanels;
 	/** Block-specific controls for the inspector's **Advanced** tab (above the shared advanced panel). */
 	Advanced?: React.ComponentType< { attributes: any; setAttributes: ( a: any ) => void } >;
 	innerBlocks?: boolean | InnerBlocksConfig;
@@ -163,6 +187,8 @@ export interface BlockConfig {
 	 * inner blocks). Used by list items.
 	 */
 	merge?: ( attributes: any, attributesToMerge: any ) => any;
+	/** Block transforms (`from` / `to`), forwarded to `registerBlockType` as written. */
+	transforms?: { from?: any[]; to?: any[] };
 	/**
 	 * Earlier saved shapes of this block, newest first — WordPress tries each one when today's
 	 * `save()` does not reproduce the stored markup, so existing posts migrate instead of showing
@@ -187,6 +213,13 @@ export interface BlockConfig {
  * Build the InnerBlocks `renderAppender` for a block with a `placeholder`: a labelled empty-state
  * card while the block has no children, collapsing to a plain add-block button once it does.
  */
+/** Stop a click on a link from following it; the click still selects the block. */
+function preventLinkClick( event: React.MouseEvent ): void {
+	if ( ( event.target as Element | null )?.closest?.( 'a[href]' ) ) {
+		event.preventDefault();
+	}
+}
+
 /**
  * Compact wireframe thumbnail for a preset — gray bars standing in for the layout shape. Far
  * cheaper and more legible than a live `BlockPreview` squished into a small card.
@@ -484,10 +517,17 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 
 	const innerWrapperClassName = innerBlocksProps.wrapperClassName;
 
-	function resolveInnerBlocksProps( attributes: any ): any {
-		const { wrapperClassName: _wrapperClassName, ...props } = innerBlocksProps;
+	function resolveInnerBlocksProps( attributes: any, clientId: string ): any {
+		const { wrapperClassName: _wrapperClassName, active, ...props } = innerBlocksProps;
+		if ( active && ! active( attributes ) ) {
+			props.allowedBlocks = [];
+			props.renderAppender = false;
+		}
 		if ( typeof props.orientation === 'function' ) {
 			props.orientation = props.orientation( attributes );
+		}
+		if ( typeof props.templateLock === 'function' ) {
+			props.templateLock = props.templateLock( attributes, clientId );
 		}
 		return props;
 	}
@@ -510,6 +550,9 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 			// Editor preview only; the front end is injected + validated server-side
 			// (StyleServiceProvider + Sanitize::attributes), so saved markup stays attribute-free.
 			...( save ? {} : htmlAttributeProps( attributes.htmlAttributes ) ),
+			// Editor only: a click on a link inside the block selects it instead of leaving the
+			// editor. Button, Image and Icon draw the same `<a href>` in both branches.
+			...( save ? {} : { onClickCapture: preventLinkClick } ),
 		};
 		return {
 			blockProps: save ? useBlockProps.save( props ) : useBlockProps( props ),
@@ -540,6 +583,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 	registerBlockType( settings.name, {
 		...settings,
 		...( config.merge ? { merge: config.merge } : {} ),
+		...( config.transforms ? { transforms: config.transforms } : {} ),
 		...( config.deprecated
 			? {
 					deprecated: config.deprecated.map( ( entry ) => ( {
@@ -574,6 +618,9 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 			const { replaceBlocks } = useDispatch( 'core/block-editor' ) as any;
 			const onReplace = ( blocks: any[] ) => replaceBlocks( clientId, blocks );
 
+			// In the Studio a styled block's inspector is the design panel; the post editor keeps its own.
+			const inStudio = useSelect( ( select: any ) => !! select( 'core/block-editor' ).getSettings()?.blicksStudio, [] );
+
 			// Block-specific editor effect (always mounts with the block). `config.useEdit` is a
 			// per-block-type constant, so this conditional hook call keeps a stable hook order.
 			config.useEdit?.( { attributes, setAttributes, clientId } );
@@ -589,7 +636,7 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 			let children: React.ReactNode = null;
 			let innerWrap: any = null;
 			if ( innerBlocksEnabled ) {
-				const innerCfg = resolveInnerBlocksProps( attributes );
+				const innerCfg = resolveInnerBlocksProps( attributes, clientId );
 				if (
 					( config.placeholder || config.repeater || config.appender === 'ghost' ) &&
 					innerCfg.renderAppender == null
@@ -602,13 +649,21 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 						( select: any ) => select( 'core/block-editor' ).getBlockCount( clientId ) === 0,
 						[ clientId ]
 					);
-					if ( isEmpty && config.placeholder && ! attributes.blicksBlank ) {
-						innerCfg.renderAppender = makePlaceholderAppender( clientId, config.placeholder );
-					} else if ( config.repeater ) {
-						innerCfg.renderAppender = makeRepeaterAppender( clientId, config.repeater );
-					} else {
-						innerCfg.renderAppender = makeGhostAppender( clientId, isEmpty );
-					}
+					// The appender is a component *type*, so it must stay the same object across
+					// renders: a fresh one each render makes React unmount and remount it, and a
+					// remounted placeholder loses the click that was landing on it. Anything that
+					// re-renders the block often (another plugin observing the block's DOM, say)
+					// would otherwise leave its presets unclickable.
+					const showPlaceholder = isEmpty && !! config.placeholder && ! attributes.blicksBlank;
+					innerCfg.renderAppender = useMemo( () => {
+						if ( showPlaceholder ) {
+							return makePlaceholderAppender( clientId, config.placeholder! );
+						}
+						if ( config.repeater ) {
+							return makeRepeaterAppender( clientId, config.repeater );
+						}
+						return makeGhostAppender( clientId, isEmpty );
+					}, [ clientId, showPlaceholder, isEmpty ] );
 				}
 				if ( innerWrapperClassName ) {
 					innerWrap = useInnerBlocksProps( { className: innerWrapperClassName }, innerCfg );
@@ -631,17 +686,38 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 						// render_block filter (StyleServiceProvider), so editor == frontend.
 						<style>{ previewCss.join( '' ) }</style>
 					) }
-					<Inspector
-						attributes={ attributes }
-						setAttributes={ setAttributes }
-						manifest={ manifest }
-						clientId={ clientId }
-						Controls={ config.Controls }
-						Advanced={ config.Advanced }
-					/>
+					{ inStudio && settings.supports?.blicks ? (
+						<StudioInspector
+							attributes={ attributes }
+							setAttributes={ setAttributes }
+							clientId={ clientId }
+							name={ metadata.name }
+							panels={ config.panels }
+							manifest={ manifest }
+							Controls={ config.Controls }
+							Advanced={ config.Advanced }
+						/>
+					) : config.panels ? (
+						<InspectorV2
+							attributes={ attributes }
+							setAttributes={ setAttributes }
+							clientId={ clientId }
+							name={ metadata.name }
+							panels={ config.panels }
+						/>
+					) : (
+						<Inspector
+							attributes={ attributes }
+							setAttributes={ setAttributes }
+							manifest={ manifest }
+							clientId={ clientId }
+							Controls={ config.Controls }
+							Advanced={ config.Advanced }
+						/>
+					) }
 					{ Toolbar && (
 						<BlockControls>
-							<Toolbar attributes={ attributes } setAttributes={ setAttributes } />
+							<Toolbar attributes={ attributes } setAttributes={ setAttributes } clientId={ clientId } />
 						</BlockControls>
 					) }
 					{ config.render( {

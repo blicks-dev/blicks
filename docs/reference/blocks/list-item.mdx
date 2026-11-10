@@ -1,0 +1,72 @@
+---
+title: "List item"
+description: "One item of a List: plain, done, highlighted or left out, with its own marker, and able to hold an inner list."
+---
+
+<Info>
+Generated from `resources/blocks/list-item/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/list-item` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `-` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
+
+## Blicks controls
+
+`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `spacing.*` · `border.*` · `effects.*` · `animation.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*` · `background.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `blicks` | `object` | `&#123;&#125;` |
+| `content` | `string` | `""` |
+| `desc` | `string` | `""` |
+| `icon` | `string` | `""` |
+| `markerColour` | `string` | `""` |
+| `state` | `string` | `""` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+One item of a List. It holds its words and, below them, one inner list for the items indented under it.
+
+## Controls
+
+### content
+
+The item's words, with bold, italic, links and the other inline formats.
+
+### state
+
+Normal, Highlight (a soft band behind the item) or Left out (struck through and grayed, with a cross for a marker).
+
+### icon
+
+An icon of its own, in an icon list. Empty uses the list's icon.
+
+### markerColour
+
+A marker color of its own. Empty uses the list's.
+
+## Tips
+
+- Indent and outdent with Tab and Shift+Tab while typing, or with the Level buttons.

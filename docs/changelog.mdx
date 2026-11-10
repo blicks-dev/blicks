@@ -3,10 +3,64 @@ title: "Changelog"
 description: "What shipped in each release of the Blicks plugin."
 ---
 
+<Update label="2.0.0" description="A clean break">
+
+Blicks 2.0 rewrites the blocks, the inspector and the style engine. **It does not migrate 1.x
+content** — read [Upgrading from 1.x](/upgrading) before you update a site with Blicks pages.
+
+**Blocks** — Section, Box, Heading, Text, Buttons, Button, Image, Icon, List, List item, Steps, Step,
+Form, Field, Input, Dialog, Loop and Menu link.
+
+- **Box** absorbs Stack, Grid, Spacer and Divider. **What is it?** makes it a plain wrapper, card,
+  panel, cover, badge, divider or spacer; **Arrange** lays out its children as written, stacked,
+  side by side, in a grid or in layers.
+- **List** and **List item** — bulleted, numbered and icon lists you type into, with Done, Highlight
+  and Left out items.
+- **Steps** and **Step** — steppers, "how it works" rows and timelines with a current step.
+- **Form**, **Field** and **Input** — contact and sign-up forms with templates, **Blicks ▸ Entries**,
+  email notifications and built-in spam checks. See [Forms](/guides/forms).
+- **Dialog** — modals, drawers, bottom sheets and full screens on the browser's own `<dialog>`.
+- **Loop** — repeat a card for every item in pasted JSON, a data endpoint or a WordPress query, with
+  pages.
+- **Menu link** — a link with a description line, an icon and a badge, for menus and link columns.
+
+**Inspector** — three tabs, **Settings**, **Style** and **Motion**, with sections named for what
+you want to do. **On hover**, **When clicked** and **Keyboard focus** are ready-made looks you can
+customize; phone layouts are switches on each block, such as **Stack on phones**. The state and
+device switchers are gone. **All settings** lists every value a block stores.
+
+**Design system** — a new admin screen with design languages, palettes, kits and a live preview of
+your site.
+
+**AI agents** — the MCP server and its abilities are in the free plugin. See
+[Connect an AI agent](/guides/connect-an-ai-agent).
+
+**Developers** — Extension API 2: a read-only description of the style engine and a validator in PHP
+and JavaScript, and pinned interface color variables. Stack, Grid, Spacer and Divider and seven
+control ids are removed. See [Migrating from API v1](/developers/migrating-from-v1).
+
+**Removed** — Stack, Grid, Spacer and Divider blocks; 1.x saved markup and its deprecations.
+
+Requires WordPress 7.0 or newer and PHP 8.1 or newer.
+
+</Update>
+
+<Update label="1.0.1" description="Fixes">
+
+- Each block carries its own icon in its metadata, so the blocks show their marks on the plugin page
+  and under **Plugins → Add New → Blocks**.
+- Documentation, Report a bug and Request a feature links on the plugin's row in the Plugins screen
+  and on the Overview screen.
+- Overview cards fill the space available to them and are evenly spaced.
+- The front-end stylesheet is no longer served from the browser cache after an update that changed
+  only CSS.
+
+</Update>
+
 <Update label="1.0.0" description="First public release">
 
-The first release of Blicks: **twelve composable Gutenberg blocks** on a design system that reads
-your theme's `theme.json` rather than replacing it.
+The first release of Blicks: twelve composable blocks on a design system whose tokens resolve
+through your theme's `theme.json`.
 
 **Blocks** — Section, Box, Stack, Grid, Heading, Text, Buttons, Button, Image, Icon, Spacer and
 Divider.

@@ -53,7 +53,7 @@ export function ColorRow( { hint, value, onChange }: Props ) {
 	const colorOf = ( slug: string, fallback: string ) => resolved[ slug ] || fallback;
 	const swatch = entry ? colorOf( entry.slug, entry.color ) : ( value || 'transparent' );
 	const name = entry ? entry.name : ( value || __( 'Not set', 'blicks' ) );
-	const label = hint ?? __( 'Colour', 'blicks' );
+	const label = hint ?? __( 'Color', 'blicks' );
 
 	const show = ( which: 'picker' | 'list' ) => {
 		setOpen( ( current ) => {
@@ -82,8 +82,8 @@ export function ColorRow( { hint, value, onChange }: Props ) {
 				<button
 					type="button"
 					className={ `bl-colorrow__caret ${ open === 'list' ? 'is-open' : '' }` }
-					title={ __( 'Theme colours', 'blicks' ) }
-					aria-label={ __( 'Theme colours', 'blicks' ) }
+					title={ __( 'Theme colors', 'blicks' ) }
+					aria-label={ __( 'Theme colors', 'blicks' ) }
 					aria-haspopup="listbox"
 					aria-expanded={ open === 'list' }
 					onClick={ () => show( 'list' ) }

@@ -234,7 +234,6 @@ export function styleToTrees( style: string ): Trees {
 	}
 
 	const color = decls.get( 'color' );
-	const transparentText = color === 'transparent' || decls.get( '-webkit-text-fill-color' ) === 'transparent';
 	if ( color && color !== 'transparent' ) trees.text[ 'colors.background' ] = slot( color );
 
 	const backgroundColor = decls.get( 'background-color' );
@@ -246,13 +245,11 @@ export function styleToTrees( style: string ): Trees {
 	const sizes = splitTop( decls.get( 'background-size' ) || '' );
 	const positions = splitTop( decls.get( 'background-position' ) || '' );
 	const clips = splitTop( decls.get( 'background-clip' ) || decls.get( '-webkit-background-clip' ) || '' );
-	// Pre-layer output: one layer + transparent text and a single (or absent) clip meant "text".
-	const legacyText = images.length === 1 && clips.length <= 1 && transparentText;
 
 	images.forEach( ( layer, index ) => {
 		// Shorter background lists repeat cyclically — mirror that when reading them back.
 		const clip = clips.length ? clips[ index % clips.length ] : '';
-		const target: Target = legacyText || clip === 'text' ? 'text' : 'highlight';
+		const target: Target = clip === 'text' ? 'text' : 'highlight';
 		layerToTree(
 			trees[ target ],
 			layer,

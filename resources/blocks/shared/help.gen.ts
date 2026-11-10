@@ -10,12 +10,16 @@ export interface GeneratedBlockHelp {
 
 export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 	"box": {
-		description: __( "Box is the generic styled wrapper for cards, panels, and manual layouts. Use it when Section, Stack, and Grid are too opinionated and you need one element with the full Blicks styling system.", 'blicks' ),
+		description: __( "Box is the one block for every surface on a page. Pick what it is — a plain wrapper, a card, a panel, a cover, a badge, a divider or a spacer — and how it arranges what's inside: one under another, side by side, in even columns, or layered on top of each other. Each choice is a starting point that sets ordinary style values, so everything it sets can be changed in the Style tab.", 'blicks' ),
 		controls: {
-			"blicks": __( "Stores the full Blicks style tree for layout, spacing, border, position, color, background, typography, and effects controls.", 'blicks' ),
-			"tag": __( "Chooses the HTML element for the wrapper. Use `div` for generic layout, `article` for repeatable cards, `aside` for supporting content, and `figure` for media groups.", 'blicks' )
+			"kind": __( "What the box is. Plain has no look of its own; Card, Panel and Cover start from a framed, tinted or full-color look and hold other blocks; Badge holds a short line of text; Divider draws a line; Spacer is empty room. Picking another kind starts its look over. A badge, divider or spacer holds no blocks, so those are offered only while the box is empty.", 'blicks' ),
+			"blicks": __( "Stores the full Blicks style tree. Arrangement, width, height and \"stay on screen\" all write into it.", 'blicks' ),
+			"tag": __( "The element the box is, for search engines and screen readers: a section of the page, a card or post, a side note, navigation and so on. It does not change the look.", 'blicks' ),
+			"layers": __( "Set by the \"On top\" arrangement: every child shares one cell, so later ones sit over earlier ones — words over a picture.", 'blicks' ),
+			"text": __( "The label a badge shows.", 'blicks' ),
+			"href": __( "Makes the whole box clickable. A container box gets a link stretched over it, with links and buttons inside it still clickable; a badge becomes the link.", 'blicks' )
 		},
-		tips: [ __( "Use Box inside Grid for pricing cards, feature cards, and other repeated panels.", 'blicks' ), __( "Use Section for page bands; use Box for the smaller wrappers inside those bands.", 'blicks' ) ],
+		tips: [ __( "Use a Card arranged as a stack inside a Grid box for pricing and feature cards.", 'blicks' ), __( "Use Section for page bands, including anything that runs edge to edge (full-bleed); a Box stays within the content width. Put Boxes inside the Section.", 'blicks' ), __( "A Cover arranged \"On top\" puts a heading over a background picture.", 'blicks' ) ],
 	},
 	"button": {
 		description: __( "Button renders a clickable action. It can output a real button when no URL is set or a link-style button when a URL is provided.", 'blicks' ),
@@ -27,7 +31,10 @@ export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 			"variant": __( "Chooses the visual style: primary/default, secondary, outline, ghost, destructive, or link.", 'blicks' ),
 			"size": __( "Chooses the button size preset.", 'blicks' ),
 			"icon": __( "Adds an optional built-in icon.", 'blicks' ),
-			"iconPosition": __( "Places the icon before or after the label.", 'blicks' )
+			"iconPosition": __( "Places the icon before or after the label.", 'blicks' ),
+			"width": __( "**Fit** sizes the button to its label, **Fill** stretches it across the row, and **Fixed** gives it an exact width (12rem to start). Buttons saved with the older **Wide** (at least 12rem) keep it.", 'blicks' ),
+			"action": __( "**On click** is a **Link**, a **Dialog** (open one, or close the one the button is in) or a **Form** (send it, or clear it).", 'blicks' ),
+			"Space between": __( "With an icon, or blocks inside, the space between them: **None**, **Small** (the default), **Medium** or **Large**, or an exact size.", 'blicks' )
 		},
 		tips: [ __( "Use one primary button per section when possible.", 'blicks' ), __( "Use outline or secondary variants for supporting actions.", 'blicks' ), __( "If the button navigates, set a URL; if it triggers an interaction, leave the URL empty.", 'blicks' ) ],
 	},
@@ -35,39 +42,70 @@ export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 		description: __( "Buttons is a container that lays out one or more Button blocks in a row or column with shared alignment, spacing, and wrapping. Only Button blocks can be placed inside it.", 'blicks' ),
 		controls: {
 			"orientation": __( "Arranges the buttons horizontally (a row) or vertically (a column).", 'blicks' ),
-			"gap": __( "Sets the space between buttons using the spacing scale (XS–LG).", 'blicks' ),
+			"gap": __( "Sets the space between buttons: **None**, **Small**, **Medium** or **Large**, from the spacing scale. Buttons saved with the older **Tight** step keep it.", 'blicks' ),
 			"justify": __( "Distributes the buttons along the main axis: start, center, end, or space-between.", 'blicks' ),
 			"wrap": __( "Allows buttons to wrap onto multiple lines when they run out of room, or keeps them on a single line.", 'blicks' )
 		},
 		tips: [ __( "Use a horizontal row with a Start or Center distribution for a typical primary/secondary action pair.", 'blicks' ), __( "Switch to vertical orientation for stacked calls-to-action on narrow layouts.", 'blicks' ), __( "Pair one default (primary) Button with an outline or ghost Button for a clear visual hierarchy.", 'blicks' ) ],
 	},
-	"divider": {
-		description: __( "Divider renders a semantic separator. Use it to separate related content groups, card sections, pricing features, or long page areas.", 'blicks' ),
+	"dialog": {
+		description: __( "Dialog is a native `<dialog>` that opens over the page: a modal, a drawer from either side, a bottom sheet, or a full screen. Use it for size guides, details, sign-ups, confirmations, menus and notices. It holds any Blicks blocks except Section, Loop and another Dialog.\n\nIn the editor a dialog is a card in the post with **Edit**, so the blocks around it stay where you put them. On the page it is closed until something opens it, wherever it sits in the post.", 'blicks' ),
 		controls: {
-			"orientation": __( "Chooses a horizontal or vertical divider.", 'blicks' ),
-			"thickness": __( "Sets the divider line thickness.", 'blicks' ),
-			"lineStyle": __( "Chooses the line style: solid, dashed, dotted, or none.", 'blicks' ),
-			"color": __( "Sets the divider color.", 'blicks' )
+			"title": __( "The dialog's name in the editor and in a Button's dialog picker. Not shown on the page.", 'blicks' ),
+			"anchor": __( "The address, `size-guide` for `#dialog-size-guide`. Set from the name when the dialog is added, and unique among the post's dialogs.", 'blicks' ),
+			"kind": __( "`Modal` is a centered card (or near the top, with **place**). `Drawer` slides in from the start or end **side** (left or right, flipped in right-to-left languages), the full height of the screen. `Sheet` rises from the bottom, the full width. `Full screen` covers the page.", 'blicks' ),
+			"phone": __( "For a modal: stay a card on phones, or become a bottom sheet or a full screen at phone width.", 'blicks' ),
+			"modal": __( "**Blocks the page**: on, the page behind is inert, darkened by the **backdrop** and does not scroll, and focus stays in the dialog. Off, there is no backdrop and the page stays usable; a modal sits in the bottom corner and a sheet along the bottom, for notices and offers.", 'blicks' ),
+			"closeButton": __( "A labeled close button in the top corner. Its name for screen readers is **closeLabel**.", 'blicks' ),
+			"outsideCloses": __( "Whether a click on the backdrop closes it. Esc always does. A dialog that does not block the page has no backdrop, and clicks on the page never close it.", 'blicks' ),
+			"label": __( "The dialog's name for screen readers. Left empty, the dialog is named by its first heading.", 'blicks' ),
+			"focus": __( "Where focus goes when it opens: the first field or button in it, or the close button. When it closes, focus returns to what opened it.", 'blicks' ),
+			"motion": __( "How a modal opens: rise, scale, fade, or none. Drawers and sheets always slide from their edge, and nothing moves when the visitor has asked for reduced motion.", 'blicks' )
 		},
-		tips: [ __( "Use Divider when the separation is meaningful, not purely decorative.", 'blicks' ), __( "Pair it with spacing so the line has room to breathe.", 'blicks' ), __( "Use border tokens for dividers that should match the theme.", 'blicks' ) ],
+		tips: [ __( "Start the dialog with a Heading: it names the dialog for screen readers.", 'blicks' ), __( "Use a drawer for menus and filters, a sheet for short choices on phones, a modal for everything else.", 'blicks' ), __( "Size and surface (width, padding, fill, corners, shadow) are in the Style tab, as on a Box.", 'blicks' ) ],
 	},
-	"grid": {
-		description: __( "Grid arranges child blocks in columns. Use it for feature cards, pricing cards, galleries, comparison panels, and any layout where multiple items should align in a repeated structure.", 'blicks' ),
+	"field": {
+		description: __( "Field is one input in a Form: short text, long text, email, phone, number, date, time, a slider, a dropdown, a set of choices, a consent box, or a hidden value sent with every entry. It goes anywhere inside a Form, directly or inside a Stack, Grid or Box in it, and nowhere else.\n\nA Field is made of blocks: its label is a **Text** block, its control an **Input** block and its help another Text, so each can be styled on its own. Write the label and help in place, in the canvas. The Field holds what the question is (its type, name and rules); the Input draws the control for it. The control is drawn on the page by the server, not saved as HTML in the post, so every author can add a Field whatever their role.", 'blicks' ),
 		controls: {
-			"columns": __( "Sets the number of equal-width columns when auto-fit is off.", 'blicks' ),
-			"autoFit": __( "Lets the grid create as many columns as fit the available width. This is useful for responsive card collections.", 'blicks' ),
-			"minColumnWidth": __( "Sets the minimum column width used by auto-fit grids.", 'blicks' ),
-			"gap": __( "Sets row and column spacing between grid children using Blicks spacing tokens (XS–XL).", 'blicks' ),
-			"dense": __( "Allows the browser to pack grid items into earlier empty spaces when possible.", 'blicks' ),
-			"tag": __( "Chooses the grid wrapper element. Use `div` for generic layout and `ul`/`ol` when the children form a list. For a full-width band, wrap the Grid in a Section block instead of changing the tag.", 'blicks' )
+			"type": __( "What it asks for. **Short text** is one line, **Long text** a message box, **Email** is checked as an address, **Phone** takes any country's format, **Number** and **Date** have a lowest, highest and step, **Time** takes hours and minutes, **Slider** picks a value on a scale, **Dropdown** picks one from a list, **Choices** shows the list as buttons to pick one or several, **Consent** is one box to tick beside a sentence, and **Hidden** sends a value the visitor never sees.", 'blicks' ),
+			"label": __( "The **Label** switch adds or removes the label Text, before the control (after the box for Consent, where it is the sentence beside it). Its words are the field's label in entries and emails, and what screen readers read. Switched off, write the name screen readers read out instead. The Form's **Mark fields** decides what follows a label: \"(optional)\" on fields that can be left empty (the default), a red `*` on required ones, both (`*` and \"Optional\"), or nothing. Consent never gets a mark: its label is its own sentence.", 'blicks' ),
+			"name": __( "The field's column in entries, the CSV export and emails. Made from the label when the field is added (`Wedding date` → `wedding_date`) and then kept, so renaming the label later does not move answers already received. Lower-case letters, digits and `_`, starting with a letter. Two fields in one form never share a name: a pasted copy becomes `name_2`. A field with no name is not sent.", 'blicks' ),
+			"placeholder": __( "Gray text shown while the field is empty. For a Dropdown it is the empty first choice; left empty, that reads \"Choose one\".", 'blicks' ),
+			"options": __( "The list for a Dropdown or Choices: add, remove and reorder rows. The answer sent must be one of them exactly.", 'blicks' ),
+			"optionNotes": __( "For Choices: a line under each option, such as a short description or a price. It moves and is removed with its option, and is shown, not sent.", 'blicks' ),
+			"multiple": __( "For Choices: **Several answers** turns the round buttons (one answer) into boxes to tick (any number).", 'blicks' ),
+			"min, max, step": __( "For Number and Slider: the lowest and highest allowed and the step between values (a Slider runs 0 to 100 by 1 when they are empty). For Date: dates as `YYYY-MM-DD`, or `today` for the day the page is shown in the site's timezone, and a step in days. For Time: times as `HH:MM` on the 24-hour clock, e.g. `09:00` and `17:30`.", 'blicks' ),
+			"maxLength": __( "**Most characters** for Short text, Long text, Email and Phone. Long text shows a counter under the box (`0 / 400`); the others stop at the limit without one.", 'blicks' ),
+			"appearance": __( "How the field is drawn. Choices: **List** (one option per line), **Chips** (rounded pills; the picked ones fill in), **Cards** (a card per option, with room for its note) or **Segments** (one joined bar, for two to five short options). Consent: **Box** or **Switch**. Number: **Field** or **Stepper** (the number between − and + buttons). Each is styled further by the Input: its Style tab styles every option, chip, card or segment.", 'blicks' ),
+			"prefix, suffix": __( "For Slider: the text before and after its numbers, such as `£` and `+`, shown on its value, its lowest and its highest.", 'blicks' ),
+			"defaultValue": __( "For Slider: the **Start value**, where the handle starts (empty: the middle of the scale). For Hidden: a fixed value, or one filled in for you. `{page}` is the id of the post the form is on, `{url}` its address and `{title}` its title, filled when the page is drawn. `{referrer}` (where the visitor came from) and the campaign tags `{utm_source}`, `{utm_medium}`, `{utm_campaign}`, `{utm_term}` and `{utm_content}` are filled by the visitor's browser, so they stay right on a cached page.", 'blicks' ),
+			"help": __( "The **Help text** switch adds or removes a Text under the field, read out with it by screen readers.", 'blicks' ),
+			"required": __( "The form will not send until it is filled in (for Choices with several answers, until at least one is ticked; for Consent, until the box is ticked). Hidden fields are never required.", 'blicks' ),
+			"width": __( "**Full**, **2/3**, **Half** or **1/3** of the form's width, so two or three fields can share a row. Phones, and any form narrower than 480px, always use the full width. Consent always takes the full width.", 'blicks' ),
+			"errorMessage": __( "**When it is missing or wrong**: the message shown under the field. Left empty, a message that fits the type is used, such as \"Enter an email address like name@example.com.\"", 'blicks' )
 		},
-		tips: [ __( "Use Grid for repeated sibling items, then use Stack inside each item for card content.", 'blicks' ), __( "Use two columns for pricing and comparison sections.", 'blicks' ), __( "Use auto-fit for collections that should adapt without manual breakpoint changes.", 'blicks' ) ],
+		tips: [ __( "Keep labels short and put instructions in **help**: a label is read every time the field is reached.", 'blicks' ), __( "Use **Email** and **Phone** rather than Short text: phones show the right keyboard and browsers can fill them in.", 'blicks' ), __( "Name hidden fields for what they hold (`source`, `campaign`), since the name is the column you will read them by.", 'blicks' ) ],
+	},
+	"form": {
+		description: __( "Form is a contact or sign-up form made of ordinary blocks: **Field** blocks, a **Button** set to **On click › Form › Send it** (and, if you like, another set to **Clear it**), and any Heading, Text, Stack, Grid or Box around them. It saves each entry to **Blicks › Entries**, emails it, and then shows a message, goes to a page or opens a dialog. Spam is kept out by a hidden trap field, a minimum wait, and, if you choose, reCAPTCHA or Cloudflare Turnstile.\n\nAn empty Form offers five templates: **Contact**, **Newsletter**, **Newsletter card**, **Call back** and **Blank**. Each adds blocks you can edit, move or delete.\n\nThe Form is dynamic: the post stores only its inner blocks, and the `<form>` is written when the page renders, so its addresses and keys can change without editing the post.", 'blicks' ),
+		controls: {
+			"template": __( "The template the form started from. Choosing another in Settings replaces the blocks inside the form, after asking.", 'blicks' ),
+			"save": __( "**Save each entry** to Blicks › Entries.", 'blicks' ),
+			"email": __( "**Email it** to **To** (empty: the site admin email; several addresses separated by commas). **Subject** may use `{name}` tags for a field's value, e.g. `New entry: {email}`. **Reply to the sender** sets the email's Reply-To to the Email field's address. The addresses are never written to the page.", 'blicks' ),
+			"after": __( "What happens after sending: **Message** shows **Title** and **Message** in place of the form; **Page** goes to a published page; **Dialog** opens a Dialog block on the page.", 'blicks' ),
+			"spam": __( "The hidden trap field is always on. **Wait at least** rejects sends faster than this many seconds after the page loaded (0 to 60). **Challenge** adds reCAPTCHA v3 (invisible), reCAPTCHA v2 (a box to tick) or Cloudflare Turnstile; its keys are set once in Blicks › Settings › Forms, and the provider's script loads only on pages with that form. For v3, **Block below** is the lowest score that passes; lower scores go to Entries › Spam.", 'blicks' ),
+			"marker": __( "**Mark fields**: what follows each field's label. **(optional)** after the labels of fields that can be left empty (the default); **\\* required**, a red `*` after required ones; **Both**, `*` on required fields and \"Optional\" on the others; or **None**. Consent boxes are never marked.", 'blicks' ),
+			"look": __( "How every field in the form looks: **Filled**, **Outlined** or **Line**.", 'blicks' ),
+			"labels": __( "Where field labels sit: **Above**, **Inside**, or **Hidden** (still read out by screen readers).", 'blicks' )
+		},
+		tips: [  ],
 	},
 	"heading": {
 		description: __( "Heading renders semantic H1-H6 text. Use it for page titles, section titles, card titles, and content hierarchy that should remain meaningful to readers and search engines.", 'blicks' ),
 		controls: {
 			"level": __( "Sets the heading level from H1 to H6. Choose the level from document structure first, then style it with typography controls if the visual size needs to differ.", 'blicks' ),
-			"content": __( "The editable heading text.", 'blicks' )
+			"content": __( "The editable heading text.", 'blicks' ),
+			"anchor": __( "The heading's `id`, so a link can jump to it (`#getting-around`). Settings offers one made from the words.\n\nTo make a heading look like another level without changing what screen readers hear, set `typography.role` (`display`, `h1`–`h4`) and keep `level` for the outline.", 'blicks' )
 		},
 		tips: [ __( "Use one H1 for the main page title.", 'blicks' ), __( "Do not skip heading levels just to change visual size.", 'blicks' ), __( "Use typography controls for alignment, size, weight, and text color overrides.", 'blicks' ) ],
 	},
@@ -77,7 +115,10 @@ export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 			"icon": __( "Chooses the icon glyph.", 'blicks' ),
 			"size": __( "Sets the icon size.", 'blicks' ),
 			"strokeWidth": __( "Controls the line weight for stroke-based icons.", 'blicks' ),
-			"label": __( "Adds an accessible label. Leave it empty when the icon is decorative.", 'blicks' )
+			"filled": __( "Fills the shape with the icon color (`bl-icon--filled`). Suits closed shapes such as stars, hearts and circles; open line icons lose their inner detail.", 'blicks' ),
+			"label": __( "Adds an accessible label. Leave it empty when the icon is decorative. A linked icon always needs one.", 'blicks' ),
+			"flipH, flipV, turn": __( "Mirror the drawing left to right or top to bottom, and turn it by a quarter (90, 180 or 270 degrees).", 'blicks' ),
+			"url, linkTarget, rel": __( "Make the icon a link, optionally opening in a new tab.", 'blicks' )
 		},
 		tips: [ __( "Pair decorative icons with nearby text instead of relying on the icon alone.", 'blicks' ), __( "Add a label when the icon communicates meaning by itself.", 'blicks' ), __( "Use text color controls to make icons follow the design system.", 'blicks' ) ],
 	},
@@ -95,44 +136,122 @@ export const GENERATED_BLOCK_HELP: Record< string, GeneratedBlockHelp > = {
 		},
 		tips: [ __( "Write alt text for meaningful images; leave it empty only when the image is decorative.", 'blicks' ), __( "Use aspect ratio for consistent card and grid layouts.", 'blicks' ), __( "Use Background controls on Section or Box for decorative imagery.", 'blicks' ) ],
 	},
+	"input": {
+		description: __( "Input is the control of a Field: the box, list, choices or tick box a visitor fills in. Every Field has exactly one, and it cannot be removed on its own. What it asks for — its type, name, options, placeholder and rules — is set on the Field; the Input draws it.", 'blicks' ),
+		controls: {
+			"icon": __( "An icon drawn inside the control, at its start, for one-line boxes (Short text, Email, Phone, Number, Date, Time) and Dropdowns. Screen readers skip it. A Number drawn as a stepper has none.", 'blicks' )
+		},
+		tips: [  ],
+	},
+	"list": {
+		description: __( "List is a bulleted, numbered or icon list you type into. Enter adds the next item, Tab indents it under the one above and Shift+Tab brings it back out. Enter on an empty item steps out one level, and at the top it leaves the list. Backspace at the start of an item joins it to the one above. Pasting several lines makes one item a line. Typing \"- \", \"* \" or \"1. \" at the start of a Text turns it into a List.", 'blicks' ),
+		controls: {
+			"kind": __( "What marks each item: bullets, numbers, icons, or nothing (plain). Numbered lists save as `ol`, the rest as `ul`.", 'blicks' ),
+			"bullet": __( "The bullet's shape: dot, ring, square, dash or chevron. Inner lists step down from a dot to a ring to a square.", 'blicks' ),
+			"numbering": __( "How items are counted: 1., 01, a., i., or outline numbering (1.1), where inner lists count on from their item.", 'blicks' ),
+			"icon": __( "The icon every item is marked with, from the same library as the Icon block. An item can pick its own.", 'blicks' ),
+			"start": __( "The number the list starts counting from.", 'blicks' ),
+			"reversed": __( "Counts down instead of up.", 'blicks' ),
+			"arrange": __( "Stacked (one under another), in a row (with an optional separator between items), or in two to four columns. Phones get one column.", 'blicks' ),
+			"gap": __( "The space between items: tight, normal, roomy or spacious.", 'blicks' ),
+			"lines": __( "Draws a thin line between items.", 'blicks' ),
+			"look": __( "Each item plain, as a card, or on alternating stripes.", 'blicks' ),
+			"markerColour": __( "The marker's color, from the theme. Empty uses the text color.", 'blicks' ),
+			"markerBehind": __( "A soft square, a soft circle or a solid circle behind an icon or a number.", 'blicks' )
+		},
+		tips: [ __( "Use the outer list's settings for the look; inner lists follow it at every level.", 'blicks' ), __( "For a checklist or a feature list, pick Icons and a check, then put a soft square behind it.", 'blicks' ), __( "Mark what a plan leaves out with the List item's \"Left out\" state rather than a second list.", 'blicks' ) ],
+	},
+	"list-item": {
+		description: __( "One item of a List. It holds its words and, below them, one inner list for the items indented under it.", 'blicks' ),
+		controls: {
+			"content": __( "The item's words, with bold, italic, links and the other inline formats.", 'blicks' ),
+			"state": __( "Normal, Highlight (a soft band behind the item) or Left out (struck through and grayed, with a cross for a marker).", 'blicks' ),
+			"icon": __( "An icon of its own, in an icon list. Empty uses the list's icon.", 'blicks' ),
+			"markerColour": __( "A marker color of its own. Empty uses the list's.", 'blicks' )
+		},
+		tips: [ __( "Indent and outdent with Tab and Shift+Tab while typing, or with the Level buttons.", 'blicks' ) ],
+	},
+	"loop": {
+		description: __( "Loop repeats the blocks inside it, the card, once for every item in a list: pasted JSON, a data endpoint an administrator added, or a WordPress query. Design the card once; the Loop draws one per item, in a grid, a bento or a list.\n\nIn the editor the first card is the live one you edit, and the others preview the next items. A Heading, Text, Image, Button or Box badge inside the card can show a field of each item: choose it under **Data › comes from**, and format it under **Format**.\n\nValues from JSON and endpoints are always shown as text, never as markup, and links must be `http`, `https` or a path on your site.", 'blicks' ),
+		controls: {
+			"source": __( "Where the items come from: `json`, `endpoint` or `query`.", 'blicks' ),
+			"data": __( "The pasted JSON, for the JSON source.", 'blicks' ),
+			"path": __( "Which list to loop over when the JSON or the endpoint's answer holds more than one.", 'blicks' ),
+			"endpoint": __( "The id of the data endpoint to read, for the Endpoint source. The address itself stays in the site's settings, never in the post.", 'blicks' ),
+			"query": __( "The post type, order and filters for the WordPress source.", 'blicks' ),
+			"limit": __( "How many items to show, up to 50. With **pagination** on, every item is shown, a page at a time.", 'blicks' ),
+			"offset": __( "How many items to skip from the start.", 'blicks' ),
+			"sort": __( "Sort JSON and endpoint items by one of their fields.", 'blicks' ),
+			"filter": __( "Keep only the items where one field matches.", 'blicks' ),
+			"layout": __( "`Grid` sets columns per device in **columns**. `Bento` repeats a pattern of tiles (1 × 1, 2 × 1, 1 × 2, 2 × 2) at a row height, set in **bento**. `List` shows one card per row.", 'blicks' ),
+			"gap": __( "The space between cards: small, medium or large.", 'blicks' ),
+			"equalHeights": __( "**Same height in a row** keeps a row's cards level when their text runs to different lengths.", 'blicks' ),
+			"rules": __( "**Card rules** change a card when its item or position matches: a larger tile, the Highlight style, a different badge color, or a block hidden for some items. Rules run top to bottom, and the lower one wins when two change the same thing.", 'blicks' ),
+			"emptyText": __( "The message visitors see when there are no items. Left blank, the Loop shows nothing.", 'blicks' ),
+			"pagination": __( "Split the items into pages: **Numbers** (page links with Previous and Next) or **Load more** (a count and a button, optionally also loading as the visitor scrolls). Each page has its own address, `?loop-<id>=<page>`, so it can be bookmarked or shared.", 'blicks' )
+		},
+		tips: [ __( "Start from **Choose a card for this Loop**: every design there is drawn with your first item, and its blocks are connected to fields with matching names.", 'blicks' ), __( "Use an endpoint only for a public or read-only feed: endpoints cannot send sign-in headers.", 'blicks' ), __( "Size and surface (width, padding, fill, corners, shadow) are in the Style tab, as on a Box.", 'blicks' ) ],
+	},
+	"menu-link": {
+		description: __( "Menu link is one link for a menu or a column of links: a label, an optional line of description under it, an optional icon before it and a badge such as \"New\" after it. The whole row is the link, so it is easy to hit on a phone. Use it in mega menu panels, footer columns and sidebars.", 'blicks' ),
+		controls: {
+			"label": __( "The link's text. Type it on the canvas.", 'blicks' ),
+			"description": __( "A short line under the label. Leave it empty for a plain link.", 'blicks' ),
+			"url": __( "Where the link goes.", 'blicks' ),
+			"linkTarget": __( "Opens the link in a new tab.", 'blicks' ),
+			"icon": __( "An optional icon before the label.", 'blicks' ),
+			"badge": __( "A short tag after the label, such as \"New\" or \"Beta\".", 'blicks' )
+		},
+		tips: [ __( "Keep descriptions to one short line; a phone menu may hide them.", 'blicks' ), __( "Put Menu links in a Box arranged as a stack, with a Heading over them, to make a column of links.", 'blicks' ) ],
+	},
 	"section": {
-		description: __( "Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly.", 'blicks' ),
+		description: __( "Section is the full-bleed page band. It renders a fixed semantic `<section>` for background, surface, spacing, and block styling, plus an inner content wrapper whose width, min width, and max width are controlled directly. Its inspector has three tabs: **Settings** (the band and its content width), **Style** (the shared Style panel: fill, border, corners, shadow, space) and **Motion** (entrance, scroll and hover effects).", 'blicks' ),
 		controls: {
-			"sectionWidth": __( "Sets the outer section width. Keep `auto` for normal WordPress full-width alignment behavior, or use a CSS length when the section itself needs a specific width.", 'blicks' ),
-			"sectionHeight": __( "Sets the outer section minimum height. Keep `auto` for content-driven height, or use values like `80vh`, `600px`, or `100svh` for viewport-based bands without clipping wrapped content.", 'blicks' ),
-			"contentWidth": __( "Sets the inner content wrapper width.", 'blicks' ),
-			"contentMinWidth": __( "Sets the inner content wrapper minimum width.", 'blicks' ),
-			"contentMaxWidth": __( "Sets the inner content wrapper maximum width. The default follows `var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))` so the section stays aligned with the active design system or the active WordPress theme layout.", 'blicks' ),
-			"surface": __( "Applies a preset treatment to the full-bleed outer section. Use `plain` for invisible structure, `muted` for soft bands, `card` for elevated panels, and `outline` for bordered groups.", 'blicks' ),
-			"sectionSpace": __( "Applies vertical padding to the outer section. Use it for page rhythm before reaching for manual spacing controls.", 'blicks' )
+			"align": __( "Settings ▸ Band. **Edge to edge** (`full`, the default) runs the band across the whole page; **In the column** sits it in the content column like any other block.", 'blicks' ),
+			"sectionWidth": __( "Settings ▸ Band ▸ Width. Sets the outer section width. Keep `auto` for normal WordPress full-width alignment behavior, or type a CSS length when the section itself needs a specific width.", 'blicks' ),
+			"sectionHeight": __( "Settings ▸ Height, at least. Sets the outer section minimum height. Keep `auto` for content-driven height, or use values like `80vh`, `600px`, or `100svh` for viewport-based bands without clipping wrapped content.", 'blicks' ),
+			"contentWidth": __( "Settings ▸ Content width ▸ Width. Sets the inner content wrapper width.", 'blicks' ),
+			"contentMinWidth": __( "Settings ▸ Content width ▸ At least. Sets the inner content wrapper minimum width.", 'blicks' ),
+			"contentMaxWidth": __( "Settings ▸ Content width ▸ At most. Sets the inner content wrapper maximum width. The default, **Theme**, follows `var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))` so the section stays aligned with the active design system or the active WordPress theme layout.", 'blicks' ),
+			"surface": __( "Settings ▸ Surface. Applies a preset treatment to the full-bleed outer section. Use `plain` for invisible structure, `muted` for soft bands, `card` for elevated panels, and `outline` for bordered groups.", 'blicks' ),
+			"sectionSpace": __( "Settings ▸ Space above and below. Applies vertical padding to the outer section. Use it for page rhythm before reaching for the Style tab's space controls.", 'blicks' )
 		},
-		tips: [ __( "Prefer Section for root-level page bands and major layout areas.", 'blicks' ), __( "Put Stack or Grid inside Section for content layout.", 'blicks' ), __( "The outer section owns the background; the inner wrapper owns content sizing.", 'blicks' ) ],
+		tips: [ __( "Prefer Section for root-level page bands and major layout areas.", 'blicks' ), __( "Put a Box inside Section for content layout; the starting layouts add a stacked Box for you.", 'blicks' ), __( "The outer section owns the background; the inner wrapper owns content sizing.", 'blicks' ), __( "Every size field takes a CSS length, a keyword such as `auto` or `none`, or a function such as `clamp()` or `var()`.", 'blicks' ) ],
 	},
-	"spacer": {
-		description: __( "Spacer adds intentional empty space. Use it sparingly to create rhythm between sections or to reserve space in utility layouts.", 'blicks' ),
+	"step": {
+		description: __( "One step of a Steps block. It starts with a heading and a line of text, and can hold any other blocks under them.", 'blicks' ),
 		controls: {
-			"size": __( "Sets the spacer dimension.", 'blicks' ),
-			"orientation": __( "Chooses whether the spacer creates vertical or horizontal space.", 'blicks' )
+			"icon": __( "An icon of its own, when the steps are marked with icons.", 'blicks' ),
+			"label": __( "A label beside the step, such as a date, when the steps run down with labels.", 'blicks' )
 		},
-		tips: [ __( "Prefer Section spacing and Stack/Grid gaps before adding Spacer blocks.", 'blicks' ), __( "Use Spacer for exceptional layout rhythm, not as the default spacing system.", 'blicks' ), __( "Keep spacer values token-like and consistent across a page.", 'blicks' ) ],
+		tips: [ __( "Make a step the current one from its toolbar or its panel; the steps around it follow.", 'blicks' ) ],
 	},
-	"stack": {
-		description: __( "Stack arranges child blocks in one direction. Use it for vertical content groups, horizontal action rows, navigation groups, and simple card internals where items need predictable spacing.", 'blicks' ),
+	"steps": {
+		description: __( "Steps shows a process one step after another: across the page (a stepper or a \"how it works\" row) or down it (a timeline). Each Step holds a heading, text and any other blocks. Set a current step and the steps before it read as done, with a tick, and the steps after it as upcoming. Phones always show steps down.", 'blicks' ),
 		controls: {
-			"orientation": __( "Sets the main axis. `Vertical` stacks children top to bottom; `Horizontal` places children in a row.", 'blicks' ),
-			"tag": __( "Chooses the wrapper element. Use `div` for generic layout, `section` for meaningful groups, `nav` for navigation, and `ul` when the children form a list.", 'blicks' ),
-			"gap": __( "Sets the spacing between children using Blicks spacing tokens.", 'blicks' ),
-			"align": __( "Controls cross-axis alignment. In a vertical stack it affects horizontal child alignment; in a horizontal stack it affects vertical alignment.", 'blicks' ),
-			"justify": __( "Controls main-axis distribution. Use it when the stack has extra space and children need to group, spread, or center.", 'blicks' ),
-			"wrap": __( "Allows horizontal stacks to wrap onto multiple lines when space gets tight.", 'blicks' )
+			"layout": __( "Across or down.", 'blicks' ),
+			"marker": __( "What marks each step: its number, an icon or a dot.", 'blicks' ),
+			"numbering": __( "1, 2, 3 or 01, 02, 03.", 'blicks' ),
+			"icon": __( "The icon every step is marked with. A step can pick its own.", 'blicks' ),
+			"current": __( "The step the reader is on; 0 for none, when every step looks the same.", 'blicks' ),
+			"tickDone": __( "Shows a tick on the steps before the current one.", 'blicks' ),
+			"status": __( "Writes \"Done\", \"Step 3 of 5\" or \"Upcoming\" with each step.", 'blicks' ),
+			"join": __( "Joins the markers with a line, in the marker color up to the current step.", 'blicks' ),
+			"line": __( "A solid or dashed line.", 'blicks' ),
+			"labels": __( "A label beside each step, such as a date, when the steps run down: a timeline.", 'blicks' ),
+			"markerShape": __( "A filled circle, a square, or no shape — the number alone, large, as a \"how it works\" row shows it.", 'blicks' ),
+			"outline": __( "Draws large numbers as an outline.", 'blicks' )
 		},
-		tips: [ __( "Use Stack inside cards, heroes, headers, and form-like groups.", 'blicks' ), __( "Use horizontal Stack for buttons and compact metadata rows.", 'blicks' ), __( "Use Grid instead when children need columns, rows, or equal-width tracks.", 'blicks' ) ],
+		tips: [ __( "Use Steps for a process or a history; use a List for things that are not in order.", 'blicks' ) ],
 	},
 	"text": {
 		description: __( "Text renders a rich paragraph. Use it for body copy, descriptions, captions, feature text, short notes, and supporting content.", 'blicks' ),
 		controls: {
-			"content": __( "The editable paragraph content. Supports inline formatting such as bold, italic, and links.", 'blicks' )
+			"content": __( "The editable paragraph content. Supports inline formatting such as bold, italic, and links.", 'blicks' ),
+			"tag": __( "The HTML element: a paragraph (default), a div, a span or small print.", 'blicks' ),
+			"variant": __( "Kept for Text saved before type roles: `lead` draws the Lead style. Kind now writes `typography.role` (body, lead, small, caption) and sets `variant` back to `default`, so the two never disagree. Write the role.", 'blicks' ),
+			"dropCap": __( "Enlarges the first letter, for an opening paragraph.", 'blicks' )
 		},
-		tips: [ __( "Keep Text blocks focused; use multiple Text blocks instead of one long mixed-purpose paragraph.", 'blicks' ), __( "Pair Text with Heading inside Stack for consistent content groups.", 'blicks' ), __( "Use typography controls for alignment and text styling instead of adding custom classes.", 'blicks' ) ],
+		tips: [ __( "Keep Text blocks focused; use multiple Text blocks instead of one long mixed-purpose paragraph.", 'blicks' ), __( "Pair Text with Heading inside a stacked Box for consistent content groups.", 'blicks' ), __( "Use typography controls for alignment and text styling instead of adding custom classes.", 'blicks' ) ],
 	}
 };

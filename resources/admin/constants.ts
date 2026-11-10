@@ -8,33 +8,10 @@ import type { BuiltinView, TokenValues, TypeRoleSnapshot, TypeRoleSlot, TypeRole
  * `adminViews()` from `./routing` for "is this a view the app can open"; this is only the
  * built-in set, which several panels still need to reason about on its own.
  */
-export const BUILTIN_VIEWS: readonly BuiltinView[] = [ 'overview', 'design', 'settings' ];
+export const BUILTIN_VIEWS: readonly BuiltinView[] = [ 'overview', 'design', 'settings', 'mcp', 'entries' ];
 
 /** @deprecated Use `adminViews()` from `./routing`, which includes registered pages. */
 export const ADMIN_VIEWS: readonly BuiltinView[] = BUILTIN_VIEWS;
-
-// The Design System view's section anchors (`#design/<id>` → `<section id="s-<id>">`). The
-// panel renders its own nav with live counts; this is the id↔label list everything else
-// (command palette, deep links) needs.
-export const DESIGN_SECTIONS: ReadonlyArray< { id: string; label: string } > = [
-	{ id: 'themes', label: __( 'Themes', 'blicks' ) },
-	{ id: 'color', label: __( 'Color', 'blicks' ) },
-	{ id: 'type', label: __( 'Typography', 'blicks' ) },
-	{ id: 'space', label: __( 'Spacing', 'blicks' ) },
-	{ id: 'radius', label: __( 'Radius', 'blicks' ) },
-	{ id: 'shadow', label: __( 'Shadow', 'blicks' ) },
-	{ id: 'gradient', label: __( 'Gradient', 'blicks' ) },
-	{ id: 'motion', label: __( 'Motion', 'blicks' ) },
-	{ id: 'anim', label: __( 'Animation', 'blicks' ) },
-	{ id: 'z', label: __( 'Z-index', 'blicks' ) },
-	{ id: 'opacity', label: __( 'Opacity', 'blicks' ) },
-	{ id: 'border', label: __( 'Border', 'blicks' ) },
-	{ id: 'ring', label: __( 'Focus ring', 'blicks' ) },
-	{ id: 'sizing', label: __( 'Sizing', 'blicks' ) },
-	{ id: 'leading', label: __( 'Line-height', 'blicks' ) },
-	{ id: 'bp', label: __( 'Breakpoints', 'blicks' ) },
-	{ id: 'out', label: __( 'Output', 'blicks' ) },
-];
 
 export const TOKENS = {
 	color: [
@@ -62,19 +39,33 @@ export const TOKENS = {
 	shadow: [ 'none', 'sm', 'md', 'lg', 'xl' ],
 	fontSize: [ 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl' ],
 	fontFamily: [ 'sans', 'serif', 'mono' ],
-	gradient: [ 'brand', 'paper', 'atomic' ],
+	gradient: [ 'brand', 'paper', 'atomic', 'backdrop' ],
 	transition: [ 'fast', 'base', 'slow' ],
 	transform: [ 'lift', 'press', 'zoom' ],
 	filter: [ 'blur', 'dim', 'grayscale' ],
 	zIndex: [ 'base', 'sticky', 'drawer', 'popover', 'drag', 'toast' ],
 	opacity: [ 'disabled', 'muted', 'scrim', 'hover' ],
 	borderWidth: [ 'hair', 'strong', 'heavy' ],
-	borderStyle: [ 'solid', 'dashed', 'dotted' ],
-	ring: [ 'brand', 'subtle', 'danger' ],
 	width: [ 'prose', 'content', 'wide', 'full' ],
 	aspect: [ 'square', 'wide', 'portrait' ],
 	leading: [ 'tight', 'snug', 'body', 'loose' ],
+	content: [ 'size' ],
+	button: [ 'radius', 'height', 'padding-x', 'padding-y', 'font-size', 'font-weight', 'border-width' ],
 } as const;
+
+// The `button` family has no value of its own until a theme or a design language sets one: each
+// slug falls back, in `blocks/button/style.scss`, to the primitive below, so an unset button
+// keeps following the radius and spacing scales. The admin shows these as "Follows …";
+// `token-parity.test.ts` holds them to the stylesheet.
+export const BUTTON_FOLLOWS: Record< string, string > = {
+	radius: 'var(--blicks-radius-md, 0.5rem)',
+	height: '2.5rem',
+	'padding-x': '1rem',
+	'padding-y': '0',
+	'font-size': '0.875rem',
+	'font-weight': '500',
+	'border-width': '1px',
+};
 
 export const TOKEN_CATEGORY_KEYS = Object.keys( TOKENS ) as ( keyof typeof TOKENS )[];
 
@@ -83,6 +74,9 @@ export const TOKEN_CATEGORY_KEYS = Object.keys( TOKENS ) as ( keyof typeof TOKEN
 // human-friendly literals.
 export function defaultTokenValue( category: keyof typeof TOKENS, token: string ): string {
 	if ( category === 'color' ) return COLOR_FALLBACKS[ token ] ?? '';
+	// A component family has no floor: aliasing it to its own var would be a cycle, and empty is
+	// what tells a button to follow the primitives.
+	if ( category === 'button' ) return '';
 	if ( category === 'spacing' ) return token === '0' ? '0' : token === 'px' ? '1px' : `var(--blicks-spacing-${ token })`;
 	if ( category === 'shadow' ) return token === 'none' ? 'none' : `var(--blicks-shadow-${ token })`;
 	return `var(--blicks-${ category }-${ token })`;

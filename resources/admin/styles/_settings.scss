@@ -1,306 +1,95 @@
-/* ════════════════════════════════════════════════════════════════════════
-   Settings — port of mockups/admin-design/admin-overview.html
-   (that file's <title> is "Blicks — Settings"; the filename is misleading)
-   ════════════════════════════════════════════════════════════════════════ */
+/* ---------- Settings ----------
+   A handful of real choices, each next to what it changes. */
 
-.blicks-admin .v-settings .cols {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-	margin-bottom: 16px;
-}
+.blicks-admin .sp { background: var(--paper); }
+.blicks-admin .sp-in { max-width: 860px; gap: 0; }
+.blicks-admin .sp-head { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 8px; }
+.blicks-admin .sp-head h1 { margin-bottom: 4px; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+.blicks-admin .sp-head p { max-width: 60ch; color: var(--ink-2); }
+.blicks-admin .sp-head .link-btn { margin-left: auto; font-size: 13px; white-space: nowrap; }
+.blicks-admin .sp-sec { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; padding: 32px 0; border-bottom: 1px solid var(--hair); }
+.blicks-admin .sp-sec:last-child { border-bottom: 0; }
+.blicks-admin .sp-sec > header h2 { margin-bottom: 4px; font-size: 15px; font-weight: 600; }
+.blicks-admin .sp-sec > header p { color: var(--ink-3); font-size: 13px; }
+.blicks-admin .sp-rows { display: grid; overflow: hidden; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .sp-row { display: grid; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .sp-row:last-child { border-bottom: 0; }
+.blicks-admin .sp-row.changed { background: var(--tint); }
+.blicks-admin .sp-top { display: flex; align-items: flex-start; gap: 16px; }
+.blicks-admin .sp-top > div { flex: 1; min-width: 0; }
+.blicks-admin .sp-top b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.blicks-admin .sp-top span { display: block; max-width: 56ch; margin-top: 2px; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .sp-top .icon-btn { flex-shrink: 0; margin-top: -6px; }
 
-.blicks-admin .v-settings .panel {
-	display: flex;
-	flex-direction: column;
-	padding: 26px 28px;
-	border: var(--hair);
-	background: var(--surface);
-}
+/* What a setting does */
+.blicks-admin .eg { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r); background: var(--plate), var(--sunk); color: var(--ink-2); font-size: 12.5px; }
+.blicks-admin .eg-k { flex-shrink: 0; color: var(--ink-3); font-size: 11px; }
+.blicks-admin .flowline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.blicks-admin .flowline span { padding: 3px 8px; border-radius: var(--r-xs); background: var(--paper); box-shadow: inset 0 0 0 1px var(--hair); color: var(--ink); font-size: 12px; white-space: nowrap; }
+.blicks-admin .flowline span.off { background: none; color: var(--ink-3); text-decoration: line-through; }
+.blicks-admin .flowline em { color: var(--ink-3); font-style: normal; }
 
-.blicks-admin .v-settings .p-head {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 12px;
-	margin-bottom: 6px;
-}
+/* Uninstall: two plain choices; the destructive one says exactly what goes. */
+.blicks-admin .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.blicks-admin .choice { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--hair); border-radius: var(--r-lg); background: var(--paper); text-align: left; }
+.blicks-admin .choice:hover { border-color: var(--ink-3); }
+.blicks-admin .choice b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.blicks-admin .choice span { color: var(--ink-2); font-size: 12.5px; }
+.blicks-admin .choice .rb { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--outline); }
+.blicks-admin .choice[aria-checked="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.blicks-admin .choice[aria-checked="true"] .rb { background: var(--primary); box-shadow: inset 0 0 0 4px var(--paper), 0 0 0 1.5px var(--primary); }
+.blicks-admin .choice.danger[aria-checked="true"] { border-color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); }
+.blicks-admin .choice.danger[aria-checked="true"] .rb { background: var(--warn); box-shadow: inset 0 0 0 4px var(--paper), 0 0 0 1.5px var(--warn); }
+.blicks-admin .losing { padding: 12px 14px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); font-size: 13px; }
+.blicks-admin .losing ul { margin: 6px 0 0; padding-left: 18px; list-style: disc; }
+.blicks-admin .facts { display: grid; overflow: hidden; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); }
+.blicks-admin .fact { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--hair); }
+.blicks-admin .fact:last-child { border-bottom: 0; }
+.blicks-admin .fact svg { margin-top: 2px; fill: var(--primary); }
+.blicks-admin .fact b { font-weight: 600; }
+.blicks-admin .fact span { display: block; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .fact code { color: var(--ink-3); font-size: 11.5px; }
+.blicks-admin .docs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 
-.blicks-admin .v-settings .p-head h2 {
-	font-size: var(--bl-ui-text-xl);
-}
-
-.blicks-admin .v-settings .p-head .sub {
-	margin-top: 4px;
-	color: var(--muted);
-	font-size: var(--bl-ui-text-md);
-}
-
-.blicks-admin .v-settings .badge {
-	flex: none;
-	padding: 4px 8px;
-	border: 1px solid color-mix(in srgb, var(--success) 30%, var(--border));
-	color: var(--success);
-	font: var(--bl-ui-label-size-sm)/1 var(--mono);
-	letter-spacing: var(--bl-ui-label-tracking-sm);
-	text-transform: uppercase;
-}
-
-/* ── setting rows ──────────────────────────────────────────────────────── */
-.blicks-admin .v-settings .setlist {
-	margin-top: 14px;
-	border-top: var(--hair);
-}
-
-.blicks-admin .v-settings .srow {
-	display: flex;
-	align-items: center;
-	gap: 18px;
-	padding: 16px 0;
-	border-bottom: var(--hair);
-}
-
-.blicks-admin .v-settings .srow:last-child {
-	border-bottom: 0;
-}
-
-.blicks-admin .v-settings .srow .t {
-	flex: 1;
-	min-width: 0;
-}
-
-.blicks-admin .v-settings .srow .t b {
-	display: block;
-	font-size: var(--bl-ui-text-lg);
-	font-weight: 555;
-}
-
-.blicks-admin .v-settings .srow .t small {
-	color: var(--muted);
-	font-size: var(--bl-ui-text-sm);
-	line-height: 1.45;
-}
-
-.blicks-admin .v-settings .srow .ctl {
-	flex: none;
-}
-
-/* ── toggle — sharp, ink fill when on (accent stays on Save + active tab) ─ */
-.blicks-admin .tog-wrap {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.blicks-admin .tog {
-	appearance: none;
-	position: relative;
-	flex: none;
-	width: 44px;
-	height: 25px;
-	border: 1px solid var(--border-strong);
-	background: var(--surface);
-	cursor: pointer;
-	transition: 150ms;
-}
-
-.blicks-admin .tog i {
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	width: 19px;
-	height: 19px;
-	background: var(--muted);
-	transition: 150ms;
-	pointer-events: none;
-}
-
-.blicks-admin .tog[aria-checked="true"] {
-	background: var(--fg);
-	border-color: var(--fg);
-}
-
-.blicks-admin .tog[aria-checked="true"] i {
-	left: 22px;
-	background: #fff;
-}
-
-.blicks-admin .tog-state {
-	width: 26px;
-	font: var(--bl-ui-label-size-sm)/1 var(--mono);
-	letter-spacing: var(--bl-ui-label-tracking-sm);
-	text-transform: uppercase;
-	color: var(--faint);
-	text-align: right;
-}
-
-.blicks-admin .tog[aria-checked="true"] ~ .tog-state {
-	color: var(--success);
-}
-
-/* ── select ────────────────────────────────────────────────────────────── */
-.blicks-admin .sel {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-}
-
-.blicks-admin .sel select {
-	appearance: none;
-	min-width: 172px;
-	padding: 10px 34px 10px 12px;
-	border: var(--hair);
-	border-radius: 0;
-	background: var(--surface);
-	color: var(--fg);
-	font: var(--bl-ui-text-md)/1 var(--sans);
-	font-weight: 520;
-	cursor: pointer;
-	outline: 0;
-}
-
-.blicks-admin .sel select:focus {
-	border-color: var(--accent);
-}
-
-.blicks-admin .sel svg {
-	position: absolute;
-	right: 11px;
-	width: 13px;
-	height: 13px;
-	stroke: var(--muted);
-	stroke-width: 1.9;
-	fill: none;
-	pointer-events: none;
-}
-
-/* ── developer references ──────────────────────────────────────────────── */
-.blicks-admin .v-settings .dev {
-	padding: 26px 28px;
-	border: var(--hair);
-	background: var(--surface);
-}
-
-.blicks-admin .v-settings .dev .p-head {
-	margin-bottom: 18px;
-}
-
-.blicks-admin .v-settings .dev-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 0;
-	border-top: var(--hair);
-}
-
-.blicks-admin .v-settings .dev-tile {
-	display: flex;
-	gap: 14px;
-	padding: 20px 4px 4px;
-	color: inherit;
-	text-decoration: none;
-}
-
-.blicks-admin .v-settings .dev-tile + .dev-tile {
-	padding-left: 24px;
-	border-left: var(--hair);
-}
-
-.blicks-admin .v-settings .dt-ic {
-	display: grid;
-	place-items: center;
-	width: 34px;
-	height: 34px;
-	flex: none;
-	border: var(--hair);
-	color: var(--fg);
-	font: var(--bl-ui-text-sm)/1 var(--mono);
-}
-
-.blicks-admin .v-settings .dt-t b {
-	display: block;
-	margin-bottom: 3px;
-	font-size: var(--bl-ui-text-lg);
-	font-weight: 570;
-}
-
-.blicks-admin .v-settings .dt-t small {
-	color: var(--muted);
-	font-size: var(--bl-ui-text-sm);
-	line-height: 1.45;
-}
-
-.blicks-admin .v-settings .dt-t .tag {
-	display: inline-block;
-	margin-top: 8px;
-	font: var(--bl-ui-label-size-sm)/1 var(--mono);
-	letter-spacing: var(--bl-ui-label-tracking-sm);
-	text-transform: uppercase;
-	color: var(--faint);
-}
-
-.blicks-admin .v-settings .dev-tile:hover .dt-t b {
-	text-decoration: underline;
-}
-
-.blicks-admin .v-settings .dev-tile:hover .dt-ic {
-	border-color: var(--fg);
-}
-
-/* ── sticky save bar ───────────────────────────────────────────────────── */
-.blicks-admin .savebar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 50;
-	background: var(--surface);
-	border-top: 1px solid var(--border-strong);
-	transform: translateY(110%);
-	transition: transform 220ms ease;
-}
-
-.blicks-admin .savebar.on {
-	transform: none;
-}
-
-.blicks-admin .savebar .in {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	max-width: var(--content);
-	margin: 0 auto;
-	padding: 14px var(--gutter);
-}
-
-.blicks-admin .savebar .msg {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	color: var(--fg);
-	font-size: var(--bl-ui-text-md);
-	font-weight: 520;
-}
-
-.blicks-admin .savebar .msg .d {
-	width: 8px;
-	height: 8px;
-	flex: none;
-	background: var(--accent-ink);
-}
-
-.blicks-admin .savebar .sp {
-	flex: 1;
-}
+/* ---------- Data sources (components/DataSources.tsx): the list reuses MCP's .agents rows ---------- */
+.blicks-admin .ds-list li > div:first-child { min-width: 0; }
+.blicks-admin .ds-list .ds-url { overflow: hidden; color: var(--ink-2); font-family: var(--code); font-size: 11.5px; white-space: nowrap; text-overflow: ellipsis; }
+.blicks-admin .ds-list .result { grid-column: 1 / -1; }
+.blicks-admin .ds-list .ds-status { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .ds-list .ds-status.is-stale { color: var(--ink-2); }
+.blicks-admin .ds-list .ds-status.is-failed { color: var(--warn); }
+.blicks-admin .ds-list li.is-editing { display: block; background: var(--tint); }
+.blicks-admin .ds-empty { display: grid; gap: 4px; padding: 20px; }
+.blicks-admin .ds-empty b { font-weight: 600; }
+.blicks-admin .ds-empty span { max-width: 56ch; color: var(--ink-2); font-size: 13px; }
+.blicks-admin .ds-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 14px 16px; }
+.blicks-admin .ds-field { display: grid; gap: 6px; }
+.blicks-admin .ds-field b { font-size: 12.5px; font-weight: 600; }
+.blicks-admin .ds-field .vfield input:not([type="url"]), .blicks-admin .ds-field .vfield select { font-family: inherit; font-size: 13px; }
+.blicks-admin .ds-field small { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .ds-err { color: var(--warn); font-size: 12px; font-style: normal; }
+.blicks-admin .ds-check { display: flex; align-self: center; align-items: flex-start; gap: 10px; cursor: pointer; }
+.blicks-admin .ds-check input { flex: none; margin: 2px 0 0; accent-color: var(--primary); }
+.blicks-admin .ds-check b { display: block; font-size: 13px; font-weight: 600; }
+.blicks-admin .ds-check span { color: var(--ink-2); font-size: 12.5px; }
+.blicks-admin .ds-form .result { grid-column: 1 / -1; }
+.blicks-admin .ds-acts { display: flex; grid-column: 1 / -1; justify-content: flex-end; gap: 8px; }
+.blicks-admin .ds-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 14px 20px; border-top: 1px solid var(--hair); }
+.blicks-admin .ds-foot span { color: var(--ink-3); font-size: 12px; }
+.blicks-admin .doc { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r-lg); background: var(--paper); box-shadow: var(--shadow-card); color: var(--ink); text-decoration: none; }
+.blicks-admin .doc:hover { border-color: var(--primary); }
+.blicks-admin .doc b { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.blicks-admin .doc span { color: var(--ink-2); font-size: 12.5px; }
+.blicks-admin .doc code { color: var(--ink-3); font-size: 11px; }
 
 @media (width <= 900px) {
-	.blicks-admin .v-settings .cols,
-	.blicks-admin .v-settings .dev-grid {
-		grid-template-columns: 1fr;
-	}
+	.blicks-admin .sp-sec { grid-template-columns: 1fr; gap: 14px; }
+	.blicks-admin .docs { grid-template-columns: 1fr; }
+}
 
-	.blicks-admin .v-settings .dev-tile + .dev-tile {
-		padding-left: 4px;
-		border-left: 0;
-		border-top: var(--hair);
-	}
+@media (width <= 782px) {
+	.blicks-admin .choices { grid-template-columns: 1fr; }
+	.blicks-admin .ds-form { grid-template-columns: 1fr; }
+	.blicks-admin .sp-head { flex-wrap: wrap; }
+	.blicks-admin .sp-head .link-btn { margin-left: 0; }
 }

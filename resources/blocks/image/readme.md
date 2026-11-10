@@ -4,6 +4,8 @@ Image renders a responsive figure with optional link and caption. Use it for vis
 
 ## Controls
 
+`aspectRatio`, `objectFit` and `width` are the only way to set the picture's shape, fit and width: they style the `<img>` and the figure, so the block does not allow `layout.aspectRatio`, `layout.objectFit` or `layout.width`.
+
 ### id
 
 Stores the selected WordPress media ID when an image is chosen from the media library.

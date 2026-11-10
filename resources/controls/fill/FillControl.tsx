@@ -211,7 +211,7 @@ export function FillControl( {
 			sources={ sources }
 			source={ shownSource }
 			onSourceChange={ changeSource }
-			colorLabel={ label ?? __( 'Fill colour', 'blicks' ) }
+			colorLabel={ label ?? __( 'Fill color', 'blicks' ) }
 			hideClip={ clipToText }
 			searching={ searching }
 		/>

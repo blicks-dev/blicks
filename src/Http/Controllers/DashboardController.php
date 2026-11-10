@@ -71,11 +71,6 @@ final class DashboardController {
 	}
 
 	private static function globalStylesModifiedAt(): ?string {
-		if ( ! class_exists( 'WP_Theme_JSON_Resolver' )
-			|| ! method_exists( 'WP_Theme_JSON_Resolver', 'get_user_global_styles_post_id' ) ) {
-			return null;
-		}
-
 		$postId = (int) \WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 		if ( $postId <= 0 ) {
 			return null;
@@ -89,15 +84,11 @@ final class DashboardController {
 	}
 
 	private static function activeThemeName(): string {
-		if ( ! class_exists( DesignThemes::class ) ) {
-			return __( 'Active design theme', 'blicks' );
-		}
-
 		$active = DesignThemes::find( DesignThemes::all()['active'] );
 
 		return is_array( $active ) && is_string( $active['name'] ?? null ) && '' !== $active['name']
 			? $active['name']
-			: __( 'Active design theme', 'blicks' );
+			: __( 'Active palette', 'blicks' );
 	}
 
 	/**

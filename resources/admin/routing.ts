@@ -58,3 +58,15 @@ export function urlForView( view: AdminView, section = '' ): string {
 
 	return `${ adminUrl }?page=${ encodeURIComponent( slug ) }${ hash }`;
 }
+
+/** Fired when something outside the Design System view asks it to open a section. */
+export const DESIGN_SECTION_EVENT = 'blicks:design-section';
+
+/**
+ * Point the address at a Design System section (`#design/color`) without a history entry, and
+ * tell the view. The hash keeps the place across a reload and in a copied link.
+ */
+export function setDesignSection( section: string ): void {
+	window.history.replaceState( null, '', urlForView( 'design', section ) );
+	window.dispatchEvent( new CustomEvent( DESIGN_SECTION_EVENT, { detail: section } ) );
+}

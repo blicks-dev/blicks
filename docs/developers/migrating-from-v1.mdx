@@ -1,0 +1,86 @@
+---
+title: "Migrating from API v1"
+description: "What a companion plugin built for Blicks 1.x must change for Extension API 2: the version guard, removed blocks and control ids, and what changed meaning."
+---
+
+Blicks 2.0 is a clean break, and the extension API moves from 1 to 2 on both sides at once. A
+companion that checks `BLICKS_API_VERSION === '1'` stops at its guard on a 2.0 site, which is
+what the guard is for. This page lists what to change.
+
+## 1. Update the guard
+
+```php
+if ( ! defined( 'BLICKS_API_VERSION' ) || '2' !== BLICKS_API_VERSION ) { /* notice, stop */ }
+if ( version_compare( BLICKS_VERSION, '2.0.0', '<' ) ) { /* notice, stop */ }
+```
+
+```js
+const blicks = window.blicks;
+if ( ! blicks || blicks.version < 2 ) return;
+```
+
+Require WordPress 7.0 in your plugin header. Script dependencies are unchanged: `blicks-editor`
+in the editor, `blicks-studio` and `blicks-admin` where you used them.
+
+## 2. Removed blocks
+
+| 1.x block | 2.0 |
+|---|---|
+| `blicks/stack` | `blicks/box` with **Arrange ▸ Stacked** (`layout.display: flex`, `layout.flexDirection: column`, `layout.gapRow`) |
+| `blicks/grid` | `blicks/box` with **Arrange ▸ Grid** (`layout.display: grid`, `layout.gridColumns`, gaps) |
+| `blicks/spacer` | `blicks/box` with `kind: "spacer"` — an empty `aria-hidden` div, with no Style tab |
+| `blicks/divider` | `blicks/box` with `kind: "divider"` — saves an `<hr>` |
+
+There are no deprecations and no migration: 1.x content is not carried over. Saved markup for every
+block restarts at 2.0.0. Replace any pattern, starter or template your plugin ships that uses the
+old blocks, and re-record any markup you compare against.
+
+## 3. Removed control ids
+
+A tree holding one of these now reports `unknown-control`:
+
+`layout.float`, `layout.clear`, `layout.direction`, `layout.gridAutoColumns`,
+`animation.targetAngle`, `decoration.before`, `decoration.after`.
+
+The raw `decoration.before` / `decoration.after` objects are replaced by **parts**: write any control
+that allows parts on a `before` or `after` slot.
+
+```js
+blicks[ 'colors.background' ][ 'before:hover' ][ 'base' ] = 'primary';
+```
+
+`decoration.content` is new, and part-only.
+
+## 4. What changed meaning
+
+| | 1.x | 2.0 |
+|---|---|---|
+| States | `default`, `hover`, `focus`, `active` | `default`, `group`, `groupActive`, `hover`, `focus`, `active`, `play`, `on`, `groupOn`, `reduced` — some only for some controls (`stateControls` in the [engine description](/developers/engine-api)). A validator with the 1.x list hardcoded rejects valid trees. |
+| Slots | `blicks[id][state][bp]` | `blicks[id][slot][bp]`, where a slot is a state, a part (`before`) or `part:state` (`before:hover`) |
+| `blicks/box` attributes | `tag`, `href` | adds `kind` (`plain`, `card`, `panel`, `cover`, `badge`, `divider`, `spacer`), `layers` and a badge's `text`. The markup differs per kind. |
+| `blicks/button` | `parent: blicks/buttons` | adds `width`, `content`, `iconSize`, `action`, `dialog` and `label`. The `parent` restriction is gone. |
+| `blicks/icon` | always a `<span>` | adds `filled`, `flipH`, `flipV`, `turn`, `url`, `linkTarget` and `rel`; an `<a>` when linked |
+| Inspector | sections with a state and breakpoint switcher | Settings · Style · Motion, with goal-named sections. `inspector.registerContext` is unchanged. |
+| `constants.STATES` | four entries | ten entries |
+
+If your plugin serializes Blicks markup itself, port it to the 2.0 markup — or better, hand the
+work to Blicks through the `blicks_spec_shapes` filter and the serializer.
+
+## 5. What stayed
+
+The rest of the 1.x surface carries over unchanged and is still pinned: `blocks.defineBlock`,
+`values.*`, `data.*`, `inspector.*`, `ui.*`, `forms.*`, `admin.registerView`, `studio.*`, `icons.*`,
+and on the PHP side the service provider, assets, REST, `ElementStyle`, tokens and sanitizers. The
+form hooks (`blicks_form_field_types` and the rest) are unchanged. The full list is on
+[Extension API](/developers/extension-api).
+
+`Blicks\Core\Attributes\Action` and `Filter` are newly pinned in 2.
+
+## 6. What is new
+
+- `window.blicks.engine` and `Blicks\Style\EngineSchema` — the engine's description and the
+  validator. See [Engine and validation](/developers/engine-api).
+- `ElementStyle::problems()`, `ElementStyle::valueSchema()` and `CoreAbilities::validate()`, now
+  pinned.
+- `constants.UI_VARS` and `UI_DARK_VARS` — the interface color variables. See
+  [Interface colors](/developers/extension-api#interface-colors).

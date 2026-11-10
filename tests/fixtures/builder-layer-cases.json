@@ -1,0 +1,241 @@
+{
+	"_comment": "Shared parity table for the layered value builders (shadow layers, background layers, two-value corners). vars.ts (builder-layers.test.ts) and ElementStyle.php (BuilderLayersTest.php) both run every case. A listed vars/classes object must match exactly.",
+	"cases": [
+		{
+			"name": "stacks shadow layers in order",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"x": "0px",
+								"y": "1px",
+								"blur": "2px",
+								"color": "rgb(0 0 0 / 8%)"
+							},
+							{
+								"x": "0px",
+								"y": "12px",
+								"blur": "28px",
+								"spread": "-8px",
+								"color": "rgb(0 0 0 / 30%)"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bsh": "0px 1px 2px 0px rgb(0 0 0 / 8%), 0px 12px 28px -8px rgb(0 0 0 / 30%)"
+			}
+		},
+		{
+			"name": "resolves a token colour in a shadow layer",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"x": "4px",
+								"y": "4px",
+								"color": "foreground"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bsh": "4px 4px 0px 0px var(--blicks-color-foreground)"
+			}
+		},
+		{
+			"name": "keeps an inset layer and a zero offset glow",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"inset": true,
+								"y": "2px",
+								"blur": "4px",
+								"color": "#000"
+							},
+							{
+								"spread": "4px",
+								"color": "primary"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bsh": "inset 0px 2px 4px 0px #000, 0px 0px 0px 4px var(--blicks-color-primary)"
+			}
+		},
+		{
+			"name": "drops a shadow layer that forges a declaration",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"x": "1px;background:red",
+								"y": "1px",
+								"color": "#000"
+							}
+						]
+					}
+				}
+			},
+			"vars": {}
+		},
+		{
+			"name": "writes background layers top first",
+			"blicks": {
+				"background.layers": {
+					"default": {
+						"base": [
+							{
+								"type": "tint",
+								"color": "foreground",
+								"opacity": 40
+							},
+							{
+								"type": "image",
+								"url": "https://example.com/a.jpg",
+								"size": "cover",
+								"position": "50% 50%"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bg-layers": "linear-gradient(color-mix(in srgb, var(--blicks-color-foreground) 40%, transparent), color-mix(in srgb, var(--blicks-color-foreground) 40%, transparent)), url(\"https://example.com/a.jpg\") 50% 50% / cover no-repeat"
+			},
+			"classes": [
+				"bl-bg-layers"
+			]
+		},
+		{
+			"name": "takes a gradient token layer and a fixed tiled picture",
+			"blicks": {
+				"background.layers": {
+					"default": {
+						"base": [
+							{
+								"type": "gradient",
+								"value": "brand"
+							},
+							{
+								"type": "image",
+								"url": "/wp-content/uploads/t.png",
+								"size": "160px auto",
+								"repeat": "repeat",
+								"attachment": "fixed"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bg-layers": "var(--blicks-gradient-brand), url(\"/wp-content/uploads/t.png\") 0% 0% / 160px auto repeat fixed"
+			}
+		},
+		{
+			"name": "refuses a layer url that is not http(s) or site-relative",
+			"blicks": {
+				"background.layers": {
+					"default": {
+						"base": [
+							{
+								"type": "image",
+								"url": "javascript:alert(1)"
+							}
+						]
+					}
+				}
+			},
+			"vars": {},
+			"classes": []
+		},
+		{
+			"name": "refuses a layer size that forges a declaration",
+			"blicks": {
+				"background.layers": {
+					"default": {
+						"base": [
+							{
+								"type": "image",
+								"url": "https://example.com/a.jpg",
+								"size": "cover;color:red"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bg-layers": "url(\"https://example.com/a.jpg\") 0% 0% / auto no-repeat"
+			}
+		},
+		{
+			"name": "keeps a two-value corner radius for elliptical corners",
+			"blicks": {
+				"border.radius": {
+					"default": {
+						"base": {
+							"topLeft": "255px 15px",
+							"topRight": "15px 225px",
+							"bottomRight": "225px 15px",
+							"bottomLeft": "15px 255px"
+						}
+					}
+				}
+			},
+			"vars": {
+				"--bl-brtl": "255px 15px",
+				"--bl-brtr": "15px 225px",
+				"--bl-brbr": "225px 15px",
+				"--bl-brbl": "15px 255px"
+			}
+		},
+		{
+			"name": "mixes a shadow token layer with drawn layers",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"x": "0px",
+								"y": "4px",
+								"color": "#2f28a8",
+								"role": "depth"
+							},
+							{
+								"token": "md",
+								"role": "shadow"
+							}
+						]
+					}
+				}
+			},
+			"vars": {
+				"--bl-bsh": "0px 4px 0px 0px #2f28a8, var(--blicks-shadow-md)"
+			}
+		},
+		{
+			"name": "drops the shadow when a token layer is unknown",
+			"blicks": {
+				"effects.boxShadow": {
+					"default": {
+						"base": [
+							{
+								"token": "bogus"
+							}
+						]
+					}
+				}
+			},
+			"vars": {}
+		}
+	]
+}

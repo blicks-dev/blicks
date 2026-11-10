@@ -18,7 +18,10 @@ export interface BlockMeta {
 	name: string;
 	slug: string;
 	title: string;
-	/** Set when the block can only exist inside another block, so the inserter hides it. */
+	/**
+	 * Set when the block can only exist inside another block (`parent`, or at any depth `ancestor`),
+	 * so the top-level inserter hides it.
+	 */
 	parent: string[] | null;
 }
 
@@ -33,7 +36,7 @@ export function allBlocks(): BlockMeta[] {
 				name: json.name as string,
 				slug: ( json.name as string ).split( '/' )[ 1 ],
 				title: json.title as string,
-				parent: ( json.parent as string[] | undefined ) ?? null,
+				parent: ( json.parent as string[] | undefined ) ?? ( json.ancestor as string[] | undefined ) ?? null,
 			};
 		} )
 		.sort( ( a, b ) => a.name.localeCompare( b.name ) );

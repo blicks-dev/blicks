@@ -1,5 +1,5 @@
 /**
- * Design-system data layer for the editor-side Theme Settings panel.
+ * Design-system data layer for the editor's token controls.
  *
  * Pure types + helpers around the `GET/PATCH blicks/v1/design-system` snapshot:
  * defensive normalization, draft-override diffing, and the draft CSS-variable

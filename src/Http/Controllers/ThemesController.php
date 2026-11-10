@@ -20,9 +20,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * Named local design themes — list / create / update / delete / apply. Applying reuses the same
- * {@see Store::saveOverrides()} path as a normal token save, so theme-json sync and the
- * forward-only option migration behave identically.
+ * Palettes (the routes keep their older "themes" name) — list / create / update / delete / use.
+ * A palette is colours only; using one repaints them and leaves someone's other values alone.
  */
 final class ThemesController {
 
@@ -36,7 +35,12 @@ final class ThemesController {
 		$name = (string) $request->get_param( 'name' );
 		$tokens = self::tokenPayload( $request );
 
-		return new WP_REST_Response( DesignThemes::create( $name, $tokens ), 201 );
+		// The new palette holds the colours in use, so it becomes the one in use and those colours
+		// stop being someone's own: the next palette repaints them.
+		$all = DesignThemes::create( $name, $tokens );
+		Store::usePalette( $all['active'] );
+
+		return new WP_REST_Response( DesignThemes::all(), 201 );
 	}
 
 	/** PATCH blicks/v1/design-system/themes/{id} — rename and/or re-snapshot a custom theme. */
@@ -63,23 +67,18 @@ final class ThemesController {
 	}
 
 	/**
-	 * POST blicks/v1/design-system/themes/{id}/apply — write the theme's token bag through the
-	 * shared save path and return a fresh design-system snapshot (same shape as PATCH /design-system).
+	 * POST blicks/v1/design-system/themes/{id}/apply — use a palette and return a fresh
+	 * design-system snapshot (same shape as PATCH /design-system).
 	 */
 	public static function apply( WP_REST_Request $request ): WP_REST_Response {
 		$id = (string) $request->get_param( 'id' );
-		$theme = DesignThemes::find( $id );
-		if ( null === $theme ) {
-			return new WP_REST_Response( [ 'message' => __( 'Theme not found.', 'blicks' ) ], 404 );
+		if ( null === DesignThemes::find( $id ) ) {
+			return new WP_REST_Response( [ 'message' => __( 'Palette not found.', 'blicks' ) ], 404 );
 		}
 
-		// Switch first, then project the now-active theme's bag through the shared save path so its
-		// values reach the option/Global Styles and the returned snapshot reflects it.
-		DesignThemes::setActive( $id );
-		$payload = is_array( $theme['tokens'] ) ? $theme['tokens'] : [];
-		$overrides = Store::saveOverrides( $payload );
+		Store::usePalette( $id );
 
-		$snapshot = Catalogue::withSavedValues( Catalogue::snapshot( $overrides ), $payload );
+		$snapshot = Catalogue::snapshot();
 		$snapshot['themes'] = DesignThemes::all();
 
 		return new WP_REST_Response( $snapshot, 200 );
@@ -93,14 +92,12 @@ final class ThemesController {
 	public static function reset( WP_REST_Request $request ): WP_REST_Response {
 		$id = (string) $request->get_param( 'id' );
 		if ( null === DesignThemes::find( $id ) ) {
-			return new WP_REST_Response( [ 'message' => __( 'Theme not found.', 'blicks' ) ], 404 );
+			return new WP_REST_Response( [ 'message' => __( 'Palette not found.', 'blicks' ) ], 404 );
 		}
 
 		DesignThemes::resetTheme( $id );
-		$bag = DesignThemes::activeBag();
-		$overrides = Store::saveOverrides( $bag );
 
-		$snapshot = Catalogue::withSavedValues( Catalogue::snapshot( $overrides ), $bag );
+		$snapshot = Catalogue::snapshot();
 		$snapshot['themes'] = DesignThemes::all();
 
 		return new WP_REST_Response( $snapshot, 200 );

@@ -2,8 +2,8 @@
 
 Composable Gutenberg blocks with a theme-native design system.
 
-Blicks adds 12 layout and content blocks to the WordPress block editor — Section, Box, Stack, Grid,
-Heading, Text, Buttons, Button, Image, Icon, Spacer and Divider. They share one design system that
+Blicks adds layout and content blocks to the WordPress block editor — Section, Box, Heading, Text,
+Buttons, Button, Image, Icon, Dialog and more. They share one design system that
 reads your active theme's `theme.json` rather than shipping its own defaults, so Blicks tokens
 (`--blicks-*`) map onto WordPress preset variables (`--wp--preset--*`, `--wp--custom--*`). Change a
 value in your theme and it applies everywhere.

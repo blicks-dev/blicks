@@ -1,82 +1,124 @@
 ---
 title: "FAQs"
-description: "Frequently asked questions about Blicks — requirements, output, data, and licensing."
+description: "Frequently asked questions about Blicks — requirements, upgrading, output, outside requests, data and licensing."
 ---
 
 <AccordionGroup>
 	<Accordion title="What are the plugin requirements?">
-		- WordPress 6.6 or newer (tested up to 7.1)
+		- WordPress 7.0 or newer (tested up to 7.1)
 		- PHP 8.1 or newer
-		- A block theme is recommended — Blicks is designed for full site editing
+		- A block theme is recommended
 
-		Blicks also runs on classic themes, but falls back to its own default token values because
-		there is no `theme.json` to read.
+		Blicks also runs on classic themes. With no `theme.json` to sync with, its tokens use Blicks'
+		own default values.
+	</Accordion>
+
+	<Accordion title="I use Blicks 1.x. Will my pages carry over to 2.0?">
+		No. Blicks 2.0 is a clean break: it does not convert 1.x layouts, and some 1.x blocks are now
+		part of Box. Try 2.0 on a copy of your site first, and rebuild the pages that need it. See [Upgrading from 1.x](/upgrading).
 	</Accordion>
 
 	<Accordion title="Does Blicks work with my theme?">
-		Yes. Blicks does not ship a competing palette or type scale. It reads the active theme's
-		`theme.json` and user Global Styles and projects those values into `--blicks-*` custom
-		properties, so block controls offer the values your theme already defines. Where a theme does
-		not define a role Blicks needs, a documented fallback is supplied.
+		Yes. Blicks keeps its own catalogue of design tokens, and their values resolve through the
+		active theme's `theme.json` presets and your Global Styles, so block controls offer the
+		colors and sizes your theme already defines. Where the theme defines no value for a token,
+		Blicks falls back to its own.
 	</Accordion>
 
-	<Accordion title="Does Blicks make outbound requests?">
-		No. Blicks does not call any external service. Scripts, styles, and the icon registry are all
-		served from the plugin package — nothing is fetched on activation, on admin page loads, or
-		from scheduled tasks.
+	<Accordion title="Is Blicks a page builder?">
+		No. Blicks adds layout and content blocks to the native block editor; nothing replaces your
+		editor. Blicks Studio is a full-screen workspace for composing a section, and it inserts
+		ordinary blocks into the post when you are done.
+	</Accordion>
+
+	<Accordion title="Does Blicks contact any outside service?">
+		Not unless you use a feature that needs one. There is no telemetry and no license check.
+		Requests leave your site only in these cases:
+
+		- **The Studio's Marketplace shelf** — off until an administrator turns on **Show the
+		  Marketplace in the Studio** in **Blicks → Settings**. Once it is on, opening the Studio's
+		  pattern library makes your server ask `showcase.blicks.dev` for the list of designs (cached
+		  for five minutes), and for a design's blocks when one is opened, sending the shelf's search
+		  and filters and WordPress's standard user agent, which includes your site's address. The
+		  editor's browser loads the previews from the same host. Nothing about your content or
+		  visitors is sent. See the [privacy policy](https://blicks.dev/privacy/) and
+		  [terms](https://blicks.dev/terms/).
+		- **Loop data sources** — an endpoint an administrator adds in **Blicks → Settings** is
+		  fetched by your server, then kept for the time you choose.
+		- **Form spam challenges** — only when an administrator enters reCAPTCHA or Turnstile keys
+		  and a form uses one: the provider's script loads on that form's pages, and your server checks
+		  each send with the provider. See [Forms](/guides/forms#optional-challenge).
+
+		The plugin's own scripts, styles and icons are always served from the plugin.
 	</Accordion>
 
 	<Accordion title="Does Blicks load remote JavaScript?">
-		No. All plugin scripts and styles are served from the plugin package. No executable code is
-		loaded from a remote server.
+		Blicks' own scripts and styles are all served from the plugin package. On your pages, the one
+		exception is a form spam challenge you turn on: reCAPTCHA or Turnstile loads its provider's
+		script on the pages that show that form. In the editor, the Marketplace shelf, once an
+		administrator turns it on, shows live previews in sandboxed frames loaded from
+		`showcase.blicks.dev`.
 	</Accordion>
 
 	<Accordion title="Will it slow my site down?">
-		Token values become shared utility classes rather than per-block CSS, so repeated styles
-		collapse into one cached stylesheet. Every block renders as static HTML and CSS — no
-		front-end JavaScript at all, no jQuery, and no bundled framework.
+		Blocks render as HTML and CSS. Token values become shared classes in one runtime stylesheet
+		rather than per-block CSS, so repeated styles cost nothing extra. The few things CSS cannot do —
+		opening a dialog, sending a form, loading more Loop cards — use small scripts that load only on
+		pages with a block that needs them. No jQuery, no bundled framework.
+	</Accordion>
+
+	<Accordion title="Does Blicks have AI features?">
+		Blicks includes an MCP server, free, that lets an AI agent you run — Claude Code, Claude
+		Desktop, Codex, Cursor and others — read your blocks and design system and build pages as
+		drafts, acting as your account. It is off until an administrator turns it on, and Blicks itself
+		calls no AI service. See [Connect an AI agent](/guides/connect-an-ai-agent).
 	</Accordion>
 
 	<Accordion title="What happens to my data if I delete the plugin?">
-		By default, nothing is removed — your tokens, themes, animations, and settings survive a
-		delete and reinstall. If you want Blicks to clean up after itself, set **On uninstall** to
+		By default, nothing is removed — your design system, settings and form entries survive a
+		delete and reinstall. To have Blicks clean up after itself, set **When Blicks is deleted** to
 		**Remove everything** in **Blicks → Settings** before deleting the plugin.
 	</Accordion>
 
 	<Accordion title="What happens if I just deactivate it?">
-		Blicks blocks stop rendering their styles, like any block plugin. Your content stays in the
-		post as saved markup, and no stored data is touched.
+		Every block except Section, Form, Field, Input and Loop saves static HTML, so that markup
+		stays in the post. The runtime stylesheet stops loading, so the styling it carries goes with
+		it, and those five, which render on the server, stop rendering. No stored data is touched.
 	</Accordion>
 
 	<Accordion title="Can I add my own CSS, JavaScript, or PHP through Blicks?">
-		No. Blicks has no code-entry field of any kind. Every style it outputs is generated from its
-		own controls and from your theme's design tokens, so there is nothing to paste arbitrary code
-		into. For site-wide CSS, use the Customizer's Additional CSS or your theme.
+		No. Blicks has no field for pasting code. In **All settings**, one setting's value can be typed
+		as CSS — such as a shadow or a clip path — and it is checked against what that setting accepts
+		before it is saved. For site-wide CSS, use your theme or the Site Editor's Additional CSS.
 	</Accordion>
 
 	<Accordion title="Does Blicks lock my content in?">
-		No shortcodes and no proprietary wrapper — blocks save standard HTML with classes. Static
-		blocks keep their markup in the post; dynamic blocks re-render through the same CSS pipeline.
+		No shortcodes and no proprietary wrapper. Blocks save standard HTML with classes, except
+		Section, Form, Field, Input and Loop, which render on the server from the attributes they save.
+	</Accordion>
+
+	<Accordion title="What is Blicks Pro?">
+		A planned separate plugin, built on the free one's [Extension API](/developers/extension-api).
+		It has not been released yet. Features documented as coming in Pro, such as
+		[Header Studio](/guides/header-studio) and saved dialogs, will need it. Everything else in
+		these docs is in the free plugin.
 	</Accordion>
 
 	<Accordion title="How do I update the design system?">
-		Use **Blicks → Design System** in the WordPress admin, or the **Theme Settings** sidebar
-		inside the block editor. Values are kept as Blicks overrides, and can also be written to
-		WordPress Global Styles / `theme.json` when **Global Styles sync** is enabled in
-		**Blicks → Settings**. See [Customize the Design System](/guides/customize-design-system).
+		Use **Blicks → Design System**. Values are kept as Blicks overrides, and can also be written to
+		WordPress Global Styles when **Sync with Global Styles** is on in **Blicks → Settings**. See
+		[Customize the design system](/guides/customize-design-system).
 	</Accordion>
 
 	<Accordion title="How is Blicks licensed?">
 		GPL-2.0-or-later. The bundled icon registry is generated from **Lucide** (ISC); some Lucide
-		icons derive from **Feather** (MIT). Full notices ship in `licenses.txt` and in the generated
-		icon registry metadata.
+		icons derive from **Feather** (MIT). Blicks also bundles the WordPress MCP Adapter and
+		Jetpack's autoloader, both GPL-2.0-or-later. Full notices ship in `licenses.txt`.
 	</Accordion>
 
 	<Accordion title="Where is the human-readable source code?">
 		All PHP ships as plain, unobfuscated source inside the plugin package. The front-end assets
-		are compiled from TypeScript and SCSS with Vite, and those uncompiled sources, the build
-		configuration and the full history are public at
-		[github.com/blicks-dev/blicks](https://github.com/blicks-dev/blicks) under the plugin's
-		GPL-2.0-or-later license.
+		are compiled from TypeScript and SCSS, and those sources, the build configuration and the full
+		history are public at [github.com/blicks-dev/blicks](https://github.com/blicks-dev/blicks).
 	</Accordion>
 </AccordionGroup>

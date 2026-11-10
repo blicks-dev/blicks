@@ -249,6 +249,36 @@ final class AnimationsTest extends TestCase
         $this->assertTrue($this->save($this->valid(['slug' => 'fresh']))['ok']);
         Animations::delete('fresh');
 
-        $this->assertSame([$legacy], $GLOBALS['wp_options']['blicks_design_animations']);
+        // Moved into the settings table on first read, and still there untouched.
+        $this->assertSame([$legacy], \Blicks\Models\SettingModel::getValue('design.animations', null));
+        $this->assertArrayNotHasKey('blicks_design_animations', $GLOBALS['wp_options']);
+    }
+    /**
+     * A pattern carries its keyframes in post meta. That copy came from another site, so it is
+     * cleaned exactly as a stored record is, and never touches this site's library.
+     */
+    public function testSanitizeListCleansACarriedCopyLikeAStoredRecord(): void
+    {
+        $clean = Animations::sanitizeList([
+            $this->valid(['slug' => 'Glow Up']),
+            $this->valid(['slug' => 'float']),
+            ['slug' => 'empty', 'steps' => [['offset' => 0, 'declarations' => ['background' => 'red']]]],
+            'not a record',
+            $this->valid(['slug' => 'glow-up', 'label' => 'Second']),
+        ]);
+
+        $this->assertSame(['glow-up'], array_column($clean, 'slug'));
+        $this->assertSame('Second', $clean[0]['label']);
+        $this->assertSame([], Animations::sanitizeList('nope'));
+        $this->assertSame([], Animations::all());
+    }
+
+    public function testAllowedPropertiesIncludeTheRegisteredCustomOnes(): void
+    {
+        $properties = Animations::allowedProperties();
+
+        $this->assertContains('transform', $properties);
+        $this->assertContains('--bl-p', $properties);
+        $this->assertNotContains('background-image', $properties);
     }
 }

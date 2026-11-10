@@ -1,0 +1,115 @@
+---
+title: "Steps"
+description: "Numbered steps across or down: a stepper, a how-it-works row or a timeline, with a current step."
+---
+
+<Info>
+Generated from `resources/blocks/steps/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/steps` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
+
+## Blicks controls
+
+`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `spacing.*` · `border.*` · `effects.*` · `animation.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*` · `background.*` · `position.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `blicks` | `object` | `&#123;&#125;` |
+| `current` | `number` | `0` |
+| `gap` | `string` | `""` |
+| `icon` | `string` | `"check"` |
+| `join` | `boolean` | `true` |
+| `labels` | `boolean` | `false` |
+| `layout` | `string` | `"across"` |
+| `line` | `string` | `"solid"` |
+| `lineColour` | `string` | `""` |
+| `marker` | `string` | `"numbers"` |
+| `markerColour` | `string` | `""` |
+| `markerShape` | `string` | `"circle"` |
+| `markerSize` | `number` | `100` |
+| `numbering` | `string` | `"1"` |
+| `outline` | `boolean` | `false` |
+| `status` | `boolean` | `false` |
+| `tickDone` | `boolean` | `true` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+Steps shows a process one step after another: across the page (a stepper or a "how it works" row) or down it (a timeline). Each Step holds a heading, text and any other blocks. Set a current step and the steps before it read as done, with a tick, and the steps after it as upcoming. Phones always show steps down.
+
+## Controls
+
+### layout
+
+Across or down.
+
+### marker
+
+What marks each step: its number, an icon or a dot.
+
+### numbering
+
+1, 2, 3 or 01, 02, 03.
+
+### icon
+
+The icon every step is marked with. A step can pick its own.
+
+### current
+
+The step the reader is on; 0 for none, when every step looks the same.
+
+### tickDone
+
+Shows a tick on the steps before the current one.
+
+### status
+
+Writes "Done", "Step 3 of 5" or "Upcoming" with each step.
+
+### join
+
+Joins the markers with a line, in the marker color up to the current step.
+
+### line
+
+A solid or dashed line.
+
+### labels
+
+A label beside each step, such as a date, when the steps run down: a timeline.
+
+### markerShape
+
+A filled circle, a square, or no shape — the number alone, large, as a "how it works" row shows it.
+
+### outline
+
+Draws large numbers as an outline.
+
+## Tips
+
+- Use Steps for a process or a history; use a List for things that are not in order.

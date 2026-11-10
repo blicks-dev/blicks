@@ -1,0 +1,164 @@
+// Filled controls for the block inspector (`.bl-ins2`), in the post editor and in the Studio's
+// Quick tab alike. Blicks UI has no bordered controls: a control at rest is `field`, under the
+// pointer `field-2`, chosen is `brand-tint` with a 2px `brand` ring. The per-widget rules in
+// inspector-v2.scss draw these with borders; this turns the borders transparent rather than away,
+// so no control changes size and nothing below it moves.
+
+// Doubled so it outranks the per-widget rules it re-skins.
+$q: ".bl-ins2.bl-ins2";
+
+#{$q} {
+	// ---------- cards and tiles: filled, chosen is tint plus a ring ----------
+	.opt,
+	.lookc,
+	.gtile,
+	.dtile,
+	.ltile,
+	.pic,
+	.mcard,
+	.lrows button,
+	.dpad button {
+		border-color: transparent;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		box-shadow: none;
+	}
+
+	.dpad button {
+		border-radius: var(--bui-radius-xs);
+	}
+
+	.opt:hover,
+	.lookc:hover,
+	.gtile:hover,
+	.dtile:hover,
+	.ltile:hover,
+	.pic:hover,
+	.mcard:hover,
+	.lrows button:hover {
+		border-color: transparent;
+		background: var(--bui-field-2);
+	}
+
+	.opt[aria-pressed="true"],
+	.lookc[aria-checked="true"],
+	.gtile[aria-pressed="true"],
+	.dtile[aria-pressed="true"],
+	.ltile[aria-pressed="true"],
+	.pic[aria-pressed="true"],
+	.lrows button[aria-pressed="true"],
+	.dpad button[aria-pressed="true"] {
+		border-color: transparent;
+		background: var(--bui-brand-tint);
+		color: var(--bui-brand);
+		box-shadow: inset 0 0 0 2px var(--bui-brand);
+	}
+
+	// The look's drawing sits on paper, so a Main or Warning swatch reads as it will on the page.
+	.lookw {
+		border-radius: var(--bui-radius-xs);
+		background: var(--bui-paper);
+		box-shadow: none;
+	}
+
+	.lookc b {
+		font-size: 12px;
+	}
+
+	.lookc[aria-checked="true"] b {
+		color: var(--bui-brand);
+	}
+
+	// ---------- fields: filled boxes, paper and a ring when focused ----------
+	.inp,
+	.sel,
+	.exact input,
+	.ta,
+	.attr-row input,
+	.duo-c,
+	.ce-custom input[type="color"] {
+		border-color: transparent;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		box-shadow: none;
+	}
+
+	.inp,
+	.sel,
+	.attr-row input,
+	.ce-custom input[type="color"] {
+		height: var(--bui-field-h);
+	}
+
+	.inp input {
+		padding: 0;
+		font-size: 13px;
+	}
+
+	.inp:hover,
+	.sel:hover,
+	.ta:hover {
+		background: var(--bui-field-2);
+	}
+
+	.inp:focus-within,
+	.sel:focus,
+	.exact input:focus,
+	.ta:focus,
+	.attr-row input:focus {
+		border-color: transparent;
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-focus);
+		outline: 0;
+	}
+
+	.inp svg {
+		width: var(--bui-icon-sm);
+		height: var(--bui-icon-sm);
+	}
+
+	.sel {
+		font-size: 13px;
+	}
+
+	.swc {
+		border: 0;
+		box-shadow: inset 0 0 0 1px rgb(16 24 40 / 12%);
+	}
+
+	.swc[aria-pressed="true"] {
+		box-shadow: 0 0 0 2px var(--bui-paper), 0 0 0 4px var(--bui-brand);
+	}
+
+	.swc.auto {
+		background: var(--bui-field);
+	}
+
+	// ---------- quiet wells ----------
+	.apad,
+	.outline {
+		border: 0;
+		border-radius: var(--bui-radius-lg);
+		background: var(--bui-field);
+	}
+
+	.attr-x:hover,
+	.inp .copy:hover {
+		background: var(--bui-field);
+	}
+
+	// ---------- drop zones and add rows: a filled well, no dashed outline ----------
+	.drop,
+	.deco-row.add,
+	.deco-thumb.empty {
+		border-color: transparent;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+	}
+
+	.drop:hover,
+	.deco-row.add:hover {
+		background: var(--bui-brand-tint);
+		color: var(--bui-brand);
+	}
+}

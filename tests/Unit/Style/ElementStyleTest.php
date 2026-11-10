@@ -144,17 +144,6 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('var(--blicks-borderWidth-hair)', $r['vars']['--bl-bwt']);
     }
 
-    public function test_border_width_legacy_spacing_slug_falls_back(): void
-    {
-        // Pre-migration saved content used the spacing scale for border.width — 'md' isn't a
-        // borderWidth slug, so it must still resolve via the fallback category, not pass through
-        // as a literal (which would be invalid CSS).
-        $r = $this->build([
-            'border.width' => ['default' => ['base' => ['top' => 'md', 'right' => 'md', 'bottom' => 'md', 'left' => 'md']]],
-        ]);
-        $this->assertSame('var(--blicks-spacing-md)', $r['vars']['--bl-bwt']);
-    }
-
     // ── border style / colour (per-side, with legacy string spread) ──────────────
 
     public function test_border_style_and_color_emit_per_side_vars(): void
@@ -201,6 +190,24 @@ final class ElementStyleTest extends TestCase
         $this->assertContains('bl-inset', $r['classes']);
         $this->assertSame('10px', $r['vars']['--bl-pos-t']);
         $this->assertSame('auto', $r['vars']['--bl-pos-r']);
+    }
+
+    public function test_position_inset_writes_an_unset_side_as_auto(): void
+    {
+        $r = $this->build([
+            'position.inset' => ['default' => ['base' => ['top' => '50%', 'left' => '50%']]],
+        ]);
+        $this->assertSame('auto', $r['vars']['--bl-pos-r']);
+        $this->assertSame('auto', $r['vars']['--bl-pos-b']);
+        $this->assertSame('50%', $r['vars']['--bl-pos-l']);
+    }
+
+    public function test_text_shadow_layers_stack_and_keep_a_zero_offset(): void
+    {
+        $r = $this->build([
+            'effects.textShadow' => ['default' => ['base' => [['x' => '0', 'y' => '0', 'blur' => '24px', 'color' => 'red'], ['x' => '0px', 'y' => '1px', 'color' => 'blue']]]],
+        ]);
+        $this->assertSame('0 0 24px red, 0px 1px 0px blue', $r['vars']['--bl-tsh']);
     }
 
     public function test_z_index_token_slug_resolves_to_alias_var(): void
@@ -575,16 +582,27 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('var(--blicks-width-prose)', $r['vars']['--bl-h']);
     }
 
-    public function test_wave_g_align_content_and_grid_auto_tracks(): void
+    public function test_wave_g_align_content_and_grid_auto_rows(): void
     {
         $r = $this->build([
             'layout.alignContent' => ['default' => ['base' => 'space-between']],
-            'layout.gridAutoColumns' => ['default' => ['base' => 'minmax(0, 1fr)']],
             'layout.gridAutoRows' => ['default' => ['base' => '1fr']],
         ]);
         $this->assertSame('space-between', $r['vars']['--bl-ac']);
-        $this->assertSame('minmax(0, 1fr)', $r['vars']['--bl-gac']);
         $this->assertSame('1fr', $r['vars']['--bl-gar']);
+    }
+
+    public function test_controls_dropped_in_v2_emit_nothing(): void
+    {
+        $r = $this->build([
+            'layout.float' => ['default' => ['base' => 'left']],
+            'layout.clear' => ['default' => ['base' => 'both']],
+            'layout.direction' => ['default' => ['base' => 'rtl']],
+            'layout.gridAutoColumns' => ['default' => ['base' => '1fr']],
+            'animation.targetAngle' => ['default' => ['base' => '360deg']],
+        ]);
+        $this->assertSame([], $r['classes']);
+        $this->assertSame([], $r['vars']);
     }
 
     public function test_wave_g_min_max_width_height_tokens_and_literals(): void
@@ -601,30 +619,24 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('80vh', $r['vars']['--bl-mah']);
     }
 
-    public function test_wave_g_box_sizing_box_behavior_scroll_extras_and_direction(): void
+    public function test_wave_g_box_sizing_box_behavior_and_scroll_extras(): void
     {
         $r = $this->build([
             'layout.boxSizing' => ['default' => ['base' => 'border-box']],
             'layout.visibility' => ['default' => ['base' => 'hidden']],
-            'layout.float' => ['default' => ['base' => 'left']],
-            'layout.clear' => ['default' => ['base' => 'both']],
             'layout.isolation' => ['default' => ['base' => 'isolate']],
             'layout.resize' => ['default' => ['base' => 'both']],
             'layout.scrollBehavior' => ['default' => ['base' => 'smooth']],
             'layout.overscrollBehavior' => ['default' => ['base' => 'contain']],
             'layout.scrollSnapStop' => ['default' => ['base' => 'always']],
-            'layout.direction' => ['default' => ['base' => 'rtl']],
         ]);
         $this->assertSame('border-box', $r['vars']['--bl-bxz']);
         $this->assertSame('hidden', $r['vars']['--bl-vis']);
-        $this->assertSame('left', $r['vars']['--bl-flt2']);
-        $this->assertSame('both', $r['vars']['--bl-clr']);
         $this->assertSame('isolate', $r['vars']['--bl-iso']);
         $this->assertSame('both', $r['vars']['--bl-rsz']);
         $this->assertSame('smooth', $r['vars']['--bl-sb']);
         $this->assertSame('contain', $r['vars']['--bl-osb']);
         $this->assertSame('always', $r['vars']['--bl-sss']);
-        $this->assertSame('rtl', $r['vars']['--bl-dir']);
     }
 
     public function test_wave_h_contain_content_visibility_intrinsic_size(): void
@@ -941,91 +953,22 @@ final class ElementStyleTest extends TestCase
     public function test_wave_e_property_targets(): void
     {
         $r = $this->build([
-            'animation.targetAngle' => ['default' => ['base' => '360deg']],
             'animation.target'      => ['default' => ['base' => '0.75']],
         ]);
-        $this->assertSame('360deg', $r['vars']['--bl-ang']);
         $this->assertSame('0.75',   $r['vars']['--bl-p-target']);
     }
 
-    public function test_wave_f_decoration_after_emits_scoped_body(): void
+    /** The raw `decoration.before/after` objects gave way to the part axis in v2. */
+    public function test_decoration_blobs_dropped_in_v2_emit_nothing(): void
     {
         $r = ElementStyle::build(
-            ['decoration.after' => [
-                'default' => [
-                    'base' => [
-                        'content' => '""',
-                        'width' => '40px',
-                        'height' => '40px',
-                        'borderRadius' => '50%',
-                        'background' => '#000',
-                        'inset' => ['top' => 'auto', 'right' => '-12px', 'bottom' => '-12px', 'left' => 'auto'],
-                        'blur' => '12px',
-                    ],
-                ],
-            ]],
+            [
+                'decoration.before' => ['default' => ['base' => ['content' => 'x', 'width' => '8px']]],
+                'decoration.after' => ['default' => ['base' => ['content' => 'y']]],
+            ],
             'orb1'
         );
-        $this->assertSame(
-            ['.bl-orb1::after{content:"";position:absolute;background:#000;width:40px;height:40px;top:auto;right:-12px;bottom:-12px;left:auto;border-radius:50%;filter:blur(12px)}'],
-            $r['scopedCss'] ?? []
-        );
-    }
-
-    public function test_decoration_extended_box_surface_matches_js_contract(): void
-    {
-        $r = ElementStyle::build(
-            ['decoration.after' => [
-                'default' => [
-                    'base' => [
-                        'content' => '""',
-                        'boxShadow' => '0 4px 6px #000',
-                        'backdropFilter' => 'blur(8px)',
-                        'clipPath' => 'circle(50%)',
-                        'transition' => 'all .3s',
-                        'mask' => 'linear-gradient(#000,transparent)',
-                        'backgroundClip' => 'text',
-                    ],
-                ],
-            ]],
-            'x'
-        );
-        $this->assertSame(
-            ['.bl-x::after{content:"";position:absolute;box-shadow:0 4px 6px #000;backdrop-filter:blur(8px);clip-path:circle(50%);transition:all .3s;-webkit-mask:linear-gradient(#000,transparent);mask:linear-gradient(#000,transparent);-webkit-background-clip:text;background-clip:text}'],
-            $r['scopedCss'] ?? []
-        );
-    }
-
-    public function test_decoration_content_quote_is_escaped(): void
-    {
-        $r = ElementStyle::build(
-            ['decoration.before' => ['default' => ['base' => ['content' => '"']]]],
-            'x'
-        );
-        $this->assertSame(['.bl-x::before{content:"\"";position:absolute}'], $r['scopedCss'] ?? []);
-    }
-
-    public function test_decoration_content_plain_quoted_keywords_passthrough(): void
-    {
-        $plain = ElementStyle::build(
-            ['decoration.after' => ['default' => ['base' => ['content' => 'Get started']]]],
-            'x'
-        );
-        $this->assertSame(['.bl-x::after{content:"Get started";position:absolute}'], $plain['scopedCss'] ?? []);
-
-        $fn = ElementStyle::build(
-            ['decoration.after' => ['default' => ['base' => ['content' => 'counter(item)']]]],
-            'x'
-        );
-        $this->assertSame(['.bl-x::after{content:counter(item);position:absolute}'], $fn['scopedCss'] ?? []);
-    }
-
-    public function test_wave_f_decoration_disabled_emits_nothing(): void
-    {
-        $r = ElementStyle::build(
-            ['decoration.before' => ['default' => ['base' => ['enabled' => false]]]],
-            'orb1'
-        );
+        $this->assertSame([], $r['classes']);
         $this->assertSame([], $r['scopedCss'] ?? []);
     }
 
@@ -1054,5 +997,88 @@ final class ElementStyleTest extends TestCase
         $this->assertSame('top left',    $r['vars']['--bl-tfo']);
         $this->assertSame('preserve-3d', $r['vars']['--bl-tfs']);
         $this->assertSame('800px',       $r['vars']['--bl-psp']);
+    }
+
+    // ── scene child ──────────────────────────────────────────────────────────────
+
+    /**
+     * The expectations here are the exact output the JS engine produces for the same tree —
+     * see the committed golden markup in resources/blocks/__golden__/scene.html. Nothing
+     * compares the two maps automatically, so a scene item rendered by PHP on the front end and
+     * by JS in the editor only stays identical while this holds.
+     */
+    public function test_scene_child_emits_cell_placement_vars(): void
+    {
+        $r = $this->build([
+            'sceneChild.col'     => ['default' => ['base' => '4']],
+            'sceneChild.row'     => ['default' => ['base' => '2']],
+            'sceneChild.colSpan' => ['default' => ['base' => '4']],
+            'sceneChild.rowSpan' => ['default' => ['base' => '9']],
+            'sceneChild.rotate'  => ['default' => ['base' => '15deg']],
+            'sceneChild.scale'   => ['default' => ['base' => '1.5']],
+        ]);
+
+        foreach (['bl-scc', 'bl-scr', 'bl-sccs', 'bl-scrs', 'bl-scrot', 'bl-scsc'] as $class) {
+            $this->assertContains($class, $r['classes']);
+        }
+
+        $this->assertSame('4',     $r['vars']['--bl-scc']);
+        $this->assertSame('2',     $r['vars']['--bl-scr']);
+        $this->assertSame('4',     $r['vars']['--bl-sccs']);
+        $this->assertSame('9',     $r['vars']['--bl-scrs']);
+        $this->assertSame('15deg', $r['vars']['--bl-scrot']);
+        $this->assertSame('1.5',   $r['vars']['--bl-scsc']);
+    }
+
+    /**
+     * Cell values stay UNITLESS through the engine, and this is the assertion that matters most.
+     *
+     * The stage divides its usable width by the track count, and only length-over-length yields a
+     * number. If anything here appended `px` the divisor would become a length, the calc() would
+     * be invalid, and every box would lose its geometry — with no error anywhere, because an
+     * invalid declaration is simply dropped.
+     */
+    public function test_scene_cell_values_are_not_given_units(): void
+    {
+        $r = $this->build([
+            'scene.cols'         => ['default' => ['base' => '12']],
+            'scene.rows'         => ['default' => ['base' => '12']],
+            'sceneChild.col'     => ['default' => ['base' => '0']],
+            'sceneChild.colSpan' => ['default' => ['base' => '12']],
+        ]);
+
+        $this->assertSame('12', $r['vars']['--bl-sgc']);
+        $this->assertSame('12', $r['vars']['--bl-sgr']);
+        $this->assertSame('0',  $r['vars']['--bl-scc']);
+        $this->assertSame('12', $r['vars']['--bl-sccs']);
+    }
+
+    /** The stage's gutters are lengths, and take tokens the way every other spacing value does. */
+    public function test_scene_grid_gutters_are_lengths(): void
+    {
+        $r = $this->build([
+            'scene.gap'     => ['default' => ['base' => '16px']],
+            'scene.padding' => ['default' => ['base' => '48px']],
+        ]);
+
+        $this->assertSame('16px', $r['vars']['--bl-sgg']);
+        $this->assertSame('48px', $r['vars']['--bl-sgp']);
+        $this->assertContains('bl-sgg', $r['classes']);
+        $this->assertContains('bl-sgp', $r['classes']);
+    }
+
+    /**
+     * `sceneChild.anchor` is gone, not merely unused.
+     *
+     * It named which point of a box its x/y addressed. A cell rectangle has no such address — a
+     * box occupies cells, so its edges ARE its placement — and a control that reads as meaningful
+     * while changing nothing is worse than an absent one.
+     */
+    public function test_scene_child_anchor_is_no_longer_a_control(): void
+    {
+        $r = $this->build(['sceneChild.anchor' => ['default' => ['base' => 'center-right']]]);
+
+        $this->assertSame([], $r['classes']);
+        $this->assertSame([], $r['vars']);
     }
 }

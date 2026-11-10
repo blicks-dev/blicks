@@ -1,0 +1,163 @@
+---
+title: "Show a list with the Loop"
+description: "Repeat one card for every item in pasted JSON, a data endpoint or a WordPress query, and let the blocks inside show each item's fields."
+---
+
+The **Loop** block repeats the blocks inside it — the *card* — once for every item in a list. A
+heading inside the card can show each item's title, an image its picture, a button its link. You
+design the card once; the Loop draws one per item, in a grid, a bento or a list.
+
+## Where the items come from
+
+<Frame caption="A Loop's Settings tab.">
+	<img src="/images/inspector/loop-1-settings.png" alt="The Loop Settings tab" style={{ maxWidth: '280px' }} />
+</Frame>
+
+Pick the source in the Loop's **Data** settings.
+
+| Source | Use it for | Notes |
+|---|---|---|
+| **JSON** | A short list you type or paste: team members, prices, a timeline | Up to 256 KB. If the JSON holds several lists, choose one under **List to loop over**. |
+| **Endpoint** | A list from an API: products, events, listings | Administrators add endpoints in **Blicks → Settings → Data sources**; authors pick one by name. |
+| **WordPress** | Your own posts, pages or products | Only published posts, and only what visitors may see. |
+
+<Note>
+Values from JSON and endpoints are always shown as text, never as markup, and links must be
+`http`, `https` or a path on your site. A field holding `<script>` shows the characters, not a script.
+</Note>
+
+## Build a card
+
+<Steps>
+	<Step title="Insert a Loop">
+		It starts with a card holding a heading and a line of text. Paste some JSON, or choose an endpoint or a post type.
+	</Step>
+	<Step title="Design the first card">
+		Add and style blocks as usual. The first card is the live one you edit; the others are previews of the next items.
+	</Step>
+	<Step title="Connect a block to a field">
+		Select a Heading, Text, Image, Button or a Box badge inside the card. Its **Data** section has a
+		*comes from* menu listing the item's fields. Choose one and the block shows that field for each
+		item, with a chip naming it.
+	</Step>
+	<Step title="Format the value">
+		Under **Format**: upper case, shorten, number, currency, date, text before or after, or join a list.
+		**If the field is empty, show…** sets a fallback.
+	</Step>
+</Steps>
+
+The text you typed stays in the block. It is what the card shows until items load, and what comes
+back if you change the field back to **Typed text**.
+
+## Start from a card design
+
+A new Loop opens with **Choose a card for this Loop** under its first card. Every design there is
+drawn with your first item, so you see your own titles and text, not sample copy.
+
+- **Built-in** — the feature card, offer panel and call-to-action card from each of the Studio's collections. Filter them by collection.
+- **Store** — designs from the Blicks store. Pro designs stay listed, locked, until Blicks Pro is active.
+- **Your patterns** — any pattern saved on this site that contains a card.
+
+Point at a design (or move to it with the keyboard) to preview it on every item. Click it to use
+it: the Loop's card is replaced with a copy, so later edits never change the pattern, and its
+blocks are connected to fields with matching names. The heading shows `title` (or `name`), text
+shows `excerpt` or `description`, an image shows `image` or `photo`, and a button links to `url`.
+A notice says how many blocks were connected, with **Undo**.
+
+To change the card later, use **Card design** in the block toolbar, or the **Card design** section
+in the sidebar, which also lists the fields the card shows. **Start with a plain card** closes the
+designs and keeps the starter card.
+
+## Choose which items
+
+**Items** limits how many to show (up to 50) and how many to skip, sorts JSON and endpoint items by
+a field, and keeps only items where one field matches. The arrows at the top of **Items** preview each
+item in the live card.
+
+## Split the items into pages
+
+Without pages a Loop shows its first 50 items at most. **Pages** shows every item, a page at a time:
+
+- **Numbers** — page links with **Previous** and **Next**. **Show** picks page numbers or
+  "Page 2 of 6"; **Look** picks pills, boxes or plain text links. On phones only the first, last and
+  current page and its neighbours are shown, and the arrows drop their words.
+- **Load more** — a count ("Showing 12 of 34") and a button that adds the next page under the
+  cards. **Button** picks one of the Button block's looks. **Load as the visitor scrolls** also loads
+  when the end of the list comes into view, three times at most, then waits for the button so the
+  footer can be reached. It is off by default.
+
+**Per page** is the Loop's own count; **Align** places the links or the button; **Words** changes
+the labels, including the name screen readers announce for the page links (set a different one on
+each Loop when a page has two). On the canvas the page links step through the pages, and the cards
+follow.
+
+### Addresses
+
+Each page has its own address, so it can be bookmarked or shared, and **Back** returns to it. A Loop
+adds `?loop-<id>=<page>` to the address, where `<id>` is its block id, so two Loops on one page page
+separately and a link on one keeps the other's page. Page 1 has no argument. The links lead to the
+Loop itself rather than the top of the page.
+
+Load more uses the same addresses: `?loop-<id>=3` shows pages 1 to 3 (up to 200 items), so a reload
+or a shared link shows everything that was loaded. With JavaScript the button adds the new cards in
+place, moves keyboard focus to the first of them and has screen readers announce the new count;
+without it, the button is a plain link to that address.
+
+### Where the pages come from
+
+| Source | Pages |
+| --- | --- |
+| WordPress query | The database returns one page at a time, and counts every match for the page links. |
+| Use the page's own query | The archive's own pages: its **posts per page** (Settings → Reading) and its `/page/2/` addresses. |
+| JSON and endpoints | The whole list is filtered and sorted first, then split, so the order holds across pages. Endpoints are paged from the kept answer: page 5 sends no extra request. |
+
+A page past the last one shows the Loop's empty state, with **Previous** leading back.
+
+## Lay out the cards
+
+**Layout** offers three arrangements:
+
+- **Grid** — columns per device, set separately for desktop, tablet and phone.
+- **Bento** — a repeating pattern of tiles (1 × 1, 2 × 1 wide, 1 × 2 tall, 2 × 2) and a row height.
+- **List** — one card per row.
+
+**Same height in a row** keeps a row's cards level when their text runs to different lengths.
+
+## Card rules
+
+**Card rules** change a card when its item or position matches: a featured product gets a larger
+tile and the **Highlight** style, the first three posts a bigger heading, an out-of-stock item a
+different badge color, or a block is hidden for some items. Rules run top to bottom, and the lower one wins
+when two change the same thing.
+
+When the cards open a dialog, rules reach it too: the badge color and heading size carry over, and
+**Hide** also lists the dialog's blocks (under *Dialog ›*), so a pill hidden on the card can be
+hidden in its dialog.
+
+## When there are no items
+
+Under **When there are no items**, write the message visitors see — or leave it blank and the Loop
+shows nothing.
+
+## Data endpoints
+
+An endpoint is an `https` address that answers with JSON. Administrators manage them in
+**Blicks → Settings → Data sources**:
+
+- **Fetch again** sets how long an answer is kept (5 minutes to a day). Visitors always get the kept
+  answer; a new one is fetched in the background once it runs out, so no page waits on the API.
+- **Keep the last good answer** keeps Loops showing the previous answer if a fetch fails.
+- **Test now** fetches straight away. The list shows when each endpoint was last fetched, or why it failed.
+- Removing an endpoint says how many pages use it. Their Loops show their empty state until an author picks another.
+
+<Warning>
+Only `https` addresses on the public internet are accepted: no plain `http`, no user name or
+password in the address, and no private, local or loopback hosts. Answers over 1 MB, or slower than
+8 seconds, are refused. Endpoints cannot send sign-in headers, so use a public or read-only feed.
+</Warning>
+
+## With an AI agent
+
+An agent connected through MCP can build Loops too. `describe-block` for `blicks/loop` returns a
+`loop` section with the sources, the site's endpoints by id and name, which blocks can show a field,
+the formats, the `pagination` settings, and a complete example. See [Connect an AI agent](/guides/connect-an-ai-agent).

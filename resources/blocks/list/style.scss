@@ -1,0 +1,436 @@
+/*
+ * The List draws its markers itself, on `li::before`, so a marker can be any shape, a number in a
+ * badge or an icon, in the list's own colour. Everything is read from classes and custom
+ * properties on the outer list; inner lists inherit them.
+ *
+ *   --bl-li-mc   marker colour            --bl-li-ms   marker scale (1 = as drawn)
+ *   --bl-li-mg   space from marker to text --bl-li-gap  space between items
+ *   --bl-li-mw   width of the marker column, set per kind
+ *   --bl-li-mh   height of the marker shape, set per marker
+ *   --bl-li-px / --bl-li-py   an item's own inside space (cards and stripes)
+ *   --bl-li-icon an icon marker's mask; one rule per icon used on the page sets it
+ */
+
+// Static marks the stylesheet owns. Icons chosen by the author come from the page's own rules.
+$check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+$chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
+$tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+$cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E");
+
+@layer blicks.base {
+	// Defaults on the outer list only: an inner list must inherit the outer list's values, not reset
+	// them. "Inner" means inside a List item — a List inside a Step or a theme's own <li> is outer. `:where` keeps this at no specificity, so every kind and marker class below still wins.
+	:where(.bl-list:not(.bl-list-item .bl-list)) {
+		--bl-li-mc: currentcolor;
+		--bl-li-ms: 1;
+		--bl-li-mg: 10px;
+		--bl-li-gap: 0.5em;
+		--bl-li-mw: 1em;
+		--bl-li-mh: 0.36em;
+		--bl-li-icon: #{$check};
+	}
+
+	.bl-list {
+		box-sizing: border-box;
+		margin-block: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bl-list .bl-list {
+		margin-block-start: calc(var(--bl-li-gap) / 2);
+	}
+
+	.bl-list li {
+		--bl-li-px: 0px;
+		--bl-li-py: 0px;
+
+		// Reset per item: custom properties inherit, so an inner item would otherwise take the
+		// extra top space its parent item has for "lines between".
+		--bl-li-pt: var(--bl-li-py);
+
+		position: relative;
+		padding-block: var(--bl-li-pt, var(--bl-li-py)) var(--bl-li-py);
+		padding-inline: calc(var(--bl-li-px) + var(--bl-li-mw) + var(--bl-li-mg)) var(--bl-li-px);
+	}
+
+	.bl-list li + li {
+		margin-block-start: var(--bl-li-gap);
+	}
+
+	.bl-list li::before {
+		content: "";
+		position: absolute;
+		inset-inline-start: calc(var(--bl-li-px) + (var(--bl-li-mw) - var(--bl-li-mh)) / 2);
+		top: calc(var(--bl-li-pt, var(--bl-li-py)) + (1lh - var(--bl-li-mh)) / 2);
+		box-sizing: border-box;
+		width: var(--bl-li-mh);
+		height: var(--bl-li-mh);
+	}
+
+	/* ---------- Space between ---------- */
+	.bl-list--gap-tight { --bl-li-gap: 0.2em; }
+	.bl-list--gap-roomy { --bl-li-gap: 0.9em; }
+	.bl-list--gap-spacious { --bl-li-gap: 1.4em; }
+
+	/* ---------- Bullets: dot, ring, square, dash, chevron; inner lists step down ---------- */
+	.bl-list--bullets li::before {
+		--bl-li-mh: calc(0.36em * var(--bl-li-ms));
+
+		border-radius: 50%;
+		background: var(--bl-li-mc);
+	}
+
+	.bl-list--m-ring li::before,
+	.bl-list--m-dot li li::before {
+		--bl-li-mh: calc(0.42em * var(--bl-li-ms));
+
+		border: 0.1em solid var(--bl-li-mc);
+		background: none;
+	}
+
+	.bl-list--m-square li::before,
+	.bl-list--m-dot li li li::before {
+		border: 0;
+		border-radius: 1px;
+		background: var(--bl-li-mc);
+	}
+
+	// A fixed 2px line: 0.12em rounds to 1px or 2px by where the item falls, so dashes drift.
+	.bl-list--m-dash li::before {
+		width: calc(0.6em * var(--bl-li-ms));
+		height: 2px;
+		inset-inline-start: calc(var(--bl-li-px) + (var(--bl-li-mw) - 0.6em * var(--bl-li-ms)) / 2);
+		top: calc(var(--bl-li-pt, var(--bl-li-py)) + (1lh - 2px) / 2);
+		border-radius: 2px;
+	}
+
+	.bl-list--m-chevron li::before {
+		--bl-li-mh: calc(0.6em * var(--bl-li-ms));
+
+		border-radius: 0;
+		mask: #{$chevron} center / contain no-repeat;
+	}
+
+	/* ---------- Numbers: the browser's own counter, so `start` and `reversed` just work ---------- */
+	.bl-list--numbers {
+		--bl-li-mw: calc(1.6em * var(--bl-li-ms));
+	}
+
+	.bl-list--numbers li {
+		display: list-item;
+	}
+
+	.bl-list--numbers li::before {
+		content: counter(list-item, var(--bl-li-nf, decimal)) var(--bl-li-nd, ".");
+		inset-inline-start: var(--bl-li-px);
+		top: var(--bl-li-pt, var(--bl-li-py));
+		width: auto;
+		min-width: var(--bl-li-mw);
+		height: auto;
+		padding-inline-end: 0.25em;
+		color: var(--bl-li-mc);
+		font-size: calc(1em * var(--bl-li-ms));
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		line-height: inherit;
+		text-align: end;
+	}
+
+	// The number's style and what follows it, read by the rule above; a badge drops the dot.
+	.bl-list--n-1 li li { --bl-li-nf: lower-alpha; }
+	.bl-list--n-1 li li li { --bl-li-nf: lower-roman; }
+	.bl-list--n-01 { --bl-li-nf: decimal-leading-zero; --bl-li-nd: ""; }
+	.bl-list--n-01 li::before { font-weight: 700; }
+	.bl-list--n-a { --bl-li-nf: lower-alpha; }
+	.bl-list--n-i { --bl-li-nf: lower-roman; }
+	.bl-list--n-1-1 { --bl-li-mw: calc(2.2em * var(--bl-li-ms)); }
+	.bl-list--n-1-1 li::before { content: counters(list-item, "."); }
+	.bl-list--n-1-1 li li { --bl-li-mw: calc(2.6em * var(--bl-li-ms)); }
+
+	/* ---------- Icons ---------- */
+	.bl-list--icons {
+		--bl-li-mw: calc(1.2em * var(--bl-li-ms));
+	}
+
+	.bl-list--icons li::before {
+		--bl-li-mh: calc(1.1em * var(--bl-li-ms));
+
+		background: var(--bl-li-mc);
+		mask: var(--bl-li-icon) center / contain no-repeat;
+	}
+
+	.bl-list--icons li li::before {
+		--bl-li-mh: calc(0.9em * var(--bl-li-ms));
+
+		opacity: 0.75;
+	}
+
+	/* ---------- Something behind the marker: a soft square, a soft circle or a solid circle ---------- */
+	.bl-list--b-tint,
+	.bl-list--b-circle,
+	.bl-list--b-solid {
+		--bl-li-mw: calc(1.6em * var(--bl-li-ms));
+		--bl-li-badge: calc(1.6em * var(--bl-li-ms));
+		--bl-li-nd: "";
+	}
+
+	// Icons are a mask, so the badge is a second box behind them.
+	.bl-list--icons:is(.bl-list--b-tint, .bl-list--b-circle, .bl-list--b-solid) li::after {
+		content: "";
+		position: absolute;
+		z-index: 0;
+		inset-inline-start: var(--bl-li-px);
+		top: calc(var(--bl-li-pt, var(--bl-li-py)) + (1lh - var(--bl-li-mw)) / 2);
+		width: var(--bl-li-mw);
+		height: var(--bl-li-mw);
+		border-radius: 0.35em;
+		background: color-mix(in srgb, var(--bl-li-mc) 14%, transparent);
+	}
+
+	.bl-list--icons:is(.bl-list--b-tint, .bl-list--b-circle, .bl-list--b-solid) li::before {
+		--bl-li-mh: calc(1em * var(--bl-li-ms));
+
+		z-index: 1;
+	}
+
+	.bl-list--icons.bl-list--b-circle li::after { border-radius: 50%; }
+	.bl-list--icons.bl-list--b-solid li::after { border-radius: 50%; background: var(--bl-li-mc); }
+	.bl-list--icons.bl-list--b-solid li::before { background: var(--blicks-color-background, #fff); }
+
+	// A number badge: its digits are drawn at 0.82 of the item's size, and every `em` and `1lh` here
+	// (custom properties included, which resolve where they are used) measures that smaller font —
+	// so each length is divided by 0.82 to land where the item measures it. `1lh` scales with the
+	// font because the line height is inherited as a number.
+	.bl-list--numbers:is(.bl-list--b-tint, .bl-list--b-circle, .bl-list--b-solid) li::before {
+		inset-inline-start: calc(var(--bl-li-px) / 0.82);
+		top: calc((var(--bl-li-pt, var(--bl-li-py)) + (1lh - var(--bl-li-badge)) / 2) / 0.82);
+		display: grid;
+		place-items: center;
+		box-sizing: border-box;
+		min-width: calc(var(--bl-li-badge) / 0.82);
+		height: calc(var(--bl-li-badge) / 0.82);
+		padding-inline: 0.3em;
+		border-radius: 0.35em;
+		background: color-mix(in srgb, var(--bl-li-mc) 14%, transparent);
+		font-size: 0.82em;
+		line-height: inherit;
+	}
+
+	.bl-list--n-1-1:is(.bl-list--b-tint, .bl-list--b-circle, .bl-list--b-solid) li li { --bl-li-mw: calc(2.4em * var(--bl-li-ms)); }
+
+	.bl-list--numbers:is(.bl-list--b-circle, .bl-list--b-solid) li::before { border-radius: 999px; }
+	.bl-list--numbers.bl-list--b-solid li::before { background: var(--bl-li-mc); color: var(--blicks-color-background, #fff); }
+
+	/* ---------- Plain: no marker at all ---------- */
+	.bl-list--plain {
+		--bl-li-mw: 0px;
+		--bl-li-mg: 0px;
+	}
+
+	.bl-list--plain li::before {
+		content: none;
+	}
+
+	/* ---------- An item's state ---------- */
+	.bl-list .bl-list-item--hi {
+		border-radius: 0.35em;
+		background: color-mix(in srgb, var(--bl-li-mc) 10%, transparent);
+	}
+
+	.bl-list li.bl-list-item--hi {
+		--bl-li-px: 0.5em;
+		--bl-li-py: 0.2em;
+
+		margin-inline: -0.5em;
+	}
+
+	.bl-list .bl-list-item--out {
+		color: color-mix(in srgb, currentcolor 45%, transparent);
+		text-decoration: line-through;
+		text-decoration-color: color-mix(in srgb, currentcolor 40%, transparent);
+	}
+
+	.bl-list:not(.bl-list--numbers) .bl-list-item--out::before {
+		--bl-li-mc: color-mix(in srgb, currentcolor 70%, transparent);
+		--bl-li-mh: calc(0.9em * var(--bl-li-ms));
+
+		border: 0;
+		border-radius: 0;
+		background: var(--bl-li-mc);
+		mask: #{$cross} center / contain no-repeat;
+		opacity: 1;
+	}
+
+	.bl-list .bl-list-item--out::after {
+		background: color-mix(in srgb, currentcolor 6%, transparent) !important;
+	}
+
+	/* ---------- Done: a tick on a filled marker, words crossed out only when the list says so ---------- */
+	.bl-list .bl-list-item--done::before {
+		--bl-li-mh: calc(1.2em * var(--bl-li-ms));
+
+		content: "";
+		inset-inline-start: calc(var(--bl-li-px) + (var(--bl-li-mw) - var(--bl-li-mh)) / 2);
+		top: calc(var(--bl-li-pt, var(--bl-li-py)) + (1lh - var(--bl-li-mh)) / 2);
+		width: var(--bl-li-mh);
+		min-width: 0;
+		height: var(--bl-li-mh);
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: #{$tick} center / 62% no-repeat, var(--bl-li-mc);
+		font-size: 1em;
+		opacity: 1;
+		mask: none;
+	}
+
+	.bl-list .bl-list-item--done::after {
+		content: none;
+	}
+
+	.bl-list--strike-done .bl-list-item--done {
+		color: color-mix(in srgb, currentcolor 50%, transparent);
+		text-decoration: line-through;
+		text-decoration-color: color-mix(in srgb, currentcolor 45%, transparent);
+	}
+
+	/* ---------- Title and a line ---------- */
+	.bl-list--titled li {
+		font-weight: var(--bl-li-tw, 600);
+	}
+
+	.bl-list-item__desc {
+		display: block;
+		color: color-mix(in srgb, currentcolor 68%, transparent);
+		font-size: 0.92em;
+		font-weight: 400;
+	}
+
+	/* ---------- Inner levels: their own marker colour, mono numbers ---------- */
+	.bl-list--inner-mc li li {
+		--bl-li-mc: var(--bl-li-mc2);
+	}
+
+	.bl-list--inner-mono li li::before {
+		font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+		font-size: 0.85em;
+		font-weight: 500;
+	}
+
+	/* ---------- Each item: plain, cards or stripes ---------- */
+	.bl-list--cards > li {
+		--bl-li-px: 1em;
+		--bl-li-py: 0.8em;
+
+		border: var(--bl-li-cb, 0);
+		border-radius: var(--bl-li-cr, 4px);
+		background: var(--bl-li-card, var(--blicks-color-muted, #f4f4f5));
+	}
+
+	.bl-list--cards > li + li {
+		margin-block-start: max(var(--bl-li-gap), 0.4em);
+	}
+
+	.bl-list--stripes > li {
+		--bl-li-px: 0.75em;
+		--bl-li-py: 0.45em;
+
+		border-radius: 4px;
+	}
+
+	.bl-list--stripes > li:nth-of-type(odd) {
+		background: var(--blicks-color-muted, #f4f4f5);
+	}
+
+	.bl-list--stripes > li + li {
+		margin-block-start: 0;
+	}
+
+	/* ---------- Lines between items ---------- */
+	.bl-list--lines > li + li {
+		--bl-li-pt: calc(var(--bl-li-py) + var(--bl-li-gap));
+
+		border-block-start: 1px solid var(--blicks-color-border, #e4e4e7);
+	}
+
+	/* ---------- Arrange: in a row, or in columns ---------- */
+	.bl-list--row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--bl-li-gap) 1.4em;
+	}
+
+	.bl-list--row > li + li {
+		margin-block-start: 0;
+	}
+
+	.bl-list--row .bl-list {
+		display: none;
+	}
+
+	// With a separator the separator is the marker, between items only.
+	.bl-list--row:is(.bl-list--sep-dot, .bl-list--sep-slash, .bl-list--sep-pipe, .bl-list--sep-arrow) {
+		--bl-li-mw: 0px;
+		--bl-li-mg: 0px;
+
+		gap: var(--bl-li-gap) 0.6em;
+	}
+
+	.bl-list--row:is(.bl-list--sep-dot, .bl-list--sep-slash, .bl-list--sep-pipe, .bl-list--sep-arrow) > li::before {
+		content: none;
+	}
+
+	.bl-list--row:is(.bl-list--sep-dot, .bl-list--sep-slash, .bl-list--sep-pipe, .bl-list--sep-arrow) > li + li::before {
+		position: static;
+		display: inline-block;
+		width: auto;
+		height: auto;
+		margin-inline-end: 0.6em;
+		border: 0;
+		background: none;
+		color: color-mix(in srgb, var(--bl-li-mc) 55%, transparent);
+		mask: none;
+	}
+
+	.bl-list--row.bl-list--sep-dot > li + li::before { content: "·"; }
+	.bl-list--row.bl-list--sep-slash > li + li::before { content: "/"; }
+	.bl-list--row.bl-list--sep-pipe > li + li::before { content: "|"; }
+	.bl-list--row.bl-list--sep-arrow > li + li::before { content: "→"; }
+
+	// Columns are a grid, read across in rows as a feature list is; a multi-column flow would read
+	// down and split the absolutely placed markers across column breaks.
+	[class*="bl-list--cols-"] {
+		display: grid;
+		grid-template-columns: repeat(var(--bl-li-cols), minmax(0, 1fr));
+		gap: var(--bl-li-gap) 2em;
+		align-items: start;
+	}
+
+	.bl-list--cols-2 { --bl-li-cols: 2; }
+	.bl-list--cols-3 { --bl-li-cols: 3; }
+	.bl-list--cols-4 { --bl-li-cols: 4; }
+
+	[class*="bl-list--cols-"] > li + li {
+		margin-block-start: 0;
+	}
+
+	// A row can start on any item, so in columns every item carries its line.
+	[class*="bl-list--cols-"].bl-list--lines > li {
+		--bl-li-pt: calc(var(--bl-li-py) + var(--bl-li-gap));
+
+		border-block-start: 1px solid var(--blicks-color-border, #e4e4e7);
+	}
+
+	@media (width <= 600px) {
+		[class*="bl-list--cols-"] {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+}
+
+/* Editor-only: an item's text is a block-level editable inside the `<li>`; the inner list follows it. */
+.bl-list-item__text {
+	min-height: 1lh;
+}

@@ -5,7 +5,11 @@ import { resolve } from 'node:path';
 // run during tests. The `@/` alias mirrors tsconfig + the build config.
 export default defineConfig( {
 	resolve: {
-		alias: { '@': resolve( 'resources' ) },
+		alias: {
+			'@': resolve( 'resources' ),
+			// A Pro module's tests load the free plugin through this one name (resources/test/blicks-runtime.ts).
+			'@blicks/test-runtime': resolve( 'resources/test/blicks-runtime.ts' ),
+		},
 		// The plugin build externalizes React and @wordpress/* to globals, so nothing here
 		// pins them — under test they resolve transitively and the monorepo can hand back two
 		// copies of React (and of @emotion/react with it). Two Reacts make `isValidElement`
@@ -31,7 +35,7 @@ export default defineConfig( {
 		// @wordpress/block-editor opt into jsdom per-file with a
 		// `// @vitest-environment jsdom` docblock, and get the shims below.
 		environment: 'node',
-		include: [ 'resources/**/*.test.ts', 'resources/**/*.test.tsx' ],
+		include: [ 'resources/**/*.test.ts', 'resources/**/*.test.tsx', 'modules/**/*.test.ts', 'modules/**/*.test.tsx' ],
 		setupFiles: [ resolve( 'resources/test/jsdom-setup.ts' ) ],
 		server: {
 			deps: {

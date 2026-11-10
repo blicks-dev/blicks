@@ -12,6 +12,7 @@ describe( 'tokenOptions', () => {
 			label: 'Md',
 			varName: '--blicks-radius-md',
 			css: 'var(--blicks-radius-md)',
+			value: 'md',
 		} );
 	} );
 
@@ -88,8 +89,11 @@ describe( 'live token catalogue bridge', () => {
 
 		const fresh = await import( './token-utils' );
 		expect( fresh.tokenOptions( 'spacing' ).map( option => option.slug ) ).toEqual( [ 'tight', 'roomy' ] );
-		expect( fresh.tokenSuggestions( 'spacing' ) ).toEqual( [ 'tight', 'roomy' ] );
-		expect( fresh.lengthOrTokenPattern( 'spacing', LENGTH_PATTERN ).test( 'tight' ) ).toBe( true );
+		// Offered as they are stored: a theme slug the engine does not know goes in as its variable.
+		expect( fresh.tokenSuggestions( 'spacing' ) ).toEqual( [ 'var(--blicks-spacing-tight)', 'var(--blicks-spacing-roomy)' ] );
+		// The stored form is valid; a bare theme slug is not, since the engine would write it raw.
+		expect( fresh.lengthOrTokenPattern( 'spacing', LENGTH_PATTERN ).test( 'var(--blicks-spacing-tight)' ) ).toBe( true );
+		expect( fresh.lengthOrTokenPattern( 'spacing', LENGTH_PATTERN ).test( 'tight' ) ).toBe( false );
 		expect( fresh.lengthOrTokenPattern( 'spacing', LENGTH_PATTERN ).test( 'md' ) ).toBe( false );
 	} );
 
@@ -101,5 +105,57 @@ describe( 'live token catalogue bridge', () => {
 		expect( fresh.tokenOptions( 'radius' ).map( option => option.slug ) ).toEqual(
 			tokenOptions( 'radius' ).map( option => option.slug )
 		);
+	} );
+} );
+
+/*
+ * A theme's own scale (Twenty Twenty-Five: spacing 20…80, colour `contrast`) is printed as
+ * `--blicks-<category>-<slug>`, but the engine resolves only its own slugs — a bare `50` was
+ * written as `50px`, `contrast` as no colour. Picked theme presets are stored as their variable.
+ */
+describe( 'theme presets are stored as their variable', () => {
+	const load = async () => {
+		vi.resetModules();
+		vi.stubGlobal( 'window', {
+			blicksEditorSettings: {
+				tokenCatalogue: {
+					spacing: [ { slug: 'md', name: 'Md', value: '1rem' }, { slug: '50', name: '50', value: 'clamp(30px, 5vw, 50px)' } ],
+					color: [ { slug: 'primary', name: 'Primary', value: '#00f' }, { slug: 'contrast', name: 'Contrast', value: '#111' } ],
+					shadow: [ { slug: 'natural', name: 'Natural', value: '0 1px 2px #000' } ],
+				},
+			},
+		} );
+		return import( './token-utils' );
+	};
+
+	afterEach( () => vi.unstubAllGlobals() );
+
+	it( 'keeps an engine slug bare and writes a theme slug as its var', async () => {
+		const t = await load();
+		expect( t.tokenStoreValue( 'spacing', 'md' ) ).toBe( 'md' );
+		expect( t.tokenStoreValue( 'spacing', '50' ) ).toBe( 'var(--blicks-spacing-50)' );
+		expect( t.tokenStoreValue( 'color', 'contrast' ) ).toBe( 'var(--blicks-color-contrast)' );
+		expect( t.tokenOptions( 'spacing' ).map( ( o ) => o.value ) ).toEqual( [ 'md', 'var(--blicks-spacing-50)' ] );
+	} );
+
+	it( 'leaves shadows bare, since the shadow builder takes no var()', async () => {
+		const t = await load();
+		expect( t.tokenStoreValue( 'shadow', 'natural' ) ).toBe( 'natural' );
+	} );
+
+	it( 'reads a stored value back to its slug', async () => {
+		const t = await load();
+		expect( t.tokenSlugOfValue( 'spacing', 'var(--blicks-spacing-50)' ) ).toBe( '50' );
+		expect( t.tokenSlugOfValue( 'spacing', 'md' ) ).toBe( 'md' );
+		expect( t.tokenSlugOfValue( 'spacing', 'var(--blicks-color-50)' ) ).toBe( 'var(--blicks-color-50)' );
+	} );
+
+	it( 'suggests and accepts the stored forms', async () => {
+		const t = await load();
+		expect( t.tokenSuggestions( 'spacing', [ 'auto' ] ) ).toEqual( [ 'md', 'var(--blicks-spacing-50)', 'auto' ] );
+		const pattern = t.lengthOrTokenPattern( 'spacing', LENGTH_PATTERN );
+		expect( pattern.test( 'var(--blicks-spacing-50)' ) ).toBe( true );
+		expect( pattern.test( 'md' ) ).toBe( true );
+		expect( pattern.test( '50' ) ).toBe( false );
 	} );
 } );

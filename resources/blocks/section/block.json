@@ -4,7 +4,7 @@
 	"name": "blicks/section",
 	"title": "Section",
 	"category": "blicks",
-	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.7 4.2L21.3 4.2L21.3 19.8L2.7 19.8ZM4.3 18.2L19.7 18.2L19.7 5.8L4.3 5.8ZM7 9.3L17 9.3L17 7.7L7 7.7ZM7 12.8L17 12.8L17 11.2L7 11.2Z\" fill=\"currentColor\"/><path d=\"M7 16.3L14 16.3L14 14.7L7 14.7Z\" fill=\"#002bff\"/></svg>",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M3.25 2.5H20.75A1.25 1.25 0 0 1 22 3.75V3.75A1.25 1.25 0 0 1 20.75 5H3.25A1.25 1.25 0 0 1 2 3.75V3.75A1.25 1.25 0 0 1 3.25 2.5ZM3.25 19H20.75A1.25 1.25 0 0 1 22 20.25V20.25A1.25 1.25 0 0 1 20.75 21.5H3.25A1.25 1.25 0 0 1 2 20.25V20.25A1.25 1.25 0 0 1 3.25 19Z\" fill=\"currentColor\"/><path d=\"M4 7.5H20A2 2 0 0 1 22 9.5V14.5A2 2 0 0 1 20 16.5H4A2 2 0 0 1 2 14.5V9.5A2 2 0 0 1 4 7.5ZM8.25 10.75A1.25 1.25 0 0 0 7 12V12A1.25 1.25 0 0 0 8.25 13.25H15.75A1.25 1.25 0 0 0 17 12V12A1.25 1.25 0 0 0 15.75 10.75Z\" fill=\"#002bff\"/></svg>",
 	"description": "A full-bleed page band with outer section sizing and independent content sizing controls.",
 	"textdomain": "blicks",
 	"supports": {
@@ -12,8 +12,8 @@
 		"anchor": true,
 		"align": [ "full" ],
 		"blicks": {
-			"controls": [ "spacing.*", "border.*", "position.*", "colors.*", "background.*", "typography.*", "effects.*", "animation.*", "decoration.*" ],
-			"states": [ "default", "hover", "focus", "active" ]
+			"controls": [ "layout.group", "spacing.*", "border.*", "position.*", "colors.*", "background.*", "typography.*", "effects.*", "animation.*", "decoration.*", "flexChild.*", "gridChild.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
 		}
 	},
 	"attributes": {

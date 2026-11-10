@@ -16,12 +16,13 @@ import {
 } from '../support/blocks';
 
 /**
- * Blocks whose save() deliberately returns null until they are given content, so an untouched
- * one is absent from the front end by design. Image is the only such block today:
- * `resources/blocks/image/index.tsx` returns null while `url` is empty, rather than shipping an
- * empty figure. They are still inserted below — only the rendered assertion is skipped.
+ * Blocks that render nothing until they are given content, so an untouched one is absent from
+ * the front end by design. Image: `resources/blocks/image/index.tsx` returns null while `url` is
+ * empty, rather than shipping an empty figure. Loop: with no data and no empty message it has no
+ * items to list (LoopRenderer), and loop.spec.ts covers it with data. They are still inserted
+ * below — only the rendered assertion is skipped.
  */
-const RENDER_REQUIRES_CONTENT = [ 'image' ];
+const RENDER_REQUIRES_CONTENT = [ 'image', 'loop' ];
 
 // One page carrying every block, published once. Cheaper than a page per block, and it also
 // exercises the blocks composed together rather than each in isolation.

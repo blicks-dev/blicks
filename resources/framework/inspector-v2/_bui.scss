@@ -1,0 +1,723 @@
+// Blicks UI components — the system's `components/bundle.css`, ported one for one onto the
+// prefixed tokens in framework/_ui-tokens.scss. Emitted as a mixin so it lands only inside a
+// scoped root (`.bui`): nothing here may reach the post editor's own inspector or the canvas.
+//
+// Rules: controls are fills, never outlines; `brand` marks only what is set, selected or focused;
+// focus is the solid `shadow-focus` ring, never an outline offset (it clips at the sidebar edge).
+// Icons are inline SVG (`.bui-ms`), not the icon font: a plugin may not load remote fonts.
+
+@mixin components {
+	&,
+	& * {
+		box-sizing: border-box;
+	}
+
+	font-family: var(--bui-font-sans);
+	color: var(--bui-ink);
+	font-size: 13px;
+	line-height: 18px;
+	-webkit-font-smoothing: antialiased;
+
+	// Resets sit in :where() so any component class beats them.
+	:where(button, input, select) {
+		font: inherit;
+		color: inherit;
+		margin: 0;
+	}
+
+	:where(button) {
+		background: none;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	:where(button, input, select, [tabindex]):focus-visible {
+		outline: 0;
+		box-shadow: var(--bui-shadow-focus);
+	}
+
+	.bui-ms {
+		display: inline-block;
+		flex: none;
+		width: var(--bui-icon);
+		height: var(--bui-icon);
+		fill: currentcolor;
+		vertical-align: middle;
+	}
+
+	.bui-ms.sm {
+		width: var(--bui-icon-sm);
+		height: var(--bui-icon-sm);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.bui-seg button,
+		.bui-tabs button,
+		.bui-fld,
+		.bui-select select,
+		.bui-colour,
+		.bui-sec-h {
+			transition: background-color 120ms var(--bui-ease), box-shadow 120ms var(--bui-ease), color 120ms var(--bui-ease), transform 200ms var(--bui-ease);
+		}
+	}
+
+	// Button
+	.bui-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--bui-space-4);
+		height: var(--bui-field-h);
+		padding: 0 14px;
+		border-radius: var(--bui-radius-pill);
+		font-size: 13px;
+		font-weight: 600;
+	}
+
+	.bui-btn.primary {
+		background: var(--bui-brand);
+		color: var(--bui-on-brand);
+	}
+
+	.bui-btn.quiet {
+		background: var(--bui-field);
+		color: var(--bui-ink);
+	}
+
+	.bui-btn.quiet:hover {
+		background: var(--bui-field-2);
+	}
+
+	// Segmented control: a filled track; the chosen option is a raised thumb.
+	.bui-seg {
+		display: inline-flex;
+		gap: var(--bui-space-2);
+		padding: 3px;
+		border-radius: var(--bui-radius-lg);
+		background: var(--bui-field);
+	}
+
+	.bui-seg.full {
+		display: flex;
+	}
+
+	.bui-seg.full button {
+		flex: 1;
+	}
+
+	.bui-seg.wrap {
+		flex-wrap: wrap;
+	}
+
+	.bui-seg button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--bui-space-4);
+		min-width: 30px;
+		height: calc(var(--bui-field-h) - 6px);
+		padding: 0 8px;
+		border-radius: var(--bui-radius-sm);
+		color: var(--bui-ink-2);
+		font-size: 12px;
+		font-weight: 500;
+		white-space: nowrap;
+	}
+
+	.bui-seg button:hover {
+		background: var(--bui-field-2);
+		color: var(--bui-ink);
+	}
+
+	.bui-seg button[aria-pressed="true"] {
+		background: var(--bui-paper);
+		color: var(--bui-brand);
+		box-shadow: var(--bui-shadow-thumb);
+	}
+
+	.bui-seg button.fallback {
+		color: var(--bui-ink);
+		background: color-mix(in srgb, var(--bui-paper) 45%, transparent);
+	}
+
+	.bui-seg .tx {
+		font-weight: 600;
+		letter-spacing: 0.02em;
+	}
+
+	.bui-seg sup {
+		font: 10px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+	}
+
+	// Tabs: the same track, full width, one per panel.
+	.bui-tabs {
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
+		gap: var(--bui-space-2);
+		padding: 3px;
+		border-radius: var(--bui-radius-lg);
+		background: var(--bui-field);
+	}
+
+	.bui-tabs button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		height: calc(var(--bui-field-h) - 6px);
+		border-radius: var(--bui-radius-sm);
+		color: var(--bui-ink-2);
+		font-size: 13px;
+		font-weight: 500;
+	}
+
+	.bui-tabs button[aria-selected="true"] {
+		background: var(--bui-paper);
+		color: var(--bui-ink);
+		box-shadow: var(--bui-shadow-thumb);
+	}
+
+	.bui-tabs button[aria-selected="true"] .bui-ms {
+		color: var(--bui-brand);
+	}
+
+	// Number / text field: filled, icon or letter in front, unit behind.
+	.bui-fld {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-4);
+		height: var(--bui-field-h);
+		padding: 0 10px;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		min-width: 0;
+		flex: 1 1 0;
+		cursor: text;
+	}
+
+	.bui-fld:hover {
+		background: var(--bui-field-2);
+	}
+
+	.bui-fld:focus-within {
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-focus);
+	}
+
+	.bui-fld .lead {
+		color: var(--bui-ink-3);
+		font-size: 11px;
+		font-weight: 600;
+		display: inline-flex;
+	}
+
+	.bui-fld input {
+		flex: 1;
+		min-width: 0;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		border: 0;
+		background: none;
+		outline: none;
+		box-shadow: none;
+		padding: 0;
+		font: 12px/16px var(--bui-font-mono);
+		color: var(--bui-ink);
+		text-overflow: ellipsis;
+	}
+
+	.bui-fld input::placeholder {
+		color: var(--bui-ink-3);
+		opacity: 1;
+	}
+
+	.bui-fld .unit {
+		font: 10px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+	}
+
+	.bui-fld.invalid,
+	.bui-colour.invalid {
+		box-shadow: 0 0 0 2px var(--bui-danger);
+	}
+
+	.bui-pair {
+		display: flex;
+		gap: var(--bui-space-6);
+	}
+
+	// Select
+	.bui-select {
+		position: relative;
+		display: flex;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.bui-select select {
+		appearance: none;
+		width: 100%;
+		max-width: none;
+		height: var(--bui-field-h);
+		min-height: 0;
+		padding: 0 28px 0 10px;
+		border: 0;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		color: var(--bui-ink);
+		font-size: 13px;
+		line-height: var(--bui-field-h);
+		box-shadow: none;
+		cursor: pointer;
+	}
+
+	.bui-select select:hover {
+		background: var(--bui-field-2);
+		color: var(--bui-ink);
+	}
+
+	.bui-select select.unset {
+		color: var(--bui-ink-3);
+	}
+
+	.bui-select .bui-ms {
+		position: absolute;
+		right: 7px;
+		top: 8px;
+		color: var(--bui-ink-3);
+		pointer-events: none;
+	}
+
+	.bui-select.lead select {
+		padding-left: 32px;
+	}
+
+	.bui-select.lead .bui-ms:first-child {
+		left: 9px;
+		right: auto;
+		color: var(--bui-brand);
+	}
+
+	// Colour field + palette popover
+	.bui-colour {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-8);
+		width: 100%;
+		height: var(--bui-field-h);
+		padding: 0 10px 0 6px;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		text-align: left;
+		font-size: 13px;
+	}
+
+	.bui-colour:hover {
+		background: var(--bui-field-2);
+	}
+
+	.bui-colour[aria-expanded="true"] {
+		box-shadow: var(--bui-shadow-focus);
+	}
+
+	.bui-colour .sw {
+		width: 20px;
+		height: 20px;
+		border-radius: var(--bui-radius-round);
+		box-shadow: inset 0 0 0 1px rgb(0 0 0 / 14%);
+		flex: none;
+	}
+
+	.bui-colour .nm {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.bui-colour.unset .nm {
+		color: var(--bui-ink-3);
+	}
+
+	.bui-colour code {
+		font: 10.5px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+		background: none;
+		padding: 0;
+	}
+
+	.bui-pop {
+		display: grid;
+		gap: var(--bui-space-8);
+		padding: var(--bui-space-10);
+		border-radius: var(--bui-radius-xl);
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-pop);
+	}
+
+	.bui-pop .h {
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-pop .dots {
+		display: grid;
+		grid-template-columns: repeat(8, 1fr);
+		gap: var(--bui-space-6);
+	}
+
+	.bui-pop .dots button {
+		aspect-ratio: 1;
+		border-radius: var(--bui-radius-round);
+		box-shadow: inset 0 0 0 1px rgb(0 0 0 / 14%);
+	}
+
+	.bui-pop .dots button[aria-pressed="true"] {
+		box-shadow: 0 0 0 2px var(--bui-paper), 0 0 0 4px var(--bui-brand);
+	}
+
+	.bui-picker {
+		flex: none;
+		width: var(--bui-field-h);
+		height: var(--bui-field-h);
+		padding: 0;
+		border: 0;
+		border-radius: var(--bui-radius-md);
+		background: var(--bui-field);
+		cursor: pointer;
+	}
+
+	// Box model: margin ring around a padding ring.
+	.bui-box {
+		display: grid;
+		grid-template-columns: 54px 1fr 54px;
+		align-items: center;
+		position: relative;
+		padding: var(--bui-space-6);
+		border-radius: var(--bui-radius-xl);
+		background: var(--bui-field);
+	}
+
+	.bui-box.inner {
+		grid-column: 2;
+		grid-row: 2;
+		border-radius: var(--bui-radius-lg);
+		background: var(--bui-brand-tint);
+	}
+
+	.bui-box .cap {
+		position: absolute;
+		left: 8px;
+		top: 5px;
+		font: 500 10px/12px var(--bui-font-mono);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-box.inner > .cap {
+		color: var(--bui-brand);
+	}
+
+	.bui-box input {
+		width: 100%;
+		height: var(--bui-field-h-sm);
+		min-height: 0;
+		border: 0;
+		border-radius: var(--bui-radius-xs);
+		background: none;
+		box-shadow: none;
+		padding: 0 2px;
+		text-align: center;
+		font: 12px var(--bui-font-mono);
+		color: var(--bui-ink);
+		text-overflow: ellipsis;
+	}
+
+	.bui-box input:hover {
+		background: var(--bui-paper);
+	}
+
+	.bui-box input:focus {
+		outline: 0;
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-focus);
+	}
+
+	.bui-box input::placeholder {
+		color: var(--bui-ink-3);
+		opacity: 1;
+	}
+
+	.bui-box input.set {
+		color: var(--bui-brand);
+		font-weight: 600;
+	}
+
+	.bui-box .t {
+		grid-column: 2;
+		grid-row: 1;
+		justify-self: center;
+		width: 70%;
+	}
+
+	.bui-box .b {
+		grid-column: 2;
+		grid-row: 3;
+		justify-self: center;
+		width: 70%;
+	}
+
+	.bui-box .l {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.bui-box .r {
+		grid-column: 3;
+		grid-row: 2;
+	}
+
+	.bui-box .core {
+		grid-column: 2;
+		grid-row: 2;
+		height: 26px;
+		display: grid;
+		place-items: center;
+		border-radius: var(--bui-radius-xs);
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-card);
+		font: 10.5px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+	}
+
+	// Slider
+	.bui-slider {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		gap: var(--bui-space-8);
+		min-width: 0;
+	}
+
+	.bui-slider input[type="range"] {
+		flex: 1;
+		min-width: 0;
+		accent-color: var(--bui-brand);
+	}
+
+	.bui-slider .bui-fld {
+		flex: 0 0 72px;
+	}
+
+	// Search
+	.bui-search {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-6);
+		height: var(--bui-field-h);
+		padding: 0 12px;
+		border-radius: var(--bui-radius-pill);
+		background: var(--bui-field);
+		color: var(--bui-ink-3);
+	}
+
+	.bui-search:focus-within {
+		background: var(--bui-paper);
+		box-shadow: var(--bui-shadow-focus);
+	}
+
+	.bui-search input {
+		flex: 1;
+		min-width: 0;
+		min-height: 0;
+		border: 0;
+		background: none;
+		box-shadow: none;
+		outline: none;
+		padding: 0;
+		font-size: 13px;
+		color: var(--bui-ink);
+	}
+
+	.bui-search input::placeholder {
+		color: var(--bui-ink-3);
+		opacity: 1;
+	}
+
+	// Section: a collapsible group of rows.
+	.bui-sec + .bui-sec {
+		margin-top: var(--bui-space-2);
+	}
+
+	.bui-sec h3 {
+		margin: 0;
+		font: inherit;
+	}
+
+	.bui-sec-h {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-8);
+		width: 100%;
+		padding: 9px 8px 7px;
+		border-radius: var(--bui-radius-md);
+		font-size: 13px;
+		font-weight: 650;
+		text-align: left;
+	}
+
+	.bui-sec-h:hover {
+		background: var(--bui-plate);
+	}
+
+	.bui-sec-h > .bui-ms:first-child {
+		color: var(--bui-ink-2);
+	}
+
+	.bui-sec-h .tot {
+		margin-left: auto;
+		font: 10.5px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+	}
+
+	.bui-sec-h .chev {
+		color: var(--bui-ink-3);
+	}
+
+	.bui-sec.closed .chev {
+		transform: rotate(-90deg);
+	}
+
+	.bui-sec-b {
+		display: grid;
+		gap: var(--bui-space-6);
+		padding: 0 8px 14px;
+	}
+
+	// Setting row: label, control, and the note that says where a fallback comes from.
+	.bui-row {
+		display: grid;
+		grid-template-columns: 78px minmax(0, 1fr);
+		align-items: center;
+		gap: var(--bui-space-8);
+		min-height: var(--bui-field-h);
+	}
+
+	.bui-row.stack,
+	.bui-row.wide,
+	.bui-row.box {
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--bui-space-4);
+	}
+
+	.bui-row .lb {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-4);
+		min-width: 0;
+		font-size: 12px;
+		color: var(--bui-ink-2);
+		white-space: nowrap;
+	}
+
+	.bui-row .lb .nm {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.bui-row.set .lb {
+		color: var(--bui-brand);
+		font-weight: 600;
+	}
+
+	.bui-row .lb .rm {
+		display: inline-flex;
+		visibility: hidden;
+		color: var(--bui-ink-3);
+		border-radius: var(--bui-radius-xs);
+	}
+
+	.bui-row.set:hover .lb .rm,
+	.bui-row .lb .rm:focus-visible {
+		visibility: visible;
+	}
+
+	.bui-row .lb .rm:hover {
+		color: var(--bui-warn);
+	}
+
+	.bui-row .ctl {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--bui-space-6);
+		min-width: 0;
+	}
+
+	.bui-row .ctl > .bui-pop {
+		flex: 1 1 100%;
+	}
+
+	.bui-row .note {
+		grid-column: 2;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--bui-space-4);
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+		margin-top: -2px;
+	}
+
+	.bui-row.stack .note,
+	.bui-row.wide .note,
+	.bui-row.box .note {
+		grid-column: 1;
+	}
+
+	.bui-row .note button {
+		color: var(--bui-brand);
+		text-decoration: underline;
+		font-size: inherit;
+	}
+
+	.bui-row .mk {
+		display: inline-flex;
+		color: var(--bui-brand);
+	}
+
+	.bui-row .mk.warn {
+		color: var(--bui-warn);
+	}
+
+	// Badge and fallback pill
+	.bui-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		padding: 1px 7px;
+		border-radius: var(--bui-radius-pill);
+		font: 400 10.5px/16px var(--bui-font-mono);
+		font-style: normal;
+		background: var(--bui-brand-tint);
+		color: var(--bui-brand);
+	}
+
+	.bui-badge.quiet {
+		background: var(--bui-field);
+		color: var(--bui-ink-3);
+		font-family: var(--bui-font-sans);
+	}
+
+	.bui-badge .bui-ms {
+		width: 12px;
+		height: 12px;
+	}
+}

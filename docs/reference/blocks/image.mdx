@@ -4,7 +4,7 @@ description: "A responsive media block with optional link and caption."
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/image/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/image/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,28 +25,41 @@ Generated from `packages/blicks/resources/blocks/image/block.json` and `readme.m
 | HTML editing | `false` |
 | Anchor | `false` |
 | Align | `-` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`gridChild.*` · `border.*` · `spacing.*` · `effects.*` · `layout.*` · `position.*`
+`gridChild.*` · `border.*` · `spacing.*` · `effects.*` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `position.*` · `animation.*` · `flexChild.*` · `colors.background` · `background.*` · `layout.overflow` · `layout.isolation` · `decoration.*`
 
 ## Attributes
 
 | Attribute | Type | Default |
 |---|---|---|
+| `adjust` | `object` | — |
 | `alt` | `string` | `""` |
 | `aspectRatio` | `string` | `"auto"` |
 | `blicks` | `object` | `&#123;&#125;` |
+| `capAlign` | `string` | `""` |
+| `capPos` | `string` | `"below"` |
 | `caption` | `string` | `""` |
+| `decorative` | `boolean` | `false` |
+| `dim` | `string` | `""` |
 | `duotone` | `object` | — |
+| `eager` | `boolean` | `false` |
+| `focus` | `string` | `""` |
+| `hover` | `string` | `""` |
 | `href` | `string` | `""` |
 | `id` | `number` | — |
+| `inline` | `boolean` | `false` |
+| `lineUp` | `string` | `""` |
+| `linkTarget` | `string` | `""` |
 | `linkTo` | `string` | `"none"` |
 | `objectFit` | `string` | `"cover"` |
+| `phoneFull` | `boolean` | `true` |
 | `sizeSlug` | `string` | `"full"` |
 | `uniqueId` | `string` | — |
 | `url` | `string` | `""` |
+| `width` | `string` | `""` |
 
 ## Help
 
@@ -55,6 +68,8 @@ Generated from `packages/blicks/resources/blocks/image/block.json` and `readme.m
 Image renders a responsive figure with optional link and caption. Use it for visual content that belongs to the page structure, not for decorative backgrounds.
 
 ## Controls
+
+`aspectRatio`, `objectFit` and `width` are the only way to set the picture's shape, fit and width: they style the `<img>` and the figure, so the block does not allow `layout.aspectRatio`, `layout.objectFit` or `layout.width`.
 
 ### id
 

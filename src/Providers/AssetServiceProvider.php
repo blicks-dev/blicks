@@ -106,10 +106,8 @@ final class AssetServiceProvider extends ServiceProvider {
 			'before'
 		);
 
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'blicks-admin', 'blicks', BasePlugin::path( 'languages' ) );
-			wp_set_script_translations( 'blicks-block-library', 'blicks', BasePlugin::path( 'languages' ) );
-		}
+		wp_set_script_translations( 'blicks-admin', 'blicks', BasePlugin::path( 'languages' ) );
+		wp_set_script_translations( 'blicks-block-library', 'blicks', BasePlugin::path( 'languages' ) );
 
 		if ( file_exists( BasePlugin::path( 'build/admin.css' ) ) ) {
 			// Version the stylesheet by its OWN mtime, not the JS bundle hash — a CSS-only rebuild
@@ -122,9 +120,7 @@ final class AssetServiceProvider extends ServiceProvider {
 			// silently falls back to the inherited value — the Design System's type specimens all
 			// rendered at the admin's 15px, so eight of the thirteen roles looked identical.
 			// Only custom-property declarations, so it cannot restyle admin chrome.
-			$themeVariables = function_exists( 'wp_get_global_stylesheet' )
-				? wp_get_global_stylesheet( [ 'variables' ] )
-				: '';
+			$themeVariables = wp_get_global_stylesheet( [ 'variables' ] );
 
 			Asset::style( 'blicks-admin', BasePlugin::url( 'build/admin.css' ) )
 				->version( $cssVersion )

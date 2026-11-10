@@ -1,56 +1,50 @@
-import { ToolbarButton } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { ToolbarGroup } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { ToolbarChoice } from '@/blocks/shared/toolbar';
+import { TEXT_ALIGNS, alignIcon } from '@/blocks/shared/toolbar-align';
 import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
-import { HeadingControls, cleanHeadingLevel, setHeadingAlignment } from './controls';
+import { HeadingMotion, HeadingSettings, HeadingStyle, LEVELS, LOOKS, cleanHeadingLevel, setHeadingAlignment, withHeadingLook } from './controls';
 import { getValue } from '@/framework/values';
 import { blicksBlockCompleter } from '@/blocks/shared/blicks-block-completer';
+import { BoundValue, bindingOf } from '@/blocks/loop/binding';
 
-const ALIGNMENTS = [
-	{ value: 'left', label: __( 'Align left', 'blicks' ), icon: 'editor-alignleft' },
-	{ value: 'center', label: __( 'Align center', 'blicks' ), icon: 'editor-aligncenter' },
-	{ value: 'right', label: __( 'Align right', 'blicks' ), icon: 'editor-alignright' },
-];
-
-function HeadingToolbar( {
-	attributes,
-	setAttributes,
-}: {
-	attributes: any;
-	setAttributes: ( a: any ) => void;
-} ) {
+function HeadingToolbar( { attributes, setAttributes }: { attributes: any; setAttributes: ( a: any ) => void } ) {
 	const level = cleanHeadingLevel( attributes.level );
 	const alignment = getValue( attributes, 'typography.textAlign', 'default', 'base' ) || 'left';
-	const nextLevel = level === 6 ? 1 : level + 1;
-
+	const role = String( attributes.blicks?.[ 'typography.role' ]?.default?.base ?? '' );
 	return (
 		<>
-			<ToolbarButton
-				label={ sprintf( __( 'Change heading level. Current level: %d', 'blicks' ), level ) }
-				onClick={ () => setAttributes( { level: nextLevel } ) }
-			>
-				H{ level }
-			</ToolbarButton>
-			{ ALIGNMENTS.map( ( option ) => (
-				<ToolbarButton
-					key={ option.value }
-					icon={ option.icon as any }
-					label={ option.label }
-					isPressed={ alignment === option.value }
-					onClick={ () => setHeadingAlignment( attributes, setAttributes, option.value ) }
+			<ToolbarGroup>
+				<ToolbarChoice label={ __( 'Level', 'blicks' ) } value={ String( level ) } options={ LEVELS } onChange={ ( l ) => setAttributes( { level: Number( l ) } ) } />
+				<ToolbarChoice label={ __( 'Looks like', 'blicks' ) } value={ LOOKS.some( ( [ v ] ) => v === role ) ? role : '' } options={ LOOKS } onChange={ ( v ) => setAttributes( withHeadingLook( attributes, v ) ) } />
+			</ToolbarGroup>
+			<ToolbarGroup>
+				<ToolbarChoice
+					label={ __( 'Line up', 'blicks' ) }
+					iconOnly
+					icon={ alignIcon( alignment ) }
+					value={ alignment }
+					options={ TEXT_ALIGNS.slice( 0, 3 ) }
+					onChange={ ( a ) => setHeadingAlignment( attributes, setAttributes, a ) }
 				/>
-			) ) }
+			</ToolbarGroup>
 		</>
 	);
 }
 
 defineBlock( metadata, {
-	Controls: HeadingControls,
+	panels: {
+		Settings: HeadingSettings,
+		Style: HeadingStyle,
+		Motion: HeadingMotion,
+		describe: ( attributes ) => `H${ cleanHeadingLevel( attributes.level ) }`,
+	},
 	Toolbar: HeadingToolbar,
-	render( { attributes, blockProps, richText, onReplace } ) {
+	render( { attributes, blockProps, richText, onReplace, clientId, isEdit } ) {
 		const tagName = `h${ cleanHeadingLevel( attributes.level ) }`;
 
-		return richText( {
+		const editable = () => richText( {
 			attr: 'content',
 			tagName,
 			placeholder: __( 'Heading...', 'blicks' ),
@@ -61,5 +55,11 @@ defineBlock( metadata, {
 			onReplace,
 			autocompleters: [ blicksBlockCompleter ],
 		} );
+		// Inside a Loop with its text bound to a field, the live card shows the current item's
+		// value instead of the typed text (loop/binding.tsx). Saved markup is unchanged.
+		if ( isEdit && bindingOf( attributes, 'content' ) ) {
+			return <BoundValue attributes={ attributes } clientId={ clientId } attr="content" tagName={ tagName } props={ blockProps } fallback={ editable } />;
+		}
+		return editable();
 	},
 } );

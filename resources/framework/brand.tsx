@@ -14,7 +14,7 @@
  * takes the colour of whatever chrome hosts it; `dark` forces white for a dark surface and
  * lightens the tick to stay visible against it.
  *
- * Props spread onto the `<svg>`, which is what lets WordPress size it: `PluginSidebar` and the
+ * Props spread onto the `<svg>`, which is what lets WordPress size it: a `Button` and the
  * other icon slots clone the element with `width`/`height`, and those land on the element itself.
  */
 export const BRAND_ACCENT = '#002bff';

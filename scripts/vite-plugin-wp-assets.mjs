@@ -45,7 +45,7 @@ function defaultDeps( name ) {
  */
 const IMPORT_RE = /(?:import|export)[^'"`;]*?['"]((?:@wordpress\/[\w-]+)|react(?:\/jsx-runtime)?|react-dom)['"]/g;
 
-function collectSourceDeps( moduleIds ) {
+export function collectSourceDeps( moduleIds ) {
 	const deps = new Set();
 
 	for ( const moduleId of moduleIds ) {

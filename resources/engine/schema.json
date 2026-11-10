@@ -1,0 +1,3411 @@
+{
+	"$comment": "The Blicks style engine, declared once. scripts/gen-engine.mjs generates the TS, PHP and SCSS tables from this file; never edit those by hand. Run `pnpm gen:engine` after changing it.",
+	"states": {
+		"default": {
+			"key": "",
+			"pseudo": ""
+		},
+		"group": {
+			"key": "grp",
+			"pseudo": "",
+			"ancestor": {
+				"on": ".bl-group--card:is(:hover, :focus-visible, :has(:focus-visible))",
+				"off": ".bl-group--card:not(:hover, :focus-visible, :has(:focus-visible))"
+			}
+		},
+		"groupActive": {
+			"key": "gra",
+			"pseudo": "",
+			"ancestor": {
+				"on": ".bl-group--card:active",
+				"off": ".bl-group--card:not(:active)"
+			}
+		},
+		"hover": {
+			"key": "hov",
+			"pseudo": ":hover"
+		},
+		"focus": {
+			"key": "foc",
+			"pseudo": ":is(:focus-visible, :where(:has(> .bl-box__link:focus-visible)))"
+		},
+		"active": {
+			"key": "act",
+			"pseudo": ":active"
+		},
+		"play": {
+			"key": "ply",
+			"pseudo": "[data-bl-play]"
+		},
+		"on": {
+			"key": "on",
+			"pseudo": "[data-bl-active]"
+		},
+		"groupOn": {
+			"key": "gon",
+			"pseudo": "",
+			"ancestor": {
+				"on": ".bl-group--card[data-bl-active]",
+				"off": ".bl-group--card[data-bl-active] .bl-group--card:not([data-bl-active])"
+			}
+		},
+		"reduced": {
+			"key": "rdm",
+			"pseudo": "",
+			"media": "(prefers-reduced-motion: reduce)"
+		}
+	},
+	"stateControls": {
+		"$comment": "States limited to the controls they are for. Every other state styles every control, which repeats each control's rules once per state and breakpoint; a press or a reduced-motion look never needs a grid placement, so these two carry only what they change.",
+		"groupActive": [ "colors.*", "border.*", "effects.*", "background.*" ],
+		"reduced": [ "effects.*", "colors.*", "animation.*", "background.*", "layout.visibility", "layout.display" ],
+		"play": [ "animation.*", "effects.*" ],
+		"on": [ "colors.*", "border.*", "effects.*", "background.*", "animation.*", "layout.visibility", "layout.display" ],
+		"groupOn": [ "colors.*", "border.*", "effects.*", "background.*", "animation.*", "layout.visibility", "layout.display" ]
+	},
+	"breakpoints": {
+		"base": "",
+		"tablet": "tab",
+		"mobile": "mob"
+	},
+	"sides": [
+		[
+			"top",
+			"t"
+		],
+		[
+			"right",
+			"r"
+		],
+		[
+			"bottom",
+			"b"
+		],
+		[
+			"left",
+			"l"
+		]
+	],
+	"corners": [
+		[
+			"topLeft",
+			"tl"
+		],
+		[
+			"topRight",
+			"tr"
+		],
+		[
+			"bottomRight",
+			"br"
+		],
+		[
+			"bottomLeft",
+			"bl"
+		]
+	],
+	"parts": {
+		"before": "::before",
+		"after": "::after"
+	},
+	"typeRoles": [
+		"display",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"body",
+		"lead",
+		"small",
+		"caption",
+		"code",
+		"mono"
+	],
+	"sections": [
+		{
+			"id": "layout"
+		},
+		{
+			"id": "spacing"
+		},
+		{
+			"id": "typography"
+		},
+		{
+			"id": "background"
+		},
+		{
+			"id": "borders"
+		},
+		{
+			"id": "position"
+		},
+		{
+			"id": "columns"
+		},
+		{
+			"id": "gridChild"
+		},
+		{
+			"id": "flexChild"
+		},
+		{
+			"id": "scene"
+		},
+		{
+			"id": "sceneChild"
+		},
+		{
+			"id": "sceneItem"
+		},
+		{
+			"id": "effects"
+		},
+		{
+			"id": "animation"
+		},
+		{
+			"id": "decoration"
+		},
+		{
+			"id": "states",
+			"also": [
+				"effects.cursor"
+			]
+		}
+	],
+	"controls": [
+		{
+			"id": "spacing.padding",
+			"kind": "sides",
+			"cls": "pad",
+			"var": "p",
+			"category": "spacing",
+			"section": "spacing",
+			"import": [
+				"padding"
+			],
+			"runtime": {
+				"group": "spacing",
+				"prop": "padding"
+			}
+		},
+		{
+			"id": "spacing.margin",
+			"kind": "sides",
+			"cls": "mar",
+			"var": "m",
+			"category": "spacing",
+			"section": "spacing",
+			"import": [
+				"margin"
+			],
+			"runtime": {
+				"group": "spacing",
+				"prop": "margin"
+			}
+		},
+		{
+			"id": "border.width",
+			"kind": "sides",
+			"cls": "bw",
+			"var": "bw",
+			"category": "borderWidth",
+			"section": "borders",
+			"import": [
+				"border-width",
+				"border"
+			],
+			"runtime": {
+				"group": "multi",
+				"prop": "border-width",
+				"fallback": "0"
+			}
+		},
+		{
+			"id": "border.style",
+			"kind": "sides",
+			"cls": "bs",
+			"var": "bs",
+			"raw": true,
+			"emptyValue": "none",
+			"section": "borders",
+			"import": [
+				"border-style"
+			],
+			"runtime": {
+				"group": "multi",
+				"prop": "border-style",
+				"fallback": "none"
+			}
+		},
+		{
+			"id": "border.color",
+			"kind": "sides",
+			"cls": "bc",
+			"var": "bc",
+			"category": "color",
+			"raw": true,
+			"emptyValue": "currentcolor",
+			"section": "borders",
+			"import": [
+				"border-color"
+			],
+			"runtime": {
+				"group": "multi",
+				"prop": "border-color",
+				"fallback": "currentcolor"
+			}
+		},
+		{
+			"id": "border.radius",
+			"kind": "corners",
+			"cls": "br",
+			"var": "br",
+			"category": "radius",
+			"section": "borders",
+			"import": [
+				"border-radius"
+			],
+			"runtime": {
+				"group": "multi",
+				"prop": "border-radius",
+				"fallback": "0"
+			}
+		},
+		{
+			"id": "position.inset",
+			"kind": "inset",
+			"cls": "inset",
+			"var": "pos",
+			"category": "spacing",
+			"emptyValue": "auto",
+			"section": "position",
+			"import": [
+				"inset"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": "special"
+		},
+		{
+			"id": "typography.role",
+			"kind": "enum",
+			"cls": "type",
+			"section": "typography"
+		},
+		{
+			"id": "layout.group",
+			"kind": "enum",
+			"cls": "group",
+			"section": "layout",
+			"values": [
+				"card"
+			]
+		},
+		{
+			"id": "layout.display",
+			"kind": "single",
+			"cls": "d",
+			"var": "--bl-d",
+			"section": "layout",
+			"import": [
+				"display"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "display",
+				"default": "block"
+			}
+		},
+		{
+			"id": "layout.flexDirection",
+			"kind": "single",
+			"cls": "fd",
+			"var": "--bl-fd",
+			"section": "layout",
+			"import": [
+				"flex-direction"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "flex-direction",
+				"default": "row"
+			}
+		},
+		{
+			"id": "layout.justifyContent",
+			"kind": "single",
+			"cls": "jc",
+			"var": "--bl-jc",
+			"section": "layout",
+			"import": [
+				"justify-content"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "justify-content",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.alignItems",
+			"kind": "single",
+			"cls": "ai",
+			"var": "--bl-ai",
+			"section": "layout",
+			"import": [
+				"align-items"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "align-items",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.flexWrap",
+			"kind": "single",
+			"cls": "fw",
+			"var": "--bl-fw",
+			"section": "layout",
+			"import": [
+				"flex-wrap"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "flex-wrap",
+				"default": "nowrap"
+			}
+		},
+		{
+			"id": "layout.gapRow",
+			"kind": "single",
+			"cls": "gap-r",
+			"var": "--bl-gap-r",
+			"category": "spacing",
+			"section": "layout",
+			"import": [
+				"row-gap",
+				"gap"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "row-gap",
+				"default": "0"
+			}
+		},
+		{
+			"id": "layout.gapColumn",
+			"kind": "single",
+			"cls": "gap-c",
+			"var": "--bl-gap-c",
+			"category": "spacing",
+			"section": "layout",
+			"runtime": {
+				"group": "layout",
+				"prop": "column-gap",
+				"default": "0"
+			}
+		},
+		{
+			"id": "layout.gridColumns",
+			"kind": "single",
+			"cls": "cols",
+			"var": "--bl-cols",
+			"section": "layout",
+			"import": [
+				"grid-template-columns"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "grid-template-columns",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.gridRows",
+			"kind": "single",
+			"cls": "rows",
+			"var": "--bl-rows",
+			"section": "layout",
+			"import": [
+				"grid-template-rows"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "grid-template-rows",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.justifyItems",
+			"kind": "single",
+			"cls": "ji",
+			"var": "--bl-ji",
+			"section": "layout",
+			"import": [
+				"justify-items"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "justify-items",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.width",
+			"kind": "single",
+			"cls": "w",
+			"var": "--bl-w",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"width"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "width",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.height",
+			"kind": "single",
+			"cls": "h",
+			"var": "--bl-h",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"height"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "height",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.overflow",
+			"kind": "single",
+			"cls": "ov",
+			"var": "--bl-ov",
+			"section": "layout",
+			"import": [
+				"overflow"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "overflow",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "layout.overflowX",
+			"kind": "single",
+			"cls": "ovx",
+			"var": "--bl-ovx",
+			"section": "layout",
+			"import": [
+				"overflow-x"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "overflow-x",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "layout.overflowY",
+			"kind": "single",
+			"cls": "ovy",
+			"var": "--bl-ovy",
+			"section": "layout",
+			"import": [
+				"overflow-y"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "overflow-y",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "layout.scrollSnapType",
+			"kind": "single",
+			"cls": "sst",
+			"var": "--bl-sst",
+			"section": "layout",
+			"import": [
+				"scroll-snap-type"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "scroll-snap-type",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.gridAreas",
+			"kind": "single",
+			"cls": "areas",
+			"var": "--bl-areas",
+			"section": "layout",
+			"import": [
+				"grid-template-areas"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "grid-template-areas",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.gridAutoFlow",
+			"kind": "single",
+			"cls": "gaf",
+			"var": "--bl-gaf",
+			"section": "layout",
+			"import": [
+				"grid-auto-flow"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "grid-auto-flow",
+				"default": "row"
+			}
+		},
+		{
+			"id": "layout.containerType",
+			"kind": "single",
+			"cls": "ct",
+			"var": "--bl-ct",
+			"section": "layout",
+			"import": [
+				"container-type"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "container-type",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.containerName",
+			"kind": "single",
+			"cls": "cn",
+			"var": "--bl-cn",
+			"section": "layout",
+			"import": [
+				"container-name"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "container-name",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.aspectRatio",
+			"kind": "single",
+			"cls": "ar",
+			"var": "--bl-ar",
+			"category": "aspect",
+			"section": "layout",
+			"import": [
+				"aspect-ratio"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "aspect-ratio",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.objectFit",
+			"kind": "single",
+			"cls": "of",
+			"var": "--bl-of",
+			"section": "layout",
+			"import": [
+				"object-fit"
+			],
+			"flag": "caution",
+			"runtime": {
+				"group": "layout",
+				"prop": "object-fit",
+				"default": "fill"
+			}
+		},
+		{
+			"id": "layout.alignContent",
+			"kind": "single",
+			"cls": "ac",
+			"var": "--bl-ac",
+			"section": "layout",
+			"import": [
+				"align-content"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "align-content",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.gridAutoRows",
+			"kind": "single",
+			"cls": "gar",
+			"var": "--bl-gar",
+			"section": "layout",
+			"import": [
+				"grid-auto-rows"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "grid-auto-rows",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.minWidth",
+			"kind": "single",
+			"cls": "miw",
+			"var": "--bl-miw",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"min-width"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "min-width",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.maxWidth",
+			"kind": "single",
+			"cls": "maw",
+			"var": "--bl-maw",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"max-width"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "max-width",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.minHeight",
+			"kind": "single",
+			"cls": "mih",
+			"var": "--bl-mih",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"min-height"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "min-height",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.maxHeight",
+			"kind": "single",
+			"cls": "mah",
+			"var": "--bl-mah",
+			"category": "width",
+			"section": "layout",
+			"import": [
+				"max-height"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "max-height",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.boxSizing",
+			"kind": "single",
+			"cls": "bxz",
+			"var": "--bl-bxz",
+			"section": "layout",
+			"import": [
+				"box-sizing"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "box-sizing",
+				"default": "content-box"
+			}
+		},
+		{
+			"id": "layout.visibility",
+			"kind": "single",
+			"cls": "vis",
+			"var": "--bl-vis",
+			"section": "layout",
+			"import": [
+				"visibility"
+			],
+			"flag": "caution",
+			"runtime": {
+				"group": "layout",
+				"prop": "visibility",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "layout.isolation",
+			"kind": "single",
+			"cls": "iso",
+			"var": "--bl-iso",
+			"section": "layout",
+			"import": [
+				"isolation"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "isolation",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.resize",
+			"kind": "single",
+			"cls": "rsz",
+			"var": "--bl-rsz",
+			"section": "layout",
+			"import": [
+				"resize"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "resize",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.scrollBehavior",
+			"kind": "single",
+			"cls": "sb",
+			"var": "--bl-sb",
+			"section": "layout",
+			"import": [
+				"scroll-behavior"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "scroll-behavior",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.overscrollBehavior",
+			"kind": "single",
+			"cls": "osb",
+			"var": "--bl-osb",
+			"section": "layout",
+			"import": [
+				"overscroll-behavior"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "overscroll-behavior",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "layout.scrollSnapStop",
+			"kind": "single",
+			"cls": "sss",
+			"var": "--bl-sss",
+			"section": "layout",
+			"import": [
+				"scroll-snap-stop"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "scroll-snap-stop",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "layout.contain",
+			"kind": "single",
+			"cls": "ctn",
+			"var": "--bl-ctn",
+			"section": "layout",
+			"import": [
+				"contain"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "contain",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.contentVisibility",
+			"kind": "single",
+			"cls": "cv",
+			"var": "--bl-cv",
+			"section": "layout",
+			"import": [
+				"content-visibility"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "content-visibility",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "layout.containIntrinsicSize",
+			"kind": "single",
+			"cls": "cis",
+			"var": "--bl-cis",
+			"section": "layout",
+			"import": [
+				"contain-intrinsic-size"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "contain-intrinsic-size",
+				"default": "none"
+			}
+		},
+		{
+			"id": "layout.lineClamp",
+			"kind": "single",
+			"cls": "lc",
+			"var": "--bl-lc",
+			"section": "layout",
+			"import": [
+				"-webkit-line-clamp"
+			],
+			"flag": "caution",
+			"runtime": {
+				"group": "custom"
+			},
+			"part": "special"
+		},
+		{
+			"id": "position.type",
+			"kind": "single",
+			"cls": "pos",
+			"var": "--bl-pos",
+			"section": "position",
+			"import": [
+				"position"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "position",
+				"default": "static"
+			}
+		},
+		{
+			"id": "position.zIndex",
+			"kind": "single",
+			"cls": "zi",
+			"var": "--bl-zi",
+			"category": "zIndex",
+			"section": "position",
+			"import": [
+				"z-index"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "z-index",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "background.layers",
+			"kind": "single",
+			"cls": "bg-layers",
+			"var": "--bl-bg-layers",
+			"category": "backgroundLayers",
+			"section": "background",
+			"runtime": {
+				"group": "layout",
+				"prop": "background",
+				"default": "none"
+			}
+		},
+		{
+			"id": "colors.background",
+			"kind": "single",
+			"cls": "bg",
+			"var": "--bl-bg",
+			"category": "color",
+			"section": "background",
+			"import": [
+				"background-color",
+				"background"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-color",
+				"default": "transparent"
+			}
+		},
+		{
+			"id": "colors.text",
+			"kind": "single",
+			"cls": "tx",
+			"var": "--bl-tx",
+			"category": "color",
+			"section": "typography",
+			"import": [
+				"color"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "color",
+				"default": "inherit"
+			}
+		},
+		{
+			"id": "background.image",
+			"kind": "single",
+			"cls": "bg-img",
+			"var": "--bl-bg-img",
+			"category": "image",
+			"section": "background",
+			"import": [
+				"background-image"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-image",
+				"default": "none"
+			}
+		},
+		{
+			"id": "background.gradient",
+			"kind": "single",
+			"cls": "bg-grad",
+			"var": "--bl-bg-grad",
+			"category": "gradient",
+			"section": "background",
+			"runtime": {
+				"group": "layout",
+				"prop": "background-image",
+				"default": "none"
+			}
+		},
+		{
+			"id": "background.size",
+			"kind": "single",
+			"cls": "bg-size",
+			"var": "--bl-bg-size",
+			"section": "background",
+			"import": [
+				"background-size"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-size",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "background.position",
+			"kind": "single",
+			"cls": "bg-pos",
+			"var": "--bl-bg-pos",
+			"section": "background",
+			"import": [
+				"background-position"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-position",
+				"default": "50% 50%"
+			}
+		},
+		{
+			"id": "background.repeat",
+			"kind": "single",
+			"cls": "bg-repeat",
+			"var": "--bl-bg-repeat",
+			"section": "background",
+			"import": [
+				"background-repeat"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-repeat",
+				"default": "repeat"
+			}
+		},
+		{
+			"id": "background.attachment",
+			"kind": "single",
+			"cls": "bg-attach",
+			"var": "--bl-bg-attach",
+			"section": "background",
+			"import": [
+				"background-attachment"
+			],
+			"flag": "caution",
+			"runtime": {
+				"group": "layout",
+				"prop": "background-attachment",
+				"default": "scroll"
+			}
+		},
+		{
+			"id": "background.blendMode",
+			"kind": "single",
+			"cls": "bg-blend",
+			"var": "--bl-bg-blend",
+			"section": "background",
+			"import": [
+				"background-blend-mode"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "background-blend-mode",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "colors.clipText",
+			"kind": "single",
+			"cls": "cliptext",
+			"var": "--bl-cliptext",
+			"section": "background",
+			"import": [
+				"background-clip"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": "special"
+		},
+		{
+			"id": "typography.fontFamily",
+			"kind": "single",
+			"cls": "ff",
+			"var": "--bl-ff",
+			"category": "fontFamily",
+			"section": "typography",
+			"import": [
+				"font-family"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "font-family",
+				"default": "inherit"
+			}
+		},
+		{
+			"id": "typography.fontSize",
+			"kind": "single",
+			"cls": "fs",
+			"var": "--bl-fs",
+			"category": "fontSize",
+			"section": "typography",
+			"import": [
+				"font-size"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "font-size",
+				"default": "inherit"
+			}
+		},
+		{
+			"id": "typography.lineHeight",
+			"kind": "single",
+			"cls": "lh",
+			"var": "--bl-lh",
+			"category": "leading",
+			"section": "typography",
+			"import": [
+				"line-height"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "line-height",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "typography.fontWeight",
+			"kind": "single",
+			"cls": "fwt",
+			"var": "--bl-fwt",
+			"section": "typography",
+			"import": [
+				"font-weight"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "font-weight",
+				"default": "400"
+			}
+		},
+		{
+			"id": "typography.fontStyle",
+			"kind": "single",
+			"cls": "fst",
+			"var": "--bl-fst",
+			"section": "typography",
+			"import": [
+				"font-style"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "font-style",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "typography.letterSpacing",
+			"kind": "single",
+			"cls": "ls",
+			"var": "--bl-ls",
+			"section": "typography",
+			"import": [
+				"letter-spacing"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "letter-spacing",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "typography.wordSpacing",
+			"kind": "single",
+			"cls": "ws",
+			"var": "--bl-ws",
+			"section": "typography",
+			"import": [
+				"word-spacing"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "word-spacing",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "typography.textTransform",
+			"kind": "single",
+			"cls": "tt",
+			"var": "--bl-tt",
+			"section": "typography",
+			"import": [
+				"text-transform"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-transform",
+				"default": "none"
+			}
+		},
+		{
+			"id": "typography.textDecoration",
+			"kind": "single",
+			"cls": "td",
+			"var": "--bl-td",
+			"section": "typography",
+			"import": [
+				"text-decoration"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-decoration",
+				"default": "none"
+			}
+		},
+		{
+			"id": "typography.textAlign",
+			"kind": "single",
+			"cls": "ta",
+			"var": "--bl-ta",
+			"section": "typography",
+			"import": [
+				"text-align"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-align",
+				"default": "left"
+			}
+		},
+		{
+			"id": "typography.writingMode",
+			"kind": "single",
+			"cls": "wm",
+			"var": "--bl-wm",
+			"section": "typography",
+			"import": [
+				"writing-mode"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "writing-mode",
+				"default": "horizontal-tb"
+			}
+		},
+		{
+			"id": "typography.textOrientation",
+			"kind": "single",
+			"cls": "to",
+			"var": "--bl-to",
+			"section": "typography",
+			"import": [
+				"text-orientation"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "layout",
+				"prop": "text-orientation",
+				"default": "mixed"
+			}
+		},
+		{
+			"id": "typography.textWrap",
+			"kind": "single",
+			"cls": "tw",
+			"var": "--bl-tw",
+			"section": "typography",
+			"import": [
+				"text-wrap"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-wrap",
+				"default": "wrap"
+			}
+		},
+		{
+			"id": "typography.whiteSpace",
+			"kind": "single",
+			"cls": "wsp",
+			"var": "--bl-wsp",
+			"section": "typography",
+			"import": [
+				"white-space"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "white-space",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "typography.textOverflow",
+			"kind": "single",
+			"cls": "tov",
+			"var": "--bl-tov",
+			"section": "typography",
+			"import": [
+				"text-overflow"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-overflow",
+				"default": "clip"
+			}
+		},
+		{
+			"id": "typography.decorationColor",
+			"kind": "single",
+			"cls": "tdc",
+			"var": "--bl-tdc",
+			"category": "color",
+			"section": "typography",
+			"import": [
+				"text-decoration-color"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "text-decoration-color",
+				"default": "currentColor"
+			}
+		},
+		{
+			"id": "effects.opacity",
+			"kind": "single",
+			"cls": "op",
+			"var": "--bl-op",
+			"category": "opacity",
+			"section": "effects",
+			"import": [
+				"opacity"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "opacity",
+				"default": "1"
+			}
+		},
+		{
+			"id": "effects.cursor",
+			"kind": "single",
+			"cls": "cur",
+			"var": "--bl-cur",
+			"section": "effects",
+			"import": [
+				"cursor"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "cursor",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "effects.blendMode",
+			"kind": "single",
+			"cls": "bm",
+			"var": "--bl-bm",
+			"section": "effects",
+			"import": [
+				"mix-blend-mode"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "mix-blend-mode",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "effects.boxShadow",
+			"kind": "single",
+			"cls": "bsh",
+			"var": "--bl-bsh",
+			"category": "boxShadow",
+			"section": "effects",
+			"import": [
+				"box-shadow"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "box-shadow",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.outline",
+			"kind": "single",
+			"cls": "ol",
+			"var": "--bl-ol",
+			"category": "outline",
+			"section": "effects",
+			"import": [
+				"outline"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "outline",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.outlineOffset",
+			"kind": "single",
+			"cls": "olo",
+			"var": "--bl-olo",
+			"section": "effects",
+			"import": [
+				"outline-offset"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "outline-offset",
+				"default": "0"
+			}
+		},
+		{
+			"id": "effects.textShadow",
+			"kind": "single",
+			"cls": "tsh",
+			"var": "--bl-tsh",
+			"category": "textShadow",
+			"section": "effects",
+			"import": [
+				"text-shadow"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "text-shadow",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.transition",
+			"kind": "single",
+			"cls": "tr",
+			"var": "--bl-tr",
+			"category": "transition",
+			"section": "effects",
+			"import": [
+				"transition"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "transition",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.transform",
+			"kind": "single",
+			"cls": "tfm",
+			"var": "--bl-tfm",
+			"category": "transform",
+			"section": "effects",
+			"import": [
+				"transform"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "transform",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.filter",
+			"kind": "single",
+			"cls": "flt",
+			"var": "--bl-flt",
+			"category": "filter",
+			"section": "effects",
+			"import": [
+				"filter"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "filter",
+				"default": "none"
+			}
+		},
+		{
+			"id": "effects.clipPath",
+			"kind": "single",
+			"cls": "clip",
+			"var": "--bl-clip",
+			"category": "clipPath",
+			"section": "effects",
+			"import": [
+				"clip-path"
+			],
+			"runtime": {
+				"group": "supports",
+				"prop": "clip-path",
+				"guard": "clip-path: polygon(0 0,1px 0,1px 1px)",
+				"webkit": true
+			}
+		},
+		{
+			"id": "effects.backdropFilter",
+			"kind": "single",
+			"cls": "bdf",
+			"var": "--bl-bdf",
+			"category": "backdropFilter",
+			"section": "effects",
+			"import": [
+				"backdrop-filter"
+			],
+			"runtime": {
+				"group": "supports",
+				"prop": "backdrop-filter",
+				"guard": "backdrop-filter: blur(1px)",
+				"webkit": true
+			}
+		},
+		{
+			"id": "effects.mask",
+			"kind": "single",
+			"cls": "mask",
+			"var": "--bl-mask",
+			"category": "mask",
+			"section": "effects",
+			"import": [
+				"mask"
+			],
+			"runtime": {
+				"group": "supports",
+				"prop": "mask",
+				"guard": "mask: linear-gradient(black, black)",
+				"webkit": true
+			}
+		},
+		{
+			"id": "effects.transformOrigin",
+			"kind": "single",
+			"cls": "tfo",
+			"var": "--bl-tfo",
+			"section": "effects",
+			"import": [
+				"transform-origin"
+			],
+			"runtime": {
+				"group": "effects",
+				"prop": "transform-origin",
+				"default": "50% 50%"
+			}
+		},
+		{
+			"id": "effects.transformStyle",
+			"kind": "single",
+			"cls": "tfs",
+			"var": "--bl-tfs",
+			"section": "effects",
+			"import": [
+				"transform-style"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "effects",
+				"prop": "transform-style",
+				"default": "flat"
+			}
+		},
+		{
+			"id": "effects.backfaceVisibility",
+			"kind": "single",
+			"cls": "bfv",
+			"var": "--bl-bfv",
+			"section": "effects",
+			"import": [
+				"backface-visibility"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "effects",
+				"prop": "backface-visibility",
+				"default": "visible"
+			}
+		},
+		{
+			"id": "effects.perspective",
+			"kind": "single",
+			"cls": "psp",
+			"var": "--bl-psp",
+			"section": "effects",
+			"import": [
+				"perspective"
+			],
+			"flag": "niche",
+			"runtime": {
+				"group": "effects",
+				"prop": "perspective",
+				"default": "none"
+			}
+		},
+		{
+			"id": "animation.name",
+			"note": "Several animations on one block: a comma-separated list of names, with matching comma-separated lists in animation.duration, animation.easing and the rest (e.g. \"bl-anim-txt-type, bl-anim-txt-caret\").",
+			"kind": "single",
+			"cls": "anim-name",
+			"var": "--bl-anim-name",
+			"section": "animation",
+			"import": [
+				"animation-name"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-name",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.duration",
+			"kind": "single",
+			"cls": "anim-dur",
+			"var": "--bl-anim-dur",
+			"section": "animation",
+			"import": [
+				"animation-duration"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-duration",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.easing",
+			"kind": "single",
+			"cls": "anim-ease",
+			"var": "--bl-anim-ease",
+			"section": "animation",
+			"import": [
+				"animation-timing-function"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-timing-function",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.iteration",
+			"kind": "single",
+			"cls": "anim-iter",
+			"var": "--bl-anim-iter",
+			"section": "animation",
+			"import": [
+				"animation-iteration-count"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-iteration-count",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.direction",
+			"kind": "single",
+			"cls": "anim-dir",
+			"var": "--bl-anim-dir",
+			"section": "animation",
+			"import": [
+				"animation-direction"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-direction",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.fillMode",
+			"kind": "single",
+			"cls": "anim-fill",
+			"var": "--bl-anim-fill",
+			"section": "animation",
+			"import": [
+				"animation-fill-mode"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-fill-mode",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.delay",
+			"kind": "single",
+			"cls": "anim-delay",
+			"var": "--bl-anim-delay",
+			"section": "animation",
+			"import": [
+				"animation-delay"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-delay",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.playState",
+			"kind": "single",
+			"cls": "anim-play",
+			"var": "--bl-anim-play",
+			"section": "animation",
+			"import": [
+				"animation-play-state"
+			],
+			"runtime": {
+				"group": "layout",
+				"prop": "animation-play-state",
+				"default": "running"
+			},
+			"part": {
+				"prop": "animation-play-state",
+				"guard": "motion"
+			}
+		},
+		{
+			"id": "animation.timeline",
+			"kind": "single",
+			"cls": "anim-tl",
+			"var": "--bl-anim-tl",
+			"section": "animation",
+			"import": [
+				"animation-timeline"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-timeline",
+				"guard": "timeline"
+			}
+		},
+		{
+			"id": "animation.range",
+			"kind": "single",
+			"cls": "anim-range",
+			"var": "--bl-anim-range",
+			"section": "animation",
+			"import": [
+				"animation-range"
+			],
+			"runtime": {
+				"group": "custom"
+			},
+			"part": {
+				"prop": "animation-range",
+				"guard": "timeline"
+			}
+		},
+		{
+			"id": "animation.target",
+			"kind": "single",
+			"cls": "anim-p",
+			"var": "--bl-p-target",
+			"section": "animation",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "decoration.content",
+			"kind": "single",
+			"cls": "deco-c",
+			"category": "content",
+			"section": "decoration",
+			"partOnly": true,
+			"part": {
+				"prop": "content"
+			}
+		},
+		{
+			"id": "decoration.counterReset",
+			"kind": "single",
+			"cls": "cnt-r",
+			"var": "--bl-cnt-r",
+			"section": "decoration",
+			"runtime": {
+				"group": "layout",
+				"prop": "counter-reset",
+				"default": "none"
+			}
+		},
+		{
+			"id": "decoration.counterIncrement",
+			"kind": "single",
+			"cls": "cnt-i",
+			"var": "--bl-cnt-i",
+			"section": "decoration",
+			"runtime": {
+				"group": "layout",
+				"prop": "counter-increment",
+				"default": "none"
+			}
+		},
+		{
+			"id": "gridChild.columnSpan",
+			"kind": "single",
+			"cls": "gcs",
+			"var": "--bl-gcs",
+			"section": "gridChild",
+			"import": [
+				"grid-column"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "grid-column",
+				"default": "1",
+				"span": true
+			}
+		},
+		{
+			"id": "gridChild.rowSpan",
+			"kind": "single",
+			"cls": "grs",
+			"var": "--bl-grs",
+			"section": "gridChild",
+			"import": [
+				"grid-row"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "grid-row",
+				"default": "1",
+				"span": true
+			}
+		},
+		{
+			"id": "gridChild.alignSelf",
+			"kind": "single",
+			"cls": "gas",
+			"var": "--bl-gas",
+			"section": "gridChild",
+			"import": [
+				"align-self"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "align-self",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "gridChild.justifySelf",
+			"kind": "single",
+			"cls": "gjs",
+			"var": "--bl-gjs",
+			"section": "gridChild",
+			"import": [
+				"justify-self"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "justify-self",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "gridChild.order",
+			"kind": "single",
+			"cls": "go",
+			"var": "--bl-go",
+			"section": "gridChild",
+			"import": [
+				"order"
+			],
+			"flag": "caution",
+			"runtime": {
+				"group": "gridChild",
+				"prop": "order",
+				"default": "0"
+			}
+		},
+		{
+			"id": "gridChild.gridArea",
+			"kind": "single",
+			"cls": "ga",
+			"var": "--bl-ga",
+			"section": "gridChild",
+			"import": [
+				"grid-area"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "grid-area",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "gridChild.scrollSnapAlign",
+			"kind": "single",
+			"cls": "ssa",
+			"var": "--bl-ssa",
+			"section": "gridChild",
+			"import": [
+				"scroll-snap-align"
+			],
+			"runtime": {
+				"group": "gridChild",
+				"prop": "scroll-snap-align",
+				"default": "none"
+			}
+		},
+		{
+			"id": "columns.columnCount",
+			"kind": "single",
+			"cls": "cc",
+			"var": "--bl-cc",
+			"section": "columns",
+			"import": [
+				"column-count"
+			],
+			"runtime": {
+				"group": "columns",
+				"prop": "column-count",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "columns.columnWidth",
+			"kind": "single",
+			"cls": "cw",
+			"var": "--bl-cw",
+			"category": "width",
+			"section": "columns",
+			"import": [
+				"column-width"
+			],
+			"runtime": {
+				"group": "columns",
+				"prop": "column-width",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "columns.columnGap",
+			"kind": "single",
+			"cls": "cgap",
+			"var": "--bl-cgap",
+			"category": "spacing",
+			"section": "columns",
+			"import": [
+				"column-gap"
+			],
+			"runtime": {
+				"group": "columns",
+				"prop": "column-gap",
+				"default": "normal"
+			}
+		},
+		{
+			"id": "flexChild.grow",
+			"kind": "single",
+			"cls": "fg",
+			"var": "--bl-fg",
+			"section": "flexChild",
+			"import": [
+				"flex-grow"
+			],
+			"runtime": {
+				"group": "flexChild",
+				"prop": "flex-grow",
+				"default": "0"
+			}
+		},
+		{
+			"id": "flexChild.shrink",
+			"kind": "single",
+			"cls": "fsk",
+			"var": "--bl-fsk",
+			"section": "flexChild",
+			"import": [
+				"flex-shrink"
+			],
+			"runtime": {
+				"group": "flexChild",
+				"prop": "flex-shrink",
+				"default": "1"
+			}
+		},
+		{
+			"id": "flexChild.basis",
+			"kind": "single",
+			"cls": "fb",
+			"var": "--bl-fb",
+			"category": "width",
+			"section": "flexChild",
+			"import": [
+				"flex-basis"
+			],
+			"runtime": {
+				"group": "flexChild",
+				"prop": "flex-basis",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "flexChild.alignSelf",
+			"kind": "single",
+			"cls": "fas",
+			"var": "--bl-fas",
+			"section": "flexChild",
+			"runtime": {
+				"group": "flexChild",
+				"prop": "align-self",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "flexChild.order",
+			"kind": "single",
+			"cls": "fco",
+			"var": "--bl-fco",
+			"section": "flexChild",
+			"flag": "caution",
+			"runtime": {
+				"group": "flexChild",
+				"prop": "order",
+				"default": "0"
+			}
+		},
+		{
+			"id": "scene.cols",
+			"kind": "single",
+			"cls": "sgc",
+			"var": "--bl-sgc",
+			"section": "scene",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "scene.rows",
+			"kind": "single",
+			"cls": "sgr",
+			"var": "--bl-sgr",
+			"section": "scene",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "scene.gap",
+			"kind": "single",
+			"cls": "sgg",
+			"var": "--bl-sgg",
+			"category": "spacing",
+			"section": "scene",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "scene.padding",
+			"kind": "single",
+			"cls": "sgp",
+			"var": "--bl-sgp",
+			"category": "spacing",
+			"section": "scene",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "scene.boxRadius",
+			"kind": "single",
+			"cls": "sgbr",
+			"var": "--bl-sgbr",
+			"category": "radius",
+			"section": "scene",
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "sceneChild.col",
+			"kind": "single",
+			"cls": "scc",
+			"var": "--bl-scc",
+			"section": "sceneChild",
+			"runtime": {
+				"group": "sceneChild",
+				"prop": "--bl-scc-r",
+				"default": "0"
+			}
+		},
+		{
+			"id": "sceneChild.row",
+			"kind": "single",
+			"cls": "scr",
+			"var": "--bl-scr",
+			"section": "sceneChild",
+			"runtime": {
+				"group": "sceneChild",
+				"prop": "--bl-scr-r",
+				"default": "0"
+			}
+		},
+		{
+			"id": "sceneChild.colSpan",
+			"kind": "single",
+			"cls": "sccs",
+			"var": "--bl-sccs",
+			"section": "sceneChild",
+			"runtime": {
+				"group": "sceneChild",
+				"prop": "--bl-sccs-r",
+				"default": "1"
+			}
+		},
+		{
+			"id": "sceneChild.rowSpan",
+			"kind": "single",
+			"cls": "scrs",
+			"var": "--bl-scrs",
+			"section": "sceneChild",
+			"runtime": {
+				"group": "sceneChild",
+				"prop": "--bl-scrs-r",
+				"default": "1"
+			}
+		},
+		{
+			"id": "sceneChild.rotate",
+			"kind": "single",
+			"cls": "scrot",
+			"var": "--bl-scrot",
+			"section": "sceneChild",
+			"import": [
+				"rotate"
+			],
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "sceneChild.scale",
+			"kind": "single",
+			"cls": "scsc",
+			"var": "--bl-scsc",
+			"section": "sceneChild",
+			"import": [
+				"scale"
+			],
+			"runtime": {
+				"group": "custom"
+			}
+		},
+		{
+			"id": "sceneItem.x",
+			"kind": "single",
+			"cls": "six",
+			"var": "--bl-six",
+			"section": "sceneItem",
+			"runtime": {
+				"group": "sceneItem",
+				"prop": "left",
+				"default": "0"
+			}
+		},
+		{
+			"id": "sceneItem.y",
+			"kind": "single",
+			"cls": "siy",
+			"var": "--bl-siy",
+			"section": "sceneItem",
+			"runtime": {
+				"group": "sceneItem",
+				"prop": "top",
+				"default": "0"
+			}
+		},
+		{
+			"id": "sceneItem.width",
+			"kind": "single",
+			"cls": "siw",
+			"var": "--bl-siw",
+			"section": "sceneItem",
+			"runtime": {
+				"group": "sceneItem",
+				"prop": "width",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "sceneItem.height",
+			"kind": "single",
+			"cls": "sih",
+			"var": "--bl-sih",
+			"section": "sceneItem",
+			"runtime": {
+				"group": "sceneItem",
+				"prop": "height",
+				"default": "auto"
+			}
+		},
+		{
+			"id": "columns.breakInside",
+			"kind": "single",
+			"cls": "cbi",
+			"var": "--bl-cbi",
+			"prop": "break-inside",
+			"selectorSuffix": " > *",
+			"section": "columns",
+			"import": [
+				"break-inside"
+			]
+		}
+	],
+	"relations": [
+		{
+			"kind": "enables",
+			"from": "layout.display",
+			"to": [
+				"layout.flexDirection",
+				"layout.justifyContent",
+				"layout.alignItems",
+				"layout.flexWrap",
+				"layout.alignContent"
+			],
+			"note": "Flex fields apply when display is flex."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.display",
+			"to": [
+				"layout.gridColumns",
+				"layout.gridRows",
+				"layout.gridAutoRows",
+				"layout.gridAreas",
+				"layout.gridAutoFlow",
+				"layout.justifyItems"
+			],
+			"note": "Grid fields apply when display is grid."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.display",
+			"to": [
+				"layout.gapRow",
+				"layout.gapColumn"
+			],
+			"note": "Gap applies under flex or grid only."
+		},
+		{
+			"kind": "enablesChildren",
+			"from": "layout.display",
+			"to": [
+				"gridChild.columnSpan",
+				"gridChild.rowSpan",
+				"gridChild.justifySelf",
+				"gridChild.alignSelf",
+				"gridChild.order",
+				"gridChild.gridArea",
+				"gridChild.scrollSnapAlign"
+			],
+			"note": "A grid parent gives each child the Grid child controls."
+		},
+		{
+			"kind": "enablesChildren",
+			"from": "layout.display",
+			"to": [
+				"flexChild.grow",
+				"flexChild.shrink",
+				"flexChild.basis",
+				"flexChild.alignSelf",
+				"flexChild.order"
+			],
+			"note": "A flex parent gives each child the Flex child controls."
+		},
+		{
+			"kind": "conflicts",
+			"from": "layout.display",
+			"to": [
+				"columns.columnCount",
+				"columns.columnWidth",
+				"columns.columnGap",
+				"columns.breakInside"
+			],
+			"note": "Multi-column is inert on a flex or grid container."
+		},
+		{
+			"kind": "conflicts",
+			"from": "layout.lineClamp",
+			"to": [
+				"layout.display",
+				"layout.overflow"
+			],
+			"note": "Line clamp forces display:-webkit-box and hidden overflow."
+		},
+		{
+			"kind": "expands",
+			"from": "layout.width",
+			"to": [
+				"layout.minWidth",
+				"layout.maxWidth"
+			],
+			"note": "Min and max refine width."
+		},
+		{
+			"kind": "expands",
+			"from": "layout.height",
+			"to": [
+				"layout.minHeight",
+				"layout.maxHeight"
+			],
+			"note": "Min and max refine height."
+		},
+		{
+			"kind": "expands",
+			"from": "layout.overflow",
+			"to": [
+				"layout.overflowX",
+				"layout.overflowY"
+			],
+			"note": "Overflow is the shorthand for the per-axis values."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.overflow",
+			"to": [
+				"layout.scrollSnapType",
+				"layout.scrollBehavior",
+				"layout.overscrollBehavior"
+			],
+			"note": "Scroll settings only matter once the box scrolls."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.scrollSnapType",
+			"to": [
+				"layout.scrollSnapStop"
+			],
+			"note": "Snap stop only acts once a snap type is set."
+		},
+		{
+			"kind": "enablesChildren",
+			"from": "layout.scrollSnapType",
+			"to": [
+				"gridChild.scrollSnapAlign"
+			],
+			"note": "Children only snap when the parent has a snap type."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.containerType",
+			"to": [
+				"layout.containerName"
+			],
+			"note": "A container name needs a container type."
+		},
+		{
+			"kind": "enables",
+			"from": "layout.contentVisibility",
+			"to": [
+				"layout.containIntrinsicSize"
+			],
+			"note": "Intrinsic size only matters with content-visibility: auto."
+		},
+		{
+			"kind": "conflicts",
+			"from": "layout.aspectRatio",
+			"to": [
+				"layout.height"
+			],
+			"note": "A fixed height beats the aspect ratio."
+		},
+		{
+			"kind": "enables",
+			"from": "position.type",
+			"to": [
+				"position.inset",
+				"position.zIndex"
+			],
+			"note": "Inset and z-index need a positioned box."
+		},
+		{
+			"kind": "enables",
+			"from": "typography.writingMode",
+			"to": [
+				"typography.textOrientation"
+			],
+			"note": "Orientation applies to vertical writing only."
+		},
+		{
+			"kind": "conflicts",
+			"from": "typography.role",
+			"to": [
+				"typography.fontFamily",
+				"typography.fontSize",
+				"typography.lineHeight",
+				"typography.fontWeight",
+				"typography.letterSpacing",
+				"typography.textTransform"
+			],
+			"note": "A type role sets these through a class; a field value overrides it."
+		},
+		{
+			"kind": "writes",
+			"from": "colors.text",
+			"to": [
+				"background.gradient",
+				"background.image",
+				"colors.clipText"
+			],
+			"note": "A gradient or image text colour writes the background and clips it to the text."
+		},
+		{
+			"kind": "conflicts",
+			"from": "colors.background",
+			"to": [
+				"background.gradient",
+				"background.image"
+			],
+			"note": "One fill source at a time."
+		},
+		{
+			"kind": "conflicts",
+			"from": "background.gradient",
+			"to": [
+				"background.image"
+			],
+			"note": "Both are background-image; only one survives."
+		},
+		{
+			"kind": "enables",
+			"from": "background.image",
+			"to": [
+				"background.position",
+				"background.size",
+				"background.repeat",
+				"background.attachment"
+			],
+			"note": "Placement only applies to an image."
+		},
+		{
+			"kind": "twin",
+			"from": "background.blendMode",
+			"to": [
+				"effects.blendMode"
+			],
+			"note": "Same name, different property: fill layers vs the block against its backdrop."
+		},
+		{
+			"kind": "enables",
+			"from": "effects.transform",
+			"to": [
+				"effects.transformOrigin",
+				"effects.perspective",
+				"effects.transformStyle"
+			],
+			"note": "Origin and 3D only matter with a transform."
+		},
+		{
+			"kind": "conflicts",
+			"from": "animation.name",
+			"to": [
+				"effects.transform",
+				"effects.opacity"
+			],
+			"note": "Most presets animate transform and opacity while they run."
+		},
+		{
+			"kind": "writes",
+			"from": "animation.name",
+			"to": [
+				"animation.duration",
+				"animation.easing",
+				"animation.iteration",
+				"animation.direction",
+				"animation.fillMode"
+			],
+			"note": "A preset fills in its default timing."
+		},
+		{
+			"kind": "enables",
+			"from": "animation.name",
+			"to": [
+				"animation.target"
+			],
+			"note": "Fill target applies only to the bl-fill preset."
+		},
+		{
+			"kind": "enables",
+			"from": "animation.timeline",
+			"to": [
+				"animation.range"
+			],
+			"note": "Range needs a scroll or view timeline."
+		},
+		{
+			"kind": "twin",
+			"from": "layout.gapColumn",
+			"to": [
+				"columns.columnGap"
+			],
+			"note": "Both write column-gap; the later rule wins."
+		},
+		{
+			"kind": "conflicts",
+			"from": "gridChild.order",
+			"to": [
+				"flexChild.order"
+			],
+			"note": "Same CSS order, and both break reading order."
+		},
+		{
+			"kind": "twin",
+			"from": "layout.isolation",
+			"to": [
+				"effects.blendMode"
+			],
+			"note": "Isolation contains a child blend mode."
+		},
+		{
+			"kind": "conflicts",
+			"from": "background.layers",
+			"to": [
+				"background.image",
+				"background.gradient",
+				"background.size",
+				"background.position",
+				"background.repeat",
+				"background.attachment"
+			],
+			"note": "Layers write the background shorthand, which replaces the single-image controls."
+		}
+	],
+	"valueShapes": {
+		"css": {
+			"type": "string",
+			"description": "One CSS value for the property named in `x-property`, validated whole: no `;`, `{`, `}`, `<` or `url(`. A value that fails is dropped.",
+			"examples": [
+				"inherit"
+			]
+		},
+		"tokenOrCss": {
+			"type": [
+				"string",
+				"number"
+			],
+			"description": "A token slug from the scale named in `x-tokens`, or one CSS value for the property, validated whole. A value that fails is dropped.",
+			"examples": [
+				"md",
+				"24px"
+			]
+		},
+		"sides": {
+			"oneOf": [
+				{
+					"type": [
+						"string",
+						"number"
+					],
+					"description": "The same on every side."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"top": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"right": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"bottom": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"left": {
+							"type": [
+								"string",
+								"number"
+							]
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "Per side. A length (`16px`, `1.5rem`, `50%`), a bare number (px), or a token slug from the scale named in `x-tokens`. An unset side is `0`; a plain string or number means the same on every side.",
+			"examples": [
+				{
+					"top": "16px",
+					"bottom": "16px"
+				},
+				"md"
+			]
+		},
+		"sidesKeyword": {
+			"oneOf": [
+				{
+					"type": [
+						"string",
+						"number"
+					],
+					"description": "The same on every side."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"top": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"right": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"bottom": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"left": {
+							"type": [
+								"string",
+								"number"
+							]
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "Per side: a keyword or colour (or a token slug from the scale named in `x-tokens`). An unset side gets the property's initial value; a plain string means the same on every side.",
+			"examples": [
+				{
+					"top": "solid",
+					"bottom": "solid"
+				},
+				"dashed"
+			]
+		},
+		"corners": {
+			"oneOf": [
+				{
+					"type": [
+						"string",
+						"number"
+					],
+					"description": "The same on every side."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"topLeft": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"topRight": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"bottomRight": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"bottomLeft": {
+							"type": [
+								"string",
+								"number"
+							]
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "Per corner. A length (`16px`, `1.5rem`, `50%`), a bare number (px), or a token slug from the scale named in `x-tokens`. An unset corner is `0`; a plain string or number means the same on every corner.",
+			"examples": [
+				{
+					"topLeft": "lg",
+					"topRight": "lg"
+				},
+				"full"
+			]
+		},
+		"inset": {
+			"oneOf": [
+				{
+					"type": [
+						"string",
+						"number"
+					],
+					"description": "The same on every side."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"top": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"right": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"bottom": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"left": {
+							"type": [
+								"string",
+								"number"
+							]
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "`top`/`right`/`bottom`/`left` of a positioned box. A length (`16px`, `1.5rem`, `50%`), a bare number (px), or a token slug from the scale named in `x-tokens`. On the block an unset side is `0`, so set every side you mean and `auto` for the rest; on a pseudo-element an unset side stays `auto`.",
+			"examples": [
+				{
+					"top": "0",
+					"right": "0",
+					"bottom": "auto",
+					"left": "auto"
+				}
+			]
+		},
+		"enum": {
+			"type": "string",
+			"description": "One of the listed names.",
+			"examples": [
+				"lead"
+			]
+		},
+		"boxShadow": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A shadow token slug."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"x": {
+							"type": "string"
+						},
+						"y": {
+							"type": "string"
+						},
+						"blur": {
+							"type": "string"
+						},
+						"spread": {
+							"type": "string"
+						},
+						"color": {
+							"type": "string",
+							"description": "A colour token slug or any CSS colour."
+						},
+						"inset": {
+							"type": "boolean"
+						},
+						"token": {
+							"type": "string",
+							"description": "A shadow token slug; the layer is the theme's shadow."
+						}
+					},
+					"additionalProperties": false
+				},
+				{
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"x": {
+								"type": "string"
+							},
+							"y": {
+								"type": "string"
+							},
+							"blur": {
+								"type": "string"
+							},
+							"spread": {
+								"type": "string"
+							},
+							"color": {
+								"type": "string",
+								"description": "A colour token slug or any CSS colour."
+							},
+							"inset": {
+								"type": "boolean"
+							},
+							"token": {
+								"type": "string",
+								"description": "A shadow token slug; the layer is the theme's shadow."
+							}
+						},
+						"additionalProperties": false
+					},
+					"minItems": 1
+				}
+			],
+			"description": "A shadow token slug, one layer, or a list of layers stacked first-on-top. Lengths default to `0px`, colour to a faint black. If any layer fails validation the whole shadow is dropped.",
+			"examples": [
+				"md",
+				{
+					"x": "0px",
+					"y": "4px",
+					"blur": "12px",
+					"spread": "0px",
+					"color": "rgb(0 0 0 / 20%)"
+				},
+				[
+					{
+						"token": "sm"
+					},
+					{
+						"x": "0px",
+						"y": "3px",
+						"blur": "0px",
+						"spread": "0px",
+						"color": "primary"
+					}
+				]
+			]
+		},
+		"outline": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A raw outline, e.g. `2px dashed currentColor`, or `none`."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"width": {
+							"type": "string",
+							"description": "Default `2px`."
+						},
+						"style": {
+							"enum": [
+								"solid",
+								"dashed",
+								"dotted",
+								"double"
+							],
+							"description": "Default `solid`."
+						},
+						"color": {
+							"type": "string",
+							"description": "A colour token slug or any CSS colour. Default `currentColor`."
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "An outline drawn outside the border; it takes no space. Set `effects.outlineOffset` for the gap. Usually written in the `focus` state for a keyboard focus ring.",
+			"examples": [
+				{
+					"width": "2px",
+					"style": "dashed",
+					"color": "primary"
+				},
+				"2px solid currentColor"
+			]
+		},
+		"textShadow": {
+			"oneOf": [
+				{
+					"type": "object",
+					"properties": {
+						"x": {
+							"type": "string"
+						},
+						"y": {
+							"type": "string"
+						},
+						"blur": {
+							"type": "string"
+						},
+						"color": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				},
+				{
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"x": {
+								"type": "string"
+							},
+							"y": {
+								"type": "string"
+							},
+							"blur": {
+								"type": "string"
+							},
+							"color": {
+								"type": "string"
+							}
+						},
+						"additionalProperties": false
+					},
+					"minItems": 1
+				}
+			],
+			"description": "One text shadow `{ x, y, blur, color }` (needs `x` or `y`; the rest default to `0px` and a faint black), or a list of them, first on top. CSS text such as `0 1px 2px #000, 0 0 8px red` is read into this shape too.",
+			"examples": [
+				{
+					"x": "0px",
+					"y": "2px",
+					"blur": "6px",
+					"color": "rgb(0 0 0 / 30%)"
+				},
+				[
+					{
+						"x": "0px",
+						"y": "0px",
+						"blur": "8px",
+						"color": "#fff"
+					},
+					{
+						"x": "0px",
+						"y": "0px",
+						"blur": "24px",
+						"color": "#6b5bff"
+					}
+				]
+			]
+		},
+		"gradient": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A gradient token slug, or a raw CSS gradient."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"enum": [
+								"linear",
+								"radial",
+								"conic"
+							]
+						},
+						"angle": {
+							"type": "string",
+							"description": "linear and conic, e.g. `135deg`."
+						},
+						"position": {
+							"type": "string",
+							"description": "radial and conic centre, e.g. `50% 0%`."
+						},
+						"shape": {
+							"type": "string",
+							"description": "radial only: `circle` or `ellipse`."
+						},
+						"stops": {
+							"type": "array",
+							"minItems": 2,
+							"items": {
+								"type": "object",
+								"properties": {
+									"color": {
+										"type": "string"
+									},
+									"position": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"color"
+								],
+								"additionalProperties": false
+							}
+						},
+						"from": {
+							"type": "string"
+						},
+						"to": {
+							"type": "string"
+						},
+						"fromPos": {
+							"type": "string"
+						},
+						"toPos": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"description": "Stops (two or more), or `from`/`to` for two colours."
+				}
+			],
+			"description": "A gradient token slug, a raw CSS gradient, or a stops object.",
+			"examples": [
+				"brand",
+				{
+					"type": "linear",
+					"angle": "135deg",
+					"stops": [
+						{
+							"color": "#4f46e5",
+							"position": "0%"
+						},
+						{
+							"color": "#ec4899",
+							"position": "100%"
+						}
+					]
+				}
+			]
+		},
+		"backgroundLayers": {
+			"type": "array",
+			"description": "Background layers, top first. Each keeps its own placement; the flat colour stays with `colors.background`. An unusable layer is left out.",
+			"items": {
+				"oneOf": [
+					{
+						"type": "object",
+						"properties": {
+							"type": {
+								"const": "gradient"
+							},
+							"value": {
+								"$ref": "#/gradient"
+							}
+						},
+						"required": [
+							"type",
+							"value"
+						]
+					},
+					{
+						"type": "object",
+						"properties": {
+							"type": {
+								"const": "tint"
+							},
+							"color": {
+								"type": "string"
+							},
+							"opacity": {
+								"type": "number",
+								"minimum": 0,
+								"maximum": 100
+							}
+						},
+						"required": [
+							"type",
+							"color"
+						]
+					},
+					{
+						"type": "object",
+						"properties": {
+							"type": {
+								"const": "image"
+							},
+							"url": {
+								"type": "string",
+								"description": "http(s) or site-relative."
+							},
+							"position": {
+								"type": "string"
+							},
+							"size": {
+								"type": "string"
+							},
+							"repeat": {
+								"enum": [
+									"repeat",
+									"no-repeat",
+									"repeat-x",
+									"repeat-y",
+									"space",
+									"round"
+								]
+							},
+							"attachment": {
+								"enum": [
+									"scroll",
+									"fixed",
+									"local"
+								]
+							}
+						},
+						"required": [
+							"type",
+							"url"
+						]
+					}
+				]
+			},
+			"examples": [
+				[
+					{
+						"type": "tint",
+						"color": "#000000",
+						"opacity": 40
+					},
+					{
+						"type": "image",
+						"url": "https://example.com/a.jpg",
+						"size": "cover",
+						"position": "50% 50%"
+					}
+				]
+			]
+		},
+		"image": {
+			"oneOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"url": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"url"
+					]
+				}
+			],
+			"description": "A picture URL: http(s) or site-relative. Anything else is dropped.",
+			"examples": [
+				"https://example.com/photo.jpg"
+			]
+		},
+		"clipPath": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A raw clip-path."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"shape": {
+							"enum": [
+								"diagonal",
+								"diagonal-reverse",
+								"notch",
+								"chevron",
+								"fold",
+								"circle",
+								"ellipse",
+								"inset",
+								"custom"
+							]
+						},
+						"amount": {
+							"type": "string",
+							"description": "Default `20%`."
+						},
+						"custom": {
+							"type": "string",
+							"description": "shape `custom` only: a raw clip-path."
+						}
+					},
+					"required": [
+						"shape"
+					],
+					"additionalProperties": false
+				}
+			],
+			"description": "A preset shape with an amount, or a raw clip-path.",
+			"examples": [
+				{
+					"shape": "diagonal",
+					"amount": "12%"
+				},
+				"circle(40% at center)"
+			]
+		},
+		"backdropFilter": {
+			"oneOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"blur": {
+							"type": "string"
+						},
+						"brightness": {
+							"type": "string"
+						},
+						"saturate": {
+							"type": "string"
+						},
+						"contrast": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "A raw backdrop-filter, or any of `blur`, `brightness`, `saturate`, `contrast`.",
+			"examples": [
+				{
+					"blur": "12px",
+					"saturate": "1.6"
+				}
+			]
+		},
+		"mask": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A raw mask image, e.g. a gradient."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"enum": [
+								"edge-fade",
+								"edge-fade-both",
+								"radial"
+							]
+						},
+						"size": {
+							"type": "string",
+							"description": "Default `20%`."
+						},
+						"side": {
+							"enum": [
+								"top",
+								"right",
+								"bottom",
+								"left"
+							],
+							"description": "edge-fade only."
+						},
+						"axis": {
+							"enum": [
+								"x",
+								"y"
+							],
+							"description": "edge-fade-both only."
+						},
+						"position": {
+							"type": "string",
+							"description": "radial only."
+						}
+					},
+					"required": [
+						"kind"
+					],
+					"additionalProperties": false
+				}
+			],
+			"description": "A preset fade, or a raw mask image.",
+			"examples": [
+				{
+					"kind": "edge-fade",
+					"side": "bottom",
+					"size": "30%"
+				}
+			]
+		},
+		"transform": {
+			"oneOf": [
+				{
+					"type": "string",
+					"description": "A transform token slug or a raw transform."
+				},
+				{
+					"type": "object",
+					"properties": {
+						"translateX": {
+							"type": "string"
+						},
+						"translateY": {
+							"type": "string"
+						},
+						"translateZ": {
+							"type": "string"
+						},
+						"rotate": {
+							"type": "string"
+						},
+						"rotateX": {
+							"type": "string"
+						},
+						"rotateY": {
+							"type": "string"
+						},
+						"scale": {
+							"type": "string"
+						},
+						"skewX": {
+							"type": "string"
+						},
+						"skewY": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			],
+			"description": "A token slug, a raw transform, or named parts composed in a fixed order: translate, rotate, scale, skew.",
+			"examples": [
+				{
+					"translateY": "-4px",
+					"scale": "1.02"
+				},
+				"rotate(2deg)"
+			]
+		},
+		"content": {
+			"type": "string",
+			"description": "Plain text (quoted for you), a CSS keyword, `attr(name)`, or `counter()`/`var()`. Pseudo-elements only.",
+			"examples": [
+				"→",
+				"counter(step)"
+			]
+		}
+	},
+	"valueTree": {
+		"type": "object",
+		"description": "Every control's value is stored per state and breakpoint: `{ <state>: { <breakpoint>: value } }`. States: `default`, `hover`, `focus`, `active`; `group` / `groupActive` (its card hovered / pressed); `play`, `on`, `groupOn` (set by interactions); `reduced` (visitor reduces motion). A part (`before`, `after`) may lead, alone or with a state: `after:play`, `before:hover`. Breakpoints: `base`, `tablet`, `mobile`. Most writes are `{ \"default\": { \"base\": value } }`.",
+		"examples": [
+			{
+				"default": {
+					"base": "16px"
+				},
+				"hover": {
+					"base": "20px"
+				}
+			},
+			{
+				"default": {
+					"base": "row",
+					"mobile": "column"
+				}
+			}
+		]
+	}
+}

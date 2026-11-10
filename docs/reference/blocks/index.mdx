@@ -1,13 +1,13 @@
 ---
 title: "Block Reference"
-description: "Generated reference for Blicks blocks."
+description: "Reference for every Blicks block, generated from the source: what each block is for, its attributes, defaults and controls."
 ---
 
-Generated from `packages/blicks/resources/blocks/*/block.json` and each block `readme.md`.
+Generated from `resources/blocks/*/block.json` and each block `readme.md`.
 
 <CardGroup cols={2}>
 	<Card title="Box" icon="blocks" href="/reference/blocks/box">
-		`blicks/box` — A generic styled wrapper for cards, panels, and manual layouts.
+		`blicks/box` — One box for every surface: a plain wrapper, card, panel, cover, badge, divider or spacer, arranged stacked, side by side, as a grid or in layers.
 	</Card>
 	<Card title="Button" icon="blocks" href="/reference/blocks/button">
 		`blicks/button` — A shadcn-style action button with variants, sizes, links, and optional icons.
@@ -15,11 +15,14 @@ Generated from `packages/blicks/resources/blocks/*/block.json` and each block `r
 	<Card title="Buttons" icon="blocks" href="/reference/blocks/buttons">
 		`blicks/buttons` — A row or column of Button blocks with shared alignment, spacing, and wrapping.
 	</Card>
-	<Card title="Divider" icon="blocks" href="/reference/blocks/divider">
-		`blicks/divider` — A semantic divider for separating content groups.
+	<Card title="Dialog" icon="blocks" href="/reference/blocks/dialog">
+		`blicks/dialog` — A native dialog — modal, drawer, bottom sheet or full screen — opened by a Button or a link to it.
 	</Card>
-	<Card title="Grid" icon="blocks" href="/reference/blocks/grid">
-		`blicks/grid` — A two-dimensional layout block for equal-width or auto-fit child columns.
+	<Card title="Field" icon="blocks" href="/reference/blocks/field">
+		`blicks/field` — One question in a Form — its label, control and help as blocks: short or long text, email, phone, number, date, dropdown, choices, consent or hidden.
+	</Card>
+	<Card title="Form" icon="blocks" href="/reference/blocks/form">
+		`blicks/form` — A contact or sign-up form built from Field blocks, with entries, email and spam protection.
 	</Card>
 	<Card title="Heading" icon="blocks" href="/reference/blocks/heading">
 		`blicks/heading` — A semantic h1-h6 heading that inherits the active theme by default.
@@ -30,16 +33,31 @@ Generated from `packages/blicks/resources/blocks/*/block.json` and each block `r
 	<Card title="Image" icon="blocks" href="/reference/blocks/image">
 		`blicks/image` — A responsive media block with optional link and caption.
 	</Card>
+	<Card title="Input" icon="blocks" href="/reference/blocks/input">
+		`blicks/input` — The control of a Field: the box, list or choices a visitor fills in, styled on its own.
+	</Card>
+	<Card title="List" icon="blocks" href="/reference/blocks/list">
+		`blicks/list` — A bulleted, numbered or icon list you type into: Enter adds an item, Tab indents it.
+	</Card>
+	<Card title="List item" icon="blocks" href="/reference/blocks/list-item">
+		`blicks/list-item` — One item of a List: plain, done, highlighted or left out, with its own marker, and able to hold an inner list.
+	</Card>
+	<Card title="Loop" icon="blocks" href="/reference/blocks/loop">
+		`blicks/loop` — Repeat a card once for every item in a list: pasted JSON, a data endpoint or a WordPress query. Blocks inside it can show fields from each item.
+	</Card>
+	<Card title="Menu link" icon="blocks" href="/reference/blocks/menu-link">
+		`blicks/menu-link` — A link for menus and link columns: a label with an optional line of description, an icon and a badge.
+	</Card>
 	<Card title="Section" icon="blocks" href="/reference/blocks/section">
 		`blicks/section` — A full-bleed page band with outer section sizing and independent content sizing controls.
 	</Card>
-	<Card title="Spacer" icon="blocks" href="/reference/blocks/spacer">
-		`blicks/spacer` — A responsive empty space block for vertical or horizontal rhythm.
+	<Card title="Step" icon="blocks" href="/reference/blocks/step">
+		`blicks/step` — One step of a Steps block. It holds a heading, text and any other blocks.
 	</Card>
-	<Card title="Stack" icon="blocks" href="/reference/blocks/stack">
-		`blicks/stack` — A one-dimensional flex layout for arranging child blocks vertically or horizontally.
+	<Card title="Steps" icon="blocks" href="/reference/blocks/steps">
+		`blicks/steps` — Numbered steps across or down: a stepper, a how-it-works row or a timeline, with a current step.
 	</Card>
 	<Card title="Text" icon="blocks" href="/reference/blocks/text">
-		`blicks/text` — A rich paragraph block for body copy.
+		`blicks/text` — A rich paragraph for body copy, with type roles, links and inline formatting, styled from the design system.
 	</Card>
 </CardGroup>

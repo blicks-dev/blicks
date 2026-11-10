@@ -1,0 +1,49 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/list",
+	"title": "List",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M10.5 5H20.5A1 1 0 0 1 21.5 6V6A1 1 0 0 1 20.5 7H10.5A1 1 0 0 1 9.5 6V6A1 1 0 0 1 10.5 5ZM10.5 11H20.5A1 1 0 0 1 21.5 12V12A1 1 0 0 1 20.5 13H10.5A1 1 0 0 1 9.5 12V12A1 1 0 0 1 10.5 11ZM10.5 17H16.5A1 1 0 0 1 17.5 18V18A1 1 0 0 1 16.5 19H10.5A1 1 0 0 1 9.5 18V18A1 1 0 0 1 10.5 17Z\" fill=\"currentColor\"/><path d=\"M3 6A2 2 0 1 1 7 6A2 2 0 1 1 3 6ZM3 12A2 2 0 1 1 7 12A2 2 0 1 1 3 12ZM3 18A2 2 0 1 1 7 18A2 2 0 1 1 3 18Z\" fill=\"#002bff\"/></svg>",
+	"description": "A bulleted, numbered or icon list you type into: Enter adds an item, Tab indents it.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "spacing.*", "border.*", "effects.*", "animation.*",
+				"layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "flexChild.*", "background.*", "position.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"kind":         { "type": "string", "default": "bullets" },
+		"bullet":       { "type": "string", "default": "dot" },
+		"numbering":    { "type": "string", "default": "1" },
+		"icon":         { "type": "string", "default": "check" },
+		"start":        { "type": "number" },
+		"reversed":     { "type": "boolean", "default": false },
+		"arrange":      { "type": "string", "default": "stack" },
+		"columns":      { "type": "number", "default": 2 },
+		"separator":    { "type": "string", "default": "" },
+		"gap":          { "type": "string", "default": "" },
+		"lines":        { "type": "boolean", "default": false },
+		"look":         { "type": "string", "default": "" },
+		"markerColour": { "type": "string", "default": "" },
+		"markerBehind": { "type": "string", "default": "" },
+		"markerSize":   { "type": "number", "default": 100 },
+		"markerSpace":  { "type": "number", "default": 10 },
+		"cardFill":     { "type": "string", "default": "" },
+		"cardCorners":  { "type": "string", "default": "" },
+		"content":      { "type": "string", "default": "" },
+		"strikeDone":   { "type": "boolean", "default": false },
+		"innerMarkerColour": { "type": "string", "default": "" },
+		"innerMono":    { "type": "boolean", "default": false },
+		"nested":       { "type": "boolean", "default": false }
+	},
+	"providesContext": { "blicks/listContent": "content" },
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

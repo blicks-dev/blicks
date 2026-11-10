@@ -1,0 +1,103 @@
+---
+title: "Lists & Steps"
+description: "Type bulleted, numbered and icon lists with List and List item, and lay out a process or a timeline with Steps and Step."
+---
+
+Two pairs of blocks cover ordered content. **List** is for things you type one after another: a
+feature list, a checklist, what a plan includes. **Steps** is for a process with a position in it:
+a stepper, a "how it works" row, a timeline.
+
+<Tip>
+Use Steps for a process or a history. Use a List for things that are not in order.
+</Tip>
+
+## List
+
+A List holds List items, and you type into it the way you type into any list:
+
+| Key | What it does |
+|---|---|
+| <kbd>Enter</kbd> | Adds the next item |
+| <kbd>Enter</kbd> on an empty item | Steps out one level; at the top level it leaves the list |
+| <kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd> | Indents the item under the one above / brings it back out |
+| <kbd>Backspace</kbd> at the start | Joins the item to the one above |
+| Paste several lines | Makes one item per line |
+
+Typing `- `, `* ` or `1. ` at the start of a Text turns it into a List.
+
+### Settings
+
+<Frame caption="A List's Settings tab.">
+	<img src="/images/inspector/list-1-settings.png" alt="The List Settings tab: Content, Kind and Layout" style={{ maxWidth: '280px' }} />
+</Frame>
+
+- **Kind** — **Bullets**, **Numbers**, **Icons** or **Plain**. Numbered lists save as `<ol>`, the
+  rest as `<ul>`.
+- **Marker** — the bullet's shape (dot, ring, square, dash, chevron), the numbering (1., 01, a., i.,
+  or outline numbering such as 2.1, where inner lists count on from their item), or the icon every
+  item is marked with. Numbers can start anywhere and **Count down**.
+- **Each item has** — **Words**, or **Title + a line**: a bold first line with a muted line of detail under it.
+- **Arrange** — stacked, **In a row** with an optional separator, or in two to four **Columns**.
+  Phones get one column.
+- **Lines between items**, and the space between them.
+- **Cross out done items** — strikes through items marked Done.
+
+In **Style**, **Each item** can be plain, a card, or alternating stripes, and the marker can sit
+on a soft square or circle.
+
+Inner lists look like the list they sit in. Set the look on the outer list and every level follows.
+
+### List item
+
+Each item can be **Normal**, **Highlight** (a soft band behind it), **Done** (a tick for a marker)
+or **Left out** (struck through and grayed, with a cross — for what a plan does not include). In an
+icon list an item can pick its own icon and marker color. **Indent** and **Outdent** buttons do
+what Tab and Shift+Tab do.
+
+<Tip>
+For a feature checklist, pick **Icons**, choose a check, and put a soft square behind it. Mark what
+a plan leaves out with **Left out** instead of starting a second list.
+</Tip>
+
+## Steps
+
+Steps shows a process one step after another, **Across** the page or **Down** it. Each **Step**
+starts with a heading and a line of text and can hold any other blocks under them.
+
+### The current step
+
+<Frame caption="A Steps block's Settings tab.">
+	<img src="/images/inspector/steps-1-settings.png" alt="The Steps Settings tab" style={{ maxWidth: '280px' }} />
+</Frame>
+
+Set a **Current step** and the steps before it read as done — with a tick, unless you turn that
+off — and the steps after it as upcoming. Choose **No current step** when every step should look
+the same. A step can also be made current from its own toolbar.
+
+The current step is saved in the markup with `aria-current="step"`, so it works without JavaScript.
+**Status** can also write "Done", "Step 3 of 5" or "Upcoming" with each step, for readers who do
+not see the markers.
+
+### Markers and lines
+
+- **Marker** — the step's number (1, 2, 3 or 01, 02, 03), an icon (each step can pick its own) or a
+  dot. The shape behind it is a filled circle, a square, or none — the number alone, large, as a
+  "how it works" row shows it. Large numbers can be drawn as an outline.
+- **Join steps with a line** — solid or dashed, in the marker color up to the current step.
+- **A label beside each step** — a date or a time, when the steps run down. That makes a timeline.
+
+Phones always show steps **Down**.
+
+## Composites
+
+A spec sheet, a changelog or an activity feed is a Box with Headings, Text, Icons and Lists inside,
+not a List feature. Build one in the editor, or start from a Studio design and change it.
+
+## Reference
+
+<CardGroup cols={2}>
+	<Card title="List" icon="list" href="/reference/blocks/list">Every List control and attribute.</Card>
+	<Card title="List item" icon="list" href="/reference/blocks/list-item">Item states, icon and marker color.</Card>
+	<Card title="Steps" icon="list-ordered" href="/reference/blocks/steps">Layout, markers, current step.</Card>
+	<Card title="Step" icon="list-ordered" href="/reference/blocks/step">A step's own icon and label.</Card>
+</CardGroup>

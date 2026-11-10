@@ -1,0 +1,79 @@
+/**
+ * The grid picker.
+ *
+ * A matrix of real `<button>`s rather than a canvas or a div grid with pointer maths: every cell is
+ * focusable and announces the size it would set, so the control is reachable by keyboard without a
+ * second implementation of what hovering does.
+ */
+
+.bl-scene-grid__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.bl-scene-grid__readout {
+	color: var(--bl-ui-fg, #1e1e1e);
+	font-family: ui-monospace, monospace;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+.bl-scene-grid__matrix {
+	display: grid;
+	grid-template-columns: repeat(16, 1fr);
+	gap: 2px;
+	margin-bottom: 14px;
+}
+
+/*
+ * Scoped under `.bl-ins`, which is not decoration.
+ *
+ * The inspector's foundation resets every button it contains with `.bl-ins button { background:
+ * none }` — specificity (0,1,1), which beats a lone class. The unset cells took that reset and the
+ * matrix rendered as a grid of invisible squares with only the selected quadrant showing. Every
+ * rule that paints a cell therefore has to out-rank the reset, and the control only ever renders
+ * inside the inspector, so this costs nothing it does not already have.
+ */
+.bl-ins .bl-scene-grid__cell {
+	aspect-ratio: 1;
+	padding: 0;
+	border: 0;
+	border-radius: 1px;
+	background: var(--bl-ui-surface-sunk, #e0e0e0);
+	cursor: pointer;
+
+	/*
+	 * No transition. The matrix repaints a whole quadrant on every pointer move, and easing that
+	 * turns a crisp readout of "this is the grid you are about to get" into a smear that lags the
+	 * cursor by exactly as long as the transition.
+	 */
+}
+
+.bl-ins .bl-scene-grid__cell.is-within {
+	background: var(--wp-admin-theme-color, #3858e9);
+}
+
+/*
+ * Cells the current grid HAS that the hover would take away. Picking a smaller grid is the
+ * destructive direction — boxes out there get pulled back in — so it is the one worth showing
+ * before the click rather than after it.
+ */
+.bl-ins .bl-scene-grid__cell.is-losing {
+	background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 28%, transparent);
+}
+
+.bl-ins .bl-scene-grid__cell:focus-visible {
+	outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 1px;
+}
+
+.bl-scene-grid__group {
+	margin: 0 0 8px;
+	color: var(--bl-ui-fg-muted, #757575);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}

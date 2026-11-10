@@ -1,109 +1,95 @@
 ---
 title: "States and Interactions"
-description: "Style hover, focus and active states, review what a state actually changes, and add motion that respects the visitor's settings."
+description: "Give a block an On hover, When clicked and Keyboard focus look, time how it moves, add an entrance, and respect visitors who reduce motion."
 ---
 
-Most styling controls in Blicks store a value **per state**, not just one value. Switch the state,
-change the control, and you have styled the hover — no custom CSS, no extra block.
+How a block reacts to the pointer and the keyboard is part of its look, so it lives in the
+**Style** tab, under **States**. You pick what should happen — a lift, a glow, a press — rather than
+switching the whole inspector into a hover mode and restyling the block there.
 
-## The four states
+<Frame caption="A card's Style tab, with States at the bottom: On hover, Blocks inside react to this, and When clicked.">
+	<img src="/images/inspector/box-card-2-style.png" alt="The Style tab for a Box card, showing Text, Fill, Border and corners, Shadow and depth, Space and States" style={{ maxWidth: '280px' }} />
+</Frame>
 
-| State | Fires on | CSS |
-|---|---|---|
-| **Default** | always | the base rule |
-| **Hover** | pointer over the block | `:hover` |
-| **Focus** | keyboard focus | `:focus` |
-| **Active** | held down / being pressed | `:active` |
+## On hover
 
-The state selector sits at the top of every styling facet, beside the device trio. A dot next to it
-tints when you are editing a non-default state, so you cannot forget you left it on hover — a
-mistake that otherwise looks like your default styling has broken.
+Pick a ready-made look: **Nothing**, **Lift**, **Glow**, **Darken**, **Grow** or **Tilt**.
 
-<Note>
-Ten of the twelve blocks support all four states. **Divider and Spacer are default-only** — they
-have nothing to interact with, so their state selector is not shown at all.
-</Note>
+Above the looks, choose what the block reacts to:
 
-## Styling a hover
+- **Pointed at** — the pointer is over the block itself.
+- **Its card is** — the pointer is anywhere over the card the block sits in. Use it to brighten an
+  icon, or nudge an arrow, when the visitor points at the whole card. This also offers looks that
+  only make sense for something inside a card: **Appear** and **Slide in**.
 
-<Steps>
-	<Step title="Select the block and open a styling facet">
-		Colors, Effects, Border, Typography — any of them.
-	</Step>
-	<Step title="Switch the state to Hover">
-		Use the selector at the top of the facet.
-	</Step>
-	<Step title="Change what should differ">
-		Only what you change is stored. Everything else keeps falling through to the default value.
-	</Step>
-	<Step title="Add a transition">
-		In **Effects ▸ Transition**, on the *default* state. A transition set on hover only animates the way in, not the way out.
-	</Step>
-</Steps>
+On a card, turn on **Blocks inside react to this** to let the blocks inside it use **Its card is**.
 
-That last step is the one people get wrong. The transition belongs on the default state because it
-describes how the block moves between states, not what it looks like in one of them.
+## When clicked
 
-## Always pair focus with hover
+**Nothing**, **Press in**, **Push down** or **Sink** — what the block does while it is pressed. A
+block that answers to its card plays it while anything on the card is pressed.
 
-If a block reacts to the mouse, it should react to the keyboard. Anything you set on hover — a
-background shift, a border, a lift — set on focus too, or keyboard users get no feedback that they
-have reached it.
+## Keyboard focus
+
+Shown when someone reaches the block with <kbd>Tab</kbd>: **Browser** (the browser's own ring, the
+default), **Ring**, **Gap**, **Glow** or **Outline**.
 
 <Tip>
-Focus is easy to check: click into the page and press <kbd>Tab</kbd> repeatedly. Every interactive
-block should visibly change as it takes focus.
+If a block reacts to the mouse, make sure it reacts to the keyboard too. Click into the page and
+press <kbd>Tab</kbd> through it: every link and button should visibly change as it takes focus.
 </Tip>
 
-## Seeing what a state actually changes
+## Making your own
 
-Once a few states carry values, it stops being obvious what is set where — the values are spread
-across facets and only visible when that state is selected.
+Each look has **Customize ›**, which opens it in place of the panel. Choose **Ready-made** to keep a
+preset, or **Make your own** to set exactly what changes — the fill, the text color, the border,
+the shadow, the size, and how far it moves. Only what you set changes; everything else stays as the
+block's normal look.
 
-The **States** facet solves this. It lists every override the block stores for the current state,
-across all facets and devices, as a plain read of the block's values. Use it to answer "why does
-this look different on hover?" without tabbing through every facet with hover switched on.
-
-## States and devices combine
-
-State and device are independent: a value belongs to a state *and* a device. You can style hover
-differently on mobile, though you rarely want to — touch devices have no true hover, and a hover
-style that only appears after a tap reads as a bug.
-
-Style hover on Desktop and let it inherit. Reach for a per-device hover value only when the desktop
-one is actively wrong on a small screen.
+To go further, **All settings** at the bottom of the Style tab lists every value the block stores,
+including those for hover, focus and pressed. **Add a setting** can put any setting the block
+allows on a state, a screen size or a part.
 
 ## Motion
 
-Two facets handle movement, and they do different jobs:
+The **Motion** tab holds the rest of what moves:
 
-<CardGroup cols={2}>
-	<Card title="Effects" icon="sparkles">
-		State-driven change — transition, transform, filter, shadows, opacity, clip path, backdrop filter. This is what makes a hover feel intentional.
-	</Card>
-	<Card title="Animation" icon="play">
-		Keyframe animations from the design system's library: name, duration, easing, iteration, direction, fill mode and delay.
-	</Card>
-</CardGroup>
+<Frame caption="A Button's Motion tab: Entrance, then Hover and click.">
+	<img src="/images/inspector/button-3-motion.png" alt="The Motion tab for a Button, with Entrance effects and the Speed and Feel of hover and click" style={{ maxWidth: '280px' }} />
+</Frame>
 
-Animations run **only when the visitor has not asked for reduced motion**. The whole animation layer
-sits behind `prefers-reduced-motion: no-preference`, so a visitor with that system setting on sees
-your page without it moving — you do not have to remember to handle it. Scroll-driven timelines are
-gated a second time, behind a browser support check, so browsers without them simply show the
-un-animated page.
+- **Entrance** — **None**, **Fade in**, **Rise** or **Zoom**. It plays once, as the block scrolls
+  into view.
+- **Hover and click** — how the looks from **Style ▸ States** play: **Speed** (**Instant**,
+  **Quick**, **Smooth**, **Slow**) and **Feel** (**Gentle**, **Springy**, **Steady**). Set it once
+  here instead of on each state.
+- **Reduced motion** — for a block that keeps moving, what it does for a visitor who has asked
+  their device to reduce motion: stay **Still**, **Hide**, or rest at a **Custom** size and fade.
+
+### Reduced motion
+
+Animations — entrances and anything built from keyframes — run only when the visitor has not asked
+for reduced motion. They are written inside `@media (prefers-reduced-motion: no-preference)`, so a
+visitor with that setting on sees the page without them, and you do not have to handle it.
 
 <Warning>
-Reduced motion covers keyframe animations. A large transform on hover still runs, because
-transitions are not gated the same way — keep hover movement small and quick.
+Reduced motion covers animations, not transitions. A hover look still changes for those visitors,
+so keep hover movement small and quick.
 </Warning>
+
+## In Blicks Studio
+
+In the Studio, the Motion tab also has **Interactions**: a block can turn on and off when clicked —
+a mode, like Night or Yearly — with its **On** look styled like a hover look, and can follow or lean
+toward the pointer.
 
 ## Where to go next
 
 <CardGroup cols={2}>
 	<Card title="Responsive patterns" icon="smartphone" href="/guides/responsive-patterns">
-		How the same value tree works across the three devices.
+		Phone switches, Show on, and what reflows by itself.
 	</Card>
 	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
-		Author the keyframe animations the Animation facet lists.
+		Transitions, hover effects and your own keyframe animations.
 	</Card>
 </CardGroup>

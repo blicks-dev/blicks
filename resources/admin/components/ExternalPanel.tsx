@@ -26,7 +26,7 @@ export function ExternalPanel( {
 		// Routing should never land here — every reachable view comes from `adminViews()` — but
 		// a stale bookmark to a deactivated plugin's page would.
 		return (
-			<div className="panel" role="status">
+			<div className="ext-missing" role="status">
 				<p>{ __( 'That screen is no longer available.', 'blicks' ) }</p>
 			</div>
 		);
@@ -34,8 +34,8 @@ export function ExternalPanel( {
 
 	if ( ! registered ) {
 		return (
-			<div className="panel" role="status">
-				<h2>{ known.label }</h2>
+			<div className="ext-missing" role="status">
+				<h1>{ known.label }</h1>
 				<p>
 					{ sprintf(
 						/* translators: %s: admin page name, e.g. "Licence". */

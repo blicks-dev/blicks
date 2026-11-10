@@ -36,6 +36,15 @@ export interface BlockFixture extends FixtureNode {
 
 const NAMESPACE = 'blicks/';
 
+/**
+ * Blocks that may stand alone but usually live in a wrapper, fixtured in that wrapper. A Button
+ * became insertable anywhere after its golden was recorded inside a Buttons row; keeping the row
+ * keeps the golden comparing the same bytes, so a real change to the Button's markup still shows.
+ */
+const USUAL_PARENT: Record< string, string[] > = {
+	'blicks/button': [ 'blicks/buttons' ],
+};
+
 /** `blicks/box` → `box`. Used for golden-markup filenames. */
 export function blockSlug( name: string ): string {
 	return name.slice( NAMESPACE.length );
@@ -55,7 +64,7 @@ export function blockFixtures(): BlockFixture[] {
 				title: type.title ?? type.name,
 				attributes: example?.attributes ?? {},
 				innerBlocks: example?.innerBlocks ?? [],
-				parent: type.parent ?? null,
+				parent: type.parent ?? USUAL_PARENT[ type.name ] ?? null,
 				usesDefaults: ! example,
 			};
 		} )

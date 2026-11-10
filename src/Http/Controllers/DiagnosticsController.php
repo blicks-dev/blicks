@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Blicks\Core\Plugin as BasePlugin;
+use Blicks\Plugin;
 use Blicks\Settings\AdminSettings;
 use WP_Block_Type_Registry;
 use WP_REST_Response;
@@ -24,9 +25,6 @@ use WP_REST_Response;
  * as such rather than passed.
  */
 final class DiagnosticsController {
-
-	private const MIN_PHP = '8.1';
-	private const MIN_WP = '6.6';
 
 	public static function run(): WP_REST_Response {
 		$checks = [
@@ -108,7 +106,7 @@ final class DiagnosticsController {
 	/** @return array{id:string,label:string,detail:string,status:string} */
 	private static function themeJson(): array {
 		$hasThemeJson = AdminSettings::themeJsonSupported();
-		$isBlockTheme = function_exists( 'wp_is_block_theme' ) && wp_is_block_theme();
+		$isBlockTheme = wp_is_block_theme();
 
 		if ( ! $hasThemeJson ) {
 			return self::check(
@@ -131,16 +129,6 @@ final class DiagnosticsController {
 
 	/** @return array{id:string,label:string,detail:string,status:string} */
 	private static function globalStyles(): array {
-		if ( ! class_exists( 'WP_Theme_JSON_Resolver' )
-			|| ! method_exists( 'WP_Theme_JSON_Resolver', 'get_user_global_styles_post_id' ) ) {
-			return self::check(
-				'global-styles',
-				__( 'Global Styles', 'blicks' ),
-				__( 'This WordPress version exposes no user Global Styles record.', 'blicks' ),
-				'warn'
-			);
-		}
-
 		$postId = (int) \WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 		if ( $postId <= 0 ) {
 			return self::check(
@@ -165,7 +153,7 @@ final class DiagnosticsController {
 
 	/** @return array{id:string,label:string,detail:string,status:string} */
 	private static function phpVersion(): array {
-		$ok = version_compare( PHP_VERSION, self::MIN_PHP, '>=' );
+		$ok = version_compare( PHP_VERSION, Plugin::MIN_PHP, '>=' );
 
 		return self::check(
 			'php',
@@ -174,7 +162,7 @@ final class DiagnosticsController {
 				/* translators: 1: running PHP version, 2: minimum required PHP version. */
 				__( 'Running %1$s (minimum %2$s).', 'blicks' ),
 				PHP_VERSION,
-				self::MIN_PHP
+				Plugin::MIN_PHP
 			),
 			$ok ? 'pass' : 'fail'
 		);
@@ -183,7 +171,7 @@ final class DiagnosticsController {
 	/** @return array{id:string,label:string,detail:string,status:string} */
 	private static function wpVersion(): array {
 		$version = (string) get_bloginfo( 'version' );
-		$ok = version_compare( $version, self::MIN_WP, '>=' );
+		$ok = version_compare( $version, Plugin::MIN_WP, '>=' );
 
 		return self::check(
 			'wordpress', // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText -- machine-readable check id, not prose; renaming it changes the REST payload.
@@ -192,7 +180,7 @@ final class DiagnosticsController {
 				/* translators: 1: running WordPress version, 2: minimum required version. */
 				__( 'Running %1$s (minimum %2$s).', 'blicks' ),
 				$version,
-				self::MIN_WP
+				Plugin::MIN_WP
 			),
 			$ok ? 'pass' : 'fail'
 		);
@@ -215,10 +203,6 @@ final class DiagnosticsController {
 	}
 
 	private static function registeredBlockCount(): int {
-		if ( ! class_exists( 'WP_Block_Type_Registry' ) ) {
-			return 0;
-		}
-
 		$names = array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() );
 
 		return count( array_filter( $names, static fn ( string $name ): bool => str_starts_with( $name, 'blicks/' ) ) );

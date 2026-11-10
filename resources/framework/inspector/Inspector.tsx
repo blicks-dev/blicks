@@ -4,6 +4,8 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { DEFAULT_BREAKPOINTS } from '@/design-system/breakpoints';
 import { getValue } from '@/framework/values';
+import { ELEMENT_PART, PART_IDS, slotId } from '@/framework/parts';
+import { PARTABLE_CONTROLS } from '@/framework/css/vars';
 import { SpacingControl, SPACING_KEYWORDS } from '@/controls/spacing/SpacingControl';
 import { LayoutControl, LAYOUT_KEYWORDS } from '@/controls/layout/LayoutControl';
 import { BORDER_KEYWORDS, BorderControl } from '@/controls/border/BorderControl';
@@ -13,6 +15,9 @@ import { TYPOGRAPHY_KEYWORDS, TypographyControl } from '@/controls/typography/Ty
 import { EFFECTS_KEYWORDS, EffectsControl } from '@/controls/effects/EffectsControl';
 import { GridChildControl } from '@/controls/grid-child/GridChildControl';
 import { FlexChildControl } from '@/controls/flex-child/FlexChildControl';
+import { SceneChildControl } from '@/controls/scene-child/SceneChildControl';
+import { SceneGridControl } from '@/controls/scene-grid/SceneGridControl';
+import { SceneItemControl } from '@/controls/scene-item/SceneItemControl';
 import { COLUMNS_KEYWORDS, ColumnsControl } from '@/controls/columns/ColumnsControl';
 import { AnimationControl, MOTION_KEYWORDS } from '@/controls/animation/AnimationControl';
 import { DecorationControl } from '@/controls/decoration/DecorationControl';
@@ -20,11 +25,14 @@ import { StatesControl } from '@/controls/states/StatesControl';
 // The allow-list rule lives in its own module so PHP's mirror of it can be parity-tested
 // without loading the editor — see control-allow.ts.
 import { includesControl } from './control-allow';
+import { SECTION_CONTROLS } from '@/engine/schema.gen';
 import { AdvancedControls } from './AdvancedControls';
 import { ContextBar } from './ContextBar';
 import { SearchField } from './SearchField';
 import { Tabs, type TabId } from './Tabs';
 import { Rail, facetPanelId, facetTabId, type Facet } from './Rail';
+import { ScenePanel } from './ScenePanel';
+import { hasDisplayValue, resolveContexts } from './contexts';
 import './inspector.scss';
 
 const ico = ( path: JSX.Element ): JSX.Element => (
@@ -46,6 +54,7 @@ const FACET_ICONS: Record< string, JSX.Element > = {
 	states: ico( <><path d="M5 3.5 19 10l-5.5 2L11.5 17z" /><path d="m13.5 15 5 5" /></> ),
 	gridChild: ico( <><rect x="3" y="3" width="18" height="18" rx="1" /><rect x="3" y="3" width="10" height="10" /></> ),
 	flexChild: ico( <><rect x="3" y="3" width="18" height="18" rx="1" /><path d="M8 3v18M14 3v18" /></> ),
+	sceneChild: ico( <><rect x="3" y="4" width="18" height="16" rx="1" /><rect x="7" y="8" width="7" height="6" rx="1" /><path d="M5 4v2M5 18v2" /></> ),
 	effects: ico( <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1" /> ),
 	animation: ico( <path d="M5 3l14 9-14 9z" /> ),
 	decoration: ico( <><rect x="8" y="8" width="12" height="12" rx="1" /><rect x="3" y="3" width="8" height="8" rx="1" strokeDasharray="2.5 2" /></> ),
@@ -71,10 +80,11 @@ const FACET_ICONS: Record< string, JSX.Element > = {
  * "fill", "motion" and "decoration" are all in their facets' `keywords`.
  */
 
-interface StyleSection {
+export interface StyleSection {
 	id: string;
 	title: string;
-	controlIds: string[];
+	/** Generated from resources/engine/schema.json — a control's `section` there puts it here. */
+	controlIds: readonly string[];
 	Control: React.ComponentType< any >;
 	context?: string;
 	/** Free-text terms the property search matches this facet on (beyond its title/label). */
@@ -92,53 +102,7 @@ const SECTIONS: StyleSection[] = [
 		title: __( 'Layout', 'blicks' ),
 		// Owned by the control itself so the rail filter and the body filter agree by construction.
 		keywords: LAYOUT_KEYWORDS,
-		controlIds: [
-			'layout.display',
-			'layout.flexDirection',
-			'layout.justifyContent',
-			'layout.alignItems',
-			'layout.flexWrap',
-			// Gap and the grid track model are display-mode settings, so they are edited under the
-			// Display field here rather than from a Spacing or Grid facet of their own.
-			'layout.gapRow',
-			'layout.gapColumn',
-			'layout.gridColumns',
-			'layout.gridRows',
-			'layout.gridAutoColumns',
-			'layout.gridAutoRows',
-			'layout.gridAreas',
-			'layout.gridAutoFlow',
-			'layout.justifyItems',
-			'layout.alignContent',
-			'layout.width',
-			'layout.height',
-			'layout.minWidth',
-			'layout.maxWidth',
-			'layout.minHeight',
-			'layout.maxHeight',
-			'layout.boxSizing',
-			'layout.resize',
-			'layout.lineClamp',
-			'layout.overflow',
-			'layout.overflowX',
-			'layout.overflowY',
-			'layout.scrollSnapType',
-			'layout.scrollSnapStop',
-			'layout.scrollBehavior',
-			'layout.overscrollBehavior',
-			'layout.containerType',
-			'layout.containerName',
-			'layout.contain',
-			'layout.contentVisibility',
-			'layout.containIntrinsicSize',
-			'layout.aspectRatio',
-			'layout.objectFit',
-			'layout.visibility',
-			'layout.float',
-			'layout.clear',
-			'layout.isolation',
-			'layout.direction',
-		],
+		controlIds: SECTION_CONTROLS.layout,
 		Control: LayoutControl,
 	},
 	{
@@ -147,91 +111,49 @@ const SECTIONS: StyleSection[] = [
 		keywords: SPACING_KEYWORDS,
 		// Margin and padding only. Gap is a property of the display mode, not of the box, so it
 		// lives under Display in Layout.
-		controlIds: [ 'spacing.padding', 'spacing.margin' ],
+		controlIds: SECTION_CONTROLS.spacing,
 		Control: SpacingControl,
 	},
 	{
 		id: 'typography',
 		title: __( 'Typography', 'blicks' ),
 		keywords: TYPOGRAPHY_KEYWORDS,
-		controlIds: [
-			// Heading-only (the facet passes `showTypeRole`), but it must be registered here or
-			// the facet's Reset and its "styled" dot cannot see a role the user has set.
-			'typography.role',
-			'typography.fontFamily',
-			'typography.fontSize',
-			'typography.lineHeight',
-			'typography.fontWeight',
-			'typography.fontStyle',
-			'typography.letterSpacing',
-			'typography.wordSpacing',
-			'typography.textTransform',
-			'typography.textDecoration',
-			'typography.textAlign',
-			'typography.writingMode',
-			'typography.textOrientation',
-			// The facet's font-colour field: a solid colour lands here, a gradient/image in the
-			// `background.*` attrs the Background facet also owns.
-			'colors.text',
-		],
+		controlIds: SECTION_CONTROLS.typography,
 		Control: TypographyControl,
 	},
 	{
 		id: 'background',
 		title: __( 'Background', 'blicks' ),
 		keywords: [ 'fill', 'background', 'colour', 'color', 'gradient', 'image', 'repeat', 'position', 'attachment', 'blend', 'clip', 'alpha', 'opacity' ],
-		controlIds: [
-			'colors.background',
-			'background.image',
-			'background.gradient',
-			'background.size',
-			'background.position',
-			'background.repeat',
-			'background.attachment',
-			'background.blendMode',
-			'colors.clipText',
-		],
+		controlIds: SECTION_CONTROLS.background,
 		Control: FillControl,
 	},
 	{
 		id: 'borders',
 		title: __( 'Border', 'blicks' ),
 		keywords: BORDER_KEYWORDS,
-		controlIds: [ 'border.width', 'border.style', 'border.color', 'border.radius' ],
+		controlIds: SECTION_CONTROLS.borders,
 		Control: BorderControl,
 	},
 	{
 		id: 'position',
 		title: __( 'Position', 'blicks' ),
 		keywords: POSITION_KEYWORDS,
-		controlIds: [ 'position.type', 'position.inset', 'position.zIndex' ],
+		controlIds: SECTION_CONTROLS.position,
 		Control: PositionControl,
 	},
 	{
 		id: 'columns',
 		title: __( 'Multi-column', 'blicks' ),
 		keywords: COLUMNS_KEYWORDS,
-		controlIds: [
-			'columns.columnCount',
-			'columns.columnWidth',
-			'columns.columnGap',
-			'columns.breakInside',
-		],
+		controlIds: SECTION_CONTROLS.columns,
 		Control: ColumnsControl,
 	},
 	{
 		id: 'gridChild',
 		title: __( 'Grid child', 'blicks' ),
 		keywords: [ 'grid', 'child', 'span', 'column', 'row', 'area', 'self', 'order', 'snap' ],
-		controlIds: [
-			'gridChild.columnSpan',
-			'gridChild.rowSpan',
-			'gridChild.alignSelf',
-			'gridChild.justifySelf',
-			'gridChild.order',
-			'gridChild.gridArea',
-			'gridChild.scrollSnapAlign',
-		],
+		controlIds: SECTION_CONTROLS.gridChild,
 		Control: GridChildControl,
 		context: 'grid-parent',
 	},
@@ -239,57 +161,62 @@ const SECTIONS: StyleSection[] = [
 		id: 'flexChild',
 		title: __( 'Flex child', 'blicks' ),
 		keywords: [ 'flex', 'child', 'grow', 'shrink', 'basis', 'self', 'order' ],
-		controlIds: [
-			'flexChild.grow',
-			'flexChild.shrink',
-			'flexChild.basis',
-			'flexChild.alignSelf',
-			'flexChild.order',
-		],
+		controlIds: SECTION_CONTROLS.flexChild,
 		Control: FlexChildControl,
 		context: 'flex-parent',
+	},
+	{
+		id: 'scene',
+		title: __( 'Grid', 'blicks' ),
+		keywords: [ 'scene', 'grid', 'columns', 'rows', 'tracks', 'gap', 'gutter', 'padding', 'radius', 'stage' ],
+		controlIds: SECTION_CONTROLS.scene,
+		Control: SceneGridControl,
+	},
+	{
+		id: 'sceneChild',
+		title: __( 'Scene item', 'blicks' ),
+		keywords: [ 'scene', 'item', 'position', 'cell', 'column', 'row', 'span', 'place', 'rotate', 'scale', 'stage', 'layer' ],
+		controlIds: SECTION_CONTROLS.sceneChild,
+		Control: SceneChildControl,
+		context: 'scene-parent',
+	},
+	{
+		id: 'sceneItem',
+		title: __( 'Place in box', 'blicks' ),
+		keywords: [ 'scene', 'box', 'place', 'position', 'free', 'drag', 'x', 'y', 'size', 'item' ],
+		controlIds: SECTION_CONTROLS.sceneItem,
+		Control: SceneItemControl,
+		// Only inside a Scene box. Everywhere else these ids are inert — nothing positions by them
+		// — so a panel offering them would be four fields that do nothing. An unregistered context
+		// is never met, which is what keeps this invisible on a site without the Scene block.
+		context: 'scene-box-parent',
 	},
 	{
 		id: 'effects',
 		title: __( 'Effects', 'blicks' ),
 		keywords: EFFECTS_KEYWORDS,
-		controlIds: [
-			'effects.opacity', 'effects.cursor', 'effects.blendMode',
-			'effects.boxShadow', 'effects.textShadow',
-			'effects.transition', 'effects.transform', 'effects.filter',
-			'effects.clipPath', 'effects.backdropFilter', 'effects.mask',
-			'effects.transformOrigin', 'effects.transformStyle', 'effects.perspective',
-		],
+		controlIds: SECTION_CONTROLS.effects,
 		Control: EffectsControl,
 	},
 	{
 		id: 'animation',
 		title: __( 'Animation', 'blicks' ),
 		keywords: MOTION_KEYWORDS,
-		controlIds: [
-			'animation.name', 'animation.duration', 'animation.easing', 'animation.iteration',
-			'animation.direction', 'animation.fillMode', 'animation.delay',
-			'animation.timeline', 'animation.range', 'animation.targetAngle', 'animation.target',
-		],
+		controlIds: SECTION_CONTROLS.animation,
 		Control: AnimationControl,
 	},
 	{
 		id: 'decoration',
 		title: __( 'Pseudo-elements', 'blicks' ),
 		keywords: [ 'decoration', 'pseudo', 'element', 'before', 'after', 'content', 'counter', 'ornament' ],
-		controlIds: [
-			'decoration.before',
-			'decoration.after',
-			'decoration.counterReset',
-			'decoration.counterIncrement',
-		],
+		controlIds: SECTION_CONTROLS.decoration,
 		Control: DecorationControl,
 	},
 	{
 		id: 'states',
 		title: __( 'States', 'blicks' ),
 		keywords: [ 'state', 'states', 'pseudo', 'class', 'hover', 'focus', 'active', 'interaction', 'cursor', 'override', 'overrides' ],
-		controlIds: [ 'effects.cursor' ],
+		controlIds: SECTION_CONTROLS.states,
 		Control: StatesControl,
 	},
 ];
@@ -297,6 +224,11 @@ const SECTIONS: StyleSection[] = [
 interface Manifest {
 	controls?: string[];
 	states?: string[];
+	/**
+	 * Narrows what may be styled on a part. Defaults to everything the engine can render on one —
+	 * deliberately not `controls`, see PART_CONTROLS below.
+	 */
+	partControls?: string[];
 }
 
 interface Props {
@@ -327,28 +259,13 @@ function deviceToBreakpoint( deviceType: unknown ): string | null {
 }
 
 function getNativeDeviceType( select: any ): string | null {
-	const stores = [
-		select( 'core/editor' ),
-		select( 'core/edit-post' ),
-		select( 'core/block-editor' ),
-	];
-
-	for ( const store of stores ) {
-		const deviceType =
-			store?.getDeviceType?.() ??
-			store?.__experimentalGetPreviewDeviceType?.();
-		if ( deviceType ) return deviceType;
-	}
-
-	return null;
+	return select( 'core/editor' )?.getDeviceType?.() ?? null;
 }
 
 function useNativeResponsiveBreakpoint() {
 	const [ fallbackBreakpoint, setFallbackBreakpoint ] = useState< string >( DEFAULT_BREAKPOINTS[ 0 ].id );
 	const nativeDeviceType = useSelect( getNativeDeviceType, [] );
 	const editorDispatch = useDispatch( 'core/editor' ) as any;
-	const editPostDispatch = useDispatch( 'core/edit-post' ) as any;
-	const blockEditorDispatch = useDispatch( 'core/block-editor' ) as any;
 
 	const nativeBreakpoint = deviceToBreakpoint( nativeDeviceType );
 	const breakpoint = nativeBreakpoint ?? fallbackBreakpoint;
@@ -358,88 +275,117 @@ function useNativeResponsiveBreakpoint() {
 		const nextDevice = BREAKPOINT_TO_DEVICE[ nextBreakpoint ];
 		if ( ! nextDevice ) return;
 
-		const setNativeDevice =
-			editorDispatch?.setDeviceType ??
-			editorDispatch?.__experimentalSetPreviewDeviceType ??
-			editPostDispatch?.__experimentalSetPreviewDeviceType ??
-			editPostDispatch?.setDeviceType ??
-			blockEditorDispatch?.setDeviceType ??
-			blockEditorDispatch?.__experimentalSetPreviewDeviceType;
-
-		setNativeDevice?.( nextDevice );
+		editorDispatch?.setDeviceType?.( nextDevice );
 	};
 
 	return [ breakpoint, setBreakpoint ] as const;
 }
 
-function hasDisplayValue( attributes: any, values: readonly string[] ): boolean {
-	const display = attributes?.blicks?.[ 'layout.display' ];
-	if ( ! display || typeof display !== 'object' ) return false;
-	const byBreakpoint = display.default;
-	if ( ! byBreakpoint || typeof byBreakpoint !== 'object' ) return false;
-	return Object.values( byBreakpoint ).some( ( v ) => values.includes( v as string ) );
-}
-
-function useHasGridParent( clientId?: string ): boolean {
+/**
+ * What the selected block calls itself, for the scene panel's header.
+ *
+ * Read from the block type rather than the block name so it is the translated, human title the
+ * inserter shows — "Scene text", not `blicks/scene-text`. Falls back to the raw name, which is
+ * still more use than an empty chip if a block type has somehow not registered.
+ */
+function useBlockLabel( clientId?: string ): string {
 	return useSelect(
 		( select: any ) => {
-			if ( ! clientId ) return false;
-			const store = select( 'core/block-editor' );
-			const parentId = store?.getBlockRootClientId?.( clientId );
-			if ( ! parentId ) return false;
-			const parentName = store?.getBlockName?.( parentId );
-			if ( parentName === 'blicks/grid' ) return true;
-			return hasDisplayValue( store?.getBlockAttributes?.( parentId ), [ 'grid', 'inline-grid' ] );
-		},
-		[ clientId ]
-	);
-}
-
-function useHasFlexParent( clientId?: string ): boolean {
-	return useSelect(
-		( select: any ) => {
-			if ( ! clientId ) return false;
-			const store = select( 'core/block-editor' );
-			const parentId = store?.getBlockRootClientId?.( clientId );
-			if ( ! parentId ) return false;
-			const parentName = store?.getBlockName?.( parentId );
-			if ( parentName === 'blicks/stack' ) return true;
-			return hasDisplayValue( store?.getBlockAttributes?.( parentId ), [ 'flex', 'inline-flex' ] );
+			if ( ! clientId ) return '';
+			const name = select( 'core/block-editor' )?.getBlockName?.( clientId );
+			if ( ! name ) return '';
+			return select( 'core/blocks' )?.getBlockType?.( name )?.title ?? name;
 		},
 		[ clientId ]
 	);
 }
 
 /**
- * TEMP: force every section/control on for all blocks, ignoring each block's
- * `supports.blicks.controls` allow-list. Lets us audit the full inspector and
- * filter per-block afterward. Remove this and restore `manifest?.controls` to
- * honor each block's manifest again.
+ * The fallback allow-list, for a block that declares no `supports.blicks.controls` at all.
+ *
+ * This used to be applied unconditionally, as a temporary way to audit the whole inspector before
+ * filtering per block. That override is gone: while it was in place every block showed every
+ * control, so a manifest was decorative — trimming one changed nothing on screen, and a block like
+ * a Scene box offered spacing, effects and decoration it has no use for.
  */
 const ALL_CONTROLS = [
-	'layout.*', 'gridChild.*', 'flexChild.*', 'columns.*', 'spacing.*', 'border.*', 'position.*',
-	'colors.*', 'background.*', 'typography.*', 'effects.*', 'animation.*', 'decoration.*',
+	'layout.*', 'gridChild.*', 'flexChild.*', 'sceneChild.*', 'columns.*', 'spacing.*', 'border.*',
+	'position.*', 'colors.*', 'background.*', 'typography.*', 'effects.*', 'animation.*',
+	'decoration.*',
 ];
 
-export function Inspector( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
-	const controls = ALL_CONTROLS; // TEMP override — see ALL_CONTROLS note above
+/**
+ * Whether the block's **own** box lays its children out as a grid / flex container — the frame of
+ * reference a pseudo-element needs. A `::before`'s parent is the block itself, so "is this box a
+ * grid item?" is answered by the block's display, not its parent's.
+ */
+function useSelfLayout( attributes: any ): { grid: boolean; flex: boolean } {
+	return {
+		grid: hasDisplayValue( attributes, [ 'grid', 'inline-grid' ] ),
+		flex: hasDisplayValue( attributes, [ 'flex', 'inline-flex' ] ),
+	};
+}
+
+/**
+ * What may be styled on a **part**, when a block does not narrow it.
+ *
+ * Not the block's own `controls`. That list says which properties of *this block's box* a user may
+ * change, for reasons of the block's semantics — a Button withholds `layout.display` and
+ * `position.*` because it lays itself out inside Buttons. A `::before` is a new decorative box,
+ * and exactly the box that wants `position: absolute`, a gradient and a transform. So the default
+ * is everything the engine can render on a part; a block narrows it with
+ * `supports.blicks.partControls`.
+ */
+const PART_CONTROLS = [ ...PARTABLE_CONTROLS ];
+
+export function InspectorContent( { attributes, setAttributes, manifest, clientId, Controls, Advanced }: Props ) {
+	const controls = manifest?.controls ?? ALL_CONTROLS;
 	const states = manifest?.states ?? [ 'default' ];
+	const flat = Boolean( ( manifest as any )?.flat );
+	// A block that allows the Pseudo-elements facet gets the parts; the element is always in.
+	const parts = includesControl( controls, 'decoration.content' ) ? PART_IDS : [ ELEMENT_PART ];
+	const partControls = manifest?.partControls?.length ? manifest.partControls : PART_CONTROLS;
 
 	const [ tab, setTab ] = useState< TabId >( Controls ? 'settings' : 'style' );
 	const [ active, setActive ] = useState< string >( '' );
 	const [ query, setQuery ] = useState< string >( '' );
 	const [ state, setState ] = useState< string >( 'default' );
+	const [ part, setPart ] = useState< string >( ELEMENT_PART );
 	const [ breakpoint, setBreakpoint ] = useNativeResponsiveBreakpoint();
-	const hasGridParent = useHasGridParent( clientId );
-	const hasFlexParent = useHasFlexParent( clientId );
-	const CONTEXT_MET: Record< string, boolean > = { 'grid-parent': hasGridParent, 'flex-parent': hasFlexParent };
+	const blockLabel = useBlockLabel( clientId );
+	const selfLayout = useSelfLayout( attributes );
+	// Every registered context at once. `useSelect` shallow-compares the result, and these are all
+	// booleans, so a fresh object of the same answers does not re-render.
+	const registered = useSelect(
+		( select: any ) => resolveContexts( clientId, select ),
+		[ clientId ]
+	);
 
-	const allow = ( controlId: string ) => includesControl( controls, controlId );
+	// A block that stopped offering parts while one was selected must not keep writing into it.
+	const activePart = parts.includes( part ) ? part : ELEMENT_PART;
+	const onPart = activePart !== ELEMENT_PART;
+
+	// "Is this box a grid/flex item?", asked about whichever box is being styled: a part's parent
+	// is the block itself, so on a part the block's own display answers it.
+	const CONTEXT_MET: Record< string, boolean > = onPart
+		? { ...registered, 'grid-parent': selfLayout.grid, 'flex-parent': selfLayout.flex }
+		: registered;
+	const hasSceneParent = ! onPart && Boolean( registered[ 'scene-parent' ] );
+
+	/**
+	 * The value-tree slot every control reads and writes. Controls receive it as `state` and are
+	 * otherwise unaware of parts, so the whole facet library works on a pseudo-element.
+	 */
+	const slot = slotId( activePart, state );
+
+	const allow = ( controlId: string ) =>
+		onPart
+			? PARTABLE_CONTROLS.has( controlId ) && includesControl( partControls, controlId )
+			: includesControl( controls, controlId );
+	const bpLabel = DEFAULT_BREAKPOINTS.find( ( b ) => b.id === breakpoint )?.label ?? breakpoint;
 
 	const visibleSections = SECTIONS.filter(
-		( s ) =>
-			s.controlIds.some( ( id ) => includesControl( controls, id ) ) &&
-			( ! s.context || CONTEXT_MET[ s.context ] )
+		( s ) => s.controlIds.some( allow ) && ( ! s.context || CONTEXT_MET[ s.context ] )
 	);
 
 	/** Facets whose label, title or keywords match the search. Empty query → everything. */
@@ -453,7 +399,7 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 		  );
 
 	/** Any value set in this facet's controls (any state/breakpoint) — drives the rail "styled" dot. */
-	const facetHasValue = ( controlIds: string[] ): boolean =>
+	const facetHasValue = ( controlIds: readonly string[] ): boolean =>
 		controlIds.some( ( id ) => {
 			const control = attributes?.blicks?.[ id ];
 			return (
@@ -464,23 +410,23 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 			);
 		} );
 
-	/** Any value in the *current* state+breakpoint slot — drives the per-facet Reset affordance. */
-	const facetSlotHasValue = ( controlIds: string[] ): boolean =>
-		controlIds.some( ( id ) => getValue( attributes, id, state, breakpoint ) !== undefined );
+	/** Any value in the *current* slot+breakpoint — drives the per-facet Reset affordance. */
+	const facetSlotHasValue = ( controlIds: readonly string[] ): boolean =>
+		controlIds.some( ( id ) => getValue( attributes, id, slot, breakpoint ) !== undefined );
 
-	/** Clear a facet's controls at the current state+breakpoint in one batched write. */
-	const resetFacet = ( controlIds: string[] ): void => {
+	/** Clear a facet's controls at the current slot+breakpoint in one batched write. */
+	const resetFacet = ( controlIds: readonly string[] ): void => {
 		const blicks: Record< string, any > = { ...( attributes.blicks ?? {} ) };
 		let changed = false;
 		for ( const id of controlIds ) {
 			const control = blicks[ id ];
-			const slot = control?.[ state ];
-			if ( ! slot || ! ( breakpoint in slot ) ) continue;
-			const nextSlot = { ...slot };
+			const byBp = control?.[ slot ];
+			if ( ! byBp || ! ( breakpoint in byBp ) ) continue;
+			const nextSlot = { ...byBp };
 			delete nextSlot[ breakpoint ];
 			const nextControl = { ...control };
-			if ( Object.keys( nextSlot ).length ) nextControl[ state ] = nextSlot;
-			else delete nextControl[ state ];
+			if ( Object.keys( nextSlot ).length ) nextControl[ slot ] = nextSlot;
+			else delete nextControl[ slot ];
 			if ( Object.keys( nextControl ).length ) blicks[ id ] = nextControl;
 			else delete blicks[ id ];
 			changed = true;
@@ -537,11 +483,13 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 				<Control
 					attributes={ attributes }
 					setAttributes={ setAttributes }
-					state={ state }
+					state={ slot }
 					breakpoint={ breakpoint }
 					isAllowed={ allow }
 					states={ states }
 					setState={ setState }
+					part={ activePart }
+					setPart={ setPart }
 					query={ query }
 				/>
 			</>
@@ -565,59 +513,155 @@ export function Inspector( { attributes, setAttributes, manifest, clientId, Cont
 				/>
 			);
 		}
+		if ( hasSceneParent ) {
+			return (
+				<ScenePanel
+					sections={ matchedSections }
+					blockLabel={ blockLabel }
+					controlProps={ {
+						attributes,
+						setAttributes,
+						state: slot,
+						breakpoint,
+						isAllowed: allow,
+						states,
+						setState,
+						query,
+					} }
+					facetHasValue={ facetHasValue }
+					resetFacet={ resetFacet }
+				/>
+			);
+		}
+
 		return renderStyleFacet();
 	};
 
-	const isStyle = tab === 'style';
-	const bpLabel = DEFAULT_BREAKPOINTS.find( ( b ) => b.id === breakpoint )?.label ?? breakpoint;
-
-	return (
-		<InspectorControls>
-			<div className="bl-ins">
-				<Tabs tabs={ TABS } active={ tab } onSelect={ setTab } />
+	/**
+	 * A FLAT panel: one column, no Settings / Style / Advanced tabs.
+	 *
+	 * Declared per block through `supports.blicks.flat`, not hardcoded to a block name, so any
+	 * block whose whole inspector fits on one screen can opt in. A Scene box has six settings; three
+	 * tabs to reach them meant grid placement lived in one, fill in another and the CSS class in a
+	 * third. The tabs earn their keep on a Section with nine facets, and get in the way here.
+	 *
+	 * Everything is the existing machinery: `ScenePanel` already draws every allowed group at once,
+	 * so the block's own settings go above it and the advanced field below it.
+	 */
+	if ( flat ) {
+		return (
+			<div className="bl-ins is-flat">
 				<div className="ins-body">
-					{ isStyle && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
-					{ /* Without the rail there is no 44px column to leave room for, so the pane takes
-					     the whole sidebar. */ }
-					<div className={ `ins-pane ${ isStyle ? '' : 'is-full' }` }>
-						{ isStyle && (
-							<>
-								<ContextBar
-									states={ states }
-									state={ state }
-									setState={ setState }
-									breakpoint={ breakpoint }
-									setBreakpoint={ setBreakpoint }
-								/>
-								<SearchField value={ query } onChange={ setQuery } />
-							</>
-						) }
-						{ /* The other half of the rail's tab pattern. Only a Style facet is a real
-						     tabpanel — the Settings/Advanced tabs are not in that tablist, so
-						     labelling them as its panels would be a lie. */ }
-						<div
-							className="ins-facet"
-							key={ `${ tab }:${ activeFacet?.id ?? '' }` }
-							{ ...( isStyle && activeFacet
-								? {
-										role: 'tabpanel',
-										id: facetPanelId( activeFacet.id ),
-										'aria-labelledby': facetTabId( activeFacet.id ),
-										tabIndex: 0,
-								  }
-								: {} ) }
-						>
-							{ renderTab() }
+					<div className="ins-pane is-full">
+						{ /* Kept even though the prototype had no room for it: dropping it would
+						     silently remove hover and per-breakpoint authoring, which is capability
+						     loss rather than simplification. */ }
+						<ContextBar
+							states={ states }
+							state={ state }
+							setState={ setState }
+							breakpoint={ breakpoint }
+							setBreakpoint={ setBreakpoint }
+						/>
+						<div className="ins-facet">
+							<ScenePanel
+								sections={ matchedSections }
+								blockLabel={ blockLabel }
+								controlProps={ {
+									attributes,
+									setAttributes,
+									state: slot,
+									breakpoint,
+									isAllowed: allow,
+									states,
+									setState,
+									query,
+								} }
+								facetHasValue={ facetHasValue }
+								resetFacet={ resetFacet }
+								lead={
+									Controls ? (
+										<Controls attributes={ attributes } setAttributes={ setAttributes } />
+									) : null
+								}
+								// No Advanced tail. Its four cards — Visibility, Custom attributes,
+								// Accessibility, Reset — are longer than everything above them put
+								// together, which would undo the point of a flat panel. Visibility is
+								// the one with a real use on a box, and the layers list already has it
+								// on the eye icon, writing the same attribute.
+							/>
 						</div>
-						{ isStyle && (
-							<div className="ins-footer">
-								{ /* translators: %s: the current breakpoint, e.g. Desktop */
-								  __( 'Editing %s — cascades down', 'blicks' ).replace( '%s', bpLabel ) }
-							</div>
-						) }
+						<div className="ins-footer">
+							{ /* translators: %s: the current breakpoint, e.g. Desktop */
+							  __( 'Editing %s — cascades down', 'blicks' ).replace( '%s', bpLabel ) }
+						</div>
 					</div>
 				</div>
 			</div>
+		);
+	}
+
+	// The rail is the facet picker. A scene child shows every group at once instead, so there is
+	// nothing to pick and no 44px column to leave room for.
+	const isStyle = tab === 'style';
+	const showRail = isStyle && ! hasSceneParent;
+
+	return (
+		<div className="bl-ins">
+			<Tabs tabs={ TABS } active={ tab } onSelect={ setTab } />
+			<div className="ins-body">
+				{ showRail && <Rail facets={ facets } active={ activeFacet?.id ?? '' } onSelect={ setActive } /> }
+				{ /* Without the rail there is no 44px column to leave room for, so the pane takes
+				     the whole sidebar. */ }
+				<div className={ `ins-pane ${ showRail ? '' : 'is-full' }` }>
+					{ isStyle && (
+						<>
+							<ContextBar
+								states={ states }
+								state={ state }
+								setState={ setState }
+								breakpoint={ breakpoint }
+								setBreakpoint={ setBreakpoint }
+								parts={ parts }
+								part={ activePart }
+								setPart={ setPart }
+							/>
+							<SearchField value={ query } onChange={ setQuery } />
+						</>
+					) }
+					{ /* The other half of the rail's tab pattern. Only a Style facet is a real
+					     tabpanel — the Settings/Advanced tabs are not in that tablist, so
+					     labelling them as its panels would be a lie. */ }
+					<div
+						className="ins-facet"
+						key={ `${ tab }:${ activeFacet?.id ?? '' }` }
+						{ ...( isStyle && activeFacet
+							? {
+									role: 'tabpanel',
+									id: facetPanelId( activeFacet.id ),
+									'aria-labelledby': facetTabId( activeFacet.id ),
+									tabIndex: 0,
+							  }
+							: {} ) }
+					>
+						{ renderTab() }
+					</div>
+					{ isStyle && (
+						<div className="ins-footer">
+							{ /* translators: %s: the current breakpoint, e.g. Desktop */
+							  __( 'Editing %s — cascades down', 'blicks' ).replace( '%s', bpLabel ) }
+						</div>
+					) }
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export function Inspector( props: Props ) {
+	return (
+		<InspectorControls>
+			<InspectorContent { ...props } />
 		</InspectorControls>
 	);
 }

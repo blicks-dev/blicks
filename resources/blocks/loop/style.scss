@@ -1,0 +1,356 @@
+@use '../shared/pattern-shelf';
+
+// The Loop: one list item per data item, laid out as a grid, a bento or a list.
+//
+// Columns per screen and the gap come in as custom properties from render.php; a bento tile's
+// size comes in per item as --bl-loop-c / --bl-loop-r. Breakpoints match the engine's
+// (resources/runtime/_engine.scss: tab 782px, mob 600px).
+//
+// The is-* classes are what card rules set on an item (badge and heading also on its dialog's
+// blocks, .bl-dialog__item). Each is a fixed choice (src/Data/Rules.php
+// ACTIONS), never a value from the data, so every one of them is defined here.
+
+@layer blicks.base {
+	.bl-loop {
+		box-sizing: border-box;
+		min-width: 0;
+
+		--bl-loop-gap: var(--blicks-spacing-md, 1rem);
+		--bl-loop-cols: var(--bl-loop-cols-d, 3);
+	}
+
+	.bl-loop__items {
+		display: grid;
+		grid-template-columns: repeat(var(--bl-loop-cols), minmax(0, 1fr));
+		grid-auto-flow: row dense;
+		gap: var(--bl-loop-gap);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bl-loop__item {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		margin: 0;
+		grid-column: span min(var(--bl-loop-c, 1), var(--bl-loop-cols));
+		grid-row: span var(--bl-loop-r, 1);
+
+		// The card is whatever block sits first in the item; it fills the tile.
+		> * {
+			flex: 1 1 auto;
+			margin-block: 0;
+		}
+	}
+
+	.bl-loop--top .bl-loop__item > * {
+		flex: 0 0 auto;
+	}
+
+	.bl-loop--list .bl-loop__items {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.bl-loop--bento .bl-loop__items {
+		grid-auto-rows: var(--bl-loop-row, 180px);
+	}
+
+	.bl-loop--bento .bl-loop__item {
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.bl-loop__empty {
+		margin: 0;
+		color: var(--blicks-color-muted-foreground, #71717a);
+	}
+
+	@media (width <= 782px) {
+		.bl-loop {
+			--bl-loop-cols: var(--bl-loop-cols-t, 2);
+		}
+	}
+
+	@media (width <= 600px) {
+		.bl-loop {
+			--bl-loop-cols: var(--bl-loop-cols-p, 1);
+		}
+
+		// One column: tiles stack at their natural height and the pattern no longer applies.
+		.bl-loop--bento .bl-loop__items {
+			grid-auto-rows: auto;
+		}
+
+		.bl-loop--bento .bl-loop__item {
+			grid-row: auto;
+			overflow: visible;
+		}
+	}
+
+	// ---------- what card rules change ----------
+	.bl-loop__item.is-card-highlight > * {
+		box-shadow: 0 0 0 2px var(--blicks-color-primary, #18181b);
+	}
+
+	.bl-loop__item.is-card-dark > * {
+		background-color: var(--blicks-color-foreground, #09090b);
+		color: var(--blicks-color-background, #fff);
+	}
+
+	.bl-loop__item.is-card-muted > * {
+		opacity: 0.55;
+		filter: grayscale(0.7);
+	}
+
+	.bl-loop__item.is-badge-brand .bl-box--badge,
+	.bl-dialog__item.is-badge-brand .bl-box--badge {
+		background-color: var(--blicks-color-primary, #18181b);
+		color: var(--blicks-color-primary-foreground, #fafafa);
+	}
+
+	.bl-loop__item.is-badge-success .bl-box--badge,
+	.bl-dialog__item.is-badge-success .bl-box--badge {
+		background-color: var(--blicks-color-success, #e7f4ec);
+		color: var(--blicks-color-success-foreground, #11692f);
+	}
+
+	.bl-loop__item.is-badge-warn .bl-box--badge,
+	.bl-dialog__item.is-badge-warn .bl-box--badge {
+		background-color: var(--blicks-color-warning, #fcefe6);
+		color: var(--blicks-color-warning-foreground, #b4410a);
+	}
+
+	.bl-loop__item.is-badge-danger .bl-box--badge,
+	.bl-dialog__item.is-badge-danger .bl-box--badge {
+		background-color: var(--blicks-color-destructive, #dc2626);
+		color: var(--blicks-color-destructive-foreground, #fff);
+	}
+
+	.bl-loop__item.is-heading-lg .bl-heading,
+	.bl-dialog__item.is-heading-lg .bl-heading {
+		font-size: var(--blicks-type-h3-font-size, 1.5rem);
+	}
+
+	.bl-loop__item.is-heading-xl .bl-heading,
+	.bl-dialog__item.is-heading-xl .bl-heading {
+		font-size: var(--blicks-type-h2-font-size, 2rem);
+		line-height: 1.15;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.bl-loop__item > * {
+			transition: box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
+		}
+	}
+
+	// ---------- pages: the page links and Load more (src/Data/Pager.php) ----------
+	//
+	// Loop-local, like the layouts above: three looks on the user's design-system tokens, no
+	// style-engine control. Load more is drawn with the Button block's own classes.
+	.bl-loop__pages,
+	.bl-loop__more {
+		--bl-loop-pg-size: 44px;
+		--bl-loop-pg-radius: 999px;
+
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--blicks-spacing-xs, 0.5rem);
+		margin-top: var(--blicks-spacing-lg, 1.5rem);
+	}
+
+	.bl-loop__more {
+		flex-direction: column;
+	}
+
+	.bl-loop__pages.is-align-start { justify-content: flex-start; }
+	.bl-loop__pages.is-align-end { justify-content: flex-end; }
+	.bl-loop__pages.is-align-between { justify-content: space-between; }
+	.bl-loop__more.is-align-start { align-items: flex-start; }
+	.bl-loop__more.is-align-end { align-items: flex-end; }
+
+	.bl-loop__page {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		box-sizing: border-box;
+		min-width: var(--bl-loop-pg-size);
+		min-height: var(--bl-loop-pg-size);
+		padding: 0 12px;
+		border-radius: var(--bl-loop-pg-radius);
+		color: var(--blicks-color-foreground, #09090b);
+		font-variant-numeric: tabular-nums;
+		text-decoration: none;
+	}
+
+	.bl-loop__page svg {
+		flex: none;
+	}
+
+	.bl-loop__page:focus-visible {
+		outline: 2px solid var(--blicks-color-ring, var(--blicks-color-primary, #18181b));
+		outline-offset: 2px;
+	}
+
+	.bl-loop__page.is-off {
+		opacity: 0.45;
+	}
+
+	.bl-loop__pages.is-pills .bl-loop__page {
+		background-color: var(--blicks-color-muted, #f4f4f5);
+	}
+
+	.bl-loop__pages.is-pills .bl-loop__page:where(a):hover {
+		background-color: var(--blicks-color-accent, #f4f4f5);
+	}
+
+	.bl-loop__pages.is-pills .bl-loop__page.is-current {
+		background-color: var(--blicks-color-primary, #18181b);
+		color: var(--blicks-color-primary-foreground, #fafafa);
+	}
+
+	.bl-loop__pages.is-boxes .bl-loop__page {
+		--bl-loop-pg-radius: var(--blicks-radius-sm, 0.25rem);
+
+		box-shadow: inset 0 0 0 1px var(--blicks-color-border, #e4e4e7);
+	}
+
+	.bl-loop__pages.is-boxes .bl-loop__page.is-current {
+		box-shadow: inset 0 0 0 2px var(--blicks-color-primary, #18181b);
+		font-weight: 700;
+	}
+
+	.bl-loop__pages.is-text .bl-loop__page {
+		padding: 0 8px;
+	}
+
+	.bl-loop__pages.is-text .bl-loop__page.is-current {
+		font-weight: 700;
+		text-decoration: underline 2px;
+		text-underline-offset: 6px;
+	}
+
+	.bl-loop__gap,
+	.bl-loop__count,
+	.bl-loop__status {
+		color: var(--blicks-color-muted-foreground, #71717a);
+	}
+
+	.bl-loop__gap.is-narrow {
+		display: none;
+	}
+
+	.bl-loop__count {
+		padding: 0 8px;
+	}
+
+	.bl-loop__status {
+		margin: 0;
+	}
+
+	@media (width <= 600px) {
+		// Phones keep the first, last, current and its neighbours; the arrows keep their words
+		// as their names only.
+		.bl-loop__page.is-wide,
+		.bl-loop__gap.is-wide {
+			display: none;
+		}
+
+		.bl-loop__gap.is-narrow {
+			display: inline-flex;
+		}
+
+		.bl-loop__pages .bl-loop__word {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		.bl-loop__pages .bl-loop__page {
+			padding: 0 8px;
+		}
+	}
+
+	// The first item Load more added takes focus; it is a list item, not a control.
+	.bl-loop__item:focus {
+		outline: none;
+	}
+
+	.bl-loop__item:focus-visible > * {
+		box-shadow: 0 0 0 2px var(--blicks-color-ring, var(--blicks-color-primary, #18181b));
+	}
+}
+
+// ---------- editor only: the live card, its previews and the Loop's notes ----------
+@layer blicks.base {
+	.bl-loop__item.is-template {
+		outline: 1px dashed var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 4px;
+	}
+
+	.bl-loop__item.is-preview {
+		cursor: pointer;
+	}
+
+	// The card a design would make, on every item, while it is pointed at in the shelf.
+	.bl-loop__items[hidden] {
+		display: none;
+	}
+
+	.bl-loop__items.is-ghost .bl-loop__item {
+		outline: 2px dashed var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 4px;
+	}
+
+	.bl-loop__preview {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		pointer-events: none;
+	}
+
+	// The canvas draws page links as buttons: they step the previewed page.
+	:where(button.bl-loop__page) {
+		border: 0;
+		background: none;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.bl-loop__state,
+	.bl-loop__note {
+		margin: 0 0 12px;
+		color: var(--blicks-color-muted-foreground, #71717a);
+		font-size: 13px;
+	}
+}
+
+// ---------- editor only: a value bound to a field of the Loop's item ----------
+@layer blicks.base {
+	.is-bound {
+		position: relative;
+	}
+
+	.is-bound.is-fallback {
+		color: var(--blicks-color-muted-foreground, #71717a);
+	}
+
+	.bl-bound-chip {
+		position: absolute;
+		top: -10px;
+		right: 0;
+		z-index: 2;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: var(--wp-admin-theme-color, #3858e9);
+		color: #fff;
+		font: 500 10px/14px ui-monospace, Menlo, monospace;
+		pointer-events: none;
+	}
+}

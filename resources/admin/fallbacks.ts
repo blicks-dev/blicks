@@ -19,6 +19,7 @@ export const FALLBACK_SNAPSHOT: DesignSystemSnapshot = {
 		breakpoints: {},
 		typeRoles: {},
 	},
+	language: { active: 'minimal', languages: [] },
 	breakpoints: [ ...DEFAULT_BREAKPOINTS ],
 	counts: {
 		colors: TOKENS.color.length,
@@ -32,9 +33,8 @@ export const FALLBACK_SNAPSHOT: DesignSystemSnapshot = {
 };
 
 export const FALLBACK_ADMIN_SETTINGS: AdminSettingsSnapshot = {
-	defaultInspectorPanel: 'styles',
-	helpVisibility: 'show',
 	deleteDataOnUninstall: false,
+	marketplace: false,
 	designSystem: {
 		themeJsonSync: false,
 		themeJsonSupported: false,

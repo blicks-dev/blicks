@@ -43,8 +43,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class CssValue {
 
-	/** Longest value the engine will emit. Real declarations are far shorter. */
-	private const MAX = 500;
+	/**
+	 * Longest value the engine will emit. Layered backgrounds are the long ones — a star field of
+	 * a dozen radial gradients runs past 1,000 characters — so the bound is generous. Mirrored by
+	 * MAX in resources/framework/css/css-value.ts.
+	 */
+	public const MAX = 2000;
 
 	/**
 	 * Characters a value may contain.

@@ -4,6 +4,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--blicks-spacing-xs, 0.5rem);
+
 		// Component tokens (theme.json custom.blicks.button.*) → global button look,
 		// each falling back to a primitive token so defaults stay system-driven.
 		border: var(--blicks-button-border-width, 1px) solid transparent;
@@ -12,28 +13,47 @@
 		line-height: 1;
 		text-decoration: none;
 		white-space: nowrap;
+		text-align: center;
 		cursor: pointer;
 		transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 		box-sizing: border-box;
 
-		svg {
-			width: 1em;
-			height: 1em;
+		// The label-mode icon only: a direct child. In Blocks mode an Icon block sizes itself.
+		> svg {
+			width: var(--bl-button-icon-size, 1em);
+			height: var(--bl-button-icon-size, 1em);
 			flex: 0 0 auto;
 		}
 
+		// Blocks mode: the children are inline (span) blocks inside the one link, laid out by the
+		// button's own flex row. A Text block keeps the button's type and colour.
+		&--blocks > .bl-text {
+			margin: 0;
+			color: inherit;
+		}
+
+		// The design language's bevel, edge and depth (DesignLanguages.php). Each is unset under
+		// Minimal, so the fallbacks are the plain look; the sheen is an overlay, so it lights a fill
+		// set on the button itself too.
 		&--default {
 			background: var(--blicks-color-primary, #18181b);
+			background-image: var(--blicks-button-sheen, none);
+			border-color: var(--blicks-button-border-color, transparent);
+			box-shadow: var(--blicks-button-shadow, none);
+			text-shadow: var(--blicks-button-text-shadow, none);
 			color: var(--blicks-color-primary-foreground, #fafafa);
 		}
 
 		&--secondary {
-			background: var(--blicks-color-secondary, #f4f4f5);
+			background: var(--blicks-button-secondary-background, var(--blicks-color-secondary, #f4f4f5));
+			background-image: var(--blicks-button-secondary-sheen, none);
+			border-color: var(--blicks-button-secondary-border-color, transparent);
+			box-shadow: var(--blicks-button-secondary-shadow, none);
 			color: var(--blicks-color-secondary-foreground, #18181b);
 		}
 
 		&--destructive {
-			background: var(--blicks-color-destructive, #ef4444);
+			background: var(--blicks-color-destructive, #dc2626);
 			color: var(--blicks-color-destructive-foreground, #fafafa);
 		}
 
@@ -52,7 +72,7 @@
 		&--link {
 			height: auto;
 			padding: 0;
-			color: var(--blicks-color-primary, #2563eb);
+			color: var(--blicks-color-primary, #18181b);
 			text-decoration: underline;
 			text-underline-offset: 0.25em;
 		}
@@ -80,51 +100,67 @@
 			min-height: 2.5rem;
 			padding: 0;
 		}
+
+		&--w-wide {
+			min-width: 12rem;
+		}
+
+		&--w-full {
+			width: 100%;
+		}
 	}
 }
 
 // WordPress global styles emit unlayered link rules such as
 // `a:where(:not(.wp-element-button)) { color: currentColor; }`.
 // Keep Button foreground colors unlayered too so link-style buttons retain contrast.
-// We use `.bl-button.bl-button--*` instead of adding `wp-element-button` to saved
-// markup, because changing the saved class list would invalidate existing blocks.
-.bl-button.bl-button--default {
+// We use `.bl-button--*` instead of adding `wp-element-button` to saved markup, because changing
+// the saved class list would invalidate existing blocks. Each rule steps aside when the Style tab
+// set the same thing (`.bl-tx`, `.bl-pad` from the engine) and stays at one class, so the engine's
+// own state rules (`.bl-tx--hov:hover`) still win on hover.
+.bl-button--default:where(:not(.bl-tx)) {
 	color: var(--blicks-color-primary-foreground, #fafafa);
 }
 
-.bl-button.bl-button--secondary {
+.bl-button--secondary:where(:not(.bl-tx)) {
 	color: var(--blicks-color-secondary-foreground, #18181b);
 }
 
-.bl-button.bl-button--destructive {
+.bl-button--destructive:where(:not(.bl-tx)) {
 	color: var(--blicks-color-destructive-foreground, #fafafa);
 }
 
-.bl-button.bl-button--outline,
-.bl-button.bl-button--ghost {
+.bl-button--outline:where(:not(.bl-tx)),
+.bl-button--ghost:where(:not(.bl-tx)) {
 	color: var(--blicks-color-foreground, #09090b);
 }
 
-.bl-button.bl-button--link {
-	color: var(--blicks-color-primary, #2563eb);
+.bl-button--link:where(:not(.bl-tx)) {
+	color: var(--blicks-color-primary, #18181b);
 }
 
 // Box-model padding emitted UNLAYERED so a host theme's `* { padding: 0 }` reset can't strip a
 // button's inner spacing (layered @layer rules always lose to an unlayered universal selector).
-// Mirrors the unlayered color rules above. default-size honours the button component token.
-.bl-button.bl-button--default-size {
+// default-size honours the button component token; padding set in Style (`.bl-pad`) wins.
+.bl-button--default-size:where(:not(.bl-pad)) {
 	padding: var(--blicks-button-padding-y, 0) var(--blicks-button-padding-x, 1rem);
 }
 
-.bl-button.bl-button--sm {
+.bl-button--sm:where(:not(.bl-pad)) {
 	padding: 0 0.75rem;
 }
 
-.bl-button.bl-button--lg {
+.bl-button--lg:where(:not(.bl-pad)) {
 	padding: 0 1.5rem;
 }
 
-.bl-button.bl-button--icon,
-.bl-button.bl-button--link {
+.bl-button--icon:where(:not(.bl-pad)),
+.bl-button--link:where(:not(.bl-pad)) {
 	padding: 0;
+}
+
+// Editor only: the "+" inside a Blocks-mode button shows while it, or a block in it, is being
+// edited; at rest it would sit inside the button's own shape and read as part of the design.
+.bl-button--blocks:not(.is-selected, .has-child-selected) > .block-list-appender {
+	display: none;
 }

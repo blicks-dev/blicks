@@ -1,0 +1,209 @@
+/* The scene child's Style tab: one continuous panel instead of the facet rail.
+
+   Two jobs, and they are worth keeping apart in your head:
+
+   1. The frame — group headings, separators, the "what is selected" line.
+   2. A DENSITY PASS over the controls inside.
+
+   The second one restyles other people's controls, which is normally the wrong thing to do. It is
+   deliberate here and it is contained: every rule below is scoped to `.bl-scene-panel`, so the same
+   control in the ordinary facet rail is untouched. The reason is that composing on a stage means
+   moving between position, size, type and colour constantly, and the default field scale — built
+   for one facet at a time in a full-width panel — turns that into a scrolling exercise.
+
+   The numbers come from measuring a reference composer's inspector rather than from taste: 28px
+   fields, 11px title-case headings, 8px gaps, 12px section padding. Most of it lands through the
+   `--bl-ui-*` tokens, which is why this file is mostly a token block — a control that reads the
+   tokens rescales for free, and only the ones with hard-coded heights need naming. */
+.bl-ins .bl-scene-panel {
+	/* --- the density scale ------------------------------------------------------------------
+	   Overriding the tokens rather than each control: anything that reads them rescales here and
+	   stays exactly as it was everywhere else. */
+	--bl-ui-field-h: 28px;
+	--bl-ui-field-h-sm: 24px;
+	--bl-ui-text-md: 12px;
+	--bl-ui-text-sm: 11px;
+	--bl-ui-label-size: 10px;
+	--bl-scene-gap: 8px;
+	--bl-scene-pad: 12px;
+
+	display: flex;
+	flex-direction: column;
+
+	/* Which block these controls are aimed at. Composing on a stage means selecting by clicking
+	   shapes, so what is selected is much less obvious than in a document flow. */
+	&__who {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		padding: 0 var(--bl-scene-pad) var(--bl-scene-gap);
+		font-size: var(--bl-ui-text-sm);
+		color: var(--muted);
+	}
+
+	&__chip {
+		padding: 2px 8px;
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+		background: var(--paper);
+		color: var(--fg);
+		font-size: var(--bl-ui-text-sm);
+	}
+
+	&__group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--bl-scene-gap);
+		padding: var(--bl-scene-pad);
+		border-top: 1px solid var(--border);
+	}
+
+	/* Sticky because the panel is one long scroll: without it you lose track of which group you
+	   are in halfway down Typography. Title case and 11px, not the uppercase the facet titles use
+	   — at this density an uppercase run of "POSITION & TRANSFORM" is the loudest thing on screen
+	   and it is the least important. */
+	&__title {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		padding: 2px 0;
+		background: var(--bg);
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: none;
+		letter-spacing: 0;
+		color: var(--fg);
+	}
+
+	&__reset {
+		margin-inline-start: auto;
+		border: 0;
+		background: none;
+		padding: 0;
+		color: var(--muted);
+		font: inherit;
+		font-size: var(--bl-ui-text-sm);
+		font-weight: 400;
+		cursor: pointer;
+
+		&:hover,
+		&:focus-visible {
+			color: var(--brand);
+		}
+	}
+
+	/* --- controls: the hard-coded heights the tokens do not reach ---------------------------- */
+	.dim,
+	.fx-field,
+	.inp,
+	.inp-num,
+	select,
+	.seg-row button {
+		height: var(--bl-ui-field-h);
+		min-height: 0;
+	}
+
+	/* A facet's own internal stacking is built for a roomier panel. */
+	.sub,
+	.sub-row,
+	.grid2 {
+		gap: 6px;
+	}
+
+	.field + .field,
+	.sub + .sub {
+		margin-top: 6px;
+	}
+
+	/* The single biggest saving, and the one structural change worth making.
+	   A `.field` is a label row stacked above its control — 22px + 28px + gap, so every field
+	   costs about 58px for 28px of control. Laying the label beside the control instead makes the
+	   whole field one 28px row. The reference composer does the same thing; it can use a single
+	   glyph where this uses a word, which is why the label is allowed to shrink and truncate
+	   rather than wrap. */
+	.field {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+
+		> .lbl-row {
+			flex: 0 0 auto;
+			min-width: 0;
+			max-width: 46%;
+			margin: 0;
+		}
+
+		.lbl {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		> :not(.lbl-row) {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+	}
+
+	/* Except in a two-column row. Those columns are ~125px, and "Rotation" beside an input inside
+	   125px leaves room for neither — so the pair stays stacked and only the label row tightens. */
+	.grid2 .field {
+		display: block;
+
+		> .lbl-row {
+			max-width: none;
+			margin-bottom: 2px;
+		}
+	}
+
+	.lbl-row {
+		min-height: 0;
+	}
+
+	/* A facet's own vertical rhythm, tightened. These are the blocks that actually carry the
+	   height — a `.field` is 28px, but the groups stacking them were spaced for a roomier panel. */
+	.bl-fields,
+	.bl-anim-group,
+	.bl-typo-group,
+	.bl-border-group,
+	.bl-fx-group {
+		gap: 6px;
+		margin-block: 0;
+	}
+
+	/* The border preview is a drawing of the border you just set. Useful when Border is the only
+	   thing on screen; here it is 74px of picture in a panel whose whole point is that everything
+	   is visible at once, and the canvas behind it already shows the real thing. */
+	.bl-border-preview {
+		display: none;
+	}
+
+	/* The animation presets are a gallery of seven labelled buttons — 146px, the single tallest
+	   thing in the panel, for a control the reference composer renders as one 28px dropdown.
+	   Kept as a gallery (choosing an animation by name is genuinely easier than from a list) but
+	   compacted to a tight grid, and scrollable rather than growing without limit. */
+	.bl-anim-presets {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4px;
+		max-height: 88px;
+		overflow-y: auto;
+
+		button {
+			height: 26px;
+			padding: 0 4px;
+			font-size: var(--bl-ui-text-sm);
+		}
+	}
+
+	/* Facet bodies carry their own outer padding for the rail layout; the group already provides
+	   it here, so keeping both doubles every gutter. */
+	&__body > * {
+		padding-inline: 0;
+	}
+}

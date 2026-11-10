@@ -4,7 +4,7 @@ description: "A shadcn-style action button with variants, sizes, links, and opti
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/button/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/button/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,19 +25,24 @@ Generated from `packages/blicks/resources/blocks/button/block.json` and `readme.
 | HTML editing | `false` |
 | Anchor | `false` |
 | Align | `-` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`gridChild.*` · `typography.*` · `colors.*` · `spacing.*` · `border.*` · `effects.*`
+`gridChild.*` · `typography.*` · `colors.*` · `spacing.*` · `border.*` · `effects.*` · `background.*` · `animation.*` · `layout.group` · `layout.display` · `layout.gapColumn` · `layout.gapRow` · `layout.alignItems` · `layout.justifyContent` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*` · `layout.overflow` · `layout.isolation` · `position.*` · `decoration.*`
 
 ## Attributes
 
 | Attribute | Type | Default |
 |---|---|---|
+| `action` | `string` | `""` |
 | `blicks` | `object` | `&#123;&#125;` |
+| `content` | `string` | `"label"` |
+| `dialog` | `string` | `""` |
 | `icon` | `string` | `""` |
 | `iconPosition` | `string` | `"leading"` |
+| `iconSize` | `string` | `""` |
+| `label` | `string` | `""` |
 | `linkTarget` | `string` | `""` |
 | `rel` | `string` | `""` |
 | `size` | `string` | `"default"` |
@@ -45,6 +50,7 @@ Generated from `packages/blicks/resources/blocks/button/block.json` and `readme.
 | `uniqueId` | `string` | — |
 | `url` | `string` | `""` |
 | `variant` | `string` | `"default"` |
+| `width` | `string` | `""` |
 
 ## Help
 
@@ -85,6 +91,18 @@ Adds an optional built-in icon.
 ### iconPosition
 
 Places the icon before or after the label.
+
+### width
+
+**Fit** sizes the button to its label, **Fill** stretches it across the row, and **Fixed** gives it an exact width (12rem to start). Buttons saved with the older **Wide** (at least 12rem) keep it.
+
+### action
+
+**On click** is a **Link**, a **Dialog** (open one, or close the one the button is in) or a **Form** (send it, or clear it).
+
+### Space between
+
+With an icon, or blocks inside, the space between them: **None**, **Small** (the default), **Medium** or **Large**, or an exact size.
 
 ## Tips
 

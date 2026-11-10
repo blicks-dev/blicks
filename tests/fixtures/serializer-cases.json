@@ -1,0 +1,949 @@
+[
+	{
+		"title": "image without a picture",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000001"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000001\"} /-->"
+	},
+	{
+		"title": "image, plain",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000002",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"alt": "A hill at dusk"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000002\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"alt\":\"A hill at dusk\"} -->\n<figure class=\"bl-image bl-a1000002\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"A hill at dusk\" style=\"object-fit:cover\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, ratio and focus",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000003",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"aspectRatio": "16/9",
+				"objectFit": "cover",
+				"focus": "50% 20%"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000003\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"aspectRatio\":\"16/9\",\"focus\":\"50% 20%\"} -->\n<figure class=\"bl-image bl-a1000003 has-aspect-ratio\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"aspect-ratio:16/9;object-fit:cover;object-position:50% 20%\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, contain ignores focus",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000004",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"aspectRatio": "4/3",
+				"objectFit": "contain",
+				"focus": "50% 20%"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000004\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"aspectRatio\":\"4/3\",\"objectFit\":\"contain\",\"focus\":\"50% 20%\"} -->\n<figure class=\"bl-image bl-a1000004 has-aspect-ratio\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"aspect-ratio:4/3;object-fit:contain\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, linked to a page in a new tab",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000005",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"linkTo": "custom",
+				"href": "https://example.test/about?a=1&b=2",
+				"linkTarget": "_blank"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000005\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"linkTo\":\"custom\",\"href\":\"https://example.test/about?a=1\\u0026b=2\",\"linkTarget\":\"_blank\"} -->\n<figure class=\"bl-image bl-a1000005\"><a href=\"https://example.test/about?a=1&amp;b=2\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></a></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, linked to itself",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000006",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"linkTo": "media"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000006\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"linkTo\":\"media\"} -->\n<figure class=\"bl-image bl-a1000006\"><a href=\"https://example.test/wp-content/uploads/photo.jpg\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></a></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, unsafe link dropped",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000007",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"linkTo": "custom",
+				"href": "data:text/html,hi"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000007\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"linkTo\":\"custom\",\"href\":\"data:text/html,hi\"} -->\n<figure class=\"bl-image bl-a1000007\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, caption below",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000008",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"caption": "Taken <strong>early</strong>"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000008\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"caption\":\"Taken \\u003cstrong\\u003eearly\\u003c/strong\\u003e\"} -->\n<figure class=\"bl-image bl-a1000008\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/><figcaption class=\"wp-element-caption\">Taken <strong>early</strong></figcaption></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, caption over with a shade",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a1000009",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"caption": "Over",
+				"capPos": "over",
+				"capAlign": "center",
+				"dim": "medium"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a1000009\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"caption\":\"Over\",\"capPos\":\"over\",\"capAlign\":\"center\",\"dim\":\"medium\"} -->\n<figure class=\"bl-image bl-a1000009 bl-image--cap-over bl-image--cap-center bl-image--dim\" style=\"--bl-img-dim:40%\"><span class=\"bl-image__frame\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/><figcaption class=\"wp-element-caption\">Over</figcaption></span></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, width and line-up",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a100000a",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"width": "md",
+				"lineUp": "end",
+				"phoneFull": false
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a100000a\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"width\":\"md\",\"lineUp\":\"end\",\"phoneFull\":false} -->\n<figure class=\"bl-image bl-a100000a bl-image--w bl-image--end bl-image--keep-phone\" style=\"--bl-img-w:400px\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, typed width and hover",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a100000b",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"width": "50%",
+				"hover": "zoom"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a100000b\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"width\":\"50%\",\"hover\":\"zoom\"} -->\n<figure class=\"bl-image bl-a100000b bl-image--w bl-image--hover-zoom\" style=\"--bl-img-w:50%\"><span class=\"bl-image__frame\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></span></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, decorative and eager",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a100000c",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"alt": "ignored",
+				"decorative": true,
+				"eager": true
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a100000c\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"alt\":\"ignored\",\"decorative\":true,\"eager\":true} -->\n<figure class=\"bl-image bl-a100000c\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\" loading=\"eager\" fetchpriority=\"high\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, adjustments",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a100000d",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"adjust": {
+					"b": 120,
+					"c": 90,
+					"s": 0,
+					"blur": 2
+				}
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a100000d\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"adjust\":{\"b\":120,\"c\":90,\"s\":0,\"blur\":2}} -->\n<figure class=\"bl-image bl-a100000d\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover;filter:brightness(1.2) contrast(0.9) saturate(0) blur(2px)\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "image, styled",
+		"block": {
+			"name": "blicks/image",
+			"attributes": {
+				"uniqueId": "a100000e",
+				"url": "https://example.test/wp-content/uploads/photo.jpg",
+				"blicks": {
+					"border.radius": {
+						"default": {
+							"base": "lg"
+						}
+					}
+				}
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/image {\"uniqueId\":\"a100000e\",\"blicks\":{\"border.radius\":{\"default\":{\"base\":\"lg\"}}},\"url\":\"https://example.test/wp-content/uploads/photo.jpg\"} -->\n<figure class=\"bl-image bl-a100000e bl-br\" style=\"--bl-brtl:var(--blicks-radius-lg);--bl-brtr:var(--blicks-radius-lg);--bl-brbr:var(--blicks-radius-lg);--bl-brbl:var(--blicks-radius-lg)\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></figure>\n<!-- /wp:blicks/image -->"
+	},
+	{
+		"title": "buttons, a link with an apostrophe and an icon button",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c1000001"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c1000002",
+						"text": "Read O'Brien",
+						"url": "/o'brien?x=1&y=2",
+						"linkTarget": "_blank",
+						"rel": "noopener"
+					},
+					"innerBlocks": []
+				},
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c1000003",
+						"size": "icon",
+						"icon": "search",
+						"label": "Search",
+						"variant": "ghost"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c1000001\"} -->\n<div class=\"bl-buttons bl-c1000001\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c1000002\",\"text\":\"Read O'Brien\",\"url\":\"/o'brien?x=1\\u0026y=2\",\"linkTarget\":\"_blank\",\"rel\":\"noopener\"} -->\n<a class=\"bl-button bl-c1000002 bl-button--default bl-button--default-size\" href=\"/o'brien?x=1&amp;y=2\" target=\"_blank\" rel=\"noopener\"><span class=\"bl-button__label\">Read O'Brien</span></a>\n<!-- /wp:blicks/button -->\n\n<!-- wp:blicks/button {\"uniqueId\":\"c1000003\",\"variant\":\"ghost\",\"size\":\"icon\",\"icon\":\"search\",\"label\":\"Search\"} -->\n<button class=\"bl-button bl-c1000003 bl-button--ghost bl-button--icon\" type=\"button\" aria-label=\"Search\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"m21 21-4.34-4.34\"/> <circle cx=\"11\" cy=\"11\" r=\"8\"/></svg></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "icon, filled",
+		"block": {
+			"name": "blicks/icon",
+			"attributes": {
+				"uniqueId": "d1000001",
+				"icon": "heart",
+				"filled": true,
+				"label": "Liked"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/icon {\"uniqueId\":\"d1000001\",\"icon\":\"heart\",\"filled\":true,\"label\":\"Liked\"} -->\n<span class=\"bl-icon bl-d1000001 bl-icon--filled\" style=\"--bl-icon-size:1.5rem\" aria-label=\"Liked\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5\"/></svg></span>\n<!-- /wp:blicks/icon -->"
+	},
+	{
+		"title": "icon, a turned link",
+		"block": {
+			"name": "blicks/icon",
+			"attributes": {
+				"uniqueId": "d1000002",
+				"icon": "arrowRight",
+				"url": "https://example.test/next",
+				"linkTarget": "_blank",
+				"turn": 90,
+				"flipH": true,
+				"size": "3vw"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/icon {\"uniqueId\":\"d1000002\",\"icon\":\"arrowRight\",\"size\":\"3vw\",\"flipH\":true,\"turn\":90,\"url\":\"https://example.test/next\",\"linkTarget\":\"_blank\"} -->\n<a class=\"bl-icon bl-d1000002 bl-icon--flip-h bl-icon--turn-90\" style=\"--bl-icon-size:1.5rem\" href=\"https://example.test/next\" target=\"_blank\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M5 12h14\"/> <path d=\"m12 5 7 7-7 7\"/></svg></a>\n<!-- /wp:blicks/icon -->"
+	},
+	{
+		"title": "icon, unlabelled",
+		"block": {
+			"name": "blicks/icon",
+			"attributes": {
+				"uniqueId": "d1000003",
+				"icon": "bolt",
+				"size": "32",
+				"strokeWidth": 1.5
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/icon {\"uniqueId\":\"d1000003\",\"icon\":\"bolt\",\"size\":\"32\",\"strokeWidth\":1.5} -->\n<span class=\"bl-icon bl-d1000003\" style=\"--bl-icon-size:32px\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"1.5\"><path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\"/></svg></span>\n<!-- /wp:blicks/icon -->"
+	},
+	{
+		"title": "button, full width with a trailing icon",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c1000004"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c1000005",
+						"text": "Go",
+						"width": "full",
+						"icon": "arrowRight",
+						"iconPosition": "trailing",
+						"variant": "outline",
+						"size": "lg"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c1000004\"} -->\n<div class=\"bl-buttons bl-c1000004\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c1000005\",\"text\":\"Go\",\"variant\":\"outline\",\"size\":\"lg\",\"icon\":\"arrowRight\",\"iconPosition\":\"trailing\",\"width\":\"full\"} -->\n<button class=\"bl-button bl-c1000005 bl-button--outline bl-button--lg bl-button--w-full\" type=\"button\"><span class=\"bl-button__label\">Go</span><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M5 12h14\"/> <path d=\"m12 5 7 7-7 7\"/></svg></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "button, label mode with an icon size",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c1000006"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c1000007",
+						"text": "Plan",
+						"icon": "map",
+						"iconSize": "18",
+						"blicks": {
+							"layout.gapColumn": {
+								"default": {
+									"base": "10px"
+								}
+							}
+						}
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c1000006\"} -->\n<div class=\"bl-buttons bl-c1000006\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c1000007\",\"blicks\":{\"layout.gapColumn\":{\"default\":{\"base\":\"10px\"}}},\"text\":\"Plan\",\"icon\":\"map\",\"iconSize\":\"18\"} -->\n<button class=\"bl-button bl-c1000007 bl-gap-c bl-button--default bl-button--default-size\" style=\"--bl-gap-c:10px;--bl-button-icon-size:18px\" type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\"/> <path d=\"M15 5.764v15\"/> <path d=\"M9 3.236v15\"/></svg><span class=\"bl-button__label\">Plan</span></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "button, blocks mode with a dot, a label and meta text",
+		"block": {
+			"name": "blicks/button",
+			"attributes": {
+				"uniqueId": "c1000008",
+				"content": "blocks",
+				"url": "/keynote",
+				"variant": "secondary"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/box",
+					"attributes": {
+						"uniqueId": "c1000009",
+						"tag": "span",
+						"blicks": {
+							"layout.width": {
+								"default": {
+									"base": "8px"
+								}
+							}
+						}
+					},
+					"innerBlocks": []
+				},
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "c100000a",
+						"content": "Product <strong>launch</strong>",
+						"tag": "span"
+					},
+					"innerBlocks": []
+				},
+				{
+					"name": "blicks/icon",
+					"attributes": {
+						"uniqueId": "c100000b",
+						"icon": "arrowRight",
+						"size": "1em"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/button {\"uniqueId\":\"c1000008\",\"url\":\"/keynote\",\"variant\":\"secondary\",\"content\":\"blocks\"} -->\n<a class=\"bl-button bl-c1000008 bl-button--secondary bl-button--default-size bl-button--blocks\" href=\"/keynote\"><!-- wp:blicks/box {\"uniqueId\":\"c1000009\",\"blicks\":{\"layout.width\":{\"default\":{\"base\":\"8px\"}}},\"tag\":\"span\"} -->\n<span class=\"bl-box bl-c1000009 bl-w\" style=\"--bl-w:8px\"></span>\n<!-- /wp:blicks/box -->\n\n<!-- wp:blicks/text {\"uniqueId\":\"c100000a\",\"content\":\"Product \\u003cstrong\\u003elaunch\\u003c/strong\\u003e\",\"tag\":\"span\"} -->\n<span class=\"bl-text bl-c100000a\">Product <strong>launch</strong></span>\n<!-- /wp:blicks/text -->\n\n<!-- wp:blicks/icon {\"uniqueId\":\"c100000b\",\"icon\":\"arrowRight\",\"size\":\"1em\"} -->\n<span class=\"bl-icon bl-c100000b\" style=\"--bl-icon-size:1em\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M5 12h14\"/> <path d=\"m12 5 7 7-7 7\"/></svg></span>\n<!-- /wp:blicks/icon --></a>\n<!-- /wp:blicks/button -->"
+	},
+	{
+		"title": "button, blocks mode without a link, holding an inline image",
+		"block": {
+			"name": "blicks/button",
+			"attributes": {
+				"uniqueId": "c100000c",
+				"content": "blocks"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/image",
+					"attributes": {
+						"uniqueId": "c100000d",
+						"url": "https://example.test/wp-content/uploads/photo.jpg",
+						"alt": "Ada",
+						"inline": true,
+						"aspectRatio": "1/1",
+						"caption": "dropped",
+						"linkTo": "media"
+					},
+					"innerBlocks": []
+				},
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "c100000e",
+						"content": "Ada",
+						"tag": "span"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/button {\"uniqueId\":\"c100000c\",\"content\":\"blocks\"} -->\n<button class=\"bl-button bl-c100000c bl-button--default bl-button--default-size bl-button--blocks\" type=\"button\"><!-- wp:blicks/image {\"uniqueId\":\"c100000d\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"alt\":\"Ada\",\"aspectRatio\":\"1/1\",\"linkTo\":\"media\",\"caption\":\"dropped\",\"inline\":true} -->\n<span class=\"bl-image bl-c100000d bl-image--inline\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"Ada\" style=\"aspect-ratio:1/1;object-fit:cover\"/></span>\n<!-- /wp:blicks/image -->\n\n<!-- wp:blicks/text {\"uniqueId\":\"c100000e\",\"content\":\"Ada\",\"tag\":\"span\"} -->\n<span class=\"bl-text bl-c100000e\">Ada</span>\n<!-- /wp:blicks/text --></button>\n<!-- /wp:blicks/button -->"
+	},
+	{
+		"title": "box side by side holding a heading and text",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "e2000001",
+				"blicks": {
+					"layout.display": {
+						"default": {
+							"base": "flex"
+						}
+					},
+					"layout.flexDirection": {
+						"default": {
+							"base": "row"
+						}
+					},
+					"layout.gapColumn": {
+						"default": {
+							"base": "lg"
+						}
+					}
+				}
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/heading",
+					"attributes": {
+						"uniqueId": "e2000002",
+						"content": "Hello & welcome",
+						"level": 3
+					},
+					"innerBlocks": []
+				},
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "e2000003",
+						"content": "One <em>line</em>."
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"e2000001\",\"blicks\":{\"layout.display\":{\"default\":{\"base\":\"flex\"}},\"layout.flexDirection\":{\"default\":{\"base\":\"row\"}},\"layout.gapColumn\":{\"default\":{\"base\":\"lg\"}}}} -->\n<div class=\"bl-box bl-e2000001 bl-d bl-fd bl-gap-c\" style=\"--bl-d:flex;--bl-fd:row;--bl-gap-c:var(--blicks-spacing-lg)\"><!-- wp:blicks/heading {\"uniqueId\":\"e2000002\",\"level\":3,\"content\":\"Hello \\u0026 welcome\"} -->\n<h3 class=\"bl-heading bl-e2000002\">Hello & welcome</h3>\n<!-- /wp:blicks/heading -->\n\n<!-- wp:blicks/text {\"uniqueId\":\"e2000003\",\"content\":\"One \\u003cem\\u003eline\\u003c/em\\u003e.\"} -->\n<p class=\"bl-text bl-e2000003\">One <em>line</em>.</p>\n<!-- /wp:blicks/text --></div>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a card holding a heading",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000001",
+				"kind": "card",
+				"tag": "article",
+				"blicks": {
+					"spacing.padding": {
+						"default": {
+							"base": "24px"
+						}
+					}
+				}
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/heading",
+					"attributes": {
+						"uniqueId": "f1000002",
+						"content": "Kinds",
+						"level": 3
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000001\",\"blicks\":{\"spacing.padding\":{\"default\":{\"base\":\"24px\"}}},\"kind\":\"card\",\"tag\":\"article\"} -->\n<article class=\"bl-box bl-f1000001 bl-pad bl-box--card\" style=\"--bl-pt:24px;--bl-pr:24px;--bl-pb:24px;--bl-pl:24px\"><!-- wp:blicks/heading {\"uniqueId\":\"f1000002\",\"level\":3,\"content\":\"Kinds\"} -->\n<h3 class=\"bl-heading bl-f1000002\">Kinds</h3>\n<!-- /wp:blicks/heading --></article>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, layers",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000003",
+				"layers": true
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000003\",\"layers\":true} -->\n<div class=\"bl-box bl-f1000003 bl-box--layers\"></div>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a badge",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000004",
+				"kind": "badge",
+				"text": "New <strong>in</strong> v2"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000004\",\"kind\":\"badge\",\"text\":\"New \\u003cstrong\\u003ein\\u003c/strong\\u003e v2\"} -->\n<span class=\"bl-box bl-f1000004 bl-box--badge\">New <strong>in</strong> v2</span>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a linked badge",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000005",
+				"kind": "badge",
+				"text": "Docs",
+				"href": "/docs?a=1&b=2",
+				"linkTarget": "_blank",
+				"rel": "noopener",
+				"linkLabel": "Read the docs"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000005\",\"kind\":\"badge\",\"text\":\"Docs\",\"href\":\"/docs?a=1\\u0026b=2\",\"linkTarget\":\"_blank\",\"rel\":\"noopener\",\"linkLabel\":\"Read the docs\"} -->\n<a class=\"bl-box bl-f1000005 bl-box--badge\" href=\"/docs?a=1&amp;b=2\" target=\"_blank\" rel=\"noopener\" aria-label=\"Read the docs\">Docs</a>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a divider",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000006",
+				"kind": "divider"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000006\",\"kind\":\"divider\"} -->\n<hr class=\"bl-box bl-f1000006 bl-box--divider\"/>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a spacer",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000007",
+				"kind": "spacer",
+				"blicks": {
+					"layout.height": {
+						"default": {
+							"base": "48px"
+						}
+					}
+				}
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000007\",\"blicks\":{\"layout.height\":{\"default\":{\"base\":\"48px\"}}},\"kind\":\"spacer\"} -->\n<div class=\"bl-box bl-f1000007 bl-h bl-box--spacer\" style=\"--bl-h:48px\" aria-hidden=\"true\"></div>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, a linked panel",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f1000008",
+				"kind": "panel",
+				"href": "https://example.test/o'brien",
+				"linkTarget": "_blank",
+				"linkLabel": "Open"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "f1000009",
+						"content": "Whole panel is a link."
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f1000008\",\"kind\":\"panel\",\"href\":\"https://example.test/o'brien\",\"linkTarget\":\"_blank\",\"linkLabel\":\"Open\"} -->\n<div class=\"bl-box bl-f1000008 bl-box--panel bl-box--linked\"><a class=\"bl-box__link\" href=\"https://example.test/o'brien\" target=\"_blank\" aria-label=\"Open\"></a><!-- wp:blicks/text {\"uniqueId\":\"f1000009\",\"content\":\"Whole panel is a link.\"} -->\n<p class=\"bl-text bl-f1000009\">Whole panel is a link.</p>\n<!-- /wp:blicks/text --></div>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "box, an unknown kind and tag fall back",
+		"block": {
+			"name": "blicks/box",
+			"attributes": {
+				"uniqueId": "f100000a",
+				"kind": "bogus",
+				"tag": "figure"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/box {\"uniqueId\":\"f100000a\",\"kind\":\"bogus\",\"tag\":\"figure\"} -->\n<figure class=\"bl-box bl-f100000a\"></figure>\n<!-- /wp:blicks/box -->"
+	},
+	{
+		"title": "loop, a bento of cards with bound fields",
+		"block": {
+			"name": "blicks/loop",
+			"attributes": {
+				"uniqueId": "g1000001",
+				"data": "[{\"title\":\"Arc \\\"floor\\\" lamp\",\"price\":189,\"photo\":\"https://example.test/wp-content/uploads/photo.jpg\"},{\"title\":\"Oak <side> table\",\"price\":240,\"photo\":\"https://example.test/wp-content/uploads/photo.jpg\"}]",
+				"layout": "bento",
+				"bento": {
+					"tiles": [
+						"2x2",
+						"1x1"
+					],
+					"rowHeight": 200,
+					"repeat": true
+				},
+				"rules": [
+					{
+						"when": {
+							"field": "price",
+							"op": "gt",
+							"value": "200"
+						},
+						"then": [
+							{
+								"card": "highlight"
+							}
+						]
+					}
+				],
+				"emptyText": "Nothing -- yet"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/box",
+					"attributes": {
+						"uniqueId": "g1000002",
+						"kind": "card",
+						"tag": "article"
+					},
+					"innerBlocks": [
+						{
+							"name": "blicks/image",
+							"attributes": {
+								"uniqueId": "g1000003",
+								"url": "https://example.test/wp-content/uploads/photo.jpg",
+								"metadata": {
+									"bindings": {
+										"url": {
+											"source": "blicks/item",
+											"args": {
+												"key": "photo"
+											}
+										},
+										"alt": {
+											"source": "blicks/item",
+											"args": {
+												"key": "title"
+											}
+										}
+									}
+								}
+							},
+							"innerBlocks": []
+						},
+						{
+							"name": "blicks/heading",
+							"attributes": {
+								"uniqueId": "g1000004",
+								"content": "Title",
+								"level": 3,
+								"metadata": {
+									"bindings": {
+										"content": {
+											"source": "blicks/item",
+											"args": {
+												"key": "title"
+											}
+										}
+									}
+								}
+							},
+							"innerBlocks": []
+						},
+						{
+							"name": "blicks/text",
+							"attributes": {
+								"uniqueId": "g1000005",
+								"content": "$0",
+								"metadata": {
+									"bindings": {
+										"content": {
+											"source": "blicks/item",
+											"args": {
+												"key": "price",
+												"format": "currency",
+												"formatArg": "$"
+											}
+										}
+									}
+								}
+							},
+							"innerBlocks": []
+						}
+					]
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/loop {\"uniqueId\":\"g1000001\",\"data\":\"[{\\u0022title\\u0022:\\u0022Arc \\u005c\\u0022floor\\u005c\\u0022 lamp\\u0022,\\u0022price\\u0022:189,\\u0022photo\\u0022:\\u0022https://example.test/wp-content/uploads/photo.jpg\\u0022},{\\u0022title\\u0022:\\u0022Oak \\u003cside\\u003e table\\u0022,\\u0022price\\u0022:240,\\u0022photo\\u0022:\\u0022https://example.test/wp-content/uploads/photo.jpg\\u0022}]\",\"layout\":\"bento\",\"bento\":{\"tiles\":[\"2x2\",\"1x1\"],\"rowHeight\":200,\"repeat\":true},\"rules\":[{\"when\":{\"field\":\"price\",\"op\":\"gt\",\"value\":\"200\"},\"then\":[{\"card\":\"highlight\"}]}],\"emptyText\":\"Nothing \\u002d\\u002d yet\"} -->\n<!-- wp:blicks/box {\"uniqueId\":\"g1000002\",\"kind\":\"card\",\"tag\":\"article\"} -->\n<article class=\"bl-box bl-g1000002 bl-box--card\"><!-- wp:blicks/image {\"uniqueId\":\"g1000003\",\"url\":\"https://example.test/wp-content/uploads/photo.jpg\",\"metadata\":{\"bindings\":{\"url\":{\"source\":\"blicks/item\",\"args\":{\"key\":\"photo\"}},\"alt\":{\"source\":\"blicks/item\",\"args\":{\"key\":\"title\"}}}}} -->\n<figure class=\"bl-image bl-g1000003\"><img src=\"https://example.test/wp-content/uploads/photo.jpg\" alt=\"\" style=\"object-fit:cover\"/></figure>\n<!-- /wp:blicks/image -->\n\n<!-- wp:blicks/heading {\"uniqueId\":\"g1000004\",\"level\":3,\"content\":\"Title\",\"metadata\":{\"bindings\":{\"content\":{\"source\":\"blicks/item\",\"args\":{\"key\":\"title\"}}}}} -->\n<h3 class=\"bl-heading bl-g1000004\">Title</h3>\n<!-- /wp:blicks/heading -->\n\n<!-- wp:blicks/text {\"uniqueId\":\"g1000005\",\"content\":\"$0\",\"metadata\":{\"bindings\":{\"content\":{\"source\":\"blicks/item\",\"args\":{\"key\":\"price\",\"format\":\"currency\",\"formatArg\":\"$\"}}}}} -->\n<p class=\"bl-text bl-g1000005\">$0</p>\n<!-- /wp:blicks/text --></article>\n<!-- /wp:blicks/box -->\n<!-- /wp:blicks/loop -->"
+	},
+	{
+		"title": "loop, an endpoint in a list",
+		"block": {
+			"name": "blicks/loop",
+			"attributes": {
+				"uniqueId": "g1000006",
+				"source": "endpoint",
+				"endpoint": "shop",
+				"path": "data.items",
+				"layout": "list",
+				"limit": 4
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "g1000007",
+						"content": "Name",
+						"metadata": {
+							"bindings": {
+								"content": {
+									"source": "blicks/item",
+									"args": {
+										"key": "name",
+										"fallback": "Unnamed"
+									}
+								}
+							}
+						}
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/loop {\"uniqueId\":\"g1000006\",\"source\":\"endpoint\",\"path\":\"data.items\",\"endpoint\":\"shop\",\"limit\":4,\"layout\":\"list\"} -->\n<!-- wp:blicks/text {\"uniqueId\":\"g1000007\",\"content\":\"Name\",\"metadata\":{\"bindings\":{\"content\":{\"source\":\"blicks/item\",\"args\":{\"key\":\"name\",\"fallback\":\"Unnamed\"}}}}} -->\n<p class=\"bl-text bl-g1000007\">Name</p>\n<!-- /wp:blicks/text -->\n<!-- /wp:blicks/loop -->"
+	},
+	{
+		"title": "button, opens a dialog",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c2000001"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c2000002",
+						"text": "Size guide",
+						"action": "dialog",
+						"dialog": "size-guide",
+						"url": "https://example.test/ignored"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c2000001\"} -->\n<div class=\"bl-buttons bl-c2000001\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c2000002\",\"text\":\"Size guide\",\"url\":\"https://example.test/ignored\",\"action\":\"dialog\",\"dialog\":\"size-guide\"} -->\n<button class=\"bl-button bl-c2000002 bl-button--default bl-button--default-size\" type=\"button\" commandfor=\"dialog-size-guide\" command=\"show-modal\"><span class=\"bl-button__label\">Size guide</span></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "button, closes its dialog",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c2000003"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c2000004",
+						"text": "No thanks",
+						"action": "close"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c2000003\"} -->\n<div class=\"bl-buttons bl-c2000003\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c2000004\",\"text\":\"No thanks\",\"action\":\"close\"} -->\n<button class=\"bl-button bl-c2000004 bl-button--default bl-button--default-size\" type=\"button\" command=\"close\"><span class=\"bl-button__label\">No thanks</span></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "button, open dialog with none chosen is a plain button",
+		"block": {
+			"name": "blicks/buttons",
+			"attributes": {
+				"uniqueId": "c2000005"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/button",
+					"attributes": {
+						"uniqueId": "c2000006",
+						"text": "Open",
+						"action": "dialog"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/buttons {\"uniqueId\":\"c2000005\"} -->\n<div class=\"bl-buttons bl-c2000005\" style=\"--bl-fd:row;--bl-gap-r:var(--blicks-spacing-sm);--bl-gap-c:var(--blicks-spacing-sm);--bl-jc:flex-start;--bl-fw:wrap\"><!-- wp:blicks/button {\"uniqueId\":\"c2000006\",\"text\":\"Open\",\"action\":\"dialog\"} -->\n<button class=\"bl-button bl-c2000006 bl-button--default bl-button--default-size\" type=\"button\"><span class=\"bl-button__label\">Open</span></button>\n<!-- /wp:blicks/button --></div>\n<!-- /wp:blicks/buttons -->"
+	},
+	{
+		"title": "dialog, modal default",
+		"block": {
+			"name": "blicks/dialog",
+			"attributes": {
+				"uniqueId": "d1000001",
+				"anchor": "newsletter"
+			},
+			"innerBlocks": [
+				{
+					"name": "blicks/text",
+					"attributes": {
+						"uniqueId": "d1000002",
+						"content": "Hello"
+					},
+					"innerBlocks": []
+				}
+			]
+		},
+		"markup": "<!-- wp:blicks/dialog {\"uniqueId\":\"d1000001\",\"anchor\":\"newsletter\"} -->\n<dialog class=\"bl-dialog bl-d1000001 bl-dialog--modal is-modal\" id=\"dialog-newsletter\" closedby=\"any\"><button type=\"button\" class=\"bl-dialog__close\" commandfor=\"dialog-newsletter\" command=\"close\" aria-label=\"Close\"></button><!-- wp:blicks/text {\"uniqueId\":\"d1000002\",\"content\":\"Hello\"} -->\n<p class=\"bl-text bl-d1000002\">Hello</p>\n<!-- /wp:blicks/text --></dialog>\n<!-- /wp:blicks/dialog -->"
+	},
+	{
+		"title": "dialog, drawer from the start, light backdrop, no close button",
+		"block": {
+			"name": "blicks/dialog",
+			"attributes": {
+				"uniqueId": "d1000003",
+				"anchor": "menu",
+				"kind": "drawer",
+				"side": "start",
+				"backdrop": "light",
+				"blur": true,
+				"closeButton": false
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/dialog {\"uniqueId\":\"d1000003\",\"anchor\":\"menu\",\"kind\":\"drawer\",\"side\":\"start\",\"closeButton\":false,\"backdrop\":\"light\",\"blur\":true} -->\n<dialog class=\"bl-dialog bl-d1000003 bl-dialog--drawer bl-dialog--from-start is-modal bl-dialog--bd-light bl-dialog--blur\" id=\"dialog-menu\" closedby=\"any\"></dialog>\n<!-- /wp:blicks/dialog -->"
+	},
+	{
+		"title": "dialog, top modal, sheet on phones, named, scale, focus close",
+		"block": {
+			"name": "blicks/dialog",
+			"attributes": {
+				"uniqueId": "d1000004",
+				"anchor": "offer",
+				"place": "top",
+				"phone": "full",
+				"label": "Offer & terms",
+				"motion": "scale",
+				"focus": "close",
+				"closeLabel": "Fermer"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/dialog {\"uniqueId\":\"d1000004\",\"anchor\":\"offer\",\"place\":\"top\",\"phone\":\"full\",\"closeLabel\":\"Fermer\",\"label\":\"Offer \\u0026 terms\",\"focus\":\"close\",\"motion\":\"scale\"} -->\n<dialog class=\"bl-dialog bl-d1000004 bl-dialog--modal bl-dialog--top bl-dialog--phone-full is-modal bl-dialog--m-scale\" id=\"dialog-offer\" closedby=\"any\" aria-label=\"Offer &amp; terms\"><button type=\"button\" class=\"bl-dialog__close\" commandfor=\"dialog-offer\" command=\"close\" aria-label=\"Fermer\" autofocus></button></dialog>\n<!-- /wp:blicks/dialog -->"
+	},
+	{
+		"title": "dialog, non-modal sheet that ignores outside clicks",
+		"block": {
+			"name": "blicks/dialog",
+			"attributes": {
+				"uniqueId": "d1000005",
+				"anchor": "cookies",
+				"kind": "sheet",
+				"modal": false,
+				"outsideCloses": false,
+				"backdrop": "light"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/dialog {\"uniqueId\":\"d1000005\",\"anchor\":\"cookies\",\"kind\":\"sheet\",\"modal\":false,\"outsideCloses\":false,\"backdrop\":\"light\"} -->\n<dialog class=\"bl-dialog bl-d1000005 bl-dialog--sheet\" id=\"dialog-cookies\" closedby=\"closerequest\"><button type=\"button\" class=\"bl-dialog__close\" commandfor=\"dialog-cookies\" command=\"close\" aria-label=\"Close\"></button></dialog>\n<!-- /wp:blicks/dialog -->"
+	},
+	{
+		"title": "dialog, no anchor falls back to its id",
+		"block": {
+			"name": "blicks/dialog",
+			"attributes": {
+				"uniqueId": "d1000006",
+				"kind": "full",
+				"motion": "none"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/dialog {\"uniqueId\":\"d1000006\",\"kind\":\"full\",\"motion\":\"none\"} -->\n<dialog class=\"bl-dialog bl-d1000006 bl-dialog--full is-modal bl-dialog--m-none\" id=\"dialog-d1000006\" closedby=\"any\"><button type=\"button\" class=\"bl-dialog__close\" commandfor=\"dialog-d1000006\" command=\"close\" aria-label=\"Close\"></button></dialog>\n<!-- /wp:blicks/dialog -->"
+	},
+	{
+		"title": "menu link, plain",
+		"block": {
+			"name": "blicks/menu-link",
+			"attributes": {
+				"uniqueId": "e1000001",
+				"label": "Pricing",
+				"url": "/pricing"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/menu-link {\"uniqueId\":\"e1000001\",\"label\":\"Pricing\",\"url\":\"/pricing\"} -->\n<a class=\"bl-menu-link bl-e1000001\" href=\"/pricing\"><span class=\"bl-menu-link__text\"><span class=\"bl-menu-link__label\">Pricing</span></span></a>\n<!-- /wp:blicks/menu-link -->"
+	},
+	{
+		"title": "menu link, icon, description, badge, new tab",
+		"block": {
+			"name": "blicks/menu-link",
+			"attributes": {
+				"uniqueId": "e1000002",
+				"label": "Docs",
+				"description": "Guides & <em>reference</em>",
+				"url": "https://example.test/docs?a=1&b=2",
+				"linkTarget": "_blank",
+				"rel": "noopener",
+				"icon": "book-open",
+				"badge": "R&D <beta>"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/menu-link {\"uniqueId\":\"e1000002\",\"label\":\"Docs\",\"description\":\"Guides \\u0026 \\u003cem\\u003ereference\\u003c/em\\u003e\",\"url\":\"https://example.test/docs?a=1\\u0026b=2\",\"linkTarget\":\"_blank\",\"rel\":\"noopener\",\"icon\":\"book-open\",\"badge\":\"R\\u0026D \\u003cbeta\\u003e\"} -->\n<a class=\"bl-menu-link bl-e1000002\" href=\"https://example.test/docs?a=1&amp;b=2\" target=\"_blank\" rel=\"noopener\"><span class=\"bl-menu-link__icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" stroke-width=\"2\"><path d=\"M12 7v14\"/> <path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/></svg></span><span class=\"bl-menu-link__text\"><span class=\"bl-menu-link__label\">Docs</span><span class=\"bl-menu-link__desc\">Guides & <em>reference</em></span></span><span class=\"bl-menu-link__badge\">R&amp;D &lt;beta></span></a>\n<!-- /wp:blicks/menu-link -->"
+	},
+	{
+		"title": "menu link, no link yet",
+		"block": {
+			"name": "blicks/menu-link",
+			"attributes": {
+				"uniqueId": "e1000003",
+				"label": "Soon"
+			},
+			"innerBlocks": []
+		},
+		"markup": "<!-- wp:blicks/menu-link {\"uniqueId\":\"e1000003\",\"label\":\"Soon\"} -->\n<a class=\"bl-menu-link bl-e1000003\"><span class=\"bl-menu-link__text\"><span class=\"bl-menu-link__label\">Soon</span></span></a>\n<!-- /wp:blicks/menu-link -->"
+	}
+]

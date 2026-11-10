@@ -9,7 +9,10 @@ import type { AdminSettingsSnapshot } from '../types';
 export function useAdminSettings() {
 	const [ adminSettings, setAdminSettings ] = useState< AdminSettingsSnapshot >( FALLBACK_ADMIN_SETTINGS );
 	const [ adminSettingsDraft, setAdminSettingsDraft ] = useState< AdminSettingsSnapshot >( FALLBACK_ADMIN_SETTINGS );
-	const [ settingsNotice, setSettingsNotice ] = useState( '' );
+	const [ settingsNotice, setNoticeState ] = useState( { text: '', seq: 0 } );
+	const setSettingsNotice = ( text: string ): void => {
+		if ( text ) setNoticeState( current => ( { text, seq: current.seq + 1 } ) );
+	};
 	const [ isSettingsSaving, setIsSettingsSaving ] = useState( false );
 	const settingsDirty = ! adminSettingsEqual( adminSettingsDraft, adminSettings );
 
@@ -17,9 +20,8 @@ export function useAdminSettings() {
 	// "N settings changed" line. Derived for display only; `settingsDirty` still owns the
 	// save/reset gating.
 	const settingsDirtyCount = [
-		adminSettingsDraft.defaultInspectorPanel !== adminSettings.defaultInspectorPanel,
-		adminSettingsDraft.helpVisibility !== adminSettings.helpVisibility,
 		adminSettingsDraft.deleteDataOnUninstall !== adminSettings.deleteDataOnUninstall,
+		adminSettingsDraft.marketplace !== adminSettings.marketplace,
 		adminSettingsDraft.designSystem.themeJsonSync !== adminSettings.designSystem.themeJsonSync,
 	].filter( Boolean ).length;
 
@@ -68,7 +70,6 @@ export function useAdminSettings() {
 
 	function resetSettingsDraft(): void {
 		setAdminSettingsDraft( adminSettings );
-		setSettingsNotice( __( 'Settings reset in draft.', 'blicks' ) );
 	}
 
 	return {

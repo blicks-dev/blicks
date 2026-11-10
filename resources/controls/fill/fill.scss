@@ -215,6 +215,7 @@
 		aspect-ratio: 16 / 10;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--bl-editor-radius);
+
 		/* Chequerboard stays on the pad itself; the image is a layer above it, so a `contain` or a
 		   part-covering image reads as sitting IN a box rather than as the box. */
 		background: repeating-conic-gradient(#e2e2e4 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
@@ -252,6 +253,7 @@
 	.bl-fill-pad__img {
 		position: absolute;
 		inset: 0;
+
 		/* The clip lives here, not on the pad: a handle parked on `right bottom` sits ON the corner,
 		   and a pad that clipped its own children would show half of it. */
 		overflow: hidden;

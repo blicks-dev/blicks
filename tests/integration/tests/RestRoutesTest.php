@@ -30,10 +30,19 @@ final class RestRoutesTest extends WP_UnitTestCase {
 		[ 'PATCH', '/blicks/v1/design-system', [] ],
 		[ 'GET', '/blicks/v1/design-system/themes', [] ],
 		[ 'POST', '/blicks/v1/design-system/themes', [ 'name' => 'probe' ] ],
+		[ 'GET', '/blicks/v1/design-system/language', [] ],
+		[ 'POST', '/blicks/v1/design-system/language', [ 'id' => 'minimal' ] ],
+		[ 'GET', '/blicks/v1/design-system/kits', [] ],
+		[ 'POST', '/blicks/v1/design-system/kits', [ 'name' => 'probe' ] ],
+		[ 'PATCH', '/blicks/v1/design-system/kits/probe', [ 'name' => 'probe' ] ],
+		[ 'DELETE', '/blicks/v1/design-system/kits/probe', [] ],
+		[ 'POST', '/blicks/v1/design-system/kits/probe/apply', [] ],
 		[ 'GET', '/blicks/v1/design-system/animations', [] ],
 		[ 'POST', '/blicks/v1/design-system/animations', [ 'slug' => 'probe', 'steps' => [ [ 'offset' => 0 ] ] ] ],
 		[ 'GET', '/blicks/v1/settings', [] ],
 		[ 'PATCH', '/blicks/v1/settings', [] ],
+		[ 'GET', '/blicks/v1/studio/entity', [ 'kind' => 'template-part', 'id' => 'twentytwentyfive//header' ] ],
+		[ 'POST', '/blicks/v1/studio/entity', [ 'kind' => 'template-part', 'id' => 'twentytwentyfive//header', 'content' => 'probe' ] ],
 	];
 
 	/** Build a request with its required parameters filled in. */
@@ -61,10 +70,19 @@ final class RestRoutesTest extends WP_UnitTestCase {
 		$registered = $this->server->get_routes();
 
 		foreach ( self::ROUTES as [ $method, $path, $params ] ) {
-			$this->assertArrayHasKey( $path, $registered, "Route {$path} is not registered." );
+			// Routes are keyed by their pattern — `kits/(?P<id>…)`, not `kits/probe` — so a path
+			// is matched the way WP_REST_Server dispatches it, against every pattern that fits.
+			$handlers = [];
+			foreach ( $registered as $route => $routeHandlers ) {
+				if ( preg_match( '@^' . $route . '$@i', $path ) ) {
+					$handlers = array_merge( $handlers, $routeHandlers );
+				}
+			}
+
+			$this->assertNotEmpty( $handlers, "Route {$path} is not registered." );
 
 			$methods = [];
-			foreach ( $registered[ $path ] as $handler ) {
+			foreach ( $handlers as $handler ) {
 				$methods = array_merge( $methods, array_keys( $handler['methods'] ) );
 			}
 

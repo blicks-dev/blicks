@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/steps",
+	"title": "Steps",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M9 9A3 3 0 1 1 15 9A3 3 0 1 1 9 9ZM16 9A3 3 0 1 1 22 9A3 3 0 1 1 16 9ZM18 9A1 1 0 1 0 20 9A1 1 0 1 0 18 9ZM12.75 15.5H20.75A1.25 1.25 0 0 1 22 16.75V16.75A1.25 1.25 0 0 1 20.75 18H12.75A1.25 1.25 0 0 1 11.5 16.75V16.75A1.25 1.25 0 0 1 12.75 15.5Z\" fill=\"currentColor\"/><path d=\"M2 9A3 3 0 1 1 8 9A3 3 0 1 1 2 9ZM3.25 15.5H8.75A1.25 1.25 0 0 1 10 16.75V16.75A1.25 1.25 0 0 1 8.75 18H3.25A1.25 1.25 0 0 1 2 16.75V16.75A1.25 1.25 0 0 1 3.25 15.5Z\" fill=\"#002bff\"/></svg>",
+	"description": "Numbered steps across or down: a stepper, a how-it-works row or a timeline, with a current step.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "spacing.*", "border.*", "effects.*", "animation.*",
+				"layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "flexChild.*", "background.*", "position.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"layout":       { "type": "string", "default": "across" },
+		"marker":       { "type": "string", "default": "numbers" },
+		"numbering":    { "type": "string", "default": "1" },
+		"icon":         { "type": "string", "default": "check" },
+		"current":      { "type": "number", "default": 0 },
+		"tickDone":     { "type": "boolean", "default": true },
+		"status":       { "type": "boolean", "default": false },
+		"join":         { "type": "boolean", "default": true },
+		"line":         { "type": "string", "default": "solid" },
+		"labels":       { "type": "boolean", "default": false },
+		"gap":          { "type": "string", "default": "" },
+		"markerColour": { "type": "string", "default": "" },
+		"markerShape":  { "type": "string", "default": "circle" },
+		"markerSize":   { "type": "number", "default": 100 },
+		"outline":      { "type": "boolean", "default": false },
+		"lineColour":   { "type": "string", "default": "" }
+	},
+	"providesContext": { "blicks/stepsLabels": "labels", "blicks/stepsLayout": "layout" },
+	"editorScript": "blicks-editor",
+	"style":        "file:./index.css"
+}

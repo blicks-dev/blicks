@@ -36,6 +36,18 @@ Adds an optional built-in icon.
 
 Places the icon before or after the label.
 
+### width
+
+**Fit** sizes the button to its label, **Fill** stretches it across the row, and **Fixed** gives it an exact width (12rem to start). Buttons saved with the older **Wide** (at least 12rem) keep it.
+
+### action
+
+**On click** is a **Link**, a **Dialog** (open one, or close the one the button is in) or a **Form** (send it, or clear it).
+
+### Space between
+
+With an icon, or blocks inside, the space between them: **None**, **Small** (the default), **Medium** or **Large**, or an exact size.
+
 ## Tips
 
 - Use one primary button per section when possible.

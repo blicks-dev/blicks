@@ -4,7 +4,7 @@
 	"name": "blicks/buttons",
 	"title": "Buttons",
 	"category": "blicks",
-	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M2.2 8.2L11.8 8.2L11.8 15.8L2.2 15.8ZM3.8 14.2L10.2 14.2L10.2 9.8L3.8 9.8Z\" fill=\"currentColor\"/><path d=\"M12.2 8.2L21.8 8.2L21.8 15.8L12.2 15.8Z\" fill=\"#002bff\"/></svg>",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M4.5 8H8.5A3 3 0 0 1 11.5 11V13A3 3 0 0 1 8.5 16H4.5A3 3 0 0 1 1.5 13V11A3 3 0 0 1 4.5 8ZM4.5 10A1 1 0 0 0 3.5 11V13A1 1 0 0 0 4.5 14H8.5A1 1 0 0 0 9.5 13V11A1 1 0 0 0 8.5 10Z\" fill=\"currentColor\"/><path d=\"M15.5 8H19.5A3 3 0 0 1 22.5 11V13A3 3 0 0 1 19.5 16H15.5A3 3 0 0 1 12.5 13V11A3 3 0 0 1 15.5 8Z\" fill=\"#002bff\"/></svg>",
 	"description": "A row or column of Button blocks with shared alignment, spacing, and wrapping.",
 	"textdomain": "blicks",
 	"supports": {
@@ -12,13 +12,12 @@
 		"className": false,
 		"blicks": {
 			"controls": [
-				"layout.justifyContent", "layout.alignItems", "layout.flexWrap",
+				"layout.display", "layout.gridColumns", "layout.flexDirection", "layout.justifyContent", "layout.alignItems", "layout.flexWrap",
 				"layout.gapRow", "layout.gapColumn",
 				"layout.width", "layout.height",
 				"gridChild.*",
-				"spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*"
-			],
-			"states": [ "default", "hover", "focus", "active" ]
+				"spacing.*", "border.*", "position.*", "colors.*", "background.*", "effects.*", "animation.*", "decoration.*", "layout.minWidth", "layout.maxWidth", "layout.minHeight", "layout.maxHeight", "flexChild.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
 		}
 	},
 	"attributes": {

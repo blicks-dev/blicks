@@ -1,0 +1,11 @@
+<!-- One page as a page cache stores it: every visitor is served exactly these bytes. Two automatic
+     dialogs, printed by Printer::footer() with their data-bl-auto (shape: Printer::autoConfig()). -->
+<main><h1>Spring sale</h1><p>Lots of text.</p></main>
+<dialog id="dialog-newsletter" class="bl-dialog bl-dialog--modal is-modal" data-wp-interactive="blicks/dialog" data-bl-saved="12"
+	data-bl-auto='{"id":12,"triggers":{"load":{"on":true,"delay":5},"scroll":{"on":false,"percent":50},"exit":{"on":true},"idle":{"on":false,"seconds":30}},"visitors":"out","screens":{"desktop":true,"tablet":true,"phone":false},"frequency":"days","days":7,"stopAfterConvert":true,"from":0,"until":0}'>
+	<h2>Get new posts first</h2><form action="/subscribe"><button type="submit">Subscribe</button></form>
+</dialog>
+<dialog id="dialog-offer" class="bl-dialog bl-dialog--modal is-modal" data-wp-interactive="blicks/dialog" data-bl-saved="13"
+	data-bl-auto='{"id":13,"triggers":{"load":{"on":true,"delay":8},"scroll":{"on":false,"percent":50},"exit":{"on":false},"idle":{"on":false,"seconds":30}},"visitors":"all","screens":{"desktop":true,"tablet":true,"phone":true},"frequency":"session","days":7,"stopAfterConvert":true,"from":0,"until":0}'>
+	<h2>10% off</h2><a href="/shop">Shop now</a>
+</dialog>

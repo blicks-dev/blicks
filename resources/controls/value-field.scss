@@ -14,6 +14,7 @@
 	display: flex;
 	align-items: stretch;
 	gap: 3px;
+
 	/* 32 = 3px padding + a 24px row + 3px padding, plus the hairline top and bottom. */
 	height: 32px;
 	padding: 3px;
@@ -44,6 +45,7 @@
  */
 .bl-ins .bl-fields {
 	display: grid;
+
 	/* `minmax(0, 1fr)`, not the implicit `auto`: an auto column sizes to its widest content, so one
 	   field with an intrinsic width — a range input carries ~129px of its own — pushed the whole
 	   stack past the pane instead of shrinking inside it. */
@@ -110,6 +112,7 @@
 
 /* Indented under its parent field, with the same left rule the nested disclosures use, so one
    nesting device means one thing throughout the inspector. */
+
 /* A stack nested in another stack — a two-up pair sitting as one row of a longer column, or the
    body of a field group — is a row of its parent, not a section: the section's trailing margin
    would put a 13px hole where the parent's own gap already is.
@@ -151,6 +154,7 @@
 .bl-ins .bl-valuefield__icons {
 	flex: 0 0 auto;
 	display: flex;
+
 	/* Capped so the value never loses to the icons: four 30px targets took 127px of a 215px frame
 	   and left `visible` with 51px to render in. The buttons give ground before the text does. */
 	max-width: 46%;
@@ -163,9 +167,6 @@
 		padding: 0;
 		gap: 1px;
 		background: transparent;
-	}
-
-	.seg-row {
 		max-width: 100%;
 	}
 
@@ -252,6 +253,7 @@
 .bl-ins .bl-valuefield > .bl-combobox .bl-combobox__field {
 	width: 100%;
 	height: 100%;
+
 	/* The frame already draws the border, the padding and the focus ring; the compact field would
 	   draw a second set inside it. */
 	padding: 0 4px;
@@ -313,6 +315,7 @@
 	overflow: hidden;
 	border: 1px solid var(--border-strong);
 	background: var(--brand-tint);
+
 	/* The one size deliberately off the type scale: this is a fixed grid cell with
 	   `overflow: hidden`, and the next step up (10px) clips the word inside it. If this
 	   ever needs to be legible at a normal size, the widget has to give it more room —
@@ -324,7 +327,7 @@
 
 /* Corners, not sides: the same figure rotated 45° in spirit — a field at each corner of the box
    it rounds. Row 2 column 2 still holds the tag, so the two crosses line up when a facet shows
-   both (Border does).*/
+   both (Border does). */
 .bl-ins .bl-cross--corners .bl-cross__cell.c-top-left {
 	grid-area: 1 / 1;
 }

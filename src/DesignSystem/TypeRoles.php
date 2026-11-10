@@ -33,8 +33,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class TypeRoles {
 
-	/** @var list<string> */
-	public const ROLES = [ 'display', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'lead', 'small', 'caption', 'code', 'mono' ];
+	/** @var list<string> Generated from resources/engine/schema.json. */
+	public const ROLES = \Blicks\Style\Schema::TYPE_ROLES;
 
 	/** @var list<string> theme.json `typography.*` keys, 1:1. */
 	public const PROPS = [ 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'fontFamily', 'textTransform' ];

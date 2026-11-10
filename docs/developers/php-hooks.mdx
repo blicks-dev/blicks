@@ -1,0 +1,133 @@
+---
+title: "PHP hooks"
+description: "Filters another plugin uses to load Studio modes, store Studio trees, add front-end behaviors and add blocks for AI agents."
+---
+
+Every filter here is read defensively: whatever it returns is checked, and anything malformed is
+dropped rather than allowed to break the screen. Entries the plugin owns are restored after
+filtering, so another plugin can add to these lists but never redefine what Blicks ships.
+
+## Studio
+
+### `blicks_studio_modes`
+
+Script handles enqueued with the Studio, so a mode's script loads only where the Studio does.
+Register the script yourself, depending on `blicks-studio`, then name it:
+
+```php
+add_action( 'enqueue_block_editor_assets', function () {
+	wp_register_script( 'acme-board-mode', plugins_url( 'build/board.js', __FILE__ ), [ 'blicks-studio' ], '1.0.0', true );
+}, 5 );
+
+add_filter( 'blicks_studio_modes', fn ( $handles ) => [ ...$handles, 'acme-board-mode' ] );
+```
+
+Handles that are not registered are dropped.
+
+### `blicks_studio_entity_types`
+
+Post types whose posts a Studio mode may open and save whole through the entity route. None is
+open by default.
+
+```php
+add_filter( 'blicks_studio_entity_types', fn ( $types ) => [ ...$types, 'acme_popup' ] );
+```
+
+Only registered types are kept.
+
+### `blicks_studio_entity_used_on`
+
+Where a post opened through the entity route is used, for the Studio's *Used on N pages*.
+
+```php
+add_filter( 'blicks_studio_entity_used_on', function ( $used, $ref ) {
+	// $ref: [ 'kind' => 'post', 'type' => 'acme_popup', 'id' => 12 ]
+	return [ ...$used, [ 'id' => 7, 'title' => 'Pricing', 'kind' => 'page' ] ];
+}, 10, 2 );
+```
+
+### The entity route
+
+`Blicks\Studio\EntityRef` serves `GET` and `POST /wp-json/blicks/v1/studio/entity` for
+`studio.entity` and `studio.openRef()`. The ref travels as query parameters:
+
+| Kind | Parameters | Capability |
+|---|---|---|
+| Template part | `kind=template-part&id=<theme>//<slug>` | `edit_theme_options` |
+| Post | `kind=post&type=<type>&id=<id>` | `edit_post` on that post, of that type |
+
+`GET` answers `{ content, title, usedOn }`. `POST` takes `content` (block markup), saves it and
+answers the same. A template part is written through core's template-parts route, so a part still
+in the theme's files becomes a customized copy, as from the Site Editor. A template part's
+`usedOn` lists the templates that place it.
+
+## Front-end behaviors
+
+### `blicks_behaviours`
+
+The few things a block does that CSS cannot, each a script module on the Interactivity API,
+registered as `@blicks/<name>` with its store at the `blicks/<name>` namespace. A module loads only
+on pages whose rendered blocks use it: an element with `data-wp-interactive="blicks/<name>"`, or a
+directive that calls it from another region, `data-wp-on--pointerenter="blicks/<name>::actions.enter"`.
+
+```php
+add_filter( 'blicks_behaviours', fn ( $behaviours ) => $behaviours + [
+	'countdown' => [ 'src' => plugins_url( 'build/countdown.js', __FILE__ ), 'version' => '1.0.0' ],
+] );
+```
+
+Blicks ships these, for any block to use with the directives below:
+
+| Behavior | On the element | What it does |
+|---|---|---|
+| `dialog` | Written on every Dialog block at render | Opens and closes `blicks/dialog`. See [Dialogs](/guides/dialogs). |
+| `disclosure` | `data-wp-interactive="blicks/disclosure"`, `data-wp-on--keydown="actions.key"`, `data-wp-on-document--keydown="actions.escape"`, `data-wp-on--focusout="actions.focusout"`, `data-wp-on-document--click="actions.outside"`; on its button `aria-expanded`, `aria-controls` and `data-wp-on--click="actions.toggle"` | The WAI-ARIA disclosure pattern: the button shows and hides the element it controls. Esc closes and returns focus, as do focus leaving and a click outside. Opening one closes its open siblings. Inside an open modal dialog it stays as the visitor left it, and a click that opens it there moves focus to the panel's `[data-bl-focus]` element. Add `data-wp-on--bl-intent="actions.intent"` to open on hover, and `data-wp-on-window--scroll="actions.scroll"` with `data-bl-close-on-scroll` to close on scroll. Dispatches `bl:disclosure-open` and `bl:disclosure-close`. |
+| `hover-intent` | `data-wp-on--pointerenter="blicks/hover-intent::actions.enter"`, `data-wp-on--pointerleave="blicks/hover-intent::actions.leave"`, optional `data-bl-delay` (ms, default 150) | Dispatches `bl-intent` with `detail.on` once a mouse pointer has rested on the element, and again when it has left. Touch and pen are ignored. |
+| `portal` | `data-wp-interactive="blicks/portal"`, `data-wp-init="callbacks.init"`, `data-bl-portal="<dialog id>"` | Moves the element into that dialog while it is open and back to its place on close, so content can live in the page on wide screens and in a drawer on narrow ones. Sets `data-bl-portal-ready` once running, for CSS to show the dialog's opener only then. |
+| `sticky-shrink` | `data-wp-interactive="blicks/sticky-shrink"`, `data-wp-init="callbacks.init"`, `data-wp-on-window--scroll="callbacks.scroll"`, optional `data-bl-after` (px, default 8); optional `data-bl-hide` with `data-wp-on--focusin="callbacks.focus"` | Sets `data-bl-scrolled` on the element while the page is scrolled past that point, for CSS to shrink a sticky header. With `data-bl-hide`, also sets `data-bl-hidden` after 80px and a move of more than 6px down, and clears it on any move up or when focus comes inside, for CSS to slide the header away. |
+
+## AI agents
+
+### `blicks_ai_block_catalog`
+
+More blocks for the catalogue agents read through MCP (`blicks-list-blocks`,
+`blicks-describe-block`): a decoded `block.json` per block, keyed by slug. Only `blicks/*` names are
+kept.
+
+```php
+add_filter( 'blicks_ai_block_catalog', function ( $blocks ) {
+	$meta = json_decode( file_get_contents( __DIR__ . '/blocks/menu-link/block.json' ), true );
+	return $blocks + [ 'menu-link' => $meta ];
+} );
+```
+
+### `blicks_mcp_tools`
+
+More abilities for the Blicks MCP server to offer as named tools. An agent's application password
+reaches only that server, so register your ability with `wp_register_ability()` and name it here.
+Only registered names in the `namespace/name` form are kept; the plugin's own tools stay.
+
+```php
+add_filter( 'blicks_mcp_tools', fn ( $tools ) => [ ...$tools, 'acme/create-header' ] );
+```
+
+### `blicks_spec_shapes`
+
+How the serializer writes your blocks' saved markup, so agents can create them, keyed by block
+name. A block in the catalogue without a shape is described but refused on save, by name. Keep a
+golden file of each block's real saved markup with your plugin and test your shape against it: two
+implementations of one output drift unless something compares them.
+
+A shape is the keys `Blicks\Ai\Spec\BlockShapes` documents: `tag`, `classes`, `attrs`, `vars`,
+`content` or `html` for the inside, `prepend` for markup ahead of the children, and `inner` for an
+element the children sit in, such as the list inside a navigation:
+
+```php
+add_filter( 'blicks_spec_shapes', fn ( $shapes ) => $shapes + [
+	'blicks/nav' => [
+		'tag' => 'nav',
+		'attrs' => fn ( $a ) => [ 'aria-label' => $a['label'] ?? 'Main' ],
+		'inner' => fn () => [ 'tag' => 'ul', 'class' => 'bl-nav__list' ],
+	],
+] );
+```

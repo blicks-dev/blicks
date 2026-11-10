@@ -1,0 +1,360 @@
+// The Studio design panel, in the Blicks UI system. Tokens: framework/_ui-tokens.scss (`bui`);
+// components: ./_bui.scss. Everything is scoped to `.bui`, so the post editor's inspector, the
+// admin and the canvas are untouched.
+@use "../ui-tokens";
+@use "./bui";
+
+.bui {
+	@include ui-tokens.bui;
+	@include bui.components;
+}
+
+// Dark is a whole theme, applied explicitly: the Studio shell around the panel is light-only.
+[data-theme="dark"] .bui,
+.bui[data-theme="dark"] {
+	@include ui-tokens.bui-dark;
+}
+
+.bui-dp {
+	display: grid;
+	align-content: start;
+	min-height: 100%;
+	background: var(--bui-paper);
+
+	// The block, the tabs, the state and the screen stay in view while the settings scroll.
+	.bui-dp-top {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		background: var(--bui-paper);
+	}
+
+	.bui-dp-head {
+		display: grid;
+		gap: var(--bui-space-4);
+		padding: var(--bui-space-10) var(--bui-space-12) var(--bui-space-4);
+	}
+
+	.bui-crumbs {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 2px 3px;
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-crumbs > span {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+	}
+
+	.bui-crumbs button {
+		color: var(--bui-ink-2);
+		border-radius: var(--bui-radius-xs);
+	}
+
+	.bui-crumbs button:hover {
+		color: var(--bui-brand);
+		text-decoration: underline;
+	}
+
+	.bui-who {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-8);
+		min-width: 0;
+	}
+
+	.bui-who > .bui-ms {
+		color: var(--bui-brand);
+	}
+
+	.bui-who strong {
+		font: 600 16px/22px var(--bui-font-sans);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.bui-who code {
+		font: 400 11px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+		background: none;
+		padding: 0;
+		white-space: nowrap;
+	}
+
+	.bui-who .cnt {
+		margin-left: auto;
+		font: 11px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+		white-space: nowrap;
+	}
+
+	.bui-tabs {
+		margin-top: var(--bui-space-8);
+	}
+
+	// The block's own settings take one icon-wide tab at the end of the track.
+	.bui-tabs.has-settings {
+		grid-auto-flow: unset;
+		grid-template-columns: 1fr 1fr 1fr var(--bui-field-h);
+	}
+
+	.bui-tabs .bui-badge {
+		padding: 0 5px;
+		font-size: 10px;
+		line-height: 15px;
+	}
+
+	.bui-ctx {
+		display: grid;
+		gap: var(--bui-space-6);
+		padding: var(--bui-space-8) var(--bui-space-12) var(--bui-space-10);
+	}
+
+	.bui-ctx .r {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--bui-space-8);
+	}
+
+	.bui-ctx .bui-select {
+		flex: 0 1 150px;
+	}
+
+	.bui-dp-sheet {
+		padding: 0 var(--bui-space-4) var(--bui-space-8);
+	}
+
+	// Quick: the post editor's panels, one group under the other.
+	.bui-dp-qnote {
+		padding: var(--bui-space-4) var(--bui-space-12) 0;
+	}
+
+	.bui-dp-quick {
+		background: transparent;
+	}
+
+	.bui-dp-quick .pane-b + .pane-b {
+		margin-top: var(--bui-space-8);
+		padding-top: var(--bui-space-8);
+		border-top: 1px solid var(--bui-field);
+	}
+
+	.bui-dp-qgroup {
+		margin: 0;
+		padding: var(--bui-space-4) var(--bui-space-12);
+		font: 600 11px/15px var(--bui-font-sans);
+		color: var(--bui-ink-3);
+	}
+
+	// A value a Quick choice wrote says so, with Quick's own glyph.
+	.bui-row .note.from-quick .bui-ms {
+		color: var(--bui-brand);
+	}
+
+	.bui-dp-settings {
+		padding: var(--bui-space-8) 0;
+	}
+
+	.bui-sum {
+		margin: 0;
+		padding: var(--bui-space-4) var(--bui-space-8) var(--bui-space-4);
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-play {
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-10);
+		padding: var(--bui-space-4) var(--bui-space-8) var(--bui-space-8);
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-play .bui-btn {
+		flex: none;
+		padding-left: 8px;
+	}
+
+	.bui-more {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--bui-space-4);
+		padding: 2px 0;
+		font-size: 11px;
+		line-height: 16px;
+		color: var(--bui-brand);
+		text-align: left;
+		border-radius: var(--bui-radius-xs);
+	}
+
+	// A revealed row scrolls clear of the pinned head.
+	.bui-row {
+		scroll-margin: 160px 0 24px;
+	}
+
+	.bui-row .bad {
+		grid-column: 1 / -1;
+		display: flex;
+		align-items: center;
+		gap: var(--bui-space-4);
+		margin: 0;
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-danger);
+	}
+
+	.bui-row.box .box-lb {
+		display: none;
+	}
+
+	.bui-row.box.set .box-lb {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.bui-row.box.set .box-lb > span:first-child {
+		margin-right: auto;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.bui-row.flash {
+			animation: bui-flash 1.4s var(--bui-ease);
+		}
+	}
+
+	.bui-stack {
+		display: grid;
+		gap: var(--bui-space-6);
+		width: 100%;
+	}
+
+	.bui-mini {
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-grid2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--bui-space-6);
+		width: 100%;
+	}
+
+	.bui-fx {
+		display: grid;
+		grid-template-columns: 52px minmax(0, 1fr);
+		align-items: center;
+		gap: var(--bui-space-8);
+	}
+
+	.bui-prev {
+		justify-self: center;
+		width: 44px;
+		height: 44px;
+		border: 1px solid var(--bui-field-2);
+		border-radius: var(--bui-radius-lg);
+		background: var(--bui-paper);
+	}
+
+	.bui-prev.tx {
+		display: grid;
+		place-items: center;
+		font: 700 18px var(--bui-font-sans);
+	}
+
+	.bui-fld.wide,
+	.bui-code {
+		flex: 1 1 100%;
+		display: flex;
+	}
+
+	.bui-empty {
+		display: grid;
+		gap: var(--bui-space-10);
+		padding: var(--bui-space-16) var(--bui-space-8);
+		font-size: 13px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-empty .bui-ms {
+		width: 28px;
+		height: 28px;
+	}
+
+	.bui-add {
+		display: grid;
+		gap: var(--bui-space-4);
+		padding: var(--bui-space-10) var(--bui-space-8) 0;
+	}
+
+	.bui-opt {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--bui-space-8);
+		padding: 6px 8px;
+		border-radius: var(--bui-radius-md);
+		font-size: 13px;
+		text-align: left;
+	}
+
+	.bui-opt:hover {
+		background: var(--bui-plate);
+	}
+
+	.bui-opt code {
+		font: 11px var(--bui-font-mono);
+		color: var(--bui-ink-3);
+		background: none;
+		padding: 0;
+	}
+
+	.bui-legend {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--bui-space-4) var(--bui-space-12);
+		margin: 0;
+		padding: var(--bui-space-10) var(--bui-space-8);
+		font-size: 11px;
+		line-height: 15px;
+		color: var(--bui-ink-3);
+	}
+
+	.bui-legend b {
+		color: var(--bui-brand);
+	}
+
+	.bui-legend .bui-ms {
+		color: var(--bui-brand);
+		width: 13px;
+		height: 13px;
+	}
+}
+
+@keyframes bui-flash {
+	from {
+		background: var(--bui-brand-tint);
+	}
+
+	to {
+		background: transparent;
+	}
+}
+
+// In the Studio's rail the panel is the whole inspector for a Blicks block: core's block card and
+// its skip link say again what the panel's head already says.
+.bl-studio__rail--right:has(.bui-dp) .block-editor-block-card,
+.bl-studio__rail--right:has(.bui-dp) .block-editor-skip-to-selected-block {
+	display: none;
+}

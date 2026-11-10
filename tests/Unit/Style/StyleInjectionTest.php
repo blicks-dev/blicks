@@ -107,87 +107,55 @@ final class StyleInjectionTest extends TestCase
     }
 
     /**
-     * The decoration builder writes a whole `.bl-{id}::before{…}` rule, so a `}` in any value
-     * closed the rule and started a new one with an arbitrary selector.
+     * A part rule is a whole `.bl-{id}::before{…}` block, so a `}` in any value would close it and
+     * start a new rule with an arbitrary selector. Part values go through the same whole-value
+     * check as element values.
      */
-    public function test_decoration_value_cannot_escape_its_rule(): void
+    public function test_part_value_cannot_escape_its_rule(): void
     {
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' => [
-                'enabled' => true,
-                'content' => 'x',
-                'background' => 'red} body{background-image:url(https://attacker.example/exfil.png)',
-            ]]],
+            'colors.background' => ['before' => ['base' => 'red} body{background-image:url(https://attacker.example/exfil.png)']],
+            'animation.name' => ['after' => ['base' => 'x 1s} .wp-block{display:none']],
         ]);
 
         $this->assertStringNotContainsString('attacker.example', $css);
         $this->assertStringNotContainsString('body{', $css);
-        $this->assertSame(1, substr_count($css, '{'), 'exactly one rule block');
-        $this->assertSame(1, substr_count($css, '}'), 'exactly one rule block');
-    }
-
-    /** The `$extra` pass-through table reached the same sink for ~30 more properties. */
-    public function test_decoration_extra_passthrough_cannot_escape_its_rule(): void
-    {
-        $css = $this->scoped([
-            'decoration.after' => ['default' => ['base' => [
-                'enabled' => true,
-                'content' => 'y',
-                'animation' => 'x 1s} .wp-block{display:none',
-            ]]],
-        ]);
-
         $this->assertStringNotContainsString('.wp-block', $css);
-        $this->assertStringNotContainsString('display:none', $css);
-        $this->assertSame(1, substr_count($css, '}'), 'exactly one rule block');
     }
 
     /**
-     * `normalizeContent()` returned the value unchanged the moment it *started* with `var(` —
+     * `normalizeContent()` once returned the value unchanged the moment it *started* with `var(` —
      * the same prefix-test defect the dimension validator was hardened against.
      */
     public function test_content_var_prefix_cannot_inject(): void
     {
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' => [
-                'enabled' => true,
-                'content' => 'var(--a); background-image:url(https://attacker.example/c.png)',
-            ]]],
+            'decoration.content' => ['before' => ['base' => 'var(--a); background-image:url(https://attacker.example/c.png)']],
         ]);
 
-        $this->assertStringNotContainsString('attacker.example', $css);
-        $this->assertStringContainsString('content:""', $css);
+        $this->assertSame('.bl-abc12345::before{content:""}', $css);
     }
 
-    /**
-     * `decoration` skips the engine's whole-value check because it validates each of its own
-     * values — but a bare string skipped that too and was written into the rule verbatim.
-     */
-    public function test_decoration_string_cannot_write_the_rule_body(): void
+    /** Text that looks like CSS stays inside one quoted string, where braces are only text. */
+    public function test_content_text_cannot_write_the_rule_body(): void
     {
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' =>
-                "content:''}body{background:url(https://attacker.example/s.png)",
-            ]],
+            'decoration.content' => ['before' => ['base' => "content:''}body{background:url(https://attacker.example/s.png)"]],
         ]);
 
-        $this->assertStringNotContainsString('attacker.example', $css);
-        $this->assertStringNotContainsString('body{', $css);
+        $this->assertSame('.bl-abc12345::before{content:"content:\'\'}body{background:url(https://attacker.example/s.png)"}', $css);
     }
 
     /**
-     * A newline ends a CSS string early, so the `}` after it closed the `::before` rule even
-     * though quotes and backslashes were escaped.
+     * A newline ends a CSS string early, so the `}` after it would close the `::before` rule even
+     * though quotes and backslashes are escaped.
      */
     public function test_content_newline_cannot_end_the_string_and_close_the_rule(): void
     {
         foreach (["\n", "\r", "\f", "\x0B"] as $break) {
             ScopedCss::reset();
             $css = $this->scoped([
-                'decoration.before' => ['default' => ['base' => [
-                    'enabled' => true,
-                    'content' => "a{$break}}body{background:url(https://attacker.example/n.png)}",
-                ]]],
+                'decoration.content' => ['before' => ['base' => "a{$break}}body{background:url(https://attacker.example/n.png)}"]],
             ]);
 
             // With the break gone the braces sit inside one unbroken string, where they are text.
@@ -200,30 +168,22 @@ final class StyleInjectionTest extends TestCase
     public function test_content_accepts_a_whole_var_function(): void
     {
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' => [
-                'enabled' => true,
-                'content' => 'var(--bl-label)',
-            ]]],
+            'decoration.content' => ['before' => ['base' => 'var(--bl-label)']],
         ]);
 
         $this->assertStringContainsString('content:var(--bl-label)', $css);
     }
 
-    /** Decoration values that do validate must still be emitted. */
-    public function test_decoration_benign_values_still_emit(): void
+    /** Part values that do validate must still be emitted. */
+    public function test_part_benign_values_still_emit(): void
     {
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' => [
-                'enabled' => true,
-                'content' => 'New',
-                'background' => '#ff0000',
-                'width' => '8px',
-            ]]],
+            'decoration.content' => ['before' => ['base' => 'New']],
+            'colors.background' => ['before' => ['base' => '#ff0000']],
+            'layout.width' => ['before' => ['base' => '8px']],
         ]);
 
-        $this->assertStringContainsString('content:"New"', $css);
-        $this->assertStringContainsString('background:#ff0000', $css);
-        $this->assertStringContainsString('width:8px', $css);
+        $this->assertSame('.bl-abc12345::before{width:8px;background-color:#ff0000;content:"New"}', $css);
     }
 
     /** Background images may only be http(s) or site-relative, and cannot break out of url(). */
@@ -251,15 +211,16 @@ final class StyleInjectionTest extends TestCase
     public function test_unclosed_string_cannot_swallow_later_rules(): void
     {
         ElementStyle::blockProps([
-            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'x', 'color' => "\"'\"'"]]],
+            'colors.text' => ['before' => ['base' => "\"'\"'"]],
         ], 'attacker1', 'box');
         ElementStyle::blockProps([
-            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'Victim', 'width' => '11px']]],
+            'decoration.content' => ['before' => ['base' => 'Victim']],
+            'layout.width' => ['before' => ['base' => '11px']],
         ], 'victim01', 'box');
         $css = ScopedCss::css();
 
         $this->assertStringNotContainsString("\"'\"'", $css);
-        $this->assertStringContainsString('.bl-victim01::before{content:"Victim";position:absolute;width:11px}', $css);
+        $this->assertStringContainsString('.bl-victim01::before{width:11px;content:"Victim"}', $css);
     }
 
     /**
@@ -275,7 +236,7 @@ final class StyleInjectionTest extends TestCase
         $this->assertStringNotContainsString('attr(', $style);
 
         $css = $this->scoped([
-            'decoration.before' => ['default' => ['base' => ['enabled' => true, 'content' => 'attr(data-label)']]],
+            'decoration.content' => ['before' => ['base' => 'attr(data-label)']],
         ]);
         $this->assertStringContainsString('content:attr(data-label)', $css);
     }

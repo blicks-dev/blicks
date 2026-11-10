@@ -4,15 +4,15 @@
 	"name": "blicks/icon",
 	"title": "Icon",
 	"category": "blicks",
-	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M12 2.679L14.733 8.268L20.825 9.138L16.364 13.476L17.483 19.569L12 16.703L6.517 19.569L7.636 13.476L3.175 9.138L9.267 8.268Z\" fill=\"#002bff\"/></svg>",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M12 3.1L14.53 9.12L21.04 9.66L16.09 13.93L17.58 20.29L12 16.9L6.42 20.29L7.91 13.93L2.96 9.66L9.47 9.12Z\" fill=\"#002bff\"/></svg>",
 	"description": "An inline SVG icon that inherits current text color.",
 	"textdomain": "blicks",
 	"supports": {
 		"html": false,
 		"className": false,
 		"blicks": {
-			"controls": [ "gridChild.*", "colors.text", "spacing.*", "effects.*", "border.*", "layout.*" ],
-			"states": [ "default", "hover", "focus", "active" ]
+			"controls": [ "gridChild.*", "colors.text", "colors.background", "background.*", "spacing.*", "effects.*", "border.*", "layout.*", "animation.*", "flexChild.*", "position.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
 		}
 	},
 	"attributes": {
@@ -20,8 +20,18 @@
 		"blicks":      { "type": "object", "default": {} },
 		"icon":        { "type": "string", "default": "star" },
 		"size":        { "type": "string", "default": "1.5rem" },
+		"filled": {
+			"type": "boolean",
+			"default": false
+		},
 		"strokeWidth": { "type": "number", "default": 2 },
-		"label":       { "type": "string", "default": "" }
+		"label":       { "type": "string", "default": "" },
+		"flipH":       { "type": "boolean", "default": false },
+		"flipV":       { "type": "boolean", "default": false },
+		"turn":        { "type": "number", "default": 0 },
+		"url":         { "type": "string", "default": "" },
+		"linkTarget":  { "type": "string", "default": "" },
+		"rel":         { "type": "string", "default": "" }
 	},
 	"editorScript": "blicks-editor",
 	"style":        "file:./index.css"

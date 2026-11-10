@@ -4,6 +4,7 @@ const path     = require('path');
 const fs       = require('fs');
 const { execSync } = require('child_process');
 const archiver = require('archiver');
+const { check: checkReleaseZip } = require('./check-release-zip');
 
 const { name: slug } = require('../package.json');
 const rootDir = path.resolve(__dirname, '..');
@@ -21,8 +22,8 @@ const include = [
     'composer.json',
     'build',
     'src',
-    // Composer's autoloader only: the plugin has no production dependencies, so this is
-    // vendor/autoload.php plus vendor/composer/*. Nothing third-party ships here.
+    // The production Composer install: the WordPress MCP Adapter and Jetpack's autoloader
+    // (both GPL-2.0-or-later), plus the autoloaders themselves. Dev tools are not installed.
     'vendor',
 ];
 
@@ -33,7 +34,7 @@ const include = [
 
 // PHP reads these from resources/ at runtime by absolute path, so they must ship even though
 // the rest of resources/ is build input. Keep in sync with:
-//   src/Style/Tokens.php · src/Style/Breakpoints.php
+//   src/Style/Tokens.php · src/Style/Breakpoints.php · src/Ai/Spec/Icons.php
 //
 // languages/ ships the .pot template only. Translations for a plugin hosted on wordpress.org are
 // contributed through translate.wordpress.org and delivered by the standard translation update
@@ -42,6 +43,7 @@ const runtimeResourceFiles = [
     'resources/design-system/tokens.json',
     'resources/design-system/breakpoints.json',
     'resources/framework/icons/names.gen.json',
+    'resources/framework/icons/svg.gen.json',
     'languages/blicks.pot',
 ];
 
@@ -87,6 +89,25 @@ function assertWpCliRuns() {
 
 assertWpCliRuns();
 
+// Pro modules (`modules/<name>/`) are built in this repository and never shipped: WordPress.org
+// takes no Pro code in a free plugin. A build that names one is a development build, and the
+// allowlist must never grow to include the folder. The zip itself is checked after it is written.
+function assertNoModules() {
+    if ((process.env.BLICKS_DEV_MODULES ?? '').trim() !== '') {
+        console.error('\nBLICKS_DEV_MODULES is set, so this would be a development build with Pro modules in it.\nUnset it to build the release zip.\n');
+        process.exit(1);
+    }
+
+    const shipped = [...include, ...runtimeResourceFiles].filter((entry) => entry === 'modules' || entry.startsWith('modules/'));
+
+    if (shipped.length > 0) {
+        console.error(`\nThe bundle allowlist names Pro module paths: ${shipped.join(', ')}. modules/ never ships.\n`);
+        process.exit(1);
+    }
+}
+
+assertNoModules();
+
 // 1. Build assets
 console.log('Building assets...');
 execSync('pnpm build', { stdio: 'inherit', cwd: rootDir });
@@ -95,9 +116,8 @@ execSync('pnpm build', { stdio: 'inherit', cwd: rootDir });
 console.log('\nGenerating POT file...');
 execSync('pnpm i18n:pot:from-build', { stdio: 'inherit', cwd: rootDir });
 
-// 3. Regenerate the autoloader without dev packages. The plugin has no production dependencies —
-// it autoloads its own classes from blicks.php — so this ships nothing; it only keeps a stale
-// dev-tool vendor/ out of the way while the zip is written.
+// 3. Install the production dependencies only — the MCP Adapter and Jetpack's autoloader. With no
+// vendor/phpunit left, blicks.php loads through Jetpack's autoloader, as the shipped plugin must.
 console.log('\nInstalling production dependencies...');
 execSync('composer install --no-dev --optimize-autoloader', { stdio: 'inherit', cwd: rootDir });
 
@@ -138,6 +158,16 @@ archive.finalize();
 output.on('close', () => {
     const mb = (archive.pointer() / 1024 / 1024).toFixed(2);
     console.log(`\n✓ dist/${slug}.zip  (${mb} MB)`);
+
+    // The zip as written, not the allowlist: no Pro module code in it.
+    const found = checkReleaseZip(zipPath);
+    if (found.length > 0) {
+        fs.rmSync(zipPath);
+        console.error(`\n✗ The zip carried Pro module code and was deleted:\n${found.map((f) => `  ${f}`).join('\n')}\n`);
+        process.exitCode = 1;
+    } else {
+        console.log('✓ no modules/ or BlicksPro in the zip');
+    }
 
     // 5. Restore dev dependencies (local convenience; skip in CI — ephemeral runner).
     if (!process.env.CI) {

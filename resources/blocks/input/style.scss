@@ -1,0 +1,11 @@
+/*
+ * Input: the control of a Field. Its look (the filled, outlined and line controls, choices and their
+ * appearances, the consent box and switch, the icon wrap, stepper and slider) lives with the Field
+ * (field/style.scss), at zero specificity, so the Input's own style tree always wins over it.
+ */
+
+@layer blicks.base {
+	:where(.bl-input) {
+		box-sizing: border-box;
+	}
+}

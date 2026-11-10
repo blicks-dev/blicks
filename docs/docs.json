@@ -2,7 +2,7 @@
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
 	"name": "Blicks",
-	"description": "Atomic Gutenberg blocks, theme.json-native tokens, and generated block references.",
+	"description": "Atomic blocks for the WordPress block editor, a design system that syncs with theme.json, and generated block references.",
 	"colors": {
 		"primary": "#002bff",
 		"light": "#8fb0ff",
@@ -55,7 +55,7 @@
 		}
 	},
 	"banner": {
-		"content": "Blicks is free and GPL-2.0, and developed in the open. Every block reference on this site is generated from the plugin's own block metadata.",
+		"content": "These docs cover Blicks 2.0, a clean break from 1.x. Updating a site with 1.x pages? Read [Upgrading from 1.x](/upgrading) first.",
 		"dismissible": true
 	},
 	"navigation": {
@@ -67,7 +67,8 @@
 						"group": "Get started",
 						"pages": [
 							"index",
-							"getting-started"
+							"getting-started",
+							"upgrading"
 						]
 					},
 					{
@@ -77,7 +78,23 @@
 							"guides/build-a-landing-page",
 							"guides/responsive-patterns",
 							"guides/states-and-interactions",
-							"guides/customize-design-system"
+							"guides/lists-and-steps",
+							"guides/forms",
+							"guides/data-loop",
+							"guides/dialogs",
+							"guides/customize-design-system",
+							"guides/connect-an-ai-agent",
+							"guides/header-studio"
+						]
+					},
+					{
+						"group": "Developers",
+						"pages": [
+							"developers/extension-api",
+							"developers/migrating-from-v1",
+							"developers/engine-api",
+							"developers/studio-api",
+							"developers/php-hooks"
 						]
 					},
 					{
@@ -106,14 +123,20 @@
 							"reference/blocks/box",
 							"reference/blocks/button",
 							"reference/blocks/buttons",
-							"reference/blocks/divider",
-							"reference/blocks/grid",
+							"reference/blocks/dialog",
+							"reference/blocks/field",
+							"reference/blocks/form",
 							"reference/blocks/heading",
 							"reference/blocks/icon",
 							"reference/blocks/image",
+							"reference/blocks/input",
+							"reference/blocks/list",
+							"reference/blocks/list-item",
+							"reference/blocks/loop",
+							"reference/blocks/menu-link",
 							"reference/blocks/section",
-							"reference/blocks/spacer",
-							"reference/blocks/stack",
+							"reference/blocks/step",
+							"reference/blocks/steps",
 							"reference/blocks/text"
 						]
 					}
@@ -128,5 +151,23 @@
 			"chatgpt",
 			"claude"
 		]
-	}
+	},
+	"redirects": [
+		{
+			"source": "/reference/blocks/stack",
+			"destination": "/reference/blocks/box"
+		},
+		{
+			"source": "/reference/blocks/grid",
+			"destination": "/reference/blocks/box"
+		},
+		{
+			"source": "/reference/blocks/spacer",
+			"destination": "/reference/blocks/box"
+		},
+		{
+			"source": "/reference/blocks/divider",
+			"destination": "/reference/blocks/box"
+		}
+	]
 }

@@ -1,5 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { STATE_LABELS } from '@/framework/states';
+import { ELEMENT_PART, partSuffix } from '@/framework/parts';
 import { DEFAULT_BREAKPOINTS } from '@/design-system/breakpoints';
 
 const DEVICE_ICONS: Record< string, JSX.Element > = {
@@ -30,20 +31,52 @@ interface Props {
 	setState: ( s: string ) => void;
 	breakpoint: string;
 	setBreakpoint: ( id: string ) => void;
+	/** Parts the block offers, the element first. One entry hides the switcher. */
+	parts?: readonly string[];
+	part?: string;
+	setPart?: ( id: string ) => void;
 }
 
 /**
- * Compact state + device (breakpoint) switcher above styling facets. State is a small
- * `<select>` — a dot beside it tints on non-default states so an active override is visible
- * without opening the menu. Device stays an always-visible icon trio. Compact form is
- * deliberate: the old two-segmented layout clipped the device trio at the narrow sidebar
- * width. Shared by the Decoration facet's scoped instance.
+ * Compact part + state + device (breakpoint) switcher above styling facets.
+ *
+ * Part and state are small `<select>`s — a dot beside each tints off its default, so an active
+ * context shows without opening the menu. That matters most for part: every facet below then
+ * writes into a pseudo-element, and nothing else on screen would say so. Device stays an
+ * always-visible icon trio; the compact form keeps it from clipping at the sidebar's width.
  */
-export function ContextBar( { states, state, setState, breakpoint, setBreakpoint }: Props ) {
+export function ContextBar( {
+	states,
+	state,
+	setState,
+	breakpoint,
+	setBreakpoint,
+	parts = [],
+	part = ELEMENT_PART,
+	setPart,
+}: Props ) {
 	const stateful = state !== 'default';
+	const onPart = part !== ELEMENT_PART;
 
 	return (
 		<div className="ins-toolbar">
+			{ parts.length > 1 && (
+				<div className={ `stsel ${ onPart ? 'on' : '' }` }>
+					<span className="stsel__dot" aria-hidden="true" />
+					<select
+						value={ part }
+						aria-label={ __( 'Editing part', 'blicks' ) }
+						onChange={ ( e ) => setPart?.( e.target.value ) }
+					>
+						{ parts.map( ( id ) => (
+							<option key={ id } value={ id }>
+								{ id === ELEMENT_PART ? __( 'Element', 'blicks' ) : partSuffix( id ) }
+							</option>
+						) ) }
+					</select>
+				</div>
+			) }
+
 			{ states.length > 1 && (
 				<div className={ `stsel ${ stateful ? 'on' : '' }` }>
 					<span className="stsel__dot" aria-hidden="true" />

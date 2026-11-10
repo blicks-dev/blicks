@@ -4,7 +4,7 @@ description: "A semantic h1-h6 heading that inherits the active theme by default
 ---
 
 <Info>
-Generated from `packages/blicks/resources/blocks/heading/block.json` and `readme.md`. Do not hand-edit this page.
+Generated from `resources/blocks/heading/block.json` and `readme.md`. Do not hand-edit this page.
 </Info>
 
 ## Metadata
@@ -25,11 +25,11 @@ Generated from `packages/blicks/resources/blocks/heading/block.json` and `readme
 | HTML editing | `false` |
 | Anchor | `true` |
 | Align | `-` |
-| Blicks states | `default, hover, focus, active` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
 
 ## Blicks controls
 
-`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `spacing.*` · `border.*` · `effects.*`
+`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `colors.clipText` · `spacing.*` · `border.*` · `effects.*` · `animation.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*` · `background.*` · `layout.overflow` · `layout.isolation` · `position.*`
 
 ## Attributes
 
@@ -55,6 +55,12 @@ Sets the heading level from H1 to H6. Choose the level from document structure f
 ### content
 
 The editable heading text.
+
+### anchor
+
+The heading's `id`, so a link can jump to it (`#getting-around`). Settings offers one made from the words.
+
+To make a heading look like another level without changing what screen readers hear, set `typography.role` (`display`, `h1`–`h4`) and keep `level` for the outline.
 
 ## Tips
 

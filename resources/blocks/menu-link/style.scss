@@ -1,0 +1,75 @@
+/*
+ * Menu link: a row that is one link. Icon, then the label with its description under it, then a
+ * badge. Every size here is a custom property, so a header or a theme tunes it without new rules.
+ *
+ *   --bl-menu-link-icon   the icon's size
+ *   --bl-menu-link-gap    space between icon, text and badge
+ */
+
+@layer blicks.base {
+	.bl-menu-link {
+		--bl-menu-link-icon: 1.25rem;
+		--bl-menu-link-gap: var(--blicks-spacing-sm, 0.75rem);
+
+		display: flex;
+		align-items: flex-start;
+		gap: var(--bl-menu-link-gap);
+		min-height: 44px;
+		box-sizing: border-box;
+		padding: var(--blicks-spacing-xs, 0.5rem);
+		border-radius: var(--blicks-radius-md, 0.5rem);
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.bl-menu-link:is(:hover, :focus-visible) {
+		background: var(--blicks-color-muted, #f4f4f5);
+	}
+
+	.bl-menu-link__icon {
+		display: inline-flex;
+		flex: none;
+		width: var(--bl-menu-link-icon);
+		height: var(--bl-menu-link-icon);
+		margin-block-start: 0.1em;
+		color: var(--blicks-color-primary, currentColor);
+	}
+
+	.bl-menu-link__icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.bl-menu-link__text {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.125rem;
+		min-width: 0;
+	}
+
+	.bl-menu-link__label {
+		font-weight: 500;
+	}
+
+	.bl-menu-link__desc {
+		font-size: 0.875em;
+		color: var(--blicks-color-muted-foreground, color-mix(in srgb, currentColor 65%, transparent));
+	}
+
+	.bl-menu-link__desc:empty {
+		display: none;
+	}
+
+	.bl-menu-link__badge {
+		flex: none;
+		align-self: center;
+		padding: 0.125rem 0.5rem;
+		border-radius: 999px;
+		background: var(--blicks-color-primary, #18181b);
+		color: var(--blicks-color-primary-foreground, #fafafa);
+		font-size: 0.75em;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+}

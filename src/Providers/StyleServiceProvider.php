@@ -13,13 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Core\BlockSupport;
 use Blicks\Core\ServiceProvider;
 use Blicks\Core\Attributes\Action;
+use Blicks\Core\Attributes\Filter;
 use Blicks\Core\Assets\Asset;
 use Blicks\Core\Plugin as BasePlugin;
 use Blicks\DesignSystem\CssVariables;
 use Blicks\DesignSystem\Keyframes;
 use Blicks\Style\ElementStyle;
+use Blicks\Style\ListMarkers;
 use Blicks\Style\ScopedCss;
 use Blicks\Style\Sanitize;
 
@@ -54,11 +57,64 @@ final class StyleServiceProvider extends ServiceProvider {
 	 * @param string               $block_content
 	 * @param array<string, mixed> $block
 	 */
+	/**
+	 * Drop the whitespace saved between a Blicks block's children.
+	 *
+	 * The serializer writes a blank line between sibling blocks. Between block-level children it
+	 * is invisible, but between inline ones — a row of span boxes, text runs inside a span — it is a
+	 * space: "attention ," on the page where the editor, which renders no such text, shows
+	 * "attention,". Only the chunks that are nothing but whitespace and sit between two children
+	 * go, so the block's own markup and its text are untouched.
+	 *
+	 * @param array<string, mixed> $block
+	 * @return array<string, mixed>
+	 */
+	#[Filter( 'render_block_data', priority: 10, args: 1 )]
+	public function collapseBetweenChildren( array $block ): array {
+		$content = $block['innerContent'] ?? null;
+
+		if ( ! is_array( $content ) || [] === $content || ! str_starts_with( (string) ( $block['blockName'] ?? '' ), 'blicks/' ) ) {
+			return $block;
+		}
+
+		$block['innerContent'] = self::withoutGaps( $content );
+
+		return $block;
+	}
+
+	/**
+	 * Inner content with the whitespace around the block's element and between two of its
+	 * children removed.
+	 *
+	 * @param list<string|null> $content
+	 * @return list<string|null>
+	 */
+	public static function withoutGaps( array $content ): array {
+		$last = count( $content ) - 1;
+
+		// Each block is also saved with a newline either side of its own element; outside the
+		// element it is nothing but a space between two inline neighbours.
+		if ( is_string( $content[0] ) ) {
+			$content[0] = ltrim( $content[0] );
+		}
+		if ( is_string( $content[ $last ] ) ) {
+			$content[ $last ] = rtrim( $content[ $last ] );
+		}
+
+		foreach ( $content as $i => $chunk ) {
+			if ( is_string( $chunk ) && $i > 0 && $i < $last && null === $content[ $i - 1 ] && null === $content[ $i + 1 ] && '' === trim( $chunk ) ) {
+				$content[ $i ] = '';
+			}
+		}
+
+		return $content;
+	}
+
 	#[Action( 'render_block', priority: 10, args: 2 )]
 	public function collectScopedCss( string $block_content, array $block ): string {
 		$name = $block['blockName'] ?? '';
 
-		if ( ! is_string( $name ) || ! str_starts_with( $name, 'blicks/' ) ) {
+		if ( ! is_string( $name ) || ! BlockSupport::usesBlicks( $name ) ) {
 			return $block_content;
 		}
 
@@ -87,11 +143,41 @@ final class StyleServiceProvider extends ServiceProvider {
 		}
 
 		$attrPairs = Sanitize::attributes( $attributes['htmlAttributes'] ?? null );
+
+		// A block with an interaction needs the small runtime that runs it, on this page only.
+		if ( isset( $attrPairs['data-bl-do'] ) ) {
+			self::enqueueInteractions();
+		}
 		if ( '' !== $injectId || [] !== $attrPairs ) {
 			$block_content = self::updateWrapperAttributes( $block_content, $injectId, $attrPairs );
 		}
 
 		return $block_content;
+	}
+
+	/** An icon List draws its markers from one rule per icon on the page (see ListMarkers). */
+	#[Action( 'render_block', priority: 10, args: 2 )]
+	public function collectListMarkers( string $block_content, array $block ): string {
+		ListMarkers::collect( $block );
+
+		return $block_content;
+	}
+
+	/** The interactions runtime (resources/runtime/interactions.ts), in the footer, once. */
+	private static function enqueueInteractions(): void {
+		if ( wp_script_is( 'blicks-interactions', 'enqueued' ) || ! file_exists( BasePlugin::path( 'build/interactions.js' ) ) ) {
+			return;
+		}
+
+		$asset = is_readable( BasePlugin::path( 'build/interactions.asset.php' ) ) ? include BasePlugin::path( 'build/interactions.asset.php' ) : [];
+
+		wp_enqueue_script(
+			'blicks-interactions',
+			BasePlugin::url( 'build/interactions.js' ),
+			[],
+			is_array( $asset ) ? (string) ( $asset['version'] ?? '' ) : '',
+			true
+		);
 	}
 
 	/**
@@ -100,10 +186,6 @@ final class StyleServiceProvider extends ServiceProvider {
 	 * @param array<string,string> $attrPairs
 	 */
 	private static function updateWrapperAttributes( string $blockContent, string $injectId, array $attrPairs ): string {
-		if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
-			return $blockContent;
-		}
-
 		$processor = new \WP_HTML_Tag_Processor( $blockContent );
 		if ( ! $processor->next_tag() ) {
 			return $blockContent;

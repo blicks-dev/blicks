@@ -1,45 +1,68 @@
+import { __ } from '@wordpress/i18n';
 import { defineBlock } from '@/framework/define-block';
 import metadata from './block.json';
-import { BoxAdvanced, BoxControls, BoxToolbar, cleanBoxTag } from './controls';
+import { BoxMotion, BoxSettings, BoxStyle, BoxToolbar, KINDS } from './controls';
+import { cleanKind, cleanTag } from './model';
 
 defineBlock( metadata, {
 	innerBlocks: true,
-	Controls: BoxControls,
 	Toolbar: BoxToolbar,
-	Advanced: BoxAdvanced,
-	// A Box is a free-form wrapper that's valid empty (spacer, decorative panel), so it gets no
-	// starting-layout placeholder — a plain wrapper has no layout of its own to explain — and no
-	// ghost add-slot either. Unlike Stack and Grid, a Box is routinely *meant* to stay empty: a
-	// rule, a swatch, a sized block of colour. Giving every one of those a permanent "Add block"
-	// button turns a deliberate design into visible scaffolding all over the canvas. It falls back
-	// to WordPress's own appender, which appears only while the block is selected.
-	render( { attributes, blockProps, children, isEdit } ) {
-		const Tag = cleanBoxTag( attributes.tag ) as keyof JSX.IntrinsicElements;
-		const href = String( attributes.href || '' ).trim();
-		const className = [ blockProps.className, href ? 'bl-box--linked' : '' ]
+	panels: {
+		Settings: BoxSettings,
+		Style: BoxStyle,
+		Motion: BoxMotion,
+		// A spacer is empty room: nothing to style or move. A divider has a look but no motion.
+		tabsFor: ( attributes ) => ( { spacer: [ 'settings' ], divider: [ 'settings', 'style' ] } as const )[ cleanKind( attributes.kind ) as 'spacer' ] ?? [ 'settings', 'style', 'motion' ],
+		describe: ( attributes ) => KINDS.find( ( [ k ] ) => k === cleanKind( attributes.kind ) )?.[ 1 ] ?? '',
+	},
+	// A Box is routinely meant to stay empty — a rule, a swatch, a sized block of colour — so it gets
+	// no starting-layout placeholder and no ghost add-slot, only WordPress's own appender while it is
+	// selected. Its kinds and arrangements are in Settings, and they write ordinary style values.
+	render( { attributes, blockProps, children, isEdit, richText } ) {
+		const kind = cleanKind( attributes.kind );
+		// A plain box carries no kind class, so its markup is just the wrapper and its style classes.
+		const className = [ blockProps.className, kind !== 'plain' ? `bl-box--${ kind }` : '', attributes.layers ? 'bl-box--layers' : '' ]
 			.filter( Boolean )
 			.join( ' ' );
+		const href = String( attributes.href || '' ).trim();
+		const linkProps = {
+			href,
+			target: attributes.linkTarget || undefined,
+			rel: attributes.rel || undefined,
+			'aria-label': attributes.linkLabel || undefined,
+		};
 
-		// Stretched-link overlay: the box stays a normal element (no invalid <a> wrapping inner
-		// blocks); an absolutely-positioned <a> covers it. Inner links/buttons sit above it via
-		// CSS z-index. In the editor the overlay is inert (pointer-events off) so blocks stay
-		// selectable; save() renders the live link, so editor != saved markup is fine (only
-		// save output is validated).
+		// The leaf kinds hold no blocks. The Settings tab only offers them while the box is empty.
+		if ( kind === 'divider' ) return <hr { ...blockProps } className={ className } />;
+		if ( kind === 'spacer' ) return <div { ...blockProps } className={ className } aria-hidden="true" />;
+		if ( kind === 'badge' ) {
+			// A linked badge is the link itself: a short label, so there is nothing to stretch over.
+			return richText( {
+				attr: 'text',
+				tagName: href && ! isEdit ? 'a' : 'span',
+				placeholder: __( 'Badge', 'blicks' ),
+				allowedFormats: [ 'core/bold', 'core/italic' ],
+				...blockProps,
+				className,
+				...( href && ! isEdit ? linkProps : {} ),
+			} );
+		}
+
+		const Tag = cleanTag( attributes.tag ) as keyof JSX.IntrinsicElements;
+
+		// Stretched-link overlay: the box stays a normal element (an <a> may not wrap block content)
+		// and an absolutely-positioned <a> covers it, with inner links lifted above it in CSS. Inert
+		// in the editor so the inner blocks stay selectable.
 		const link = href ? (
 			<a
 				className="bl-box__link"
-				href={ href }
-				target={ attributes.linkTarget || undefined }
-				rel={ attributes.rel || undefined }
-				aria-label={ attributes.linkLabel || undefined }
-				{ ...( isEdit
-					? { tabIndex: -1, style: { pointerEvents: 'none' }, onClick: ( e: any ) => e.preventDefault() }
-					: {} ) }
+				{ ...linkProps }
+				{ ...( isEdit ? { tabIndex: -1, style: { pointerEvents: 'none' }, onClick: ( e: any ) => e.preventDefault() } : {} ) }
 			/>
 		) : null;
 
 		return (
-			<Tag { ...blockProps } className={ className }>
+			<Tag { ...blockProps } className={ [ className, href ? 'bl-box--linked' : '' ].filter( Boolean ).join( ' ' ) }>
 				{ link }
 				{ children }
 			</Tag>

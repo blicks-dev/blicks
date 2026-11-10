@@ -81,7 +81,8 @@ final class CssValueTest extends TestCase
         $this->assertSame('', CssValue::clean(''));
         $this->assertSame('', CssValue::clean('   '));
         $this->assertSame('', CssValue::clean(['12px']));
-        $this->assertSame('', CssValue::clean(str_repeat('a', 501)));
+        $this->assertSame('', CssValue::clean(str_repeat('a', 2001)));
+        $this->assertSame(str_repeat('a', 2000), CssValue::clean(str_repeat('a', 2000)));
     }
 
     /**

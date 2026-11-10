@@ -1,0 +1,83 @@
+// Entries: every sent form in a table, the selected one read in a side panel. New rows are bold;
+// the status filter is a segmented control like the MCP client picker.
+.blicks-admin .en-in { gap: 16px; }
+.blicks-admin .en-head { align-items: center; gap: 12px; }
+.blicks-admin .en-head h1 { margin-bottom: 0; }
+.blicks-admin .en-badge { padding: 2px 9px; border-radius: var(--pill); background: var(--tint); color: var(--on-tint); font-size: 12px; font-weight: 600; }
+.blicks-admin .en-csv { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; text-decoration: none; }
+.blicks-admin .en-csv svg { width: 16px; height: 16px; }
+
+.blicks-admin .en-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.blicks-admin .en-form { flex: 0 1 260px; }
+.blicks-admin .en-form select { font-family: inherit; font-size: 13px; }
+.blicks-admin .en-search { flex: 1 1 220px; max-width: 320px; margin-left: auto; color: var(--ink-3); }
+.blicks-admin .en-search svg { flex-shrink: 0; width: 16px; height: 16px; }
+.blicks-admin .en-search input { font-family: inherit; font-size: 13px; color: var(--ink); }
+
+.blicks-admin .en-seg { display: flex; gap: 2px; padding: 3px; border-radius: var(--r-track); background: var(--field); }
+.blicks-admin .en-seg button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: var(--r-thumb); background: none; color: var(--ink-2); font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.blicks-admin .en-seg button[aria-pressed="true"] { background: var(--paper); box-shadow: var(--shadow-thumb); color: var(--ink); font-weight: 600; }
+.blicks-admin .en-seg button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.blicks-admin .en-seg-n { color: var(--ink-3); font: 500 11px/1 var(--code); }
+
+.blicks-admin .en-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: var(--r-lg); background: var(--tint); color: var(--on-tint); font-size: 13px; }
+.blicks-admin .en-bulk > b { margin-right: auto; font-weight: 600; }
+.blicks-admin .en-bulk .pill:not(.pill--danger) { background: var(--paper); color: var(--ink); }
+.blicks-admin .en-bulk .confirm-del { flex: 1 1 auto; }
+
+.blicks-admin .en-empty p { margin: 0 0 8px; }
+
+.blicks-admin .en-split { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; }
+.blicks-admin .en-split.has-panel { grid-template-columns: minmax(0, 1fr) 340px; }
+.blicks-admin .en-table-card { overflow: hidden; }
+.blicks-admin .en-scroll { overflow-x: auto; }
+
+.blicks-admin .en-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.blicks-admin .en-table th { padding: 10px 12px; background: var(--canvas); color: var(--ink-3); font-size: 11px; font-weight: 600; text-align: left; white-space: nowrap; }
+.blicks-admin .en-table td { padding: 10px 12px; border-top: 1px solid var(--field); vertical-align: top; white-space: nowrap; }
+.blicks-admin .en-table tr.is-on td { background: var(--tint); }
+.blicks-admin .en-table tr.is-new .en-open { font-weight: 600; }
+.blicks-admin .en-table .en-check { width: 20px; padding-right: 0; }
+.blicks-admin .en-table .en-check input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--primary); }
+.blicks-admin .en-formc { color: var(--ink-2); }
+.blicks-admin .en-open { max-width: 200px; overflow: hidden; padding: 0; border: 0; border-radius: var(--r-xs); background: none; color: var(--ink); font-weight: 500; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.blicks-admin .en-open:hover { color: var(--primary); text-decoration: underline; }
+.blicks-admin .en-open:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.blicks-admin .en-says { display: block; max-width: 280px; overflow: hidden; color: var(--ink-2); text-overflow: ellipsis; }
+.blicks-admin .en-mono { color: var(--ink-3); font: 11.5px var(--code); }
+
+.blicks-admin .en-st { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-3); font-size: 12px; }
+.blicks-admin .en-st i { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.blicks-admin .en-st.is-new { color: var(--primary); font-weight: 600; }
+.blicks-admin .en-st.is-spam { color: var(--warn); }
+
+.blicks-admin .en-pages { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--field); color: var(--ink-2); font-size: 13px; }
+
+.blicks-admin .en-panel { position: sticky; top: 16px; display: grid; align-content: start; gap: 14px; padding: 16px; }
+.blicks-admin .en-panel-t { display: flex; align-items: center; gap: 8px; }
+.blicks-admin .en-panel-t h2 { min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: 16px; font-weight: 600; }
+.blicks-admin .en-panel-t h2:focus { outline: 0; }
+.blicks-admin .en-panel-t .icon-btn { margin-left: auto; }
+.blicks-admin .en-dl { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px 10px; margin: 0; font-size: 13px; }
+.blicks-admin .en-dl dt { padding-top: 2px; color: var(--ink-3); font: 11px var(--code); overflow-wrap: anywhere; }
+.blicks-admin .en-dl dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.blicks-admin .en-none { color: var(--ink-3); }
+.blicks-admin .en-msg { display: grid; gap: 6px; padding: 12px; border-radius: var(--r); background: var(--canvas); font-size: 13px; line-height: 19px; }
+.blicks-admin .en-msg-l { color: var(--ink-3); font: 11px var(--code); }
+.blicks-admin .en-msg p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.blicks-admin .en-notes { display: grid; gap: 4px; margin: 0; padding: 10px 12px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); font-size: 12px; list-style: none; }
+.blicks-admin .en-log { display: grid; gap: 6px; margin: 0; padding: 0; color: var(--ink-2); font-size: 12px; list-style: none; }
+.blicks-admin .en-log li { display: flex; align-items: center; gap: 6px; }
+.blicks-admin .en-log svg { flex-shrink: 0; width: 14px; height: 14px; color: var(--ok); }
+.blicks-admin .en-ua { margin: 0; overflow: hidden; color: var(--ink-3); font: 11px var(--code); text-overflow: ellipsis; white-space: nowrap; }
+.blicks-admin .en-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.blicks-admin .en-acts a.pill { display: inline-flex; align-items: center; text-decoration: none; }
+
+@media (width <= 1100px) {
+	.blicks-admin .en-split.has-panel { grid-template-columns: minmax(0, 1fr); }
+	.blicks-admin .en-panel { position: static; }
+}
+
+@media (width <= 782px) {
+	.blicks-admin .en-search { max-width: none; margin-left: 0; }
+}

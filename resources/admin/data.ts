@@ -1,7 +1,7 @@
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { TYPE_ROLES, TYPE_ROLE_DEFAULTS, DEFAULT_BREAKPOINTS, TOKENS, TOKEN_CATEGORY_KEYS, fallbackTypeRoles } from './constants';
 import { FALLBACK_SNAPSHOT, FALLBACK_ADMIN_SETTINGS, FALLBACK_DASHBOARD_SUMMARY } from './fallbacks';
-import type { Tokens, TokenValues, FontFamily, TypeRoleValues, TypeRoleSlot, TypeRoleSnapshot, DesignOverrides, Breakpoint, DesignTheme, ThemesState, TokenSourceTone, DesignSystemSnapshot, AdminSettingsSnapshot, DashboardSummary, ActivityEntry, DiagnosticsCheck, DiagnosticsResult, DiagnosticsStatus, CustomAnimation, AnimationStep, LibraryAnimation } from './types';
+import type { Tokens, TokenValues, FontFamily, TypeRoleValues, TypeRoleSlot, TypeRoleSnapshot, DesignOverrides, Breakpoint, DesignTheme, ThemesState, TokenSourceTone, DesignSystemSnapshot, AdminSettingsSnapshot, DashboardSummary, ActivityEntry, DiagnosticsCheck, DiagnosticsResult, DiagnosticsStatus, CustomAnimation, AnimationStep, LibraryAnimation , DesignLanguage, LanguageState, DesignKit } from './types';
 
 export function tokenVar( category: string, slug: string ): string {
 	return `--blicks-${ category }-${ slug }`;
@@ -279,19 +279,10 @@ export function normalizeAdminSettings( value: unknown ): AdminSettingsSnapshot 
 	const data = value as Partial< AdminSettingsSnapshot >;
 
 	return {
-		defaultInspectorPanel: choiceOrFallback(
-			data.defaultInspectorPanel,
-			[ 'settings', 'styles', 'advanced' ],
-			FALLBACK_ADMIN_SETTINGS.defaultInspectorPanel
-		),
-		helpVisibility: choiceOrFallback(
-			data.helpVisibility,
-			[ 'show', 'hide' ],
-			FALLBACK_ADMIN_SETTINGS.helpVisibility
-		),
 		deleteDataOnUninstall: typeof data.deleteDataOnUninstall === 'boolean'
 			? data.deleteDataOnUninstall
 			: FALLBACK_ADMIN_SETTINGS.deleteDataOnUninstall,
+		marketplace: data.marketplace === true,
 		designSystem: {
 			themeJsonSupported: Boolean( data.designSystem?.themeJsonSupported ),
 			themeJsonSync: Boolean( data.designSystem?.themeJsonSync ) && Boolean( data.designSystem?.themeJsonSupported ),
@@ -300,15 +291,10 @@ export function normalizeAdminSettings( value: unknown ): AdminSettingsSnapshot 
 }
 
 export function adminSettingsEqual( left: AdminSettingsSnapshot, right: AdminSettingsSnapshot ): boolean {
-	return left.defaultInspectorPanel === right.defaultInspectorPanel
-		&& left.helpVisibility === right.helpVisibility
-		&& left.deleteDataOnUninstall === right.deleteDataOnUninstall
+	return left.deleteDataOnUninstall === right.deleteDataOnUninstall
+		&& left.marketplace === right.marketplace
 		&& left.designSystem.themeJsonSync === right.designSystem.themeJsonSync
 		&& left.designSystem.themeJsonSupported === right.designSystem.themeJsonSupported;
-}
-
-export function choiceOrFallback< T extends string >( value: unknown, allowed: readonly T[], fallback: T ): T {
-	return typeof value === 'string' && allowed.includes( value as T ) ? value as T : fallback;
 }
 
 export function isSettingSource< T extends string >( value: unknown, allowed: readonly T[] ): value is T {
@@ -347,6 +333,7 @@ export function normalizeSnapshot( value: unknown ): DesignSystemSnapshot {
 		typeRoles: normalizeTypeRoles( data.typeRoles ),
 		fontLibrary: Array.isArray( data.fontLibrary ) ? data.fontLibrary.filter( isFontFamily ) : [],
 		overrides: normalizeOverrides( data.overrides ),
+		language: normalizeLanguages( data.language ),
 		breakpoints: Array.isArray( data.breakpoints ) ? data.breakpoints.filter( isBreakpoint ) : FALLBACK_SNAPSHOT.breakpoints,
 		counts: {
 			colors: numberOrFallback( data.counts?.colors, FALLBACK_SNAPSHOT.counts.colors ),
@@ -358,6 +345,42 @@ export function normalizeSnapshot( value: unknown ): DesignSystemSnapshot {
 			typeRoles: numberOrFallback( data.counts?.typeRoles, FALLBACK_SNAPSHOT.counts.typeRoles ),
 		},
 	};
+}
+
+export function normalizeKits( value: unknown ): DesignKit[] {
+	const kits: DesignKit[] = [];
+	for ( const item of Array.isArray( value ) ? value : [] ) {
+		if ( ! item || typeof item !== 'object' || typeof item.id !== 'string' || typeof item.name !== 'string' ) continue;
+		kits.push( {
+			id: item.id,
+			name: item.name,
+			language: typeof item.language === 'string' ? item.language : 'minimal',
+			palette: typeof item.palette === 'string' ? item.palette : '',
+			count: typeof item.count === 'number' ? item.count : 0,
+		} );
+	}
+	return kits;
+}
+
+export function normalizeLanguages( value: unknown ): LanguageState {
+	const data = ( value && typeof value === 'object' ? value : {} ) as { active?: unknown; languages?: unknown };
+	const languages: DesignLanguage[] = [];
+	for ( const item of Array.isArray( data.languages ) ? data.languages : [] ) {
+		if ( ! item || typeof item !== 'object' || typeof item.id !== 'string' || typeof item.name !== 'string' ) continue;
+		const sample: Record< string, string > = {};
+		for ( const [ k, v ] of Object.entries( item.sample && typeof item.sample === 'object' ? item.sample : {} ) ) {
+			if ( typeof v === 'string' ) sample[ k ] = v;
+		}
+		languages.push( {
+			id: item.id,
+			name: item.name,
+			description: typeof item.description === 'string' ? item.description : '',
+			traits: Array.isArray( item.traits ) ? item.traits.filter( ( t: unknown ): t is string => typeof t === 'string' ) : [],
+			sample,
+		} );
+	}
+	const active = typeof data.active === 'string' && languages.some( l => l.id === data.active ) ? data.active : languages[ 0 ]?.id ?? 'minimal';
+	return { active, languages };
 }
 
 export function isFontFamily( value: unknown ): value is FontFamily {
@@ -659,8 +682,6 @@ export const TOKEN_VALIDATORS: Record< string, ( v: string ) => boolean > = {
 	transition: isFreeformValue,
 	transform: isFreeformValue,
 	filter: isFreeformValue,
-	ring: isFreeformValue,
-	borderStyle: isFreeformValue,
 };
 
 export const validateTokenValue = ( category: string, v: string ): boolean =>
@@ -1081,172 +1102,6 @@ export const describeTransform = ( computed: string ): string => {
 
 	return out.join( ' · ' );
 };
-
-/* ── focus rings ──────────────────────────────────────────────────────────────
-   A ring is a box-shadow, but not a shadow-shaped one: x, y and blur are zero in
-   every ring worth having, and the two decisions that matter — how thick, and how
-   far off the control it sits — are the spread of one layer and the difference
-   between the spreads of two. That is why editing one as `0 0 0 3px rgba(…)` reads
-   as arithmetic rather than as design. */
-
-export type RingParts = {
-	thickness: string;
-	offset: string;       // the gap between the control and the ring: an inner layer
-	offsetColor: string;  // what shows in that gap — usually the page background
-	blur: string;         // 0 for a ring, non-zero for a glow
-	color: string;
-};
-
-const LEN_RE = /^([+-]?[\d.]+)([a-z%]*)$/i;
-const lenParts = ( value: string ): { n: number; unit: string } | null => {
-	const match = LEN_RE.exec( value.trim() );
-	if ( ! match ) return null;
-	const n = Number( match[ 1 ] );
-	return Number.isFinite( n ) ? { n, unit: match[ 2 ] || ( n === 0 ? '' : 'px' ) } : null;
-};
-
-/** `5px` − `2px`. Null unless both are plain lengths in one unit — no guessing across units. */
-const lenDiff = ( a: string, b: string ): string | null => {
-	const left = lenParts( a );
-	const right = lenParts( b );
-	if ( ! left || ! right ) return null;
-	if ( left.unit !== right.unit && left.n !== 0 && right.n !== 0 ) return null;
-	const unit = left.unit || right.unit;
-	const value = Math.round( ( left.n - right.n ) * 1000 ) / 1000;
-	return value === 0 ? '0' : `${ value }${ unit }`;
-};
-
-const lenSum = ( a: string, b: string ): string | null => {
-	const left = lenParts( a );
-	const right = lenParts( b );
-	if ( ! left || ! right ) return null;
-	if ( left.unit !== right.unit && left.n !== 0 && right.n !== 0 ) return null;
-	const unit = left.unit || right.unit;
-	const value = Math.round( ( left.n + right.n ) * 1000 ) / 1000;
-	return value === 0 ? '0' : `${ value }${ unit }`;
-};
-
-export const isZeroLength = ( value: string ): boolean => {
-	const parsed = lenParts( value );
-	return value.trim() === '' || ( parsed !== null && parsed.n === 0 );
-};
-
-/**
- * A ring as thickness, offset and colour. Both shapes a ring comes in are read:
- * one layer (`0 0 0 3px blue`) and the offset pair (`0 0 0 2px #fff, 0 0 0 5px blue`),
- * where the inner layer paints the gap and the outer spread is the *total* — so the
- * ring you see is the difference, which is the sum nobody wants to do by hand.
- * Anything else (an inset ring, a shifted one, three layers) stays text.
- */
-export const parseRing = ( value: string ): RingParts | null => {
-	const layers = splitTopLevel( value.trim() );
-	if ( layers.length === 0 || layers.length > 2 ) return null;
-
-	const parsed = layers.map( parseShadow );
-	if ( parsed.some( layer => layer === null ) ) return null;
-	const shadows = parsed as ShadowParts[];
-	// A ring surrounds its control: no offset in x or y, and never inset.
-	if ( shadows.some( layer => layer.inset || ! isZeroLength( layer.x ) || ! isZeroLength( layer.y ) ) ) return null;
-
-	if ( shadows.length === 1 ) {
-		const [ only ] = shadows;
-		return {
-			thickness: only.spread || '0',
-			offset: '0',
-			offsetColor: '',
-			blur: isZeroLength( only.blur ) ? '' : only.blur,
-			color: only.color,
-		};
-	}
-
-	const [ inner, outer ] = shadows;
-	// The gap layer is a flat band; a blurred one is two glows, not a ring with a gap.
-	if ( ! isZeroLength( inner.blur ) ) return null;
-	const thickness = lenDiff( outer.spread, inner.spread );
-	if ( thickness === null || ( lenParts( thickness )?.n ?? 0 ) <= 0 ) return null;
-
-	return {
-		thickness,
-		offset: inner.spread || '0',
-		offsetColor: inner.color,
-		blur: isZeroLength( outer.blur ) ? '' : outer.blur,
-		color: outer.color,
-	};
-};
-
-/** Parts back to a value: one layer with no offset, the gap pair with one. */
-export const formatRing = ( parts: RingParts ): string => {
-	const thickness = parts.thickness.trim() || '0';
-	const blur = parts.blur.trim() && ! isZeroLength( parts.blur ) ? parts.blur.trim() : '0';
-	const outerColor = parts.color.trim();
-
-	if ( isZeroLength( parts.offset ) ) {
-		return [ '0 0', blur, thickness, outerColor ].filter( part => part !== '' ).join( ' ' );
-	}
-
-	const offset = parts.offset.trim();
-	const total = lenSum( offset, thickness );
-	const gap = [ '0 0 0', offset, parts.offsetColor.trim() ].filter( part => part !== '' ).join( ' ' );
-	const ring = [ '0 0', blur, total ?? thickness, outerColor ].filter( part => part !== '' ).join( ' ' );
-	return `${ gap }, ${ ring }`;
-};
-
-/** What a rendered ring measures, in the browser's own pixels: `2px gap · 3px`. */
-export const describeRing = ( computed: string ): string => {
-	const parts = parseRing( computed );
-	if ( ! parts ) return '';
-	return [
-		isZeroLength( parts.offset ) ? '' : `${ parts.offset } gap`,
-		parts.thickness,
-		parts.blur ? `${ parts.blur } soft` : '',
-	].filter( part => part !== '' ).join( ' · ' );
-};
-
-/* ── border shorthands ────────────────────────────────────────────────────────
-   `borderStyle.solid` is not a style keyword, whatever the category is called:
-   it is stored as `1px solid #111827`, a whole border. Three decisions in one
-   string, and the one the token is named after is the middle word. */
-
-export const BORDER_STYLES = [
-	'solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'hidden', 'none',
-] as const;
-
-export type BorderParts = { width: string; style: string; color: string };
-
-/** A border shorthand as width · style · colour. Null for anything with a token spare. */
-export const parseBorder = ( value: string ): BorderParts | null => {
-	const trimmed = value.trim();
-	if ( trimmed === '' ) return null;
-	if ( splitTopLevel( trimmed ).length > 1 ) return null;
-
-	const tokens = topLevelTokens( trimmed );
-	if ( tokens.length === 0 || tokens.length > 3 ) return null;
-
-	const styles = tokens.filter( token => ( BORDER_STYLES as readonly string[] ).includes( token.toLowerCase() ) );
-	const rest = tokens.filter( token => ! ( BORDER_STYLES as readonly string[] ).includes( token.toLowerCase() ) );
-
-	// A `var()` could be either a width or a colour, and putting one back in the wrong slot
-	// would rewrite someone's border. Our own token names say which; anything else is left
-	// to the text field rather than guessed at.
-	const widths: string[] = [];
-	const colors: string[] = [];
-	for ( const token of rest ) {
-		if ( /^var\(/i.test( token ) ) {
-			if ( /--[\w-]*width/i.test( token ) ) widths.push( token );
-			else if ( /--[\w-]*colou?r/i.test( token ) ) colors.push( token );
-			else return null;
-			continue;
-		}
-		( isShadowLength( token ) ? widths : colors ).push( token );
-	}
-	if ( styles.length > 1 || widths.length > 1 || colors.length > 1 ) return null;
-
-	return { width: widths[ 0 ] ?? '', style: styles[ 0 ] ?? '', color: colors[ 0 ] ?? '' };
-};
-
-/** Parts back to a shorthand, in the order CSS reads them. */
-export const formatBorder = ( parts: BorderParts ): string =>
-	[ parts.width.trim(), parts.style.trim(), parts.color.trim() ].filter( part => part !== '' ).join( ' ' );
 
 /**
  * The number an `aspect-ratio` comes out as. `16 / 9`, `16/9` and `1.7778` are the same

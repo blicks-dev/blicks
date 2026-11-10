@@ -170,15 +170,6 @@ describe( 'buildElementStyle', () => {
 		expect( vars[ '--bl-bwt' ] ).toBe( 'var(--blicks-borderWidth-hair)' );
 	} );
 
-	it( 'falls back to the legacy spacing scale for a pre-migration border.width slug', () => {
-		// 'md' isn't a borderWidth slug — pre-migration saved content used the spacing scale, so
-		// it must still resolve via the fallback category rather than pass through as a literal.
-		const { vars } = buildElementStyle( {
-			'border.width': { default: { base: { top: 'md', right: 'md', bottom: 'md', left: 'md' } } },
-		} );
-		expect( vars[ '--bl-bwt' ] ).toBe( 'var(--blicks-spacing-md)' );
-	} );
-
 	it( 'resolves position (type, inset, zIndex)', () => {
 		const { classes, vars } = buildElementStyle( {
 			'position.type': { default: { base: 'absolute' } },
@@ -194,6 +185,23 @@ describe( 'buildElementStyle', () => {
 			'--bl-pos-l': '0',
 			'--bl-zi': '999',
 		} );
+	} );
+
+	it( 'writes an unset inset side as auto, so two sides pin without stretching', () => {
+		const { vars } = buildElementStyle( {
+			'position.inset': { default: { base: { top: '50%', left: '50%' } } },
+		} );
+		expect( vars ).toEqual( {
+			'--bl-pos-t': '50%',
+			'--bl-pos-r': 'auto',
+			'--bl-pos-b': 'auto',
+			'--bl-pos-l': '50%',
+		} );
+	} );
+
+	it( 'stacks text-shadow layers and keeps a "0" offset', () => {
+		const { vars } = buildElementStyle( { 'effects.textShadow': { default: { base: [ { x: '0', y: '0', blur: '24px', color: 'red' }, { x: '0px', y: '1px', color: 'blue' } ] } } } );
+		expect( vars[ '--bl-tsh' ] ).toBe( '0 0 24px red, 0px 1px 0px blue' );
 	} );
 
 	it( 'resolves a zIndex token slug to its alias var', () => {
@@ -391,23 +399,23 @@ describe( 'buildElementStyle', () => {
 	describe( 'CSS injection (editor mirror of the PHP gate)', () => {
 		const scoped = ( blicks: any ) => buildElementStyle( blicks, { uniqueId: 'abc12345' } ).scopedCss?.join( '' ) ?? '';
 
-		it( 'drops a decoration value that would close its rule', () => {
+		it( 'drops a part value that would close its rule', () => {
 			const css = scoped( {
-				'decoration.before': { default: { base: { enabled: true, content: 'x', width: '1px}body{background:url(//attacker.example/w.png)' } } },
+				'layout.width': { before: { base: '1px}body{background:url(//attacker.example/w.png)' } },
 			} );
 			expect( css ).not.toContain( 'attacker.example' );
-			expect( css.split( '{' ) ).toHaveLength( 2 );
+			expect( css ).toBe( '' );
 		} );
 
-		it( 'ignores a bare-string decoration', () => {
+		it( 'keeps CSS-looking content text inside one string', () => {
 			expect( scoped( {
-				'decoration.before': { default: { base: "content:''}body{background:red" } },
-			} ) ).toBe( '' );
+				'decoration.content': { before: { base: "content:''}body{background:red" } },
+			} ) ).toBe( '.bl-abc12345::before{content:"content:\'\'}body{background:red"}' );
 		} );
 
 		it( 'strips a newline that would end the content string', () => {
 			const css = scoped( {
-				'decoration.before': { default: { base: { enabled: true, content: 'a\n}body{x:y}' } } },
+				'decoration.content': { before: { base: 'a\n}body{x:y}' } },
 			} );
 			expect( css ).not.toMatch( /[\n\r\f]/ );
 			expect( css ).toContain( 'content:"a}body{x:y}"' );
@@ -415,10 +423,10 @@ describe( 'buildElementStyle', () => {
 
 		it( 'validates a content function whole, keeping untyped attr()', () => {
 			expect( scoped( {
-				'decoration.before': { default: { base: { enabled: true, content: 'var(--a); color:red' } } },
-			} ) ).toContain( 'content:""' );
+				'decoration.content': { before: { base: 'var(--a); color:red' } },
+			} ) ).toBe( '.bl-abc12345::before{content:""}' );
 			expect( scoped( {
-				'decoration.before': { default: { base: { enabled: true, content: 'attr(data-label)' } } },
+				'decoration.content': { before: { base: 'attr(data-label)' } },
 			} ) ).toContain( 'content:attr(data-label)' );
 		} );
 
@@ -497,15 +505,26 @@ describe( 'buildElementStyle', () => {
 		expect( vars[ '--bl-h' ] ).toBe( 'var(--blicks-width-prose)' );
 	} );
 
-	it( 'Wave G: emits align-content and grid-auto-columns/rows vars', () => {
+	it( 'Wave G: emits align-content and grid-auto-rows vars', () => {
 		const { vars } = buildElementStyle( {
 			'layout.alignContent': { default: { base: 'space-between' } },
-			'layout.gridAutoColumns': { default: { base: 'minmax(0, 1fr)' } },
 			'layout.gridAutoRows': { default: { base: '1fr' } },
 		} );
 		expect( vars[ '--bl-ac' ] ).toBe( 'space-between' );
-		expect( vars[ '--bl-gac' ] ).toBe( 'minmax(0, 1fr)' );
 		expect( vars[ '--bl-gar' ] ).toBe( '1fr' );
+	} );
+
+	it( 'emits nothing for controls v2 dropped', () => {
+		// float/clear/direction are legacy layout, gridAutoColumns and targetAngle never had a field.
+		const { classes, vars } = buildElementStyle( {
+			'layout.float': { default: { base: 'left' } },
+			'layout.clear': { default: { base: 'both' } },
+			'layout.direction': { default: { base: 'rtl' } },
+			'layout.gridAutoColumns': { default: { base: '1fr' } },
+			'animation.targetAngle': { default: { base: '360deg' } },
+		} );
+		expect( classes ).toEqual( [] );
+		expect( vars ).toEqual( {} );
 	} );
 
 	it( 'Wave G: resolves min/max width/height token slugs and passes literals through', () => {
@@ -521,29 +540,23 @@ describe( 'buildElementStyle', () => {
 		expect( vars[ '--bl-mah' ] ).toBe( '80vh' );
 	} );
 
-	it( 'Wave G: emits box-sizing, box-behavior, scroll-extras, and direction vars', () => {
+	it( 'Wave G: emits box-sizing, box-behavior and scroll-extras vars', () => {
 		const { vars } = buildElementStyle( {
 			'layout.boxSizing': { default: { base: 'border-box' } },
 			'layout.visibility': { default: { base: 'hidden' } },
-			'layout.float': { default: { base: 'left' } },
-			'layout.clear': { default: { base: 'both' } },
 			'layout.isolation': { default: { base: 'isolate' } },
 			'layout.resize': { default: { base: 'both' } },
 			'layout.scrollBehavior': { default: { base: 'smooth' } },
 			'layout.overscrollBehavior': { default: { base: 'contain' } },
 			'layout.scrollSnapStop': { default: { base: 'always' } },
-			'layout.direction': { default: { base: 'rtl' } },
 		} );
 		expect( vars[ '--bl-bxz' ] ).toBe( 'border-box' );
 		expect( vars[ '--bl-vis' ] ).toBe( 'hidden' );
-		expect( vars[ '--bl-flt2' ] ).toBe( 'left' );
-		expect( vars[ '--bl-clr' ] ).toBe( 'both' );
 		expect( vars[ '--bl-iso' ] ).toBe( 'isolate' );
 		expect( vars[ '--bl-rsz' ] ).toBe( 'both' );
 		expect( vars[ '--bl-sb' ] ).toBe( 'smooth' );
 		expect( vars[ '--bl-osb' ] ).toBe( 'contain' );
 		expect( vars[ '--bl-sss' ] ).toBe( 'always' );
-		expect( vars[ '--bl-dir' ] ).toBe( 'rtl' );
 	} );
 
 	it( 'Wave H: emits contain/content-visibility/contain-intrinsic-size vars', () => {
@@ -809,93 +822,11 @@ describe( 'buildElementStyle', () => {
 		expect( vars[ '--bl-anim-range' ] ).toBe( 'entry 0% entry 60%' );
 	} );
 
-	it( 'Wave E: emits @property-target vars for spin/fill', () => {
+	it( 'Wave E: emits the @property target var for fill', () => {
 		const { vars } = buildElementStyle( {
-			'animation.targetAngle': { default: { base: '360deg' } },
 			'animation.target':      { default: { base: '0.75' } },
 		} );
-		expect( vars[ '--bl-ang' ] ).toBe( '360deg' );
 		expect( vars[ '--bl-p-target' ] ).toBe( '0.75' );
-	} );
-
-	it( 'Wave F: decoration builder emits a scoped ::after body with multiple props', () => {
-		const r = buildElementStyle(
-			{
-				'decoration.after': {
-					default: {
-						base: {
-							content: '""',
-							width: '40px',
-							height: '40px',
-							borderRadius: '50%',
-							background: '#000',
-							inset: { top: 'auto', right: '-12px', bottom: '-12px', left: 'auto' },
-							blur: '12px',
-						},
-					},
-				},
-			},
-			{ uniqueId: 'orb1' }
-		);
-		expect( r.scopedCss ).toEqual( [
-			'.bl-orb1::after{content:"";position:absolute;background:#000;width:40px;height:40px;top:auto;right:-12px;bottom:-12px;left:auto;border-radius:50%;filter:blur(12px)}',
-		] );
-	} );
-
-	it( 'decoration builder emits the extended box surface in contract order', () => {
-		const r = buildElementStyle(
-			{
-				'decoration.after': {
-					default: {
-						base: {
-							content: '""',
-							boxShadow: '0 4px 6px #000',
-							backdropFilter: 'blur(8px)',
-							clipPath: 'circle(50%)',
-							transition: 'all .3s',
-							mask: 'linear-gradient(#000,transparent)',
-							backgroundClip: 'text',
-						},
-					},
-				},
-			},
-			{ uniqueId: 'x' }
-		);
-		expect( r.scopedCss ).toEqual( [
-			'.bl-x::after{content:"";position:absolute;box-shadow:0 4px 6px #000;backdrop-filter:blur(8px);clip-path:circle(50%);transition:all .3s;-webkit-mask:linear-gradient(#000,transparent);mask:linear-gradient(#000,transparent);-webkit-background-clip:text;background-clip:text}',
-		] );
-	} );
-
-	it( 'decoration content: a lone quote is escaped, not broken out', () => {
-		const r = buildElementStyle(
-			{ 'decoration.before': { default: { base: { content: '"' } } } },
-			{ uniqueId: 'x' }
-		);
-		expect( r.scopedCss ).toEqual( [ '.bl-x::before{content:"\\"";position:absolute}' ] );
-	} );
-
-	it( 'decoration content: plain text is quoted; keywords/functions pass through', () => {
-		const plain = buildElementStyle(
-			{ 'decoration.after': { default: { base: { content: 'Get started' } } } },
-			{ uniqueId: 'x' }
-		);
-		expect( plain.scopedCss ).toEqual( [ '.bl-x::after{content:"Get started";position:absolute}' ] );
-
-		const fn = buildElementStyle(
-			{ 'decoration.after': { default: { base: { content: 'counter(item)' } } } },
-			{ uniqueId: 'x' }
-		);
-		expect( fn.scopedCss ).toEqual( [ '.bl-x::after{content:counter(item);position:absolute}' ] );
-	} );
-
-	it( 'Wave F: decoration with enabled=false emits nothing', () => {
-		const r = buildElementStyle(
-			{
-				'decoration.before': { default: { base: { enabled: false } } },
-			},
-			{ uniqueId: 'orb1' }
-		);
-		expect( r.scopedCss ?? [] ).toEqual( [] );
 	} );
 
 	it( 'Wave F: emits counter-reset/counter-increment vars', () => {

@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/input",
+	"title": "Input",
+	"category": "blicks",
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M5 6H19A3 3 0 0 1 22 9V15A3 3 0 0 1 19 18H5A3 3 0 0 1 2 15V9A3 3 0 0 1 5 6ZM5 8A1 1 0 0 0 4 9V15A1 1 0 0 0 5 16H19A1 1 0 0 0 20 15V9A1 1 0 0 0 19 8ZM11 11H15A1 1 0 0 1 16 12V12A1 1 0 0 1 15 13H11A1 1 0 0 1 10 12V12A1 1 0 0 1 11 11Z\" fill=\"currentColor\"/><path d=\"M7 9.5H7A1 1 0 0 1 8 10.5V13.5A1 1 0 0 1 7 14.5H7A1 1 0 0 1 6 13.5V10.5A1 1 0 0 1 7 9.5Z\" fill=\"#002bff\"/></svg>",
+	"description": "The control of a Field: the box, list or choices a visitor fills in, styled on its own.",
+	"textdomain": "blicks",
+	"parent": [ "blicks/field" ],
+	"usesContext": [
+		"blicks/fieldUid", "blicks/fieldType", "blicks/fieldName", "blicks/fieldLabel", "blicks/fieldRequired",
+		"blicks/fieldPlaceholder", "blicks/fieldOptions", "blicks/fieldMultiple",
+		"blicks/fieldMin", "blicks/fieldMax", "blicks/fieldStep", "blicks/fieldDefault",
+		"blicks/fieldMaxLength", "blicks/fieldOptionNotes", "blicks/fieldAppearance", "blicks/fieldPrefix", "blicks/fieldSuffix"
+	],
+	"supports": {
+		"html": false,
+		"className": false,
+		"reusable": false,
+		"blicks": {
+			"controls": [
+				"spacing.*", "typography.*", "colors.*", "border.*", "effects.*", "animation.*", "background.*",
+				"layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight",
+				"flexChild.*"
+			],
+			"states": [ "default", "hover", "focus" ]
+		}
+	},
+	"attributes": {
+		"uniqueId": { "type": "string" },
+		"blicks":   { "type": "object", "default": {} },
+		"icon":     { "type": "string", "default": "" }
+	},
+	"render": "file:./render.php",
+	"editorScript": "blicks-editor",
+	"style": "file:./index.css"
+}

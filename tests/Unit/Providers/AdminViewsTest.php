@@ -35,7 +35,7 @@ final class AdminViewsTest extends TestCase
     {
         $views = AdminServiceProvider::views();
 
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings'], array_keys($views));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys($views));
 
         foreach ($views as $slug => $page) {
             $this->assertIsString($page['view'], "{$slug} needs a view id");
@@ -63,7 +63,7 @@ final class AdminViewsTest extends TestCase
 
         // Order is menu order. A registered page goes after the built-ins, never above Overview.
         $this->assertSame(
-            ['blicks', 'blicks-design', 'blicks-settings', 'blicks-pro-license'],
+            ['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries', 'blicks-pro-license'],
             array_keys($views)
         );
     }
@@ -116,7 +116,7 @@ final class AdminViewsTest extends TestCase
     public function test_a_callback_cannot_remove_or_replace_a_built_in_page(): void
     {
         $this->filter(static fn (): array => []);
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings'], array_keys(AdminServiceProvider::views()));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys(AdminServiceProvider::views()));
 
         blicks_test_reset_filters();
         $this->filter(static function (array $views): array {
@@ -137,7 +137,7 @@ final class AdminViewsTest extends TestCase
     {
         $this->filter(static fn (): string => 'nonsense');
 
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings'], array_keys(AdminServiceProvider::views()));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys(AdminServiceProvider::views()));
     }
 
     /** @return array<string, array{mixed}> */
@@ -164,7 +164,7 @@ final class AdminViewsTest extends TestCase
         $views = AdminServiceProvider::views();
 
         $this->assertArrayNotHasKey('blicks-pro-license', $views);
-        $this->assertCount(3, $views, 'the built-ins must survive a malformed entry');
+        $this->assertCount(5, $views, 'the built-ins must survive a malformed entry');
     }
 
     public function test_a_page_with_an_unusable_slug_is_dropped(): void
@@ -174,6 +174,6 @@ final class AdminViewsTest extends TestCase
             return $views;
         });
 
-        $this->assertCount(3, AdminServiceProvider::views());
+        $this->assertCount(5, AdminServiceProvider::views());
     }
 }

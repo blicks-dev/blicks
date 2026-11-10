@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blicks/list-item",
+	"title": "List item",
+	"category": "blicks",
+	"parent": [ "blicks/list" ],
+	"icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M5 6H19A3 3 0 0 1 22 9V15A3 3 0 0 1 19 18H5A3 3 0 0 1 2 15V9A3 3 0 0 1 5 6ZM5 8A1 1 0 0 0 4 9V15A1 1 0 0 0 5 16H19A1 1 0 0 0 20 15V9A1 1 0 0 0 19 8ZM12 11H17A1 1 0 0 1 18 12V12A1 1 0 0 1 17 13H12A1 1 0 0 1 11 12V12A1 1 0 0 1 12 11Z\" fill=\"currentColor\"/><path d=\"M5.5 12A2 2 0 1 1 9.5 12A2 2 0 1 1 5.5 12Z\" fill=\"#002bff\"/></svg>",
+	"description": "One item of a List: plain, done, highlighted or left out, with its own marker, and able to hold an inner list.",
+	"textdomain": "blicks",
+	"supports": {
+		"html": false,
+		"className": false,
+		"splitting": true,
+		"blicks": {
+			"controls": [ "gridChild.*", "typography.*", "colors.text", "colors.background", "spacing.*", "border.*", "effects.*", "animation.*",
+				"layout.width", "layout.minWidth", "layout.maxWidth", "layout.height", "layout.minHeight", "layout.maxHeight", "flexChild.*", "background.*" ],
+			"states": [ "default", "group", "groupActive", "hover", "focus", "active", "play", "on", "groupOn", "reduced" ]
+		}
+	},
+	"attributes": {
+		"uniqueId":     { "type": "string" },
+		"blicks":       { "type": "object", "default": {} },
+		"content":      { "type": "string", "default": "", "role": "content", "bindable": { "selector": ":root" } },
+		"desc":         { "type": "string", "default": "" },
+		"state":        { "type": "string", "default": "" },
+		"icon":         { "type": "string", "default": "" },
+		"markerColour": { "type": "string", "default": "" }
+	},
+	"usesContext": [ "blicks/listContent" ],
+	"editorScript": "blicks-editor"
+}

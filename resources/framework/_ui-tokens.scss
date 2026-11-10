@@ -103,6 +103,33 @@
 	--bl-ui-code-prop: #8fb0ff; /* 8.9 */
 	--bl-ui-code-val: #9fe0b0; /* 12.4 */
 
+	/* ---------- dark chrome ----------
+	   A second full surface family, for Blicks' own chrome when it goes dark: the
+	   Scene editor today, and whatever a future dark mode re-points onto it.
+
+	   Separate from the `code-*` ramp above, which is deliberately narrow — that is
+	   ONE panel showing syntax-highlighted output, and its ink names (`-prop`,
+	   `-val`) mean nothing outside it. Reusing it for a whole editor surface would
+	   put a general chrome on tokens named for a special case, which is how the two
+	   light palettes drifted in the first place.
+
+	   Three grounds, darkest first, so a panel can sit on the canvas and a control
+	   can sit on the panel. Ink is measured against `--bl-ui-dark-canvas`, the
+	   darkest of them, for the same reason the light ramp is measured against the
+	   sunk surface: a token that only passes on the lightest ground fails the
+	   moment it is used on the darkest.
+
+	   Measured worst case: 13.9 · 7.8 · 4.7. As with the light ramp the last step
+	   carries the AA floor for small text and MUST NOT be darkened. */
+	--bl-ui-dark-canvas: #18181b;
+	--bl-ui-dark-surface: #232326;
+	--bl-ui-dark-raised: #2f2f33;
+	--bl-ui-dark-fg: #ededf0; /* 13.9 */
+	--bl-ui-dark-fg-muted: #a8a8b0; /* 7.8 */
+	--bl-ui-dark-fg-subtle: #8a8a93; /* 4.7 — smallest thing still made of words */
+	--bl-ui-dark-border: #35353a;
+	--bl-ui-dark-border-strong: #4a4a52;
+
 	/* ---------- transparency checkerboard ----------
 	   The square painted behind any swatch so a translucent token reads as
 	   translucent. There were four of these in three different greys (#eef1f5,
@@ -118,6 +145,27 @@
 	--bl-ui-navy: #1a194c;
 	--bl-ui-acc-magenta: #e31957;
 	--bl-ui-acc-violet: #a440ce;
+
+	/* ---------- motion ----------
+	   Blicks' own chrome had no motion vocabulary at all: every state change was instant, which
+	   reads as cheap next to any tool people compose in. Three durations and two curves, so a
+	   hover, a panel and a reveal are recognisably the same system rather than three guesses.
+
+	   `--bl-ui-ease` is the workhorse: fast out of the gate, long settle. It suits state changes
+	   an author triggers and is waiting on. `--bl-ui-ease-out` is for things LEAVING, where the
+	   eye does not need to track the end of the curve.
+
+	   NEVER transition a property a pointer is currently driving. A drag that animates toward
+	   each frame is animating toward positions the pointer has already left, which is lag wearing
+	   a nicer coat. Motion belongs on state, not on direct manipulation.
+
+	   Consumers must wrap these in `@media (prefers-reduced-motion: no-preference)`; the tokens
+	   themselves carry no such guard because a duration cannot. */
+	--bl-ui-dur-fast: 120ms; /* hover, focus, small affordances */
+	--bl-ui-dur-base: 200ms; /* panels, selection, reveals */
+	--bl-ui-dur-slow: 320ms; /* full-surface entrances */
+	--bl-ui-ease: cubic-bezier(0.2, 0, 0, 1);
+	--bl-ui-ease-out: cubic-bezier(0.2, 0, 0.4, 1);
 
 	/* ---------- type ----------
 	   Neither webfont is bundled or enqueued, so both stacks resolve to system
@@ -209,5 +257,125 @@
 	   outside the scoped root, and a `var(--x, 2px)` fallback would quietly round
 	   43 rules the moment the wrapper class is forgotten. */
 	--bl-ui-radius: 0;
-	--bl-ui-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ============================================================
+   Blueprint — the v2 inspector's skin (`.bl-ins2`).
+
+   The values of the Box/Buttons/Icon inspector designs: the brand
+   ultramarine as the one accent on wp-admin's neutral ink, 4/6px square
+   corners, outlined fields, a selected state that is a tint plus a 2px
+   underline rather than a fill. Named for their role, not their colour,
+   so a block's panel reads `--bl-ui-selected`, never `#edf0ff`.
+
+   Fonts are never fetched: "Instrument Sans" is used when the system has
+   it and otherwise falls back to wp-admin's own stack — a plugin may not
+   load remote assets.
+   ============================================================ */
+@mixin blueprint {
+	--bl-ui-primary: #002bff;
+	--bl-ui-on-primary: #fff;
+	--bl-ui-selected: #edf0ff;
+	--bl-ui-on-selected: #0020c2;
+	--bl-ui-rail: #fafafa;
+	--bl-ui-sunk: #f6f7f9;
+	--bl-ui-ink: #1e1e1e;
+	--bl-ui-ink-2: #3c3c3c;
+	--bl-ui-ink-3: #6b6b6b;
+	--bl-ui-outline: #cfd1d6;
+	--bl-ui-hair: #e6e7ea;
+	--bl-ui-scrim: rgb(30 30 30 / 6%);
+	--bl-ui-warn-ink: #b3261e;
+	--bl-ui-r: 4px;
+	--bl-ui-rl: 6px;
+	--bl-ui-bp-ease: cubic-bezier(0.56, 0, 0.03, 0.99);
+	--bl-ui-bp-fast: 200ms;
+	--bl-ui-font-ui: "Instrument Sans", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+	--bl-ui-font-code: "JetBrains Mono", ui-monospace, menlo, monospace;
+}
+
+/* ============================================================
+   Blicks UI — the rounded, borderless system the Studio design panel
+   is drawn in (docs: the Blicks UI design system, tokens.json). Values
+   are copied from tokens.json one for one; change them there first.
+
+   Prefixed `--bui-` rather than the system's bare names (`--ink`,
+   `--paper`), because the panel shares a sidebar with `.bl-ins2` and
+   core's components, which already use short local names.
+
+   Controls are fills, never outlines; `brand` marks only what is set,
+   selected or focused; `ink-3` is the floor for text and must not be
+   lightened. Dark is a full theme: `bui-dark` replaces the colours and
+   shadows only, and is applied by an explicit `[data-theme="dark"]`
+   while the Studio shell around the panel is light-only.
+   ============================================================ */
+@mixin bui {
+	--bui-page: #f3f4f8;
+	--bui-paper: #fff;
+	--bui-plate: #f4f6fb;
+	--bui-field: #eef1f6;
+	--bui-field-2: #e4e8f0;
+	--bui-dot: #cfd4df;
+	--bui-ink: #1e1e1e;
+	--bui-ink-2: #4a4f58;
+	--bui-ink-3: #5f6571;
+	--bui-brand: #002bff;
+	--bui-on-brand: #fff;
+	--bui-brand-tint: #e8edff;
+	--bui-warn: #b4410a;
+	--bui-danger: #be123c;
+	--bui-success: #11692f;
+	--bui-shadow-thumb: 0 1px 3px rgb(16 24 40 / 14%), 0 0 0 0.5px rgb(16 24 40 / 6%);
+	--bui-shadow-card: 0 1px 2px rgb(16 24 40 / 5%);
+	--bui-shadow-pop: 0 2px 6px rgb(16 24 40 / 8%), 0 16px 36px -12px rgb(16 24 40 / 30%);
+	--bui-shadow-window: 0 1px 2px rgb(16 24 40 / 6%), 0 12px 40px -16px rgb(16 24 40 / 22%);
+	--bui-shadow-focus: 0 0 0 2px #002bff;
+	--bui-space-2: 2px;
+	--bui-space-4: 4px;
+	--bui-space-6: 6px;
+	--bui-space-8: 8px;
+	--bui-space-10: 10px;
+	--bui-space-12: 12px;
+	--bui-space-16: 16px;
+	--bui-space-24: 24px;
+	--bui-radius-xs: 6px;
+	--bui-radius-sm: 7px;
+	--bui-radius-md: 8px;
+	--bui-radius-lg: 10px;
+	--bui-radius-xl: 12px;
+	--bui-radius-2xl: 14px;
+	--bui-radius-pill: 999px;
+	--bui-radius-round: 50%;
+	--bui-field-h: 32px;
+	--bui-field-h-sm: 28px;
+	--bui-icon: 18px;
+	--bui-icon-sm: 16px;
+	--bui-sidebar: 280px;
+	--bui-panel: 340px;
+	--bui-font-sans: "Instrument Sans", -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+	--bui-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", menlo, monospace;
+	--bui-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@mixin bui-dark {
+	--bui-page: #111317;
+	--bui-paper: #1d2027;
+	--bui-plate: #16181d;
+	--bui-field: #282c35;
+	--bui-field-2: #323743;
+	--bui-dot: #2c313b;
+	--bui-ink: #ecedf0;
+	--bui-ink-2: #b9bec8;
+	--bui-ink-3: #a3a9b4;
+	--bui-brand: #b3d5ff;
+	--bui-on-brand: #0b1430;
+	--bui-brand-tint: #1d2a4a;
+	--bui-warn: #f0a46a;
+	--bui-danger: #ff8fa3;
+	--bui-success: #6fd3a0;
+	--bui-shadow-thumb: 0 1px 3px rgb(0 0 0 / 45%), 0 0 0 0.5px rgb(255 255 255 / 6%);
+	--bui-shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
+	--bui-shadow-pop: 0 2px 6px rgb(0 0 0 / 40%), 0 16px 36px -12px rgb(0 0 0 / 70%);
+	--bui-shadow-window: 0 1px 2px rgb(0 0 0 / 30%), 0 12px 40px -16px rgb(0 0 0 / 60%);
+	--bui-shadow-focus: 0 0 0 2px #b3d5ff;
 }

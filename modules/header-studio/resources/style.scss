@@ -1,0 +1,556 @@
+/*
+ * Header Studio: how the header blocks look, on the page and in the editor.
+ *
+ * One markup for every width. On wide screens the menu's list sits in the bar and a mega menu
+ * opens under the row; the drawer, an empty `blicks/dialog` written after the list at render
+ * (BlicksPro\HeaderStudio\Render), stays closed and so is not in the accessibility tree. At the
+ * drawer breakpoint a menu button opens it, and the free `portal` behaviour moves the list in while
+ * it is open. The button shows only once that behaviour runs (`data-bl-portal-ready`); without it
+ * the list stays in place, stacked. The breakpoint is the design system's tablet one (782px, as runtime.scss and
+ * breakpoints.json) unless the header picks phones only (600px), every screen or never.
+ *
+ * A panel is open when its menu item's button says `aria-expanded="true"`; the `disclosure`
+ * behaviour sets that, so the state has one source.
+ *
+ *   --bl-header-max      the width rows and panels line up to: the theme's wide size
+ *   --bl-header-gutter-start / --bl-header-gutter-end
+ *                        the least space at the screen's edges: the theme's root padding, so the
+ *                        header lines up with the page's content
+ *   --bl-header-pad      a row's padding above and below (smaller once shrunk, and in a top bar)
+ */
+
+$tablet: 782px;
+$phone: 600px;
+$ease: cubic-bezier(0.2, 0, 0, 1);
+
+@layer blicks.base {
+	.bl-header {
+		--bl-header-max: var(--wp--style--global--wide-size, var(--blicks-width-container, 1200px));
+		--bl-header-gutter-start: var(--wp--style--root--padding-left, 1.25rem);
+		--bl-header-gutter-end: var(--wp--style--root--padding-right, 1.25rem);
+		--bl-header-pad: 0.625rem;
+
+		position: relative;
+		z-index: 50;
+		display: block;
+		background: var(--blicks-color-background, #fff);
+		color: var(--blicks-color-foreground, inherit);
+	}
+
+	.bl-header--sticky {
+		position: sticky;
+		top: var(--wp-admin--admin-bar--height, 0);
+	}
+
+	.bl-header--over {
+		position: absolute;
+		inset-inline: 0;
+		top: 0;
+		background: transparent;
+		transition: background-color 0.2s $ease;
+	}
+
+	.bl-header--over.bl-header--sticky {
+		position: fixed;
+		top: var(--wp-admin--admin-bar--height, 0);
+	}
+
+	.bl-header--over[data-bl-scrolled] {
+		background: var(--blicks-color-background, #fff);
+	}
+
+	/* Hides on the way down (the `sticky-shrink` behaviour says when), and stays while focus is in it
+	   or its drawer is open. Off for anyone who asks for less motion. */
+	@media (prefers-reduced-motion: no-preference) {
+		.bl-header--hide.bl-header--sticky {
+			transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+		}
+
+		.bl-header--hide.bl-header--sticky[data-bl-hidden]:not(:focus-within, :has(.bl-nav__drawer[open])) {
+			transform: translateY(calc(-100% - var(--wp-admin--admin-bar--height, 0px)));
+		}
+	}
+
+	.bl-header--shrink[data-bl-scrolled] {
+		--bl-header-pad: 0.25rem;
+
+		box-shadow: 0 1px 0 rgb(16 24 40 / 8%), 0 8px 24px -16px rgb(16 24 40 / 30%);
+	}
+
+	/* A row: full width, its three areas lined up to the content width. The middle column never
+	   shrinks below the menu, so a long menu pushes rather than overlaps. */
+	.bl-header-row {
+		position: relative;
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		column-gap: var(--blicks-spacing-md, 1rem);
+		row-gap: var(--blicks-spacing-xs, 0.5rem);
+		min-height: 44px;
+		padding-block: var(--bl-header-pad);
+		padding-inline-start: max(var(--bl-header-gutter-start), (100% - var(--bl-header-max)) / 2);
+		padding-inline-end: max(var(--bl-header-gutter-end), (100% - var(--bl-header-max)) / 2);
+		transition: padding-block 0.2s $ease;
+	}
+
+	/* A row above the main one is a thin top bar. */
+	.bl-header-row:not(:last-child) {
+		--bl-header-pad: 0.375rem;
+
+		min-height: 0;
+		font-size: 0.875em;
+	}
+
+	.bl-header-row--centred {
+		grid-template-columns: 1fr auto 1fr;
+	}
+
+	.bl-header-row--stacked {
+		grid-template-columns: minmax(0, 1fr);
+		justify-items: center;
+	}
+
+	.bl-header-area {
+		display: flex;
+		align-items: center;
+		gap: var(--blicks-spacing-sm, 0.75rem);
+	}
+
+	.bl-header-area--centre {
+		justify-content: center;
+	}
+
+	.bl-header-area--end {
+		justify-content: flex-end;
+	}
+
+	.bl-header-row--stacked .bl-header-area {
+		justify-content: center;
+	}
+
+	/* The menu. */
+	.bl-nav__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--blicks-spacing-2xs, 0.25rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bl-nav-item {
+		list-style: none;
+	}
+
+	.bl-nav-item__link,
+	.bl-nav-item__toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375em;
+		min-height: 44px;
+		box-sizing: border-box;
+		padding: 0 0.75rem;
+		border: 0;
+		border-radius: var(--blicks-radius-md, 0.5rem);
+		background: none;
+		color: inherit;
+		font: inherit;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.bl-nav-item__link:is(:hover, :focus-visible),
+	.bl-nav-item__toggle:is(:hover, :focus-visible, [aria-expanded="true"]) {
+		background: var(--blicks-color-muted, rgb(0 0 0 / 5%));
+	}
+
+	/* A chevron, drawn: down in the bar, turned when open. */
+	.bl-nav-item.has-panel > .bl-nav-item__toggle::after {
+		content: "";
+		width: 0.4em;
+		height: 0.4em;
+		margin-block-start: -0.2em;
+		border-inline-end: 2px solid currentcolor;
+		border-block-end: 2px solid currentcolor;
+		rotate: 45deg;
+		transition: rotate 0.2s $ease;
+	}
+
+	.bl-nav-item__toggle[aria-expanded="true"]::after {
+		rotate: 225deg;
+		margin-block-start: 0.2em;
+	}
+
+	/* A mega menu: under the row, lined up to the content width. */
+	.bl-mega-panel {
+		position: absolute;
+		top: 100%;
+		inset-inline: 0;
+		z-index: 1;
+		box-sizing: border-box;
+		width: min(var(--bl-header-max), 100% - var(--bl-header-gutter-start) - var(--bl-header-gutter-end));
+		margin-inline: auto;
+		padding: var(--blicks-spacing-lg, 1.5rem);
+		border-radius: var(--blicks-radius-lg, 0.75rem);
+		background: var(--blicks-color-background, #fff);
+		color: var(--blicks-color-foreground, inherit);
+		box-shadow: 0 24px 60px -24px rgb(16 24 40 / 35%), 0 0 0 1px rgb(16 24 40 / 6%);
+		opacity: 1;
+		translate: 0 0;
+		transition: opacity 0.18s $ease, translate 0.18s $ease, display 0.18s allow-discrete, overlay 0.18s allow-discrete;
+
+		@starting-style {
+			opacity: 0;
+		}
+	}
+
+	.bl-nav-item__toggle[aria-expanded="false"] ~ .bl-mega-panel {
+		display: none;
+		opacity: 0;
+	}
+
+	.bl-mega-panel--m-slide {
+		@starting-style {
+			translate: 0 -8px;
+		}
+	}
+
+	.bl-mega-panel--m-none {
+		transition: none;
+	}
+
+	.bl-mega-panel--w-full {
+		width: 100%;
+		border-radius: 0;
+	}
+
+	.bl-nav-item:has(> .bl-mega-panel--w-content) {
+		position: relative;
+	}
+
+	.bl-mega-panel--w-content {
+		inset-inline: 0 auto;
+		width: max-content;
+		max-width: min(var(--bl-header-max), 100vw - var(--bl-header-gutter-start) - var(--bl-header-gutter-end));
+		margin-inline: 0;
+	}
+
+	/* Written for the phone drawer's next screen; nothing to show in the bar. */
+	.bl-mega-panel__back,
+	.bl-mega-panel__title {
+		display: none;
+	}
+
+	.bl-nav__toggle {
+		display: none;
+	}
+
+	/* The menu button: three bars, drawn. */
+	.bl-nav__bars,
+	.bl-nav__bars::before,
+	.bl-nav__bars::after {
+		display: block;
+		width: 20px;
+		height: 2px;
+		border-radius: 2px;
+		background: currentcolor;
+	}
+
+	.bl-nav__bars {
+		position: relative;
+	}
+
+	.bl-nav__bars::before,
+	.bl-nav__bars::after {
+		content: "";
+		position: absolute;
+		inset-inline-start: 0;
+	}
+
+	.bl-nav__bars::before {
+		top: -6px;
+	}
+
+	.bl-nav__bars::after {
+		top: 6px;
+	}
+
+	/*
+	 * The drawer: the menu button shows once the list can move, the list is a column in a
+	 * `blicks/dialog` drawer. Until then (no script) the list stays where it is, as a column.
+	 */
+	@mixin drawer {
+		/* The bar: the logo first, the actions after it, the menu button last. */
+		.bl-header-row {
+			display: flex;
+			flex-wrap: nowrap;
+			align-items: center;
+		}
+
+		/* A long site title wraps inside its area rather than pushing the button off the bar. */
+		.bl-header-area--start {
+			min-width: 0;
+			overflow-wrap: anywhere;
+		}
+
+		.bl-header-area:empty {
+			display: none;
+		}
+
+		.bl-header-area:has(> .bl-nav) {
+			order: 2;
+		}
+
+		.bl-header-area--start:not(:has(> .bl-nav)),
+		.bl-header-row--centred .bl-header-area--centre {
+			margin-inline-end: auto;
+		}
+
+		.bl-nav > .bl-nav__list {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.bl-nav > .bl-nav__list[data-bl-portal-ready] {
+			display: none;
+		}
+
+		.bl-nav:has(.bl-nav__list[data-bl-portal-ready]) > .bl-nav__toggle {
+			display: inline-grid;
+			place-items: center;
+			width: 44px;
+			height: 44px;
+			padding: 0;
+			border: 0;
+			border-radius: var(--blicks-radius-md, 0.5rem);
+			background: none;
+			color: inherit;
+			cursor: pointer;
+		}
+
+		.bl-nav__drawer .bl-nav__list {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0;
+			margin-block-start: 2.5rem;
+		}
+
+		.bl-nav__drawer .bl-nav-item__link,
+		.bl-nav__drawer .bl-nav-item__toggle {
+			justify-content: space-between;
+			width: 100%;
+			min-height: 48px;
+			padding-inline: 0.5rem;
+			font-size: 1.0625rem;
+		}
+
+		.bl-nav__drawer .bl-mega-panel {
+			position: static;
+			width: auto;
+			margin: 0;
+			padding: 0.25rem 0 0.75rem 0.5rem;
+			border-radius: 0;
+			box-shadow: none;
+			background: transparent;
+			translate: none;
+		}
+
+		/* Columns become sections, in order; a block set to Last on phones still goes last. */
+		.bl-nav__drawer .bl-mega-panel .bl-cols {
+			grid-template-columns: minmax(0, 1fr) !important;
+		}
+
+		/* Descriptions drop and targets grow: the label is what a phone menu needs (prototype). */
+		.bl-nav__drawer .bl-menu-link__desc {
+			display: none;
+		}
+
+		.bl-nav__drawer .bl-menu-link {
+			padding-inline: 0;
+		}
+
+		/* The close button stays above a next screen, so it is always a way out. */
+		.bl-nav__drawer > .bl-dialog__close {
+			z-index: 4;
+		}
+
+		/* Next screen (the default): the panel covers the drawer, with Back and its name on top. */
+		&:not(.bl-header--accordion) .bl-nav__drawer .bl-mega-panel {
+			position: absolute;
+			inset: 0;
+			z-index: 2;
+			overflow: auto;
+			padding: var(--blicks-spacing-lg, 1.5rem);
+			background: var(--blicks-color-background, #fff);
+		}
+
+		&:not(.bl-header--accordion) .bl-nav__drawer .bl-nav-item__toggle::after {
+			rotate: -45deg;
+			margin-block-start: 0;
+		}
+
+		&:not(.bl-header--accordion) .bl-nav__drawer :is(.bl-mega-panel__back, .bl-mega-panel__title) {
+			display: flex;
+		}
+
+		.bl-mega-panel__back {
+			align-items: center;
+			gap: 0.375rem;
+			min-height: 44px;
+			padding: 0;
+			border: 0;
+			background: none;
+			color: inherit;
+			font: inherit;
+			cursor: pointer;
+		}
+
+		.bl-mega-panel__back::before {
+			content: "";
+			width: 0.45em;
+			height: 0.45em;
+			border-inline-start: 2px solid currentcolor;
+			border-block-end: 2px solid currentcolor;
+			rotate: 45deg;
+		}
+
+		.bl-mega-panel__title {
+			margin: 0.25rem 0 0.75rem;
+			font-size: 1.375rem;
+			font-weight: 700;
+		}
+	}
+
+	@media (width <= $tablet) {
+		.bl-header:not(.bl-header--drawer-mobile, .bl-header--drawer-never) {
+			@include drawer;
+		}
+	}
+
+	@media (width <= $phone) {
+		.bl-header--drawer-mobile {
+			@include drawer;
+		}
+	}
+
+	.bl-header--drawer-always {
+		@include drawer;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bl-mega-panel,
+		.bl-header--over,
+		.bl-header-row {
+			transition: none;
+		}
+	}
+
+	/* Link list: the same rows as Menu link. */
+	.bl-link-list {
+		display: grid;
+		gap: 0.125rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/*
+	 * In the editor: a mega menu shows while its item, or anything in it, is selected. The button
+	 * is a plain span there, so the aria-expanded rule above never hides it.
+	 */
+	.editor-styles-wrapper .bl-nav-item.has-panel:not(.is-selected, .has-child-selected) > .bl-mega-panel {
+		display: none;
+	}
+
+	.bl-link-list__note {
+		margin: 0;
+		opacity: 0.7;
+		font-size: 0.875em;
+	}
+}
+
+/*
+ * Outside the layer on purpose. A theme may colour links for the header's region (Twenty Twenty-Two
+ * paints it black and its links white), with an unlayered rule that beats anything layered. A mega
+ * menu and the drawer have their own background, so their links take their own colour; buttons
+ * keep theirs.
+ */
+:is(.bl-mega-panel, .bl-nav__drawer) a:not([class*="bl-button"]) {
+	color: inherit;
+}
+
+/* The drawer's next-screen chevron points the way the screen moves: left in right-to-left text. */
+.bl-nav__drawer:dir(rtl) .bl-nav-item__toggle::after {
+	scale: -1 1;
+}
+
+/* The template part around a sticky header is exactly its height, so the part is what sticks
+   (BlicksPro\HeaderStudio\Render::part()); the header inside sits still in it. */
+.bl-header-part--sticky {
+	position: sticky;
+	top: var(--wp-admin--admin-bar--height, 0);
+	z-index: 50;
+}
+
+.bl-header-part--sticky > .bl-header--sticky:not(.bl-header--over) {
+	position: relative;
+	top: auto;
+}
+
+/*
+ * Mega menu column headings: a small label over the links, lined up with their text. Outside the
+ * layer so a theme's element styles (Twenty Twenty-Two's large serif h3) do not take over, and each
+ * one stands down when the author set that property (its engine class).
+ */
+:where(.bl-mega-panel) .bl-heading {
+	margin: 0 0 0.25rem;
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-pad) {
+	padding-inline: var(--blicks-spacing-xs, 0.5rem);
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-fs) {
+	font-size: 0.75rem;
+	line-height: 1.4;
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-fwt) {
+	font-weight: 600;
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-tt) {
+	text-transform: uppercase;
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-ls) {
+	letter-spacing: 0.06em;
+}
+
+:where(.bl-mega-panel) .bl-heading:not(.bl-tx) {
+	color: color-mix(in srgb, currentcolor 60%, transparent);
+}
+
+:where(.bl-nav__drawer) .bl-mega-panel .bl-heading:not(.bl-pad) {
+	padding-inline: 0;
+}
+
+/*
+ * In the editor every block is `position: relative`. A mega menu is placed against its header row,
+ * as on the page, so the blocks between them must not be the box it is placed in.
+ */
+.bl-header :is(.bl-header-area, .bl-nav, .bl-nav-item).block-editor-block-list__block,
+.bl-header .bl-nav__list.block-editor-block-list__layout {
+	position: static;
+}
+
+.bl-header .bl-mega-panel.block-editor-block-list__block {
+	position: absolute;
+}
+
+/* A theme's block spacing (margins between blocks in its layouts) has no place in a bar: an element
+   sits on the row's centre line. An author's own margin (its engine class) still applies. */
+.bl-header-area > :not(.bl-mar) {
+	margin-block: 0;
+}

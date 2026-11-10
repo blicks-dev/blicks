@@ -81,10 +81,13 @@ export function cssToBlicks( declarations: Array< { property: string; value: str
 	return { blicks, controlled, custom, autoMapped, fallback };
 }
 
-/** Map an element tag + its declared `display` to a Blicks block name (+ seed attributes). */
+/**
+ * Map an element tag to a Blicks block name (+ seed attributes). The declarations no longer pick
+ * the block — every container is a Box, laid out by its imported `display` — but callers pass them.
+ */
 export function pickBlock(
 	tag: string,
-	declarations: Array< { property: string; value: string } >
+	_declarations: Array< { property: string; value: string } >
 ): { name: string; extra?: Record< string, any > } {
 	const t = tag.toLowerCase();
 	if ( /^h[1-6]$/.test( t ) ) {
@@ -105,18 +108,13 @@ export function pickBlock(
 		return { name: 'blicks/image' };
 	}
 	if ( t === 'hr' ) {
-		return { name: 'blicks/divider' };
+		return { name: 'blicks/box', extra: { kind: 'divider' } };
 	}
 	if ( t === 'button' ) {
 		return { name: 'blicks/button' };
 	}
-	const display = ( declarations.find( ( d ) => d.property.toLowerCase() === 'display' )?.value ?? '' ).toLowerCase();
-	if ( display.includes( 'grid' ) ) {
-		return { name: 'blicks/grid' };
-	}
-	if ( display.includes( 'flex' ) ) {
-		return { name: 'blicks/stack' };
-	}
+	// Flex and grid containers are Boxes too: the `display` declaration comes over into the style
+	// tree like every other one, and that is what lays the children out.
 	return { name: 'blicks/box' };
 }
 

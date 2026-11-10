@@ -29,7 +29,7 @@ final class TypeRoleProjection {
 	 * @return array<string, array<string, string>>
 	 */
 	public static function current(): array {
-		$styles = function_exists( 'wp_get_global_styles' ) ? wp_get_global_styles() : [];
+		$styles = wp_get_global_styles();
 		$settings = ThemeProjection::currentSettings();
 
 		return self::fromStylesAndSettings( is_array( $styles ) ? $styles : [], $settings );

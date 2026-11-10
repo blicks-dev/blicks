@@ -54,7 +54,7 @@ block CSS consumes.
 ## Editing roles
 
 Roles are edited in **Blicks → Design System ▸ Typography**, alongside the font-size scale. Each
-role shows Size, Weight, Line height, Tracking, Transform, and Family, with a live specimen.
+role sets size, weight, line height, letter spacing, font and letter case, previewed live.
 
 Reads are handled by `TypeRoleProjection`, writes by `GlobalStylesWriter`. Both walk the same
 descriptor table (`TypeRoles::SLOTS`), which keeps round-trip parity structural rather than
@@ -68,7 +68,7 @@ native roles write to the slot WordPress itself renders.
 
 <Info>
 Because native roles round-trip through `theme.json`, editing `h1`–`h6`, `body`, or `caption` with
-**Global Styles sync** enabled changes typography for the whole site, not only Blicks blocks. That
+**Sync with Global Styles** on changes typography for the whole site, not only Blicks blocks. That
 is intentional: the theme stays the source of truth.
 </Info>
 
@@ -79,6 +79,6 @@ is intentional: the theme stays the source of truth.
 		The token categories and CSS variable tiers.
 	</Card>
 	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
-		Where to edit roles, tokens, themes, and animations.
+		Where to edit roles, tokens, palettes and animations.
 	</Card>
 </CardGroup>

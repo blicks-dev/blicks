@@ -1,0 +1,171 @@
+---
+title: "Open content in a dialog"
+description: "Show a size guide, an offer, a menu or a Loop item's details in a modal, a drawer, a bottom sheet or a full screen, opened by a Button or a link."
+---
+
+The **Dialog** block holds content that stays hidden until something opens it: a size guide, a
+sign-up, a confirmation, a filter drawer, a product's details. It is the browser's own `<dialog>`,
+so Esc, focus and the page behind it behave the way visitors and screen readers expect.
+
+In the editor a dialog is a card in the post with **Edit**, so the blocks around it stay where you
+put them. **Edit** opens it in place; **Done** folds it back. On the page it is closed until opened,
+wherever it sits in the post.
+
+## Add one
+
+<Steps>
+	<Step title="Insert a Dialog">
+		It starts with a heading and a line of text. Give it a **Name** in Settings: the name is how
+		Buttons list it, and sets its **Address** (`size-guide` for a dialog named *Size guide*).
+	</Step>
+	<Step title="Fill it">
+		Add any Blicks blocks except a Section, a Loop or another Dialog. Start with a Heading: it
+		names the dialog for screen readers.
+	</Step>
+	<Step title="Open it from somewhere">
+		Select a Button, set **On click** to **Open dialog** and choose the dialog. Or link any text to
+		`#dialog-size-guide`.
+	</Step>
+</Steps>
+
+## Kinds
+
+<Frame caption="A Dialog's Settings tab.">
+	<img src="/images/inspector/dialog-1-settings.png" alt="The Dialog Settings tab" style={{ maxWidth: '280px' }} />
+</Frame>
+
+| Kind | What it is | Use it for |
+|---|---|---|
+| **Modal** | A card in the middle of the screen, or near the top | Most things: details, sign-ups, confirmations |
+| **Drawer** | The full height of the screen, from the **Start** or **End** side | Menus, filters, a cart |
+| **Sheet** | The full width, rising from the bottom | Short choices, especially on phones |
+| **Full screen** | Covers the page | Galleries, long forms, a phone's menu |
+
+**On phones** changes a modal at phone width: keep the card, or make it a bottom sheet or a full
+screen. Start and End follow the language: in Arabic or Hebrew, an End drawer comes in from the left.
+Sheets and full screens keep clear of a phone's notch and home bar.
+
+Width, padding, fill, corners and shadow are in the **Style** tab, as on a Box. **Backdrop** darkens
+or lightens the page behind, or leaves it clear, and **Blur the page** softens it.
+
+## Opening and closing
+
+A dialog opens from:
+
+- a **Button** with **On click › Open dialog**;
+- any **link** to `#dialog-<address>`;
+- an address ending in `#dialog-<address>`: the page opens with it showing, so you can link to a
+  dialog from an email or another page.
+
+It closes on **Esc**, its close button, a Button inside it set to **On click › Close**
+("No thanks"), and a click outside it when **Click outside closes it** is on. Esc always works, so
+the setting never traps anyone.
+
+When it opens, focus moves into it: to the first field or button, or to the close button (set
+with **Focus on open** under **Meaning and access**). When it closes, focus goes back to whatever
+opened it.
+
+## Blocking the page, or not
+
+With **Blocks the page** on (the default), the page behind can't be used and doesn't scroll until
+the dialog closes. Turn it off for a cookie notice or a corner offer: there is no backdrop, the page
+stays usable, and the dialog sits in the bottom corner (a sheet along the bottom), even inside a
+section a theme animates. Clicks on the page leave it open; Esc, its close button and a Close
+Button inside it close it.
+
+## Open a Loop item in a dialog
+
+A Loop's cards can open a dialog with their own item, instead of leaving the page.
+
+<Steps>
+	<Step title="Turn it on">
+		Select the Loop. Under **Cards open**, turn on **Cards open a dialog**. A dialog is added to
+		the Loop, with a heading showing the item's title.
+	</Step>
+	<Step title="Design the dialog">
+		**Edit the dialog** selects it. Connect its blocks to fields the way you connect a card's: a
+		bigger picture, the full description, a price, a button to the item's page.
+	</Step>
+</Steps>
+
+On the page, a plain click on any link in a card to its item (the picture, the title) opens the
+dialog with that card's item; a link elsewhere, to an author or a tag, goes where it says. Each
+item's dialog is written into the page with the cards, so it opens at once, with no loading.
+Ctrl-click or Cmd-click, a middle click, and visitors without JavaScript still go to the item's own
+page.
+
+The item's blocks join the dialog's own column, so they take its gap and can grow to fill a
+full-screen or fixed-height dialog. Card rules apply to them as well (see the Loop guide).
+
+**Put the item in the address** adds `?item=<key>` while the dialog is open, so the item can be
+shared and **Back** closes it; a page loaded with that address opens that item. The key is the
+item's `slug` field, else its `id`, else its place in the Loop. Turn it on for one Loop per page.
+
+## Motion
+
+A modal rises, scales or fades in (**Opening**); drawers and sheets always slide from their edge.
+When the visitor's device asks for reduced motion, nothing moves: the dialog simply appears.
+
+## Saved dialogs (coming in Blicks Pro)
+
+A Dialog block lives in one post. **Dialog Studio**, planned for Blicks Pro, will add dialogs saved
+once for the whole site: opened by Buttons and links on any page, or by themselves on page load, at
+a scroll depth, when a visitor is about to leave or after a pause, with rules for where and how
+often they show. Blicks Pro has not been released yet. The free plugin has no saved dialogs.
+
+## For developers
+
+Dialogs need little JavaScript. A Button saves the browser's own invoker commands
+(`commandfor="dialog-size-guide" command="show-modal"`) and a dialog that closes on outside clicks
+saves `closedby="any"`, so in browsers that support both a dialog works with no script at all. The
+`dialog` behavior, a small script module on the WordPress Interactivity API, fills in the rest:
+those two where a browser lacks them, links, Loop items, focus and events. It loads only on pages
+that render a dialog.
+
+A companion plugin can open and close one from its own script module:
+
+```js
+import { store } from '@wordpress/interactivity';
+
+store( 'blicks/dialog' ).actions.open( 'dialog-newsletter', { source: 'auto' } );
+store( 'blicks/dialog' ).actions.close( 'dialog-newsletter' );
+```
+
+and hear them open and close:
+
+```js
+document.addEventListener( 'bl:dialog-close', ( e ) => {
+	// e.detail: { id, source: 'click' | 'hash' | 'loop' | 'auto' | 'api', reason: 'button' | 'esc' | 'outside' | 'back' | 'api' }
+} );
+```
+
+When a page opens a dialog it does not hold (a Button aimed at `dialog-newsletter` with no such
+Dialog on the page), the `blicks_dialog_missing` action fires in the footer with the missing ids,
+so a plugin can print dialogs it keeps elsewhere.
+
+Every rendered dialog passes through the `blicks_dialog_markup` filter, after Blicks has written
+its accessible name and the behavior's attributes, so a plugin can add its own attributes:
+
+```php
+add_filter( 'blicks_dialog_markup', function ( $html, $id, $block ) {
+	// $id: 'dialog-newsletter', or '' for a dialog without one.
+	return $html;
+}, 10, 3 );
+```
+
+A filter that returns anything but a string is ignored.
+
+In the editor, the Button's dialog picker lists the dialogs on the page and whatever the
+`blicks.dialog.targets` JavaScript filter adds, so dialogs a plugin keeps elsewhere can be picked:
+
+```js
+wp.hooks.addFilter( 'blicks.dialog.targets', 'acme/popups', ( targets ) => [
+	...targets,
+	{ id: 'dialog-newsletter', title: 'Newsletter popup', modal: true, source: 'saved' },
+] );
+```
+
+<Note>
+Authors and editors who cannot post unfiltered HTML can still save dialogs and their Buttons:
+Blicks allows `closedby`, `commandfor` and `command` on `<dialog>` and `<button>` in post content.
+</Note>

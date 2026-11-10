@@ -54,17 +54,6 @@ final class SettingModelTest extends TestCase
         $this->assertSame('https://legacy.example/', SettingModel::getValue('legacy.string_value', ''));
         $this->assertFalse(SettingModel::getValue('admin.delete_data_on_uninstall', true));
     }
-
-    public function testNormalizeStorageEncodingRewritesLegacyJsonRows(): void
-    {
-        $GLOBALS['wpdb']->settings['legacy.string_value'] = '"https://legacy.example/"';
-        $GLOBALS['wpdb']->settings['admin.delete_data_on_uninstall'] = 'false';
-
-        SettingModel::normalizeStorageEncoding();
-
-        $this->assertSame('https://legacy.example/', $GLOBALS['wpdb']->settings['legacy.string_value']);
-        $this->assertSame('0', $GLOBALS['wpdb']->settings['admin.delete_data_on_uninstall']);
-    }
 }
 
 final class FakeWpdb

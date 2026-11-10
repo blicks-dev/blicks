@@ -100,6 +100,9 @@ final class ThemeProjection {
 			'brand' => 'linear-gradient(135deg, #002bff, #5b7bff)',
 			'paper' => 'linear-gradient(180deg, #ffffff, #f1f5f9)',
 			'atomic' => 'linear-gradient(135deg, #a440ce, #8bf6ff)',
+			// What a section paints behind its cards. The page's own colour unless the design
+			// language needs something to show through its surfaces (Glassmorphism, Liquid Glass).
+			'backdrop' => 'linear-gradient(var(--blicks-color-background), var(--blicks-color-background))',
 		],
 		'zIndex' => [
 			'base' => '1',
@@ -119,16 +122,6 @@ final class ThemeProjection {
 			'hair' => '1px',
 			'strong' => '2px',
 			'heavy' => '3px',
-		],
-		'borderStyle' => [
-			'solid' => '1px solid #111827',
-			'dashed' => '1px dashed #002bff',
-			'dotted' => '1px dotted #72788d',
-		],
-		'ring' => [
-			'brand' => '0 0 0 3px rgba(0, 43, 255, 0.35)',
-			'subtle' => '0 0 0 2px rgba(17, 24, 39, 0.18)',
-			'danger' => '0 0 0 3px rgba(227, 25, 87, 0.32)',
 		],
 		'width' => [
 			'prose' => '720px',
@@ -154,6 +147,17 @@ final class ThemeProjection {
 		],
 	];
 
+	/**
+	 * The plugin's own token values, keyed category → slug. These are the values every slug in the
+	 * shared catalogue (`resources/design-system/tokens.json`) resolves to before the active theme
+	 * is projected over them, so they double as the base-scale floor {@see CssVariables} emits.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public static function baseFallbacks(): array {
+		return self::FALLBACKS;
+	}
+
 	/** @param array<string, list<string>> $catalogue */
 	public static function current( array $catalogue ): array {
 		$settings = self::currentSettings();
@@ -162,7 +166,7 @@ final class ThemeProjection {
 
 	/** @return array<string, mixed> */
 	public static function currentSettings(): array {
-		$settings = function_exists( 'wp_get_global_settings' ) ? wp_get_global_settings() : [];
+		$settings = wp_get_global_settings();
 
 		return is_array( $settings ) ? $settings : [];
 	}
@@ -262,7 +266,7 @@ final class ThemeProjection {
 	 */
 	public static function fontFamilies( ?array $settings = null ): array {
 		if ( null === $settings ) {
-			$settings = function_exists( 'wp_get_global_settings' ) ? wp_get_global_settings() : [];
+			$settings = wp_get_global_settings();
 		}
 		if ( ! is_array( $settings ) ) {
 			return [];

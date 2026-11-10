@@ -1,16 +1,16 @@
 ---
 title: "Blicks Documentation"
-description: "Atomic Gutenberg blocks, theme.json-native tokens, and generated block references."
+description: "Atomic blocks for the WordPress block editor, a design system that syncs with theme.json, and a block reference generated from the plugin's metadata."
 ---
 
-<div className="bl-eyebrow">Git-backed reference</div>
+<div className="bl-eyebrow">Blicks 2.0</div>
 
-# The atomic WordPress builder, documented from source.
+# Atomic blocks for the block editor, documented from source.
 
-Blicks is a free, GPL-licensed WordPress plugin: **12 composable Gutenberg blocks** on a single
-design system that reads your theme's `theme.json` instead of replacing it. These docs are generated
-from the monorepo, block metadata, and package Markdown, so the reference stays aligned with the
-code that actually ships.
+Blicks is a free, GPL-2.0-or-later WordPress plugin: composable layout and content blocks on one
+design system whose tokens resolve through your theme's `theme.json`. It runs inside the native
+block editor. The block reference on this site is generated from the plugin's own block metadata,
+so it describes the code that ships.
 
 <div className="bl-atomic-board" aria-label="Blicks block system preview">
 	<span className="bl-atomic-board__tile bl-atomic-board__tile--violet" />
@@ -41,41 +41,54 @@ code that actually ships.
 
 <CardGroup cols={2}>
 	<Card title="Get started" icon="rocket" href="/getting-started">
-		Install Blicks, insert your first block, and find your way around the admin.
+		Install Blicks, build a first section, and find your way around the inspector and the admin.
 	</Card>
-	<Card title="Block reference" icon="blocks" href="/reference/blocks/index">
-		All 12 blocks, generated from block metadata and per-block readmes.
+	<Card title="Upgrading from 1.x" icon="triangle-alert" href="/upgrading">
+		2.0 is a clean break. Read this before you update a site with Blicks pages on it.
 	</Card>
 	<Card title="Build a landing page" icon="layout-panel-top" href="/guides/build-a-landing-page">
-		Compose a hero, a feature grid, and a call to action from the layout primitives.
-	</Card>
-	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
-		Override tokens and type roles, save named themes, and sync with `theme.json`.
-	</Card>
-	<Card title="Global tokens" icon="palette" href="/reference/design-system/global-tokens">
-		How Blicks tokens bridge `theme.json`, Global Styles, and block styles.
-	</Card>
-	<Card title="Type roles" icon="a-large-small" href="/reference/design-system/type-roles">
-		Semantic typography roles layered on top of the font-size scale.
-	</Card>
-	<Card title="Responsive patterns" icon="smartphone" href="/guides/responsive-patterns">
-		The three devices, how their values cascade, and what to reach for first.
+		A hero, a feature grid and a call to action from Section and Box.
 	</Card>
 	<Card title="States and interactions" icon="pointer" href="/guides/states-and-interactions">
-		Hover, focus and active values, and motion that respects reduced-motion.
+		On hover, When clicked and Keyboard focus, and motion that respects reduced motion.
+	</Card>
+	<Card title="Forms" icon="send" href="/guides/forms">
+		Contact and sign-up forms, Entries, and built-in spam checks.
+	</Card>
+	<Card title="Connect an AI agent" icon="bot" href="/guides/connect-an-ai-agent">
+		Let an agent read and build Blicks pages through the built-in MCP server.
+	</Card>
+	<Card title="Block reference" icon="blocks" href="/reference/blocks/index">
+		Every block, generated from block metadata and per-block readmes.
+	</Card>
+	<Card title="Extension API" icon="code" href="/developers/extension-api">
+		Build a companion plugin against Extension API 2.
 	</Card>
 </CardGroup>
 
-## Update flow
+## The blocks
+
+| Group | Blocks |
+|---|---|
+| Layout | Section, Box |
+| Content | Heading, Text, Image, Icon, Buttons, Button |
+| Lists | List, List item, Steps, Step |
+| Forms | Form, Field, Input |
+| Behavior | Dialog, Loop, Menu link |
+
+Box covers what a layout needs: its **Kind** makes it a card, panel, cover, badge, divider or
+spacer, and **Arrange** lays out what is inside — stacked, side by side, in a grid or in layers.
+
+## How these docs are made
 
 <Steps>
 	<Step title="Edit source">
-		Update Markdown, block metadata, or per-block readme files in Git.
+		Pages and the per-block readmes live in the plugin repository, beside the code they describe.
 	</Step>
 	<Step title="Generate">
-		Run `pnpm generate` in `docs/` and commit the result. Mintlify does not run build scripts, so the block reference is committed to the repo.
+		`pnpm generate` in `docs/` rebuilds the block reference from each block's `block.json` and readme. The result is committed, because Mintlify does not run build scripts.
 	</Step>
 	<Step title="Publish">
-		Mintlify rebuilds the site from this directory on every push.
+		Mintlify rebuilds the site from the repository on every push.
 	</Step>
 </Steps>

@@ -1,181 +1,189 @@
+import { useEffect, useState } from 'react';
+import { ToolbarGroup } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { FieldRow, SegmentedSetting, SettingsCard, useBlockHelp, type Option } from '@/blocks/shared/settings-ui';
-import { Combobox } from '@/blocks/shared/combobox';
+import { ToolbarChoice } from '@/blocks/shared/toolbar';
+import type { PanelProps } from '@/framework/inspector-v2/InspectorV2';
+import { StylePanel } from '@/framework/inspector-v2/StylePanel';
+import { MotionPanel } from '@/framework/inspector-v2/MotionPanel';
+import { Chips, Row, SegText, Sec, Steps, type Option } from '@/framework/inspector-v2/kit';
+import { SECTION_DEFAULTS, SPACES, SURFACES, cleanSectionDimension, cleanSectionSpace, cleanSectionSurface, isSectionDimension } from './model';
 
-const WIDTH_OPTIONS: Option[] = [
-	{ label: __( 'Auto', 'blicks' ), value: 'auto', hint: __( 'default', 'blicks' ) },
-	{ label: __( 'Full width', 'blicks' ), value: '100%', hint: '100%' },
-	{ label: __( 'Viewport', 'blicks' ), value: '100vw', hint: '100vw' },
-	{ label: __( 'Fit content', 'blicks' ), value: 'fit-content', hint: 'fit-content' },
-	{ label: __( 'Narrow', 'blicks' ), value: '640px', hint: '640px' },
-	{ label: __( 'Medium', 'blicks' ), value: '768px', hint: '768px' },
-	{ label: __( 'Wide', 'blicks' ), value: '1024px', hint: '1024px' },
-	{ label: __( 'Extra wide', 'blicks' ), value: '1280px', hint: '1280px' },
+/** `align`: the band runs edge to edge, or sits in the content column like any block. */
+const ALIGNS: Option[] = [
+	[ 'full', __( 'Edge to edge', 'blicks' ) ],
+	[ '', __( 'In the column', 'blicks' ) ],
 ];
 
-const SURFACE_OPTIONS = [
-	{ label: __( 'Plain', 'blicks' ), value: 'plain' },
-	{ label: __( 'Muted', 'blicks' ), value: 'muted' },
-	{ label: __( 'Card', 'blicks' ), value: 'card' },
-	{ label: __( 'Outline', 'blicks' ), value: 'outline' },
+const SECTION_WIDTHS: Option[] = [
+	[ 'auto', __( 'Auto', 'blicks' ) ],
+	[ '100%', __( 'Full', 'blicks' ) ],
+	[ '100vw', __( 'Screen', 'blicks' ) ],
+	[ 'fit-content', __( 'Fit content', 'blicks' ) ],
 ];
 
-const SPACE_OPTIONS = [
-	{ label: __( 'None', 'blicks' ), value: 'none' },
-	{ label: __( 'SM', 'blicks' ), value: 'sm' },
-	{ label: __( 'MD', 'blicks' ), value: 'md' },
-	{ label: __( 'LG', 'blicks' ), value: 'lg' },
+export const SECTION_HEIGHTS: Option[] = [
+	[ 'auto', __( 'Fit', 'blicks' ) ],
+	[ '50vh', __( 'Half screen', 'blicks' ) ],
+	[ '80vh', __( 'Most of the screen', 'blicks' ) ],
+	[ '100svh', __( 'Full screen', 'blicks' ) ],
 ];
 
-export function cleanSectionSurface( surface: unknown ): string {
-	const value = String( surface || 'plain' );
-	return SURFACE_OPTIONS.some( ( option ) => option.value === value ) ? value : 'plain';
-}
-
-export function cleanSectionSpace( space: unknown ): string {
-	const value = String( space || 'md' );
-	return SPACE_OPTIONS.some( ( option ) => option.value === value ) ? value : 'md';
-}
-
-const DIMENSION_KEYWORDS = [
-	'auto', 'none', 'fit-content', 'max-content', 'min-content',
-	// CSS-wide global keywords
-	'inherit', 'initial', 'unset', 'revert', 'revert-layer',
+const CONTENT_MAX_WIDTHS: Option[] = [
+	[ SECTION_DEFAULTS.contentMaxWidth, __( 'Theme', 'blicks' ) ],
+	[ '640px', __( 'Narrow', 'blicks' ) ],
+	[ '768px', __( 'Medium', 'blicks' ) ],
+	[ '1024px', __( 'Wide', 'blicks' ) ],
+	[ '1280px', __( 'Extra wide', 'blicks' ) ],
+	[ 'none', __( 'No limit', 'blicks' ) ],
 ];
 
-/** Any CSS function call with balanced parens — `calc()`, `clamp()`, `min()`, `max()`, `var()`, `env()`, … */
-function isCssFunction( raw: string ): boolean {
-	if ( ! /^[a-z][a-z0-9-]*\(/i.test( raw ) || ! raw.endsWith( ')' ) ) return false;
-	let depth = 0;
-	for ( const char of raw ) {
-		if ( char === '(' ) depth++;
-		else if ( char === ')' && --depth < 0 ) return false;
-	}
-	return depth === 0;
-}
-
-function cleanDimension( value: unknown, fallback: string ): string {
-	const raw = String( value ?? '' ).trim();
-	if ( raw === '' ) return fallback;
-	if ( raw === '0' ) return '0';
-	if ( DIMENSION_KEYWORDS.includes( raw ) || isCssFunction( raw ) ) return raw;
-	if ( /^-?\d*\.?\d+(px|%|em|rem|vw|vh|svh|dvh|lvh|ch|fr)$/.test( raw ) ) return raw;
-	if ( /^-?\d*\.?\d+$/.test( raw ) ) return `${ raw }px`;
-	return fallback;
-}
-
-export function cleanSectionDimension( value: unknown, fallback: string ): string {
-	return cleanDimension( value, fallback );
-}
-
-/** True for an empty field or any CSS length/keyword/function `cleanDimension` accepts. */
-function isValidDimension( value: string ): boolean {
-	const raw = value.trim();
-	if ( raw === '' || raw === '0' ) return true;
-	if ( DIMENSION_KEYWORDS.includes( raw ) || isCssFunction( raw ) ) return true;
-	return /^-?\d*\.?\d+(px|%|em|rem|vw|vh|svh|dvh|lvh|ch|fr)?$/.test( raw );
-}
-
-const CONTENT_MAX_WIDTH_DEFAULT = 'var(--blicks-content-size, var(--wp--style--global--content-size, 1200px))';
-
-function DimensionInput( {
-	label,
-	help,
-	value,
-	fallback,
-	onChange,
-}: {
-	label: string;
-	help?: string;
+/**
+ * A typed size, as its own row. Unlike the kit's `Exact` it takes everything the section
+ * attributes take — keywords, `calc()`, `var()` — and shows the value whenever no choice matches it.
+ */
+function Size( { value, isChoice, label, placeholder, row = __( 'Exact', 'blicks' ), onChange }: {
 	value: string;
-	fallback: string;
-	onChange: ( value: string ) => void;
+	isChoice: boolean;
+	label: string;
+	placeholder: string;
+	/** The row's own label: "Exact" under a set of choices, or the setting's name on its own. */
+	row?: string;
+	onChange: ( v: string ) => void;
 } ) {
+	const shown = isChoice ? '' : value;
+	const [ draft, setDraft ] = useState( shown );
+	const [ invalid, setInvalid ] = useState( false );
+	useEffect( () => setDraft( shown ), [ shown ] );
+	const commit = () => {
+		if ( draft.trim() === '' || draft === shown ) return setInvalid( false );
+		const ok = isSectionDimension( draft );
+		setInvalid( ! ok );
+		if ( ok ) onChange( cleanSectionDimension( draft, placeholder ) );
+	};
 	return (
-		<FieldRow label={ label } help={ help }>
-			<input
-				value={ value || fallback }
-				onChange={ ( event ) => onChange( event.currentTarget.value ) }
-				onBlur={ () => onChange( cleanDimension( value, fallback ) ) }
-			/>
-		</FieldRow>
+		<Row label={ row } set={ ! isChoice && !! value && value !== placeholder } note={ invalid ? __( 'Use a size like 640px, 80vh, 100% or auto', 'blicks' ) : undefined } noteIcon={ invalid ? 'warning' : undefined }>
+			<label className={ `bui-fld${ invalid ? ' invalid' : '' }` }>
+				<input
+					value={ draft }
+					placeholder={ placeholder }
+					aria-label={ label }
+					aria-invalid={ invalid }
+					spellCheck={ false }
+					onChange={ ( e ) => setDraft( e.currentTarget.value ) }
+					onBlur={ commit }
+					onKeyDown={ ( e ) => { if ( e.key === 'Enter' ) { e.preventDefault(); commit(); } } }
+				/>
+			</label>
+		</Row>
 	);
 }
 
-export function SectionControls( {
-	attributes,
-	setAttributes,
-}: {
-	attributes: any;
-	setAttributes: ( a: any ) => void;
+const named = ( list: Option[], v: string ) => list.find( ( q ) => q[ 0 ] === v )?.[ 1 ];
+
+/** A row of choices with a typed size under it, for one dimension attribute. */
+function SizeChoice( { title, hint, note, options, value, label, fallback, onChange }: {
+	title: string;
+	hint?: string;
+	note?: string;
+	options: Option[];
+	value: string;
+	label: string;
+	fallback: string;
+	onChange: ( v: string ) => void;
 } ) {
-	const help = useBlockHelp( 'section' );
-	const controlHelp = help?.controls ?? {};
+	const isChoice = options.some( ( [ v ] ) => v === value );
+	return (
+		<>
+			<Row label={ title } stack set={ value !== fallback } hint={ hint } note={ note } noteIcon="info">
+				<Chips label={ label } options={ options } value={ isChoice ? value : null } onChange={ onChange } />
+			</Row>
+			<Size value={ value } isChoice={ isChoice } label={ label } placeholder={ fallback } onChange={ onChange } />
+		</>
+	);
+}
+
+/** The Section's Settings tab: how the band sits on the page and how wide its content runs. */
+export function SectionSettings( { attributes, setAttributes }: PanelProps ) {
+	const dim = ( key: 'sectionWidth' | 'sectionHeight' | 'contentWidth' | 'contentMinWidth' | 'contentMaxWidth' ) =>
+		cleanSectionDimension( attributes[ key ], SECTION_DEFAULTS[ key ] );
+	const align = attributes.align === undefined ? SECTION_DEFAULTS.align : String( attributes.align || '' );
+	const width = dim( 'sectionWidth' );
+	const height = dim( 'sectionHeight' );
+	const contentWidth = dim( 'contentWidth' );
+	const contentMin = dim( 'contentMinWidth' );
+	const contentMax = dim( 'contentMaxWidth' );
+	const surface = cleanSectionSurface( attributes.surface );
+	const space = cleanSectionSpace( attributes.sectionSpace );
 
 	return (
 		<>
-			<SettingsCard title={ __( 'Section', 'blicks' ) }>
-				<Combobox
-					label={ __( 'Width', 'blicks' ) }
-					help={ controlHelp.sectionWidth }
-					value={ attributes.sectionWidth ?? '' }
-					options={ WIDTH_OPTIONS }
-					placeholder="auto"
-					validate={ ( raw ) =>
-						isValidDimension( raw ) ? true : __( 'Enter a length like 640px, 100%, or auto.', 'blicks' )
-					}
-					onChange={ ( sectionWidth ) => setAttributes( { sectionWidth } ) }
-					onCommit={ ( raw ) =>
-						setAttributes( { sectionWidth: raw.trim() === '' ? '' : cleanDimension( raw, 'auto' ) } )
-					}
-				/>
-				<DimensionInput
-					label={ __( 'Min height', 'blicks' ) }
-					help={ controlHelp.sectionHeight }
-					value={ attributes.sectionHeight || 'auto' }
-					fallback="auto"
+			<Sec title={ __( 'Kind', 'blicks' ) } icon="category" value={ named( SURFACES, surface ) }>
+				<Row label={ __( 'Band', 'blicks' ) } stack set={ align !== SECTION_DEFAULTS.align }>
+					<SegText label={ __( 'Band', 'blicks' ) } options={ ALIGNS } value={ align === 'full' ? 'full' : '' } onChange={ ( a ) => setAttributes( { align: a } ) } />
+				</Row>
+				<Row label={ __( 'Surface', 'blicks' ) } stack set={ surface !== SECTION_DEFAULTS.surface }>
+					<SegText label={ __( 'Surface', 'blicks' ) } options={ SURFACES } value={ surface } onChange={ ( v ) => setAttributes( { surface: v } ) } />
+				</Row>
+			</Sec>
+
+			<Sec title={ __( 'Layout', 'blicks' ) } icon="dashboard" value={ named( SPACES, space ) }>
+				<Row label={ __( 'Space above and below', 'blicks' ) } stack set={ space !== SECTION_DEFAULTS.sectionSpace } hint="padding-block">
+					<Steps label={ __( 'Space above and below', 'blicks' ) } options={ SPACES } value={ space } onChange={ ( v ) => setAttributes( { sectionSpace: v } ) } />
+				</Row>
+			</Sec>
+
+			<Sec title={ __( 'Size', 'blicks' ) } icon="aspect_ratio" value={ named( SECTION_HEIGHTS, height ) ?? height }>
+				<SizeChoice title={ __( 'Width', 'blicks' ) } hint="width" options={ SECTION_WIDTHS } value={ width } label={ __( 'Exact section width', 'blicks' ) } fallback={ SECTION_DEFAULTS.sectionWidth } onChange={ ( sectionWidth ) => setAttributes( { sectionWidth } ) } />
+				<SizeChoice
+					title={ __( 'Height', 'blicks' ) }
+					hint="min-height"
+					note={ __( 'At least this tall. Content taller than this still shows in full.', 'blicks' ) }
+					options={ SECTION_HEIGHTS }
+					value={ height }
+					label={ __( 'Exact section height, at least', 'blicks' ) }
+					fallback={ SECTION_DEFAULTS.sectionHeight }
 					onChange={ ( sectionHeight ) => setAttributes( { sectionHeight } ) }
 				/>
-			</SettingsCard>
-			<SettingsCard title={ __( 'Content', 'blicks' ) }>
-				<DimensionInput
-					label={ __( 'Content width', 'blicks' ) }
-					help={ controlHelp.contentWidth }
-					value={ attributes.contentWidth || '100%' }
-					fallback="100%"
-					onChange={ ( contentWidth ) => setAttributes( { contentWidth } ) }
-				/>
-				<DimensionInput
-					label={ __( 'Content min width', 'blicks' ) }
-					help={ controlHelp.contentMinWidth }
-					value={ attributes.contentMinWidth || '0' }
-					fallback="0"
-					onChange={ ( contentMinWidth ) => setAttributes( { contentMinWidth } ) }
-				/>
-				<DimensionInput
-					label={ __( 'Content max width', 'blicks' ) }
-					help={ controlHelp.contentMaxWidth }
-					value={ attributes.contentMaxWidth || CONTENT_MAX_WIDTH_DEFAULT }
-					fallback={ CONTENT_MAX_WIDTH_DEFAULT }
+			</Sec>
+
+			<Sec title={ __( 'Content width', 'blicks' ) } icon="width" value={ named( CONTENT_MAX_WIDTHS, contentMax ) ?? contentMax }>
+				<SizeChoice
+					title={ __( 'At most', 'blicks' ) }
+					hint="max-width"
+					note={ __( '“Theme” follows the design system’s content size, then the WordPress theme’s.', 'blicks' ) }
+					options={ CONTENT_MAX_WIDTHS }
+					value={ contentMax }
+					label={ __( 'Exact content width, at most', 'blicks' ) }
+					fallback={ SECTION_DEFAULTS.contentMaxWidth }
 					onChange={ ( contentMaxWidth ) => setAttributes( { contentMaxWidth } ) }
 				/>
-			</SettingsCard>
-			<SettingsCard title={ __( 'Surface', 'blicks' ) }>
-				<SegmentedSetting
-					label={ __( 'Treatment', 'blicks' ) }
-					help={ controlHelp.surface }
-					value={ cleanSectionSurface( attributes.surface ) }
-					options={ SURFACE_OPTIONS }
-					onChange={ ( surface ) => setAttributes( { surface } ) }
-				/>
-				<SegmentedSetting
-					label={ __( 'Section padding', 'blicks' ) }
-					help={ controlHelp.sectionSpace }
-					value={ cleanSectionSpace( attributes.sectionSpace ) }
-					options={ SPACE_OPTIONS }
-					onChange={ ( sectionSpace ) => setAttributes( { sectionSpace } ) }
-				/>
-			</SettingsCard>
+				<Size row={ __( 'Width', 'blicks' ) } value={ contentWidth } isChoice={ false } label={ __( 'Content width', 'blicks' ) } placeholder={ SECTION_DEFAULTS.contentWidth } onChange={ ( v ) => setAttributes( { contentWidth: v } ) } />
+				<Size row={ __( 'At least', 'blicks' ) } value={ contentMin } isChoice={ false } label={ __( 'Content width, at least', 'blicks' ) } placeholder={ SECTION_DEFAULTS.contentMinWidth } onChange={ ( v ) => setAttributes( { contentMinWidth: v } ) } />
+			</Sec>
 		</>
+	);
+}
+
+/** The Section's Style tab: the shared Style panel, as a Box draws it. */
+export function SectionStyle( { attributes, setAttributes }: PanelProps ) {
+	return <StylePanel attributes={ attributes } setAttributes={ setAttributes } kind="box" linked={ false } />;
+}
+
+/** The Section's Motion tab: how the band arrives and reacts. A section is never a link. */
+export function SectionMotion( { attributes, setAttributes }: PanelProps ) {
+	return <MotionPanel attributes={ attributes } setAttributes={ setAttributes } linked={ false } kind="box" />;
+}
+
+/**
+ * The Section's toolbar: Surface, Space and Height, the writes its Settings tab makes. Edge to
+ * edge needs nothing here, as `supports.align` already puts it on the toolbar.
+ */
+export function SectionToolbar( { attributes, setAttributes }: PanelProps ) {
+	return (
+		<ToolbarGroup>
+			<ToolbarChoice label={ __( 'Surface', 'blicks' ) } value={ cleanSectionSurface( attributes.surface ) } options={ SURFACES } onChange={ ( surface ) => setAttributes( { surface } ) } />
+			<ToolbarChoice label={ __( 'Space above and below', 'blicks' ) } value={ cleanSectionSpace( attributes.sectionSpace ) } options={ SPACES } onChange={ ( sectionSpace ) => setAttributes( { sectionSpace } ) } />
+			<ToolbarChoice label={ __( 'Height, at least', 'blicks' ) } value={ cleanSectionDimension( attributes.sectionHeight, SECTION_DEFAULTS.sectionHeight ) } options={ SECTION_HEIGHTS } onChange={ ( sectionHeight ) => setAttributes( { sectionHeight } ) } />
+		</ToolbarGroup>
 	);
 }

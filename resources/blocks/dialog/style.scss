@@ -1,0 +1,418 @@
+/*
+ * Dialog: a native <dialog>. Every option is a class on it (model.ts), and these rules are the
+ * whole of how it looks; the runtime (resources/runtime/dialog.ts) only opens and closes it.
+ *
+ *   --bl-dialog-w      a modal's width (Settings › Size writes --bl-maw over it)
+ *   --bl-dialog-drawer a drawer's width
+ *   --bl-dialog-sheet  a sheet's tallest
+ *   --bl-dialog-dur    how long opening and closing take
+ *
+ * Opening and closing are transitions from @starting-style, with `overlay` and `display` kept
+ * discrete so the dialog stays in the top layer until it has finished leaving.
+ */
+
+$phone: 600px;
+$ease: cubic-bezier(0.2, 0, 0, 1);
+
+@layer blicks.base {
+	dialog.bl-dialog {
+		--bl-dialog-w: 560px;
+		--bl-dialog-drawer: 380px;
+		--bl-dialog-sheet: 85dvh;
+		--bl-dialog-dur: 240ms;
+
+		/* Which way "end" is: right in left-to-right text, left in right-to-left. */
+		--bl-dialog-x: 1;
+
+		box-sizing: border-box;
+
+		/* A max width from Settings › Size (the engine's --bl-maw) sets the width too, so it can widen. */
+		width: min(var(--bl-maw, var(--bl-dialog-w)), calc(100vw - 32px));
+		max-height: calc(100dvh - 32px);
+		padding: var(--blicks-spacing-lg, 1.5rem);
+		border: 0;
+		border-radius: var(--blicks-radius-lg, 0.75rem);
+		background: var(--blicks-color-background, #fff);
+		color: var(--blicks-color-foreground, inherit);
+		box-shadow: 0 24px 60px -20px rgb(16 24 40 / 45%), 0 0 0 1px rgb(16 24 40 / 6%);
+		overflow: auto;
+		overscroll-behavior: contain;
+	}
+
+	dialog.bl-dialog:dir(rtl) {
+		--bl-dialog-x: -1;
+	}
+
+	dialog.bl-dialog[open] {
+		display: flex;
+		flex-direction: column;
+		row-gap: var(--bl-gap-r, 0);
+	}
+
+	/* A Loop item's blocks, copied in on open: laid out as the dialog's own, in its column. */
+	.bl-dialog__item {
+		display: contents;
+	}
+
+	/* Non-modal: no backdrop, the page stays usable, so it sits in a corner of the screen. */
+	dialog.bl-dialog:not(.is-modal) {
+		position: fixed;
+		inset: auto 16px 16px auto;
+		z-index: 100000;
+	}
+
+	dialog.bl-dialog:not(.is-modal).bl-dialog--sheet {
+		inset: auto 16px 16px;
+		width: auto;
+	}
+
+	/* Drawer: the full height of the screen, from one side. */
+	dialog.bl-dialog--drawer {
+		inset-block: 0;
+		width: min(var(--bl-maw, var(--bl-dialog-drawer)), 86vw);
+		height: 100dvh;
+		max-height: 100dvh;
+		border-radius: 0;
+	}
+
+	dialog.bl-dialog--drawer.bl-dialog--from-end {
+		inset-inline: auto 0;
+		border-start-start-radius: var(--blicks-radius-lg, 0.75rem);
+		border-end-start-radius: var(--blicks-radius-lg, 0.75rem);
+	}
+
+	dialog.bl-dialog--drawer.bl-dialog--from-start {
+		inset-inline: 0 auto;
+		border-start-end-radius: var(--blicks-radius-lg, 0.75rem);
+		border-end-end-radius: var(--blicks-radius-lg, 0.75rem);
+	}
+
+	/* Bottom sheet: the full width, from the bottom, clear of a phone's home bar. */
+	@mixin sheet {
+		inset: auto 0 0;
+		width: 100%;
+		max-height: var(--bl-dialog-sheet);
+		border-end-start-radius: 0;
+		border-end-end-radius: 0;
+		padding-block-end: max(var(--blicks-spacing-lg, 1.5rem), env(safe-area-inset-bottom));
+	}
+
+	@mixin full {
+		inset: 0;
+		width: 100%;
+		height: 100dvh;
+		max-height: 100dvh;
+		border-radius: 0;
+		padding-block-start: max(var(--blicks-spacing-lg, 1.5rem), env(safe-area-inset-top));
+	}
+
+	dialog.bl-dialog--sheet.is-modal {
+		@include sheet;
+	}
+
+	dialog.bl-dialog--full {
+		@include full;
+	}
+
+	@media (width <= $phone) {
+		dialog.bl-dialog--phone-sheet {
+			@include sheet;
+		}
+
+		dialog.bl-dialog--phone-full {
+			@include full;
+		}
+	}
+
+	/* The backdrop: dark by default, light, or none; optionally blurring the page. */
+	dialog.bl-dialog::backdrop {
+		background: rgb(15 17 21 / 52%);
+	}
+
+	dialog.bl-dialog--bd-light::backdrop {
+		background: rgb(255 255 255 / 62%);
+	}
+
+	dialog.bl-dialog--bd-none::backdrop {
+		background: transparent;
+	}
+
+	dialog.bl-dialog--blur::backdrop {
+		backdrop-filter: blur(4px);
+	}
+
+	/* The page behind a modal does not scroll. */
+	html:has(dialog.bl-dialog[open]:modal) {
+		overflow: hidden;
+		scrollbar-gutter: stable;
+	}
+
+	/* The close button: a 44px target in the corner, its cross drawn by two bars. */
+	.bl-dialog__close {
+		position: sticky;
+		top: 0;
+		align-self: flex-end;
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		margin: calc(-1 * var(--blicks-spacing-sm, 0.75rem)) calc(-1 * var(--blicks-spacing-sm, 0.75rem)) calc(-44px + var(--blicks-spacing-sm, 0.75rem)) 0;
+		padding: 0;
+		border: 0;
+		border-radius: 999px;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		z-index: 1;
+	}
+
+	.bl-dialog__close::before,
+	.bl-dialog__close::after {
+		content: "";
+		grid-area: 1 / 1;
+		width: 18px;
+		height: 2px;
+		border-radius: 1px;
+		background: currentcolor;
+		transform: rotate(45deg);
+	}
+
+	.bl-dialog__close::after {
+		transform: rotate(-45deg);
+	}
+
+	.bl-dialog__close:hover {
+		background: rgb(16 24 40 / 6%);
+	}
+
+	.bl-dialog__close:focus-visible {
+		outline: 2px solid currentcolor;
+		outline-offset: -2px;
+	}
+
+	/* Opening and closing. The resting state is the open one; @starting-style is where it comes
+	   from, and the closed state is where it goes. */
+	@media (prefers-reduced-motion: no-preference) {
+		dialog.bl-dialog,
+		dialog.bl-dialog::backdrop {
+			transition:
+				opacity var(--bl-dialog-dur) $ease,
+				transform var(--bl-dialog-dur) $ease,
+				overlay var(--bl-dialog-dur) allow-discrete,
+				display var(--bl-dialog-dur) allow-discrete;
+		}
+
+		dialog.bl-dialog:not([open]),
+		dialog.bl-dialog:not([open])::backdrop {
+			opacity: 0;
+		}
+
+		@starting-style {
+			dialog.bl-dialog[open],
+			dialog.bl-dialog[open]::backdrop {
+				opacity: 0;
+			}
+		}
+
+		dialog.bl-dialog--modal:not([open]) {
+			transform: translateY(16px);
+		}
+
+		@starting-style {
+			dialog.bl-dialog--modal[open] {
+				transform: translateY(16px);
+			}
+		}
+
+		dialog.bl-dialog--modal.bl-dialog--m-scale:not([open]) {
+			transform: scale(0.94);
+		}
+
+		@starting-style {
+			dialog.bl-dialog--modal.bl-dialog--m-scale[open] {
+				transform: scale(0.94);
+			}
+		}
+
+		dialog.bl-dialog--m-fade:not([open]),
+		dialog.bl-dialog--m-none:not([open]) {
+			transform: none;
+		}
+
+		@starting-style {
+			dialog.bl-dialog--m-fade[open] {
+				transform: none;
+			}
+		}
+
+		dialog.bl-dialog--m-none,
+		dialog.bl-dialog--m-none::backdrop {
+			transition: none;
+		}
+
+		/* Drawers and sheets slide from their edge, whatever the motion. */
+		dialog.bl-dialog--drawer.bl-dialog--from-end:not([open]) {
+			transform: translateX(calc(100% * var(--bl-dialog-x)));
+		}
+
+		@starting-style {
+			dialog.bl-dialog--drawer.bl-dialog--from-end[open] {
+				transform: translateX(calc(100% * var(--bl-dialog-x)));
+			}
+		}
+
+		dialog.bl-dialog--drawer.bl-dialog--from-start:not([open]) {
+			transform: translateX(calc(-100% * var(--bl-dialog-x)));
+		}
+
+		@starting-style {
+			dialog.bl-dialog--drawer.bl-dialog--from-start[open] {
+				transform: translateX(calc(-100% * var(--bl-dialog-x)));
+			}
+		}
+
+		dialog.bl-dialog--sheet:not([open]) {
+			transform: translateY(100%);
+		}
+
+		@starting-style {
+			dialog.bl-dialog--sheet[open] {
+				transform: translateY(100%);
+			}
+		}
+
+		dialog.bl-dialog--drawer:not([open]),
+		dialog.bl-dialog--sheet:not([open]) {
+			opacity: 1;
+		}
+
+		@starting-style {
+			dialog.bl-dialog--drawer[open],
+			dialog.bl-dialog--sheet[open] {
+				opacity: 1;
+			}
+		}
+	}
+
+	/* The editor: a card in the flow, opened in place. Never in the top layer, never fixed. */
+	.bl-dialog.is-edit {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		row-gap: var(--bl-gap-r, 0);
+		box-sizing: border-box;
+		max-width: var(--bl-dialog-w, 560px);
+		margin-inline: auto;
+		padding: var(--blicks-spacing-lg, 1.5rem);
+		border-radius: var(--blicks-radius-lg, 0.75rem);
+		background: var(--blicks-color-background, #fff);
+		box-shadow: 0 0 0 1px rgb(16 24 40 / 10%), 0 12px 32px -16px rgb(16 24 40 / 30%);
+	}
+
+	.bl-dialog.is-edit:not(.is-open) {
+		padding: var(--blicks-spacing-sm, 0.75rem);
+	}
+
+	.bl-dialog.is-edit:not(.is-open) > :not(.bl-dialog__card) {
+		display: none;
+	}
+
+	.bl-dialog.is-edit.is-open > .bl-dialog__card {
+		margin: calc(-1 * var(--blicks-spacing-sm, 0.75rem)) calc(-1 * var(--blicks-spacing-sm, 0.75rem)) 0;
+	}
+
+	.bl-dialog__card {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 12px;
+		padding: 8px 10px;
+		border-radius: 10px;
+		background: #f4f6fb;
+		font: 13px/18px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+		color: #1e1e1e;
+	}
+
+	.bl-dialog__card-icon {
+		width: 32px;
+		height: 32px;
+		border-radius: 8px;
+		background:
+			linear-gradient(#002bff, #002bff) center 9px / 16px 2px no-repeat,
+			linear-gradient(#e8edff, #e8edff);
+		box-shadow: inset 0 0 0 2px #002bff;
+	}
+
+	.bl-dialog__card-text b {
+		display: block;
+		font-weight: 600;
+	}
+
+	.bl-dialog__card-text small {
+		display: block;
+		overflow: hidden;
+		font-size: 12px;
+		color: #5f6571;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.bl-dialog__card-toggle {
+		height: 32px;
+		padding: 0 14px;
+		border: 0;
+		border-radius: 999px;
+		background: #002bff;
+		color: #fff;
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.bl-dialog.is-edit > .bl-dialog__close {
+		position: absolute;
+		top: 64px;
+		right: 8px;
+		margin: 0;
+		pointer-events: none;
+	}
+}
+
+/*
+ * Where a dialog sits and how wide it may be: outside the layer, on purpose. WordPress's flow and
+ * constrained layouts give every child of the post content a block gap and a content-size max
+ * width, unlayered, so they beat any layered rule; a dialog is in the top layer, not in that flow.
+ * The doubled class outranks their `:root :where(…) > :last-child` (0,2,0). A max width set in
+ * the Style tab still applies, through the engine's `--bl-maw`.
+ */
+dialog.bl-dialog.bl-dialog {
+	margin: auto;
+	max-width: var(--bl-maw, calc(100vw - 32px));
+}
+
+dialog.bl-dialog.bl-dialog--top {
+	margin-block-start: 10dvh;
+}
+
+dialog.bl-dialog.bl-dialog--drawer {
+	max-width: var(--bl-maw, 86vw);
+}
+
+dialog.bl-dialog.bl-dialog--sheet,
+dialog.bl-dialog.bl-dialog--full {
+	max-width: var(--bl-maw, 100%);
+}
+
+@media (width <= $phone) {
+	dialog.bl-dialog.bl-dialog--phone-sheet,
+	dialog.bl-dialog.bl-dialog--phone-full {
+		max-width: 100%;
+		margin: 0;
+	}
+
+	dialog.bl-dialog.bl-dialog--phone-sheet {
+		margin-block-start: auto;
+	}
+}
+

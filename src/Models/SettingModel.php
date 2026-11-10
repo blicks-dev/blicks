@@ -23,7 +23,8 @@ final class SettingModel {
 	private const CACHE_GROUP = 'blicks_settings';
 	private const NOT_FOUND = '__blicks_setting_not_found__';
 	private const SCHEMA_OPTION = 'blicks_settings_schema_version';
-	private const SCHEMA_VERSION = '2';
+	/** One version for every Blicks table: bumping it re-runs dbDelta on all of them. */
+	private const SCHEMA_VERSION = '3';
 
 	/** @var array<string, mixed> */
 	private static array $runtimeCache = [];
@@ -35,9 +36,23 @@ final class SettingModel {
 		return $wpdb->prefix . self::TABLE;
 	}
 
+	/**
+	 * Settings an earlier version stored and nothing reads any more. Deleted whenever the schema
+	 * version changes, which every 1.x site's upgrade to 2.0 does.
+	 */
+	private const RETIRED_KEYS = [
+		'admin.default_inspector_panel',
+		'admin.help_visibility',
+	];
+
 	public static function install(): void {
 		self::createTable();
-		self::normalizeStorageEncoding();
+		KitModel::createTable();
+
+		foreach ( self::RETIRED_KEYS as $key ) {
+			self::deleteValue( $key );
+		}
+
 		update_option( self::SCHEMA_OPTION, self::SCHEMA_VERSION, false );
 	}
 
@@ -126,6 +141,29 @@ final class SettingModel {
 		self::cacheSet( $key, $value );
 	}
 
+	/**
+	 * A value that used to live in a wp_option. The first read copies the option into this table
+	 * and deletes it; every read after that is the table's. Nothing stored is lost on the way.
+	 */
+	public static function adoptOption( string $option, string $key, mixed $default ): mixed {
+		$value = self::getValue( $key, null );
+		if ( null !== $value ) {
+			return $value;
+		}
+
+		$legacy = function_exists( 'get_option' ) ? get_option( $option, null ) : null;
+		if ( null === $legacy || false === $legacy ) {
+			return $default;
+		}
+
+		self::setValue( $key, $legacy );
+		if ( function_exists( 'delete_option' ) ) {
+			delete_option( $option );
+		}
+
+		return $legacy;
+	}
+
 	public static function deleteValue( string $key ): void {
 		$key = self::normalizeKey( $key );
 		if ( '' === $key ) {
@@ -137,42 +175,6 @@ final class SettingModel {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->delete() escapes via format specifiers; cache cleared on the next line.
 		$wpdb->delete( $table, [ 'setting_key' => $key ], [ '%s' ] );
 		self::cacheDelete( $key );
-	}
-
-	public static function normalizeStorageEncoding(): void {
-		global $wpdb;
-
-		$table = self::table();
-		// One-off migration sweep at install time: reads every row, so there is nothing to cache
-		// and no user input in the query at all.
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$rows = $wpdb->get_results( "SELECT setting_key, setting_value FROM {$table}", ARRAY_A );
-		if ( ! is_array( $rows ) ) {
-			return;
-		}
-
-		foreach ( $rows as $row ) {
-			$key = isset( $row['setting_key'] ) ? self::normalizeKey( (string) $row['setting_key'] ) : '';
-			$raw = isset( $row['setting_value'] ) ? (string) $row['setting_value'] : '';
-			if ( '' === $key || ! self::isLegacyJsonValue( $raw ) ) {
-				continue;
-			}
-
-			$normalized = self::encode( self::decode( $raw, null ) );
-			if ( $normalized === $raw ) {
-				continue;
-			}
-
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->update() escapes via format specifiers; cache cleared on the next line.
-			$wpdb->update(
-				$table,
-				[ 'setting_value' => $normalized ],
-				[ 'setting_key' => $key ],
-				[ '%s' ],
-				[ '%s' ]
-			);
-			self::cacheDelete( $key );
-		}
 	}
 
 	private static function normalizeKey( string $key ): string {

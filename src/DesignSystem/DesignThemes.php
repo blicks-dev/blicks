@@ -13,21 +13,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Models\SettingModel;
 use Blicks\Style\Breakpoints;
 
 /**
- * Named local design themes — user-owned snapshots of token overrides applied on top of the
- * theme.json projection. These live in the
- * `blicks_design_themes` option and apply through the same {@see Store::saveOverrides()} path the
- * Design System page uses.
+ * Palettes: named sets of colours, one of which is in use. The admin calls them palettes; the
+ * class and routes keep the older "theme" name they shipped with. Stored in the `blicks_settings`
+ * table under `design.palettes` (moved there from the `blicks_design_themes` option).
  *
- * A theme's `tokens` payload is the same shape as a `PATCH /design-system` body
- * (`{tokens, breakpoints, typeRoles}`), so "apply" reuses the whole existing write/sync pipeline.
- * Built-ins live in code (brand-color presets); only user-created themes + the active id persist.
+ * A palette holds colours only. Everything else someone sets lives in {@see Store} as their own
+ * values, and a whole look — design language, palette and those values — is a {@see DesignKits}
+ * kit. A palette's bag keeps the `{tokens, breakpoints, typeRoles}` shape of a `PATCH
+ * /design-system` body so the save pipeline reads it unchanged.
+ *
+ * Before kits, a theme held every value and saving wrote into the one in use. {@see legacy()} and
+ * {@see settleAsPalettes()} are how {@see Store} moves those values out, once.
  */
 final class DesignThemes {
 
+	/** Where palettes were kept before the plugin's tables; read once and moved. */
 	private const OPTION = 'blicks_design_themes';
+	/** Key in the `blicks_settings` table. */
+	private const SETTING = 'design.palettes';
 	private const DEFAULT_ACTIVE = 'indigo';
 	private const MAX_NAME_LENGTH = 60;
 
@@ -89,13 +96,12 @@ final class DesignThemes {
 
 		$themes = [];
 		foreach ( self::BUILTINS as $builtin ) {
-			$override = $state['builtinOverrides'][ $builtin['id'] ] ?? null;
 			$themes[] = [
 				'id' => $builtin['id'],
 				'name' => $builtin['name'],
 				'builtin' => true,
-				'edited' => null !== $override,
-				'tokens' => $override ?? self::builtinTokens( $builtin['brand'], $builtin['accent'], $builtin['accentFg'] ),
+				'edited' => false,
+				'tokens' => self::builtinTokens( $builtin['brand'], $builtin['accent'], $builtin['accentFg'] ),
 			];
 		}
 		foreach ( $state['custom'] as $theme ) {
@@ -103,8 +109,8 @@ final class DesignThemes {
 				'id' => $theme['id'],
 				'name' => $theme['name'],
 				'builtin' => false,
-				'edited' => ! self::bagIsEmpty( $theme['tokens'] ),
-				'tokens' => $theme['tokens'],
+				'edited' => false,
+				'tokens' => self::colorsOnly( $theme['tokens'] ),
 			];
 		}
 
@@ -149,7 +155,7 @@ final class DesignThemes {
 		$state['custom'][] = [
 			'id' => self::generateId(),
 			'name' => $name,
-			'tokens' => self::validateTokens( $tokens ),
+			'tokens' => self::colorsOnly( self::validateTokens( $tokens ) ),
 		];
 		$state['active'] = $state['custom'][ count( $state['custom'] ) - 1 ]['id'];
 		self::persist( $state );
@@ -173,7 +179,7 @@ final class DesignThemes {
 				$theme['name'] = self::sanitizeName( $name );
 			}
 			if ( null !== $tokens ) {
-				$theme['tokens'] = self::validateTokens( $tokens );
+				$theme['tokens'] = self::colorsOnly( self::validateTokens( $tokens ) );
 			}
 			break;
 		}
@@ -229,42 +235,38 @@ final class DesignThemes {
 	}
 
 	/**
-	 * Persist an override bag onto the active theme (called on every Save). For a custom theme the
-	 * bag *is* the theme; for a built-in it's stored as an override layer, except when it equals the
-	 * curated preset (then the layer is dropped, so the theme reads as pristine again).
+	 * Every palette as it was stored before kits, values and all, with the one in use — what
+	 * {@see Store} reads once to move each palette's non-colour values into kits.
 	 *
-	 * @param array<string, mixed> $bag
-	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
+	 * @return array{active: string, custom: list<array{id: string, name: string, tokens: array<string, mixed>}>, builtinOverrides: array<string, array<string, mixed>>}
 	 */
-	public static function saveActiveOverrides( array $bag ): array {
-		$clean = self::sanitizeTokens( $bag );
+	public static function legacy(): array {
+		return self::state();
+	}
+
+	/** After {@see legacy()} has been read: keep each palette's colours and drop the rest. */
+	public static function settleAsPalettes(): void {
 		$state = self::state();
-		$active = $state['active'];
-
-		if ( self::isBuiltinId( $active ) ) {
-			if ( self::bagsEqual( $clean, self::builtinBaseById( $active ) ) ) {
-				unset( $state['builtinOverrides'][ $active ] );
-			} else {
-				$state['builtinOverrides'][ $active ] = $clean;
-			}
-		} else {
-			foreach ( $state['custom'] as &$theme ) {
-				if ( $theme['id'] === $active ) {
-					$theme['tokens'] = $clean;
-					break;
-				}
-			}
-			unset( $theme );
+		foreach ( $state['custom'] as &$theme ) {
+			$theme['tokens'] = self::colorsOnly( $theme['tokens'] );
 		}
-
+		unset( $theme );
+		$state['builtinOverrides'] = [];
 		self::persist( $state );
-
-		return $clean;
 	}
 
 	/**
-	 * Reset a theme's overrides: a built-in returns to its curated preset; a custom theme returns to
-	 * the shared base (empty bag). If the reset theme is active, the change takes effect immediately.
+	 * A built-in palette's own colours by id, or null for an id that is not one.
+	 *
+	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}|null
+	 */
+	public static function builtinBag( string $id ): ?array {
+		return self::isBuiltinId( $id ) ? self::builtinBaseById( $id ) : null;
+	}
+
+	/**
+	 * Reset a palette: a built-in already is its preset (palettes are not edited in place any more);
+	 * one of your own loses its colours.
 	 *
 	 * @return array{active: string, themes: list<array<string, mixed>>}
 	 */
@@ -290,7 +292,7 @@ final class DesignThemes {
 
 	/** @return array{active: string, custom: list<array{id: string, name: string, tokens: array<string, mixed>}>, builtinOverrides: array<string, array<string, mixed>>} */
 	private static function state(): array {
-		$value = function_exists( 'get_option' ) ? get_option( self::OPTION, [] ) : [];
+		$value = SettingModel::adoptOption( self::OPTION, self::SETTING, [] );
 		if ( ! is_array( $value ) ) {
 			$value = [];
 		}
@@ -327,9 +329,7 @@ final class DesignThemes {
 
 	/** @param array{active: string, custom: list<array<string, mixed>>, builtinOverrides?: array<string, array<string, mixed>>} $state */
 	private static function persist( array $state ): void {
-		if ( function_exists( 'update_option' ) ) {
-			update_option( self::OPTION, $state, false );
-		}
+		SettingModel::setValue( self::SETTING, $state );
 	}
 
 	/** @param list<array{id: string, ...}> $themes */
@@ -381,20 +381,20 @@ final class DesignThemes {
 	}
 
 	/**
-	 * @param array<string, mixed> $a
-	 * @param array<string, mixed> $b
+	 * A bag with its colours and nothing else.
+	 *
+	 * @param array<string, mixed> $bag
+	 * @return array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>, typeRoles: array<string, array<string, string>>}
 	 */
-	private static function bagsEqual( array $a, array $b ): bool {
-		// All three sub-maps are associative, so loose array equality is order-insensitive.
-		// Strict comparison would also compare key order and report equal bags as different.
-		return self::sanitizeTokens( $a ) == self::sanitizeTokens( $b ); // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
-	}
+	public static function colorsOnly( array $bag ): array {
+		$clean = self::sanitizeTokens( $bag );
+		$colors = $clean['tokens']['color'] ?? [];
 
-	/** @param array{tokens: array<string, mixed>, breakpoints: array<string, mixed>, typeRoles: array<string, mixed>} $bag */
-	private static function bagIsEmpty( array $bag ): bool {
-		return [] === ( $bag['tokens'] ?? [] )
-			&& [] === ( $bag['breakpoints'] ?? [] )
-			&& [] === ( $bag['typeRoles'] ?? [] );
+		return [
+			'tokens' => [] === $colors ? [] : [ 'color' => $colors ],
+			'breakpoints' => [],
+			'typeRoles' => [],
+		];
 	}
 
 	/**
@@ -436,10 +436,6 @@ final class DesignThemes {
 	}
 
 	private static function generateId(): string {
-		if ( function_exists( 'wp_generate_uuid4' ) ) {
-			return 'c' . substr( str_replace( '-', '', wp_generate_uuid4() ), 0, 12 );
-		}
-
-		return uniqid( 'c', true );
+		return 'c' . substr( str_replace( '-', '', wp_generate_uuid4() ), 0, 12 );
 	}
 }

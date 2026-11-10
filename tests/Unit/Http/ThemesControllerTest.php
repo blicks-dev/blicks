@@ -10,9 +10,9 @@ use PHPUnit\Framework\TestCase;
 use WP_REST_Request;
 
 /**
- * Themes own their settings: applying a theme makes its bag the live override set, editing the
- * active theme persists into it, and reset restores a built-in's curated preset. The live read is
- * {@see Store::getOverrides()} (= the active theme's effective bag).
+ * Palettes are colours only: using one repaints them, and someone's own values — saved through the
+ * Design system — stay whichever palette is in use. The live read is {@see Store::getOverrides()}
+ * (the palette's colours with those values on top).
  */
 final class ThemesControllerTest extends TestCase
 {
@@ -62,33 +62,38 @@ final class ThemesControllerTest extends TestCase
         $this->assertSame('indigo', DesignThemes::all()['active']);
     }
 
-    public function test_edit_while_builtin_active_persists_and_reapply_reproduces_it(): void
+    public function test_your_values_stay_when_the_palette_changes_and_its_colours_win(): void
     {
-        // Indigo is active by default. Editing it (the PATCH save path) persists onto the theme.
-        Store::saveOverrides(['tokens' => ['color' => ['primary' => '#abc123']]]);
+        Store::saveOverrides(['tokens' => ['color' => ['primary' => '#abc123', 'muted' => '#eeeeee'], 'radius' => ['md' => '3px']]]);
         $this->assertSame('#abc123', Store::getOverrides()['tokens']['color']['primary']);
-        $this->assertTrue(DesignThemes::find('indigo')['edited']);
 
-        // Switch away to Emerald (its curated brand), then back to Indigo.
         ThemesController::apply(new WP_REST_Request(['id' => 'emerald']));
-        $this->assertSame('#059669', Store::getOverrides()['tokens']['color']['primary']);
+        $live = Store::getOverrides()['tokens'];
 
-        ThemesController::apply(new WP_REST_Request(['id' => 'indigo']));
-
-        // The edit stuck to Indigo — re-applying reproduces it, not the curated preset.
-        $this->assertSame('#abc123', Store::getOverrides()['tokens']['color']['primary']);
+        // The palette repaints the colours it has; everything else of yours stays.
+        $this->assertSame('#059669', $live['color']['primary']);
+        $this->assertSame('#eeeeee', $live['color']['muted']);
+        $this->assertSame('3px', $live['radius']['md']);
     }
 
-    public function test_reset_restores_builtin_curated_preset(): void
+    public function test_a_colour_equal_to_the_palettes_is_the_palettes(): void
     {
-        Store::saveOverrides(['tokens' => ['color' => ['primary' => '#abc123']]]);
-        $this->assertTrue(DesignThemes::find('indigo')['edited']);
+        // Saving the palette's own value back (the admin sends every value) does not make it yours.
+        Store::saveOverrides(['tokens' => ['color' => ['primary' => '#4f46e5']]]);
+        $this->assertSame([], Store::values()['tokens']);
 
-        $response = ThemesController::reset(new WP_REST_Request(['id' => 'indigo']));
+        ThemesController::apply(new WP_REST_Request(['id' => 'rose']));
+        $this->assertSame('#e11d48', Store::getOverrides()['tokens']['color']['primary']);
+    }
 
-        $this->assertSame(200, $response->get_status());
-        $this->assertSame('#4f46e5', Store::getOverrides()['tokens']['color']['primary']);
-        $this->assertFalse(DesignThemes::find('indigo')['edited']);
-        $this->assertArrayHasKey('themes', $response->get_data());
+    public function test_a_new_palette_is_in_use_and_holds_the_colours(): void
+    {
+        Store::saveOverrides(['tokens' => ['color' => ['primary' => '#101010'], 'radius' => ['md' => '2px']]]);
+        $response = ThemesController::create(new WP_REST_Request(['name' => 'Ink', 'tokens' => ['color' => ['primary' => '#101010'], 'radius' => ['md' => '2px']]]));
+
+        $this->assertSame(201, $response->get_status());
+        $this->assertSame('Ink', DesignThemes::find(DesignThemes::all()['active'])['name']);
+        $this->assertSame(['radius' => ['md' => '2px']], Store::values()['tokens']);
+        $this->assertSame('#101010', Store::getOverrides()['tokens']['color']['primary']);
     }
 }

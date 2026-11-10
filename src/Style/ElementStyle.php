@@ -18,27 +18,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Turns the `blicks` value tree into the class list + inline CSS vars the block root element
  * carries, plus any scoped per-instance CSS (tier-3 / WA mechanisms). Driven by one declarative
- * STYLE_MAP, mirroring the JS engine — update both together when the map or serialisers change.
- *
- * Naming stays in sync with resources/runtime/runtime.scss.
+ * STYLE_MAP. The map is generated from resources/engine/schema.json ({@see Schema}); the value
+ * builders below are hand-written and mirror vars.ts — change both together.
  */
 final class ElementStyle {
 
-	private const STATE_KEY = [
-		'default' => '',
-		'hover' => 'hov',
-		'focus' => 'foc',
-		'active' => 'act',
-	];
-	private const BP_KEY    = [
-		'base' => '',
-		'tablet' => 'tab',
-		'mobile' => 'mob',
-	];
+	private const STATE_KEY = Schema::STATE_KEY;
+	private const BP_KEY    = Schema::BP_KEY;
 
 	/** [side-key, var-suffix] */
-	private const SIDES   = [ [ 'top', 't' ], [ 'right', 'r' ], [ 'bottom', 'b' ], [ 'left', 'l' ] ];
-	private const CORNERS = [ [ 'topLeft', 'tl' ], [ 'topRight', 'tr' ], [ 'bottomRight', 'br' ], [ 'bottomLeft', 'bl' ] ];
+	private const SIDES   = Schema::SIDES;
+	private const CORNERS = Schema::CORNERS;
 
 	/** @var array<string, callable(mixed): string> */
 	private static array $cssValueBuilders = [];
@@ -62,603 +52,13 @@ final class ElementStyle {
 	}
 
 	/**
-	 * Single-value properties — `kind: single`. Expanded box-model controls (padding/margin/border
-	 * width/radius/inset) are prepended in styleMap(). Mirror of SINGLES in vars.ts.
-	 *
-	 * @var array<string, array{cls: string, var: string, category?: string}>
-	 */
-	private const SINGLE_PROPS = [
-		'layout.display'            => [
-			'cls' => 'd',
-			'var' => '--bl-d',
-		],
-		'layout.flexDirection'      => [
-			'cls' => 'fd',
-			'var' => '--bl-fd',
-		],
-		'layout.justifyContent'     => [
-			'cls' => 'jc',
-			'var' => '--bl-jc',
-		],
-		'layout.alignItems'         => [
-			'cls' => 'ai',
-			'var' => '--bl-ai',
-		],
-		'layout.flexWrap'           => [
-			'cls' => 'fw',
-			'var' => '--bl-fw',
-		],
-		'layout.gapRow'             => [
-			'cls' => 'gap-r',
-			'var' => '--bl-gap-r',
-			'category' => 'spacing',
-		],
-		'layout.gapColumn'          => [
-			'cls' => 'gap-c',
-			'var' => '--bl-gap-c',
-			'category' => 'spacing',
-		],
-		'layout.gridColumns'        => [
-			'cls' => 'cols',
-			'var' => '--bl-cols',
-		],
-		'layout.gridRows'           => [
-			'cls' => 'rows',
-			'var' => '--bl-rows',
-		],
-		'layout.justifyItems'       => [
-			'cls' => 'ji',
-			'var' => '--bl-ji',
-		],
-		'layout.width'              => [
-			'cls' => 'w',
-			'var' => '--bl-w',
-			'category' => 'width',
-		],
-		'layout.height'             => [
-			'cls' => 'h',
-			'var' => '--bl-h',
-			'category' => 'width',
-		],
-		'layout.overflow'           => [
-			'cls' => 'ov',
-			'var' => '--bl-ov',
-		],
-		// NB: border.style / border.color are NOT single props — they're `sides` rules (see rules()).
-		'position.type'             => [
-			'cls' => 'pos',
-			'var' => '--bl-pos',
-		],
-		'position.zIndex'           => [
-			'cls' => 'zi',
-			'var' => '--bl-zi',
-			'category' => 'zIndex',
-		],
-		'colors.background'         => [
-			'cls' => 'bg',
-			'var' => '--bl-bg',
-			'category' => 'color',
-		],
-		'colors.text'               => [
-			'cls' => 'tx',
-			'var' => '--bl-tx',
-			'category' => 'color',
-		],
-		'background.image'          => [
-			'cls' => 'bg-img',
-			'var' => '--bl-bg-img',
-			'category' => 'image',
-		],
-		'background.gradient'       => [
-			'cls' => 'bg-grad',
-			'var' => '--bl-bg-grad',
-			'category' => 'gradient',
-		],
-		'background.size'           => [
-			'cls' => 'bg-size',
-			'var' => '--bl-bg-size',
-		],
-		'background.position'       => [
-			'cls' => 'bg-pos',
-			'var' => '--bl-bg-pos',
-		],
-		'background.repeat'         => [
-			'cls' => 'bg-repeat',
-			'var' => '--bl-bg-repeat',
-		],
-		'background.attachment'     => [
-			'cls' => 'bg-attach',
-			'var' => '--bl-bg-attach',
-		],
-		// Wave C — color/background extensions.
-		'background.blendMode'      => [
-			'cls' => 'bg-blend',
-			'var' => '--bl-bg-blend',
-		],
-		'colors.clipText'           => [
-			'cls' => 'cliptext',
-			'var' => '--bl-cliptext',
-		],
-		'typography.fontFamily'     => [
-			'cls' => 'ff',
-			'var' => '--bl-ff',
-			'category' => 'fontFamily',
-		],
-		'typography.fontSize'       => [
-			'cls' => 'fs',
-			'var' => '--bl-fs',
-			'category' => 'fontSize',
-		],
-		'typography.lineHeight'     => [
-			'cls' => 'lh',
-			'var' => '--bl-lh',
-			'category' => 'leading',
-		],
-		'typography.fontWeight'     => [
-			'cls' => 'fwt',
-			'var' => '--bl-fwt',
-		],
-		'typography.fontStyle'      => [
-			'cls' => 'fst',
-			'var' => '--bl-fst',
-		],
-		'typography.letterSpacing'  => [
-			'cls' => 'ls',
-			'var' => '--bl-ls',
-		],
-		'typography.wordSpacing'    => [
-			'cls' => 'ws',
-			'var' => '--bl-ws',
-		],
-		'typography.textTransform'  => [
-			'cls' => 'tt',
-			'var' => '--bl-tt',
-		],
-		'typography.textDecoration' => [
-			'cls' => 'td',
-			'var' => '--bl-td',
-		],
-		'typography.textAlign'      => [
-			'cls' => 'ta',
-			'var' => '--bl-ta',
-		],
-		// Wave C — typography extensions.
-		'typography.writingMode'     => [
-			'cls' => 'wm',
-			'var' => '--bl-wm',
-		],
-		'typography.textOrientation' => [
-			'cls' => 'to',
-			'var' => '--bl-to',
-		],
-		'effects.opacity'           => [
-			'cls' => 'op',
-			'var' => '--bl-op',
-			'category' => 'opacity',
-		],
-		'effects.cursor'            => [
-			'cls' => 'cur',
-			'var' => '--bl-cur',
-		],
-		'effects.blendMode'         => [
-			'cls' => 'bm',
-			'var' => '--bl-bm',
-		],
-		'effects.boxShadow'         => [
-			'cls' => 'bsh',
-			'var' => '--bl-bsh',
-			'category' => 'boxShadow',
-		],
-		'effects.textShadow'        => [
-			'cls' => 'tsh',
-			'var' => '--bl-tsh',
-			'category' => 'textShadow',
-		],
-		'effects.transition'        => [
-			'cls' => 'tr',
-			'var' => '--bl-tr',
-			'category' => 'transition',
-		],
-		'effects.transform'         => [
-			'cls' => 'tfm',
-			'var' => '--bl-tfm',
-			'category' => 'transform',
-		],
-		'effects.filter'            => [
-			'cls' => 'flt',
-			'var' => '--bl-flt',
-			'category' => 'filter',
-		],
-		// Wave D — effects extensions.
-		'effects.clipPath'          => [
-			'cls' => 'clip',
-			'var' => '--bl-clip',
-			'category' => 'clipPath',
-		],
-		'effects.backdropFilter'    => [
-			'cls' => 'bdf',
-			'var' => '--bl-bdf',
-			'category' => 'backdropFilter',
-		],
-		'effects.mask'              => [
-			'cls' => 'mask',
-			'var' => '--bl-mask',
-			'category' => 'mask',
-		],
-		'effects.transformOrigin'   => [
-			'cls' => 'tfo',
-			'var' => '--bl-tfo',
-		],
-		'effects.transformStyle'    => [
-			'cls' => 'tfs',
-			'var' => '--bl-tfs',
-		],
-		'effects.perspective'       => [
-			'cls' => 'psp',
-			'var' => '--bl-psp',
-		],
-		// Wave E — animation section.
-		'animation.name'         => [
-			'cls' => 'anim-name',
-			'var' => '--bl-anim-name',
-		],
-		'animation.duration'     => [
-			'cls' => 'anim-dur',
-			'var' => '--bl-anim-dur',
-		],
-		'animation.easing'       => [
-			'cls' => 'anim-ease',
-			'var' => '--bl-anim-ease',
-		],
-		'animation.iteration'    => [
-			'cls' => 'anim-iter',
-			'var' => '--bl-anim-iter',
-		],
-		'animation.direction'    => [
-			'cls' => 'anim-dir',
-			'var' => '--bl-anim-dir',
-		],
-		'animation.fillMode'     => [
-			'cls' => 'anim-fill',
-			'var' => '--bl-anim-fill',
-		],
-		'animation.delay'        => [
-			'cls' => 'anim-delay',
-			'var' => '--bl-anim-delay',
-		],
-		'animation.timeline'     => [
-			'cls' => 'anim-tl',
-			'var' => '--bl-anim-tl',
-		],
-		'animation.range'        => [
-			'cls' => 'anim-range',
-			'var' => '--bl-anim-range',
-		],
-		'animation.targetAngle'  => [
-			'cls' => 'anim-ang',
-			'var' => '--bl-ang',
-		],
-		'animation.target'       => [
-			'cls' => 'anim-p',
-			'var' => '--bl-p-target',
-		],
-		// Wave F — counters.
-		'decoration.counterReset'     => [
-			'cls' => 'cnt-r',
-			'var' => '--bl-cnt-r',
-		],
-		'decoration.counterIncrement' => [
-			'cls' => 'cnt-i',
-			'var' => '--bl-cnt-i',
-		],
-		'gridChild.columnSpan'      => [
-			'cls' => 'gcs',
-			'var' => '--bl-gcs',
-		],
-		'gridChild.rowSpan'         => [
-			'cls' => 'grs',
-			'var' => '--bl-grs',
-		],
-		'gridChild.alignSelf'       => [
-			'cls' => 'gas',
-			'var' => '--bl-gas',
-		],
-		'gridChild.justifySelf'     => [
-			'cls' => 'gjs',
-			'var' => '--bl-gjs',
-		],
-		'gridChild.order'           => [
-			'cls' => 'go',
-			'var' => '--bl-go',
-		],
-		// Wave B — grid-child extensions.
-		'gridChild.gridArea'        => [
-			'cls' => 'ga',
-			'var' => '--bl-ga',
-		],
-		'gridChild.scrollSnapAlign' => [
-			'cls' => 'ssa',
-			'var' => '--bl-ssa',
-		],
-		// Wave B — layout extensions.
-		'layout.overflowX'          => [
-			'cls' => 'ovx',
-			'var' => '--bl-ovx',
-		],
-		'layout.overflowY'          => [
-			'cls' => 'ovy',
-			'var' => '--bl-ovy',
-		],
-		'layout.scrollSnapType'     => [
-			'cls' => 'sst',
-			'var' => '--bl-sst',
-		],
-		'layout.gridAreas'          => [
-			'cls' => 'areas',
-			'var' => '--bl-areas',
-		],
-		'layout.gridAutoFlow'       => [
-			'cls' => 'gaf',
-			'var' => '--bl-gaf',
-		],
-		'layout.containerType'      => [
-			'cls' => 'ct',
-			'var' => '--bl-ct',
-		],
-		'layout.containerName'      => [
-			'cls' => 'cn',
-			'var' => '--bl-cn',
-		],
-		'layout.aspectRatio'        => [
-			'cls' => 'ar',
-			'var' => '--bl-ar',
-			'category' => 'aspect',
-		],
-		'layout.objectFit'          => [
-			'cls' => 'of',
-			'var' => '--bl-of',
-		],
-		// Wave B — columns section.
-		'columns.columnCount'       => [
-			'cls' => 'cc',
-			'var' => '--bl-cc',
-		],
-		'columns.columnWidth'       => [
-			'cls' => 'cw',
-			'var' => '--bl-cw',
-			'category' => 'width',
-		],
-		'columns.columnGap'         => [
-			'cls' => 'cgap',
-			'var' => '--bl-cgap',
-			'category' => 'spacing',
-		],
-		// Wave G — flex-child (the flexbox parallel to gridChild).
-		'flexChild.grow'            => [
-			'cls' => 'fg',
-			'var' => '--bl-fg',
-		],
-		'flexChild.shrink'          => [
-			'cls' => 'fsk',
-			'var' => '--bl-fsk',
-		],
-		'flexChild.basis'           => [
-			'cls' => 'fb',
-			'var' => '--bl-fb',
-			'category' => 'width',
-		],
-		'flexChild.alignSelf'       => [
-			'cls' => 'fas',
-			'var' => '--bl-fas',
-		],
-		'flexChild.order'           => [
-			'cls' => 'fco',
-			'var' => '--bl-fco',
-		],
-		// Wave G — layout completeness (align-content, grid auto tracks, box sizing, box
-		// behavior, scroll extras, direction).
-		'layout.alignContent'       => [
-			'cls' => 'ac',
-			'var' => '--bl-ac',
-		],
-		'layout.gridAutoColumns'    => [
-			'cls' => 'gac',
-			'var' => '--bl-gac',
-		],
-		'layout.gridAutoRows'       => [
-			'cls' => 'gar',
-			'var' => '--bl-gar',
-		],
-		'layout.minWidth'           => [
-			'cls' => 'miw',
-			'var' => '--bl-miw',
-			'category' => 'width',
-		],
-		'layout.maxWidth'           => [
-			'cls' => 'maw',
-			'var' => '--bl-maw',
-			'category' => 'width',
-		],
-		'layout.minHeight'          => [
-			'cls' => 'mih',
-			'var' => '--bl-mih',
-			'category' => 'width',
-		],
-		'layout.maxHeight'          => [
-			'cls' => 'mah',
-			'var' => '--bl-mah',
-			'category' => 'width',
-		],
-		'layout.boxSizing'          => [
-			'cls' => 'bxz',
-			'var' => '--bl-bxz',
-		],
-		'layout.visibility'         => [
-			'cls' => 'vis',
-			'var' => '--bl-vis',
-		],
-		'layout.float'              => [
-			'cls' => 'flt2',
-			'var' => '--bl-flt2',
-		],
-		'layout.clear'              => [
-			'cls' => 'clr',
-			'var' => '--bl-clr',
-		],
-		'layout.isolation'          => [
-			'cls' => 'iso',
-			'var' => '--bl-iso',
-		],
-		'layout.resize'             => [
-			'cls' => 'rsz',
-			'var' => '--bl-rsz',
-		],
-		'layout.scrollBehavior'     => [
-			'cls' => 'sb',
-			'var' => '--bl-sb',
-		],
-		'layout.overscrollBehavior' => [
-			'cls' => 'osb',
-			'var' => '--bl-osb',
-		],
-		'layout.scrollSnapStop'     => [
-			'cls' => 'sss',
-			'var' => '--bl-sss',
-		],
-		'layout.direction'          => [
-			'cls' => 'dir',
-			'var' => '--bl-dir',
-		],
-		// Wave H — containment/perf + truncation (high real-world usage).
-		'layout.contain'              => [
-			'cls' => 'ctn',
-			'var' => '--bl-ctn',
-		],
-		'layout.contentVisibility'    => [
-			'cls' => 'cv',
-			'var' => '--bl-cv',
-		],
-		'layout.containIntrinsicSize' => [
-			'cls' => 'cis',
-			'var' => '--bl-cis',
-		],
-		'layout.lineClamp'            => [
-			'cls' => 'lc',
-			'var' => '--bl-lc',
-		],
-	];
-
-	/**
-	 * The single source of truth — expanded box-model controls first (exact class-order assertions
-	 * depend on it), then the single-value props. Mirror of STYLE_MAP in vars.ts.
+	 * Every built-in rule — generated from resources/engine/schema.json into {@see Schema::RULES}, the
+	 * same data the editor's engine reads — then any registered at runtime.
 	 *
 	 * @return list<array{attr:string,cls:string,kind:string,v:string,category?:string,prop?:string,selectorSuffix?:string,atRule?:array,registerProperty?:array,keyframes?:string}>
 	 */
 	private static function styleMap(): array {
-		$rules = [
-			[
-				'attr' => 'spacing.padding',
-				'cls' => 'pad',
-				'kind' => 'sides',
-				'v' => 'p',
-				'category' => 'spacing',
-			],
-			[
-				'attr' => 'spacing.margin',
-				'cls' => 'mar',
-				'kind' => 'sides',
-				'v' => 'm',
-				'category' => 'spacing',
-			],
-			[
-				'attr' => 'border.width',
-				'cls' => 'bw',
-				'kind' => 'sides',
-				'v' => 'bw',
-				'category' => 'borderWidth',
-				'fallbackCategory' => 'spacing',
-			],
-			// Style/colour are per-side too (4-value shorthands). `raw` keeps the length normaliser
-			// away from them: an unset side falls back to the property's initial value, not `0`.
-			[
-				'attr' => 'border.style',
-				'cls' => 'bs',
-				'kind' => 'sides',
-				'v' => 'bs',
-				'raw' => true,
-				'emptyValue' => 'none',
-			],
-			[
-				'attr' => 'border.color',
-				'cls' => 'bc',
-				'kind' => 'sides',
-				'v' => 'bc',
-				'category' => 'color',
-				'raw' => true,
-				'emptyValue' => 'currentcolor',
-			],
-			[
-				'attr' => 'border.radius',
-				'cls' => 'br',
-				'kind' => 'corners',
-				'v' => 'br',
-				'category' => 'radius',
-			],
-			[
-				'attr' => 'position.inset',
-				'cls' => 'inset',
-				'kind' => 'inset',
-				'v' => 'pos',
-				'category' => 'spacing',
-			],
-			// Library preset: a picked type role → global class `bl-type--{role}` (runtime.scss). No var.
-			[
-				'attr' => 'typography.role',
-				'cls' => 'type',
-				'kind' => 'enum',
-				'v' => '',
-			],
-		];
-
-		foreach ( self::SINGLE_PROPS as $attr => $cfg ) {
-			$rules[] = [
-				'attr'     => $attr,
-				'cls'      => $cfg['cls'],
-				'kind'     => 'single',
-				'v'        => $cfg['var'],
-				'category' => $cfg['category'] ?? null,
-			];
-		}
-
-		// Wave B: columns break-inside emits a child selector rule, not a class+var on the element.
-		$rules[] = [
-			'attr' => 'columns.breakInside',
-			'cls' => 'cbi',
-			'kind' => 'single',
-			'v' => '--bl-cbi',
-			'prop' => 'break-inside',
-			'selectorSuffix' => ' > *',
-		];
-
-		// Wave F: pseudo-element decoration — builder returns the full body.
-		$rules[] = [
-			'attr' => 'decoration.before',
-			'cls' => 'deco-b',
-			'kind' => 'single',
-			'v' => '--bl-deco-b',
-			'category' => 'decoration',
-			'selectorSuffix' => '::before',
-		];
-		$rules[] = [
-			'attr' => 'decoration.after',
-			'cls' => 'deco-a',
-			'kind' => 'single',
-			'v' => '--bl-deco-a',
-			'category' => 'decoration',
-			'selectorSuffix' => '::after',
-		];
-
-		return array_merge( $rules, self::$dynamicRules );
+		return array_merge( Schema::RULES, self::$dynamicRules );
 	}
 
 	/**
@@ -679,7 +79,9 @@ final class ElementStyle {
 	 *  - `corners` → `{ topLeft, topRight, bottomRight, bottomLeft }`, or that same string form
 	 *  - `scalar`  → a single value (`single` and `enum` rules alike)
 	 *
-	 * @return list<array{id: string, valueShape: string, category: string|null, scoped: bool}>
+	 * `valueSchema` is the full JSON Schema for one value — see {@see self::valueSchema()}.
+	 *
+	 * @return list<array{id: string, valueShape: string, category: string|null, scoped: bool, valueSchema: array<string, mixed>|null}>
 	 */
 	public static function controls(): array {
 		$controls = [];
@@ -704,10 +106,194 @@ final class ElementStyle {
 					|| isset( $rule['atRule'] )
 					|| isset( $rule['keyframes'] )
 					|| isset( $rule['registerProperty'] ),
+				'valueSchema' => self::valueSchema( (string) ( $rule['attr'] ?? '' ) ),
 			];
 		}
 
 		return $controls;
+	}
+
+	/**
+	 * Every value in a style tree the engine would not apply, and why. build() drops these quietly so
+	 * one bad value never breaks a page; this is the same judgement made out loud, for layout tools and
+	 * agents to report. Pass the block's `supports.blicks.controls` to also catch controls the block
+	 * does not allow. Mirror of findStyleProblems() in vars.ts.
+	 *
+	 * Reasons: `unknown-control`, `not-allowed`, `unknown-slot`, `unknown-breakpoint`, `not-on-part`
+	 * (a pseudo-element cannot take that control) and `invalid-value` (it builds to nothing — for a
+	 * shadow, one bad layer drops the whole shadow).
+	 *
+	 * @param list<string>|null $allowList
+	 * @return list<array{id: string, reason: string, slot?: string, breakpoint?: string, value?: mixed}>
+	 */
+	public static function problems( mixed $blicks, ?array $allowList = null ): array {
+		$problems = [];
+		if ( ! is_array( $blicks ) ) {
+			return $problems;
+		}
+		$rules = [];
+		foreach ( self::styleMap() as $rule ) {
+			$rules[ $rule['attr'] ] = $rule;
+		}
+		foreach ( $blicks as $id => $tree ) {
+			$id = (string) $id;
+			if ( str_starts_with( $id, 'meta.' ) ) {
+				continue;
+			}
+			$rule = $rules[ $id ] ?? null;
+			if ( null === $rule ) {
+				$problems[] = [
+					'id' => $id,
+					'reason' => 'unknown-control',
+				];
+				continue;
+			}
+			if ( null !== $allowList && ! self::allowsControl( $id, $allowList ) ) {
+				$problems[] = [
+					'id' => $id,
+					'reason' => 'not-allowed',
+				];
+				continue;
+			}
+			if ( ! is_array( $tree ) ) {
+				continue;
+			}
+			foreach ( $tree as $slot => $byBp ) {
+				$slot = (string) $slot;
+				if ( str_contains( $slot, ':' ) ) {
+					[ $part, $state ] = explode( ':', $slot, 2 );
+				} elseif ( 'default' !== $slot && Parts::isPart( $slot ) ) {
+					[ $part, $state ] = [ $slot, 'default' ];
+				} else {
+					[ $part, $state ] = [ Parts::ELEMENT, $slot ];
+				}
+				if ( ! Parts::isPart( $part ) || ! array_key_exists( $state, self::STATE_KEY ) ) {
+					$problems[] = [
+						'id' => $id,
+						'slot' => $slot,
+						'reason' => 'unknown-slot',
+					];
+					continue;
+				}
+				foreach ( is_array( $byBp ) ? $byBp : [] as $bp => $value ) {
+					$bp   = (string) $bp;
+					$here = [
+						'id' => $id,
+						'slot' => $slot,
+						'breakpoint' => $bp,
+					];
+					if ( ! array_key_exists( $bp, self::BP_KEY ) ) {
+						$problems[] = $here + [
+							'reason' => 'unknown-breakpoint',
+							'value' => $value,
+						];
+					} elseif ( Parts::ELEMENT !== $part && ! self::partable( $rule ) ) {
+						$problems[] = $here + [
+							'reason' => 'not-on-part',
+							'value' => $value,
+						];
+					} elseif ( self::valueRejected( $rule, $value ) ) {
+						$problems[] = $here + [
+							'reason' => 'invalid-value',
+							'value' => $value,
+						];
+					}
+				}
+			}
+		}
+		return $problems;
+	}
+
+	/** @param array<string, mixed> $rule */
+	private static function partable( array $rule ): bool {
+		$cls = (string) ( $rule['cls'] ?? '' );
+		return 'enum' !== $rule['kind'] && ( isset( Schema::PART_PROPS[ $cls ] ) || in_array( $cls, Schema::PART_SPECIAL, true ) );
+	}
+
+	/**
+	 * Would this one value build to nothing? Mirrors the emission paths in build().
+	 *
+	 * @param array<string, mixed> $rule
+	 */
+	private static function valueRejected( array $rule, mixed $value ): bool {
+		if ( null === $value || '' === $value ) {
+			return false;
+		}
+		if ( 'enum' === $rule['kind'] ) {
+			return '' === preg_replace( '/[^a-z0-9-]/', '', (string) ( is_scalar( $value ) ? $value : '' ) );
+		}
+		if ( 'single' === $rule['kind'] ) {
+			return '' === self::cssValueForCategory( $rule['category'] ?? null, $value );
+		}
+		if ( is_string( $value ) || is_int( $value ) || is_float( $value ) ) {
+			return self::sideRejected( $rule, $value );
+		}
+		if ( ! is_array( $value ) ) {
+			return true;
+		}
+		foreach ( $value as $side ) {
+			if ( self::sideRejected( $rule, $side ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** @param array<string, mixed> $rule */
+	private static function sideRejected( array $rule, mixed $v ): bool {
+		$s = trim( is_scalar( $v ) ? (string) $v : '' );
+		if ( '' === $s ) {
+			return ! is_scalar( $v ) && null !== $v;
+		}
+		$raw = ! empty( $rule['raw'] );
+		if ( ! $raw && preg_match( '/^-?\d*\.?\d+$/', $s ) ) {
+			return false;
+		}
+		$category = $raw ? ( $rule['category'] ?? null ) : ( $rule['category'] ?? 'spacing' );
+		if ( null !== $category && Tokens::isToken( (string) $category, $s ) ) {
+			return false;
+		}
+		return '' === CssValue::clean( $s );
+	}
+
+	/**
+	 * The JSON Schema for one value of a control: its shape (object keys, accepted forms, examples),
+	 * the token scale its slugs come from (`x-tokens`), and for an enum the names it takes. Values are
+	 * stored per state and breakpoint around it — see {@see self::valueTree()}. Null for a control a
+	 * companion plugin registered at runtime, which the schema does not describe.
+	 *
+	 * Mirror of valueSchema() in resources/engine/value-schema.ts; both read Schema::VALUE_SHAPES.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public static function valueSchema( string $id ): ?array {
+		$c = Schema::CONTROL_VALUES[ $id ] ?? null;
+		if ( null === $c ) {
+			return null;
+		}
+		$schema = [ 'title' => $id ] + Schema::VALUE_SHAPES[ $c['shape'] ];
+		if ( isset( $c['tokens'] ) ) {
+			$schema['x-tokens'] = $c['tokens'];
+		}
+		if ( isset( $c['values'] ) ) {
+			$schema['enum'] = $c['values'];
+		}
+		if ( isset( $c['property'] ) ) {
+			$schema['x-property'] = $c['property'];
+		}
+		if ( isset( $c['note'] ) ) {
+			$schema['description'] = ( $schema['description'] ?? '' ) . ' ' . $c['note'];
+		}
+		return $schema;
+	}
+
+	/**
+	 * How every control's values are stored: `{ state: { breakpoint: value } }`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function valueTree(): array {
+		return Schema::VALUE_TREE;
 	}
 
 	/**
@@ -773,10 +359,34 @@ final class ElementStyle {
 		/** @var list<string> $scopedCss */
 		$scopedCss = [];
 		$uid = self::scopedId( $uniqueId );
+		/** @var array<string, list<string>> $partBuckets `{bpKey}|{selectorSuffix}` → declarations. */
+		$partBuckets = [];
+		/** @var array<string, true> $styledParts */
+		$styledParts = [];
+		/** @var array<string, true> $authoredContent */
+		$authoredContent = [];
+		$parts = [
+			'uid'      => $uid,
+			'buckets'  => &$partBuckets,
+			'styled'   => &$styledParts,
+			'authored' => &$authoredContent,
+		];
 
 		foreach ( self::styleMap() as $rule ) {
 			$tree = $blicks[ $rule['attr'] ] ?? null;
 			if ( ! is_array( $tree ) ) {
+				continue;
+			}
+			// Slots a limited state may not style are dropped before either tier — see allowedSlots().
+			$tree = Parts::allowedSlots( $rule['attr'], $tree );
+
+			// Part-only controls never reach the element.
+			if ( ! empty( $rule['partOnly'] ) ) {
+				foreach ( $tree as $slot => $byBp ) {
+					foreach ( is_array( $byBp ) ? $byBp : [] as $bp => $value ) {
+						self::collectPart( $rule, (string) $slot, (string) $bp, $value, $parts );
+					}
+				}
 				continue;
 			}
 
@@ -797,13 +407,22 @@ final class ElementStyle {
 
 			if ( 'single' === $rule['kind'] ) {
 				$hasValue = false;
-				foreach ( $tree as $state => $byBp ) {
+				foreach ( $tree as $slot => $byBp ) {
 					if ( ! is_array( $byBp ) ) {
 						continue;
 					}
-					$sk = self::STATE_KEY[ $state ] ?? '';
+					$sk = self::STATE_KEY[ $slot ] ?? '';
 					foreach ( $byBp as $bp => $value ) {
+						if ( self::collectPart( $rule, (string) $slot, (string) $bp, $value, $parts ) ) {
+							continue;
+						}
 						if ( null === $value || '' === $value || ( is_array( $value ) && empty( $value ) ) ) {
+							continue;
+						}
+						// No var, no class — mirror of vars.ts: a consumer class with nothing behind it
+						// applies its fallback and would undo the theme instead of doing nothing.
+						$css = self::cssValueForCategory( $rule['category'] ?? null, $value );
+						if ( '' === $css ) {
 							continue;
 						}
 						$hasValue = true;
@@ -812,10 +431,7 @@ final class ElementStyle {
 							$classSet[ 'bl-' . $rule['cls'] . '--' . $key ] = true;
 						}
 						$suf = '' !== $key ? '-' . $key : '';
-						$css = self::cssValueForCategory( $rule['category'] ?? null, $value );
-						if ( '' !== $css ) {
-							$vars[ $rule['v'] . $suf ] = $css;
-						}
+						$vars[ $rule['v'] . $suf ] = $css;
 					}
 				}
 				if ( $hasValue ) {
@@ -824,20 +440,29 @@ final class ElementStyle {
 				continue;
 			}
 
-			// Expanded box: sides / inset / corners. The class is present whenever the control is.
-			$classSet[ 'bl-' . $rule['cls'] ] = true;
+			// Expanded box: sides / inset / corners. The class is present whenever the control has an
+			// element slot — NOT when every slot is a part (`.bl-pad` with no `--bl-pt` behind it would
+			// drop the host's padding to 0). Mirror of vars.ts.
+			foreach ( array_keys( $tree ) as $slot ) {
+				if ( Parts::isElementSlot( (string) $slot ) ) {
+					$classSet[ 'bl-' . $rule['cls'] ] = true;
+					break;
+				}
+			}
 			$keys = 'corners' === $rule['kind'] ? self::CORNERS : self::SIDES;
 			$dash = 'inset' === $rule['kind'] ? '-' : '';
 			$cat  = $rule['category'] ?? 'spacing';
-			$fallbackCat = $rule['fallbackCategory'] ?? null;
 			$raw   = ! empty( $rule['raw'] );
 			$empty = $rule['emptyValue'] ?? '0';
-			foreach ( $tree as $state => $byBp ) {
+			foreach ( $tree as $slot => $byBp ) {
 				if ( ! is_array( $byBp ) ) {
 					continue;
 				}
-				$sk = self::STATE_KEY[ $state ] ?? '';
+				$sk = self::STATE_KEY[ $slot ] ?? '';
 				foreach ( $byBp as $bp => $value ) {
+					if ( self::collectPart( $rule, (string) $slot, (string) $bp, $value, $parts ) ) {
+						continue;
+					}
 					// A bare string means "the same on every side" — how border.style/border.color
 					// were stored before they became per-side. Mirrors expandSideValue() in vars.ts.
 					if ( is_string( $value ) && '' !== $value ) {
@@ -853,17 +478,24 @@ final class ElementStyle {
 					$suf = '' !== $key ? '-' . $key : '';
 					foreach ( $keys as [$prop, $letter] ) {
 						$v = $value[ $prop ] ?? null;
-						if ( $raw ) {
+						if ( 'inset' === $rule['kind'] && ( null === $v || '' === $v ) ) {
+							// An unset inset side is `auto`, as on a part — see vars.ts.
+							$vars[ '--bl-' . $rule['v'] . $dash . $letter . $suf ] = 'auto';
+						} elseif ( $raw ) {
 							// Keyword/colour sides always emit — an unset side gets the property's
 							// own initial value, never the length path's `0`.
 							$vars[ '--bl-' . $rule['v'] . $dash . $letter . $suf ] = self::rawOrToken( $rule['category'] ?? null, $v, $empty );
-						} elseif ( null !== $v && '' !== $v ) {
-							$vars[ '--bl-' . $rule['v'] . $dash . $letter . $suf ] = self::valOrToken( $cat, $v, $fallbackCat );
+						} else {
+							// An unset length side is `0`, exactly as vars.ts writes it: saved markup holds
+							// the editor's output, so a server write that differs would open as invalid.
+							$vars[ '--bl-' . $rule['v'] . $dash . $letter . $suf ] = self::valOrToken( $cat, $v );
 						}
 					}
 				}
 			}
 		}
+
+		self::emitPartRules( $partBuckets, $uid, $scopedCss, $styledParts, $authoredContent );
 
 		$result = [
 			'classes' => array_keys( $classSet ),
@@ -884,12 +516,12 @@ final class ElementStyle {
 	 * Categories whose builder output is already validated and must NOT be run through
 	 * CssValue::clean() again:
 	 *
-	 *  - `decoration` emits a whole `key:val;…` declaration list, so it legitimately contains the
-	 *    `:` and `;` that clean() refuses. It validates each of its own values instead.
-	 *  - `image` emits `url("…")`, and a URL legitimately contains `:` and `/`. imageBuilder()
+	 *  - `content` emits a quoted CSS string, which clean() refuses. normalizeContent() strips control
+	 *    characters and `<`, escapes quotes and backslashes, and validates any function whole.
+	 *  - `image` and `backgroundLayers` emit `url("…")`, and a URL legitimately contains `:` and `/`. imageBuilder()
 	 *    validates the URL with CssValue::url() before building the function.
 	 */
-	private const SELF_VALIDATING_CATEGORIES = [ 'decoration', 'image' ];
+	private const SELF_VALIDATING_CATEGORIES = [ 'content', 'image', 'backgroundLayers' ];
 
 	public static function cssValueForCategory( ?string $category, mixed $v ): string {
 		self::ensureCssValueBuilders();
@@ -906,7 +538,7 @@ final class ElementStyle {
 			return 'var(--blicks-' . $category . '-' . $s . ')';
 		}
 
-		// Uncategorised `single` rules land here, which is most of SINGLE_PROPS. Returning $s raw
+		// Uncategorised `single` rules land here, which is most of them. Returning $s raw
 		// let a stored attribute close its own declaration and append arbitrary ones to the
 		// wrapper's style attribute.
 		return CssValue::clean( $s );
@@ -977,7 +609,7 @@ final class ElementStyle {
 		return '' !== $clean ? $clean : $empty;
 	}
 
-	private static function valOrToken( string $category, mixed $v, ?string $fallbackCategory = null ): string {
+	private static function valOrToken( string $category, mixed $v ): string {
 		$s = trim( (string) ( $v ?? '' ) );
 		if ( '' === $s ) {
 			return '0';
@@ -991,14 +623,211 @@ final class ElementStyle {
 		if ( Tokens::isToken( $category, $s ) ) {
 			return 'var(--blicks-' . $category . '-' . $s . ')';
 		}
-		if ( null !== $fallbackCategory && Tokens::isToken( $fallbackCategory, $s ) ) {
-			return 'var(--blicks-' . $fallbackCategory . '-' . $s . ')';
-		}
 
 		// `0` for a rejected length, matching the empty-value behaviour above: a side with no
 		// value at all would invalidate the shorthand and drop the other three.
 		$clean = CssValue::clean( $s );
 		return '' !== $clean ? $clean : '0';
+	}
+
+	// ── The part axis — mirror of collectPart()/partDeclarations()/emitPartRules() in vars.ts ──
+
+	private const INSET_PROPS          = [ 'top', 'right', 'bottom', 'left' ];
+	private const LINE_CLAMP_FIXED     = 'display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;';
+	private const CLIP_TEXT_DECLS      = 'background-clip:text;-webkit-background-clip:text;color:transparent';
+	private const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
+	private const TIMELINE_SUPPORTS    = '(animation-timeline: scroll())';
+	/** The hover guard runtime.scss's `at-state` puts on hover rules — see HOVER_QUERY in vars.ts. */
+	private const HOVER_QUERY          = '(hover: hover)';
+
+	/**
+	 * Route one slot's value to the part buckets. False means the slot styles the element and the
+	 * caller's tier-1/2 path runs; a part slot only ever adds scoped CSS.
+	 *
+	 * @param array<string,mixed> $rule
+	 * @param array<string,mixed> $acc  uid plus references to the buckets / styled / authored sets.
+	 */
+	private static function collectPart( array $rule, string $slot, string $bp, mixed $value, array &$acc ): bool {
+		$part = Parts::parseSlot( $slot )['part'];
+		if ( Parts::ELEMENT === $part ) {
+			return false;
+		}
+		// Without an instance id there is no selector; `.bl-::before` would match every block.
+		if ( '' === $acc['uid'] ) {
+			return true;
+		}
+
+		$decls = self::partDeclarations( $rule, $value );
+		if ( '' === $decls ) {
+			return true;
+		}
+
+		$acc['styled'][ $part ] = true;
+		if ( ! empty( $rule['partOnly'] ) && 'content' === ( $rule['category'] ?? null ) ) {
+			$acc['authored'][ $part ] = true;
+		}
+		$key = ( self::BP_KEY[ $bp ] ?? '' ) . '|' . Parts::slotSelectorSuffix( $slot );
+		$acc['buckets'][ $key ][] = $decls;
+
+		return true;
+	}
+
+	/**
+	 * The declarations the static consumer class would have applied, written out for a part.
+	 *
+	 * @param array<string,mixed> $rule
+	 */
+	private static function partDeclarations( array $rule, mixed $value ): string {
+		$cls = $rule['cls'];
+		if ( 'enum' === $rule['kind'] || ( ! isset( Schema::PART_PROPS[ $cls ] ) && ! in_array( $cls, Schema::PART_SPECIAL, true ) ) ) {
+			return '';
+		}
+		$part = Schema::PART_PROPS[ $cls ] ?? null;
+
+		if ( 'single' === $rule['kind'] ) {
+			if ( null === $value || '' === $value || ( is_array( $value ) && empty( $value ) ) ) {
+				return '';
+			}
+			if ( 'cliptext' === $cls ) {
+				return self::CLIP_TEXT_DECLS;
+			}
+			$css = self::cssValueForCategory( $rule['category'] ?? null, $value );
+			if ( '' === $css ) {
+				return '';
+			}
+			if ( 'lc' === $cls ) {
+				return self::LINE_CLAMP_FIXED . '-webkit-line-clamp:' . $css;
+			}
+			if ( null === $part ) {
+				return '';
+			}
+
+			return ! empty( $part['webkit'] )
+				? '-webkit-' . $part['prop'] . ':' . $css . ';' . $part['prop'] . ':' . $css
+				: $part['prop'] . ':' . $css;
+		}
+
+		$keys = 'corners' === $rule['kind'] ? self::CORNERS : self::SIDES;
+		if ( is_string( $value ) && '' !== $value ) {
+			$value = array_fill_keys( array_column( $keys, 0 ), $value );
+		}
+		if ( ! is_array( $value ) || empty( $value ) ) {
+			return '';
+		}
+
+		$sides = [];
+		foreach ( $keys as [$side] ) {
+			$v = $value[ $side ] ?? null;
+			if ( 'inset' === $rule['kind'] && ( null === $v || '' === $v ) ) {
+				// An unset side stays `auto`, what the runtime rule falls back to.
+				$sides[] = 'auto';
+			} elseif ( ! empty( $rule['raw'] ) ) {
+				$sides[] = self::rawOrToken( $rule['category'] ?? null, $v, $rule['emptyValue'] ?? '0' );
+			} else {
+				$sides[] = self::valOrToken( $rule['category'] ?? 'spacing', $v );
+			}
+		}
+
+		if ( 'inset' === $rule['kind'] ) {
+			$out = [];
+			foreach ( self::INSET_PROPS as $i => $prop ) {
+				$out[] = $prop . ':' . $sides[ $i ];
+			}
+
+			return implode( ';', $out );
+		}
+
+		// Longhands for corners, as on the element: a two-value corner is invalid in the shorthand.
+		if ( 'corners' === $rule['kind'] && null !== $part ) {
+			[ $head, $rest ] = explode( '-', $part['prop'], 2 );
+			$out             = [];
+			foreach ( [ 'top-left', 'top-right', 'bottom-right', 'bottom-left' ] as $i => $corner ) {
+				$out[] = $head . '-' . $corner . '-' . $rest . ':' . $sides[ $i ];
+			}
+
+			return implode( ';', $out );
+		}
+
+		return null !== $part ? $part['prop'] . ':' . implode( ' ', $sides ) : '';
+	}
+
+	/**
+	 * Turn the collected part declarations into scoped rules, widest breakpoint first, with the
+	 * reduced-motion and timeline guards runtime.scss puts round animation on the element.
+	 *
+	 * @param array<string, list<string>> $buckets
+	 * @param list<string>                $scopedCss
+	 * @param array<string, true>         $styled
+	 * @param array<string, true>         $authored
+	 */
+	private static function emitPartRules( array $buckets, string $uid, array &$scopedCss, array $styled, array $authored ): void {
+		// A pseudo-element with no `content` generates no box: default `content:""` into the base
+		// slot of each styled part the user gave none to.
+		foreach ( array_keys( $styled ) as $part ) {
+			if ( isset( $authored[ $part ] ) ) {
+				continue;
+			}
+			$key             = '|' . Parts::partSuffix( (string) $part );
+			$buckets[ $key ] = array_merge( [ 'content:""' ], $buckets[ $key ] ?? [] );
+		}
+
+		$guardByProp = [];
+		foreach ( Schema::PART_PROPS as $part ) {
+			if ( isset( $part['guard'] ) ) {
+				$guardByProp[ $part['prop'] ] = $part['guard'];
+			}
+		}
+
+		foreach ( Schema::BP_ORDER as $bpKey ) {
+			foreach ( $buckets as $key => $decls ) {
+				[ $bucketBp, $suffix ] = explode( '|', (string) $key, 2 );
+				if ( $bucketBp !== $bpKey || [] === $decls ) {
+					continue;
+				}
+
+				$groups = [
+					'plain'    => [],
+					'motion'   => [],
+					'timeline' => [],
+				];
+				foreach ( $decls as $decl ) {
+					$groups[ $guardByProp[ substr( $decl, 0, (int) strpos( $decl, ':' ) ) ] ?? 'plain' ][] = $decl;
+				}
+
+				$selector = Parts::selectorFor( '.bl-' . $uid, $suffix );
+				$bpQuery  = implode(
+					' and ',
+					array_filter(
+						[
+							str_starts_with( (string) $suffix, ':hover' ) ? self::HOVER_QUERY : '',
+							Parts::slotMedia( (string) $suffix ),
+							'' !== $bpKey ? '(max-width: ' . Schema::BP_MAX[ $bpKey ] . ')' : '',
+						]
+					)
+				);
+
+				if ( [] !== $groups['plain'] ) {
+					$scopedCss[] = self::wrapQuery( $bpQuery, '', $selector . '{' . implode( ';', $groups['plain'] ) . '}' );
+				}
+				if ( [] !== $groups['motion'] ) {
+					$scopedCss[] = self::wrapQuery( $bpQuery, self::REDUCED_MOTION_QUERY, $selector . '{' . implode( ';', $groups['motion'] ) . '}' );
+				}
+				if ( [] !== $groups['timeline'] ) {
+					$scopedCss[] = self::wrapQuery(
+						$bpQuery,
+						self::REDUCED_MOTION_QUERY,
+						'@supports ' . self::TIMELINE_SUPPORTS . '{' . $selector . '{' . implode( ';', $groups['timeline'] ) . '}}'
+					);
+				}
+			}
+		}
+	}
+
+	/** Wrap a rule in one `@media` — plain CSS cannot nest two, so queries join with `and`. */
+	private static function wrapQuery( string $bpQuery, string $extra, string $body ): string {
+		$query = implode( ' and ', array_filter( [ $bpQuery, $extra ], static fn ( string $q ): bool => '' !== $q ) );
+
+		return '' !== $query ? '@media ' . $query . '{' . $body . '}' : $body;
 	}
 
 	// ── Scoped (tier-3 / WA) emission — mirror of emitScoped() in vars.ts ───────────
@@ -1007,7 +836,10 @@ final class ElementStyle {
 		return preg_replace( '/[^a-zA-Z0-9_-]/', '', $value ) ?? '';
 	}
 
-	/** Pull a representative scalar (default/base, else first set) from a control's value tree. */
+	/**
+	 * Pull a representative scalar (default/base, else first set) from a control's value tree.
+	 * Element slots only — mirror of representativeValue() in vars.ts.
+	 */
 	private static function representativeValue( mixed $tree ): mixed {
 		if ( ! is_array( $tree ) ) {
 			return null;
@@ -1016,8 +848,8 @@ final class ElementStyle {
 		if ( null !== $base && '' !== $base ) {
 			return $base;
 		}
-		foreach ( $tree as $byBp ) {
-			if ( ! is_array( $byBp ) ) {
+		foreach ( $tree as $slot => $byBp ) {
+			if ( ! is_array( $byBp ) || ! Parts::isElementSlot( (string) $slot ) ) {
 				continue;
 			}
 			foreach ( $byBp as $value ) {
@@ -1075,16 +907,8 @@ final class ElementStyle {
 		}
 
 		$selector = '.bl-' . $uniqueId . ( $rule['selectorSuffix'] ?? '' );
-		if ( ! empty( $rule['prop'] ) ) {
-			$body = $selector . '{' . $rule['prop'] . ':' . self::cssValueForCategory( $rule['category'] ?? null, $value ) . '}';
-		} else {
-			// Builder-only body: the builder returns the entire `key:val;…` payload (Wave F).
-			$inner = self::cssValueForCategory( $rule['category'] ?? null, $value );
-			if ( '' === $inner ) {
-				return;
-			}
-			$body = $selector . '{' . $inner . '}';
-		}
+		$css      = self::cssValueForCategory( $rule['category'] ?? null, $value );
+		$body     = $selector . '{' . ( ! empty( $rule['prop'] ) ? $rule['prop'] . ':' . $css : $css ) . '}';
 		$scopedCss[] = self::wrapMotionRule( $rule, self::wrapAtRule( $rule, $body ) );
 	}
 
@@ -1096,6 +920,7 @@ final class ElementStyle {
 		self::$cssValueBuilders = [
 			'image' => [ self::class, 'imageBuilder' ],
 			'boxShadow' => [ self::class, 'boxShadowBuilder' ],
+			'outline' => [ self::class, 'outlineBuilder' ],
 			'textShadow' => [ self::class, 'textShadowBuilder' ],
 			'gradient' => [ self::class, 'gradientBuilder' ],
 			// Wave D.
@@ -1103,8 +928,9 @@ final class ElementStyle {
 			'backdropFilter' => [ self::class, 'backdropFilterBuilder' ],
 			'mask'           => [ self::class, 'maskBuilder' ],
 			'transform'      => [ self::class, 'transformBuilder' ],
-			// Wave F.
-			'decoration'     => [ self::class, 'decorationBuilder' ],
+			// The part axis: a pseudo-element's `content`, quoted and escaped.
+			'content'        => [ self::class, 'normalizeContent' ],
+			'backgroundLayers' => [ self::class, 'backgroundLayersBuilder' ],
 		];
 	}
 
@@ -1119,32 +945,128 @@ final class ElementStyle {
 		return '' !== $clean ? 'url("' . $clean . '")' : '';
 	}
 
+	/** A colour that may be a palette token slug (`primary`) or any CSS colour — mirror of vars.ts. */
+	private static function colourOrToken( mixed $v ): string {
+		$s = trim( is_scalar( $v ) ? (string) $v : '' );
+		if ( '' === $s ) {
+			return '';
+		}
+
+		return Tokens::isToken( 'color', $s ) ? 'var(--blicks-color-' . $s . ')' : CssValue::clean( $s );
+	}
+
+	/** One `box-shadow` layer, or '' when any part of it fails validation. */
+	private static function shadowLayer( mixed $layer ): string {
+		if ( ! is_array( $layer ) ) {
+			return '';
+		}
+		// A token layer: the theme's own shadow, stacked with drawn ones.
+		if ( array_key_exists( 'token', $layer ) ) {
+			$slug = trim( is_scalar( $layer['token'] ) ? (string) $layer['token'] : '' );
+
+			return Tokens::isToken( 'shadow', $slug ) ? 'var(--blicks-shadow-' . $slug . ')' : '';
+		}
+		$parts = [];
+		foreach ( [ 'x', 'y', 'blur', 'spread' ] as $key ) {
+			$parts[] = CssValue::clean( $layer[ $key ] ?? '0px' );
+		}
+		$colour = self::colourOrToken( $layer['color'] ?? 'rgba(0,0,0,0.1)' );
+		if ( in_array( '', $parts, true ) || '' === $colour ) {
+			return '';
+		}
+
+		return ( ! empty( $layer['inset'] ) ? 'inset ' : '' ) . implode( ' ', $parts ) . ' ' . $colour;
+	}
+
+	/**
+	 * `box-shadow`: a shadow-token slug, one layer, or a list of layers stacked first-on-top. A layer
+	 * that fails validation drops the whole value rather than shifting the stack. Mirror of vars.ts.
+	 */
 	private static function boxShadowBuilder( mixed $v ): string {
-		// A bare string is a shadow-token slug (`md`) → resolve to the alias var.
 		if ( is_string( $v ) ) {
 			$slug = trim( $v );
 			return Tokens::isToken( 'shadow', $slug ) ? "var(--blicks-shadow-{$slug})" : '';
 		}
-		if ( ! is_array( $v ) || ( empty( $v['x'] ) && empty( $v['y'] ) ) ) {
+		if ( ! is_array( $v ) || [] === $v ) {
 			return '';
 		}
-		$inset = ! empty( $v['inset'] ) ? 'inset ' : '';
-		return $inset
-			. ( $v['x'] ?? '0px' ) . ' '
-			. ( $v['y'] ?? '0px' ) . ' '
-			. ( $v['blur'] ?? '0px' ) . ' '
-			. ( $v['spread'] ?? '0px' ) . ' '
-			. ( $v['color'] ?? 'rgba(0,0,0,0.1)' );
+		$layers = array_is_list( $v ) ? $v : [ $v ];
+		$out    = array_map( [ self::class, 'shadowLayer' ], $layers );
+
+		return in_array( '', $out, true ) ? '' : implode( ', ', $out );
 	}
 
-	private static function textShadowBuilder( mixed $v ): string {
-		if ( ! is_array( $v ) || ( empty( $v['x'] ) && empty( $v['y'] ) ) ) {
+	/** One background layer: a gradient, a picture or a flat tint — mirror of vars.ts. */
+	private static function backgroundLayer( mixed $layer ): string {
+		if ( ! is_array( $layer ) ) {
 			return '';
 		}
-		return ( $v['x'] ?? '0px' ) . ' '
-			. ( $v['y'] ?? '0px' ) . ' '
-			. ( $v['blur'] ?? '0px' ) . ' '
-			. ( $v['color'] ?? 'rgba(0,0,0,0.1)' );
+		$type = $layer['type'] ?? '';
+		if ( 'gradient' === $type ) {
+			return CssValue::clean( self::gradientBuilder( $layer['value'] ?? '' ) );
+		}
+		if ( 'tint' === $type ) {
+			$colour  = self::colourOrToken( $layer['color'] ?? '' );
+			$opacity = is_numeric( $layer['opacity'] ?? 100 ) ? max( 0, min( 100, (float) ( $layer['opacity'] ?? 100 ) ) ) : null;
+			if ( '' === $colour || null === $opacity ) {
+				return '';
+			}
+			$c = 'color-mix(in srgb, ' . $colour . ' ' . ( $opacity + 0 ) . '%, transparent)';
+
+			return 'linear-gradient(' . $c . ', ' . $c . ')';
+		}
+		if ( 'image' === $type ) {
+			$url = CssValue::url( (string) ( $layer['url'] ?? '' ) );
+			if ( '' === $url ) {
+				return '';
+			}
+			$position = CssValue::clean( $layer['position'] ?? '0% 0%' );
+			$size     = CssValue::clean( $layer['size'] ?? 'auto' );
+			$repeat   = (string) ( $layer['repeat'] ?? '' );
+			$attach   = (string) ( $layer['attachment'] ?? '' );
+
+			return 'url("' . $url . '") '
+				. ( '' !== $position ? $position : '0% 0%' ) . ' / '
+				. ( '' !== $size ? $size : 'auto' ) . ' '
+				. ( 1 === preg_match( '/^(repeat|no-repeat|repeat-x|repeat-y|space|round)$/', $repeat ) ? $repeat : 'no-repeat' )
+				. ( 1 === preg_match( '/^(fixed|local)$/', $attach ) ? ' ' . $attach : '' );
+		}
+
+		return '';
+	}
+
+	/** `background.layers`: layers top first, as the `background` shorthand. Mirror of vars.ts. */
+	private static function backgroundLayersBuilder( mixed $v ): string {
+		if ( ! is_array( $v ) || ! array_is_list( $v ) ) {
+			return '';
+		}
+
+		return implode( ', ', array_filter( array_map( [ self::class, 'backgroundLayer' ], $v ), static fn ( string $l ): bool => '' !== $l ) );
+	}
+
+	/** One layer `{ x, y, blur, color }`, or a list stacked first-on-top — mirror of vars.ts. */
+	private static function textShadowBuilder( mixed $v ): string {
+		if ( ! is_array( $v ) || [] === $v ) {
+			return '';
+		}
+		$layers = array_is_list( $v ) ? $v : [ $v ];
+		$out = array_map( [ self::class, 'textShadowLayer' ], $layers );
+
+		return in_array( '', $out, true ) ? '' : implode( ', ', $out );
+	}
+
+	/**
+	 * One text-shadow layer. A side is unset only when it is missing or empty: `"0"` is a real
+	 * offset, which `empty()` would have dropped along with the whole shadow.
+	 */
+	private static function textShadowLayer( mixed $v ): string {
+		$set = static fn ( mixed $x ): bool => is_scalar( $x ) && '' !== (string) $x;
+		if ( ! is_array( $v ) || ( ! $set( $v['x'] ?? null ) && ! $set( $v['y'] ?? null ) ) ) {
+			return '';
+		}
+		$part = static fn ( string $k, string $fallback ): string => $set( $v[ $k ] ?? null ) ? (string) $v[ $k ] : $fallback;
+
+		return $part( 'x', '0px' ) . ' ' . $part( 'y', '0px' ) . ' ' . $part( 'blur', '0px' ) . ' ' . $part( 'color', 'rgba(0,0,0,0.1)' );
 	}
 
 	private static function gradientBuilder( mixed $v ): string {
@@ -1233,6 +1155,23 @@ final class ElementStyle {
 		};
 	}
 
+	/**
+	 * `outline`: a raw outline string, or `{ width, style, color }`. Mirror of outlineBuilder() in vars.ts.
+	 */
+	private static function outlineBuilder( mixed $v ): string {
+		if ( is_string( $v ) ) {
+			return trim( $v );
+		}
+		if ( ! is_array( $v ) ) {
+			return '';
+		}
+		$width  = CssValue::clean( $v['width'] ?? '2px' );
+		$style  = (string) ( $v['style'] ?? 'solid' );
+		$style  = preg_match( '/^(solid|dashed|dotted|double|none)$/', $style ) ? $style : '';
+		$colour = self::colourOrToken( $v['color'] ?? 'currentColor' );
+		return ( '' !== $width && '' !== $style && '' !== $colour ) ? $width . ' ' . $style . ' ' . $colour : '';
+	}
+
 	private static function backdropFilterBuilder( mixed $v ): string {
 		if ( is_string( $v ) ) {
 			return trim( $v );
@@ -1317,7 +1256,6 @@ final class ElementStyle {
 		return implode( ' ', $parts );
 	}
 
-	/** Wave F — pseudo-element decoration: full `key:val;…` body, no surrounding braces. */
 	/** Safe CSS `content` value — mirror of normalizeContent() in vars.ts. */
 	private static function normalizeContent( mixed $raw ): string {
 		// Control characters go first: a newline ends a CSS string early, after which a `}` in
@@ -1348,147 +1286,5 @@ final class ElementStyle {
 		$inner = str_replace( '\\', '\\\\', $inner );
 		$inner = str_replace( '"', '\\"', $inner );
 		return '"' . $inner . '"';
-	}
-
-	/**
-	 * One declaration for the pseudo-element rule, or `''` when the value does not validate.
-	 *
-	 * Every value here is interpolated into `.bl-{id}::before{ … }`. Before validation a `}` in
-	 * any of them closed the rule and let the rest of the string start a new one with an arbitrary
-	 * selector, on every page that rendered the block.
-	 */
-	private static function decoPart( string $prop, mixed $value ): string {
-		$clean = CssValue::clean( $value );
-		return '' !== $clean ? $prop . ':' . $clean : '';
-	}
-
-	private static function decorationBuilder( mixed $v ): string {
-		// Only the structured object is accepted. `decoration` is a self-validating category, so
-		// a bare string would reach `.bl-{id}::before{…}` unchecked and could close the rule.
-		// The Inspector never writes one.
-		if ( ! is_array( $v ) ) {
-			return '';
-		}
-		if ( false === ( $v['enabled'] ?? null ) ) {
-			return '';
-		}
-
-		$parts = [];
-		$parts[] = 'content:' . self::normalizeContent( $v['content'] ?? null );
-
-		$position = CssValue::clean( $v['position'] ?? 'absolute' );
-		$parts[]  = 'position:' . ( '' !== $position ? $position : 'absolute' );
-
-		if ( ! empty( $v['background'] ) ) {
-			$bg = is_array( $v['background'] ) ? self::gradientBuilder( $v['background'] ) : $v['background'];
-			$parts[] = self::decoPart( 'background', $bg );
-		}
-		$parts[] = self::decoPart( 'background-color', $v['bgColor'] ?? null );
-		$parts[] = self::decoPart( 'width', $v['width'] ?? null );
-		$parts[] = self::decoPart( 'height', $v['height'] ?? null );
-
-		if ( array_key_exists( 'inset', $v ) ) {
-			$inset = $v['inset'];
-			if ( is_array( $inset ) ) {
-				foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) {
-					$val = CssValue::clean( $inset[ $side ] ?? 'auto' );
-					$parts[] = $side . ':' . ( '' !== $val ? $val : 'auto' );
-				}
-			} else {
-				$parts[] = self::decoPart( 'inset', $inset );
-			}
-		}
-
-		$parts[] = self::decoPart( 'border-radius', $v['borderRadius'] ?? null );
-		$parts[] = self::decoPart( 'border', $v['border'] ?? null );
-		$parts[] = self::decoPart( 'padding', $v['padding'] ?? null );
-		// Text / centering props — let a pseudo-element act as a badge, label, or numbered marker.
-		$parts[] = self::decoPart( 'display', $v['display'] ?? null );
-		$parts[] = self::decoPart( 'align-items', $v['alignItems'] ?? null );
-		$parts[] = self::decoPart( 'justify-content', $v['justifyContent'] ?? null );
-		$parts[] = self::decoPart( 'color', $v['color'] ?? null );
-		$parts[] = self::decoPart( 'font-size', $v['fontSize'] ?? null );
-		$parts[] = self::decoPart( 'font-weight', $v['fontWeight'] ?? null );
-		$parts[] = self::decoPart( 'line-height', $v['lineHeight'] ?? null );
-		$parts[] = self::decoPart( 'letter-spacing', $v['letterSpacing'] ?? null );
-		$parts[] = self::decoPart( 'text-align', $v['textAlign'] ?? null );
-
-		if ( array_key_exists( 'zIndex', $v ) && '' !== $v['zIndex'] && null !== $v['zIndex'] ) {
-			$parts[] = self::decoPart( 'z-index', $v['zIndex'] );
-		}
-		if ( ! empty( $v['blur'] ) ) {
-			$blur = CssValue::clean( $v['blur'] );
-			if ( '' !== $blur ) {
-				$parts[] = 'filter:blur(' . $blur . ')';
-			}
-		}
-		if ( array_key_exists( 'opacity', $v ) && '' !== $v['opacity'] && null !== $v['opacity'] ) {
-			$parts[] = self::decoPart( 'opacity', $v['opacity'] );
-		}
-		$parts[] = self::decoPart( 'mix-blend-mode', $v['mixBlendMode'] ?? null );
-		$parts[] = self::decoPart( 'transform', $v['transform'] ?? null );
-		$parts[] = self::decoPart( 'pointer-events', $v['pointerEvents'] ?? null );
-
-		// Extended box surface — pass-through props, each validated as a whole value. Mirror of
-		// DECO_EXTRA in vars.ts; append only, never reorder, or scoped-CSS parity with the JS
-		// engine drifts.
-		$extra = [
-			'margin' => 'margin',
-			'minWidth' => 'min-width',
-			'maxWidth' => 'max-width',
-			'minHeight' => 'min-height',
-			'maxHeight' => 'max-height',
-			'outline' => 'outline',
-			'boxShadow' => 'box-shadow',
-			'flexDirection' => 'flex-direction',
-			'flexWrap' => 'flex-wrap',
-			'gap' => 'gap',
-			'fontFamily' => 'font-family',
-			'fontStyle' => 'font-style',
-			'textTransform' => 'text-transform',
-			'textDecoration' => 'text-decoration',
-			'whiteSpace' => 'white-space',
-			'wordSpacing' => 'word-spacing',
-			'backgroundImage' => 'background-image',
-			'backgroundSize' => 'background-size',
-			'backgroundPosition' => 'background-position',
-			'backgroundRepeat' => 'background-repeat',
-			'backdropFilter' => 'backdrop-filter',
-			'clipPath' => 'clip-path',
-			'filter' => 'filter',
-			'transformOrigin' => 'transform-origin',
-			'rotate' => 'rotate',
-			'scale' => 'scale',
-			'transition' => 'transition',
-			'animation' => 'animation',
-			'aspectRatio' => 'aspect-ratio',
-			'overflow' => 'overflow',
-			'cursor' => 'cursor',
-		];
-		foreach ( $extra as $key => $prop ) {
-			if ( isset( $v[ $key ] ) && '' !== trim( (string) $v[ $key ] ) ) {
-				$parts[] = self::decoPart( $prop, $v[ $key ] );
-			}
-		}
-		if ( ! empty( $v['mask'] ) ) {
-			$m = CssValue::clean( $v['mask'] );
-			if ( '' !== $m ) {
-				$parts[] = '-webkit-mask:' . $m;
-				$parts[] = 'mask:' . $m;
-			}
-		}
-		if ( ! empty( $v['backgroundClip'] ) ) {
-			$c = CssValue::clean( $v['backgroundClip'] );
-			if ( '' !== $c ) {
-				$parts[] = '-webkit-background-clip:' . $c;
-				$parts[] = 'background-clip:' . $c;
-			}
-		}
-
-		// decoPart() yields '' for a value that failed validation; drop those rather than
-		// emitting a bare `prop:`.
-		$parts = array_values( array_filter( $parts, static fn ( string $part ): bool => '' !== $part ) );
-
-		return count( $parts ) > 1 ? implode( ';', $parts ) : '';
 	}
 }

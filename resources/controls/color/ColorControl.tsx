@@ -146,7 +146,7 @@ export function ColorControl( {
 			breakpoint={ breakpoint }
 			slots={ solidAttr ? { ...slots, color: solidAttr } : slots }
 			layout="popover"
-			label={ labelProp ?? ( isTextFill ? __( 'Font colour', 'blicks' ) : __( 'Background', 'blicks' ) ) }
+			label={ labelProp ?? ( isTextFill ? __( 'Font color', 'blicks' ) : __( 'Background', 'blicks' ) ) }
 			clipToText={ isTextFill }
 		/>
 	);

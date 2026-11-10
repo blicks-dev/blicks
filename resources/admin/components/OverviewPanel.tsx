@@ -1,97 +1,41 @@
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { Fragment, useEffect, useRef, useState } from '@wordpress/element';
 import { bootstrap } from '../bootstrap';
-import { countOverrides, metricValue, timeAgo } from '../data';
-import { icon } from '../icons';
-import { TokenPreview } from './primitives';
-import type { DesignSystemSnapshot, AdminSettingsSnapshot, DashboardSummary, DiagnosticsResult, AdminView } from '../types';
+import { countOverrides, timeAgo } from '../data';
+import { urlForView } from '../routing';
+import type { AdminView, DashboardSummary, DesignSystemSnapshot, DiagnosticsResult, ThemesState } from '../types';
 
-/** One step of the "Getting started" checklist in the hero's side panel. */
-type SetupStep = {
-	id: string;
-	complete: boolean;
-	title: string;
-	text: string;
-	/** What to do about it, offered only while the step is outstanding. */
-	action?: { label: string; href?: string; onClick?: () => void };
-};
+const CHECK = <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z" /></svg>;
+const line = ( d: string ): JSX.Element => <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d={ d } /></svg>;
+const HIDE_KEY = 'blicks.overview.setupHidden';
+
+function readHidden(): boolean {
+	try {
+		return window.localStorage.getItem( HIDE_KEY ) === '1';
+	} catch {
+		return false;
+	}
+}
+
+function writeHidden( hidden: boolean ): void {
+	try {
+		if ( hidden ) window.localStorage.setItem( HIDE_KEY, '1' );
+		else window.localStorage.removeItem( HIDE_KEY );
+	} catch {
+		// Storage can be blocked; the setup card then simply stays visible next time.
+	}
+}
 
 /**
- * One checklist row. An incomplete step carries the way to complete it, so the list is
- * something to act on rather than a report card. The state is also spelled out for screen
- * readers — the tick is a decorative glyph, so on its own "Theme tokens detected" reads
- * identically whether it is done or outstanding.
+ * Answers three questions in order: is Blicks set up, what does my design system look like right
+ * now, and is anything wrong. Every number comes from something the install recorded — nothing
+ * here is ticked on the user's behalf.
  */
-function SetupItem( { complete, title, text, action }: SetupStep ): JSX.Element {
-	return (
-		<div className="si">
-			<span className={ `check${ complete ? '' : ' pending' }` } aria-hidden="true">
-				<svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
-			</span>
-			<span className="t">
-				<b>
-					{ title }
-					<span className="screen-reader-text">
-						{ complete ? __( ' — done', 'blicks' ) : __( ' — not done yet', 'blicks' ) }
-					</span>
-				</b>
-				<small>{ text }</small>
-			</span>
-			{ ! complete && action && (
-				action.href
-					? <a className="lnk" href={ action.href }>{ action.label }</a>
-					: <button className="lnk" type="button" onClick={ action.onClick }>{ action.label }</button>
-			) }
-		</div>
-	);
-}
-
-/** One row of the "Quick actions" list — always a real button, never an inert tile. */
-function QuickAction( {
-	title,
-	text,
-	meta,
-	glyph,
-	onClick,
-}: {
-	title: string;
-	text: string;
-	meta: string;
-	glyph: JSX.Element;
-	onClick: () => void;
-} ): JSX.Element {
-	return (
-		<button type="button" onClick={ onClick }>
-			<span className="ic">{ glyph }</span>
-			<span className="t"><b>{ title }</b><small>{ text }</small></span>
-			<span className="meta">{ meta }</span>
-		</button>
-	);
-}
-
-/** One row of the "System health" list, with a status pill. */
-function HealthRow( {
-	title,
-	text,
-	value,
-	tone = 'pass',
-}: {
-	title: string;
-	text: string;
-	value: string;
-	tone?: 'pass' | 'warn' | 'fail';
-} ): JSX.Element {
-	return (
-		<div className="hrow">
-			<span className="t"><b>{ title }</b><small>{ text }</small></span>
-			<span className={ `pill${ tone === 'pass' ? '' : ` is-${ tone }` }` }><span className="dot" />{ value }</span>
-		</div>
-	);
-}
-
 export function OverviewPanel( {
 	snapshot,
 	apiStatus,
-	adminSettings,
+	themes,
+	unsaved,
 	dashboardSummary,
 	dashboardStatus,
 	diagnostics,
@@ -103,7 +47,8 @@ export function OverviewPanel( {
 }: {
 	snapshot: DesignSystemSnapshot;
 	apiStatus: 'loading' | 'ready' | 'fallback';
-	adminSettings: AdminSettingsSnapshot;
+	themes: ThemesState;
+	unsaved: number;
 	dashboardSummary: DashboardSummary;
 	dashboardStatus: 'loading' | 'ready' | 'fallback';
 	diagnostics: DiagnosticsResult | null;
@@ -114,347 +59,303 @@ export function OverviewPanel( {
 	onOpenDesignSection: ( section: string ) => void;
 } ): JSX.Element {
 	const { editorUrl, supportLinks } = bootstrap();
-	const themeReady = apiStatus === 'ready' && snapshot.counts.colors > 0;
-	const tokenCount = snapshot.counts.colors + snapshot.counts.typography;
-	const overrideCount = countOverrides( snapshot.overrides );
-	const pagesUsingBlicks = dashboardSummary.usage.posts;
+	const [ setupHidden, setSetupHidden ] = useState( readHidden );
 
-	/**
-	 * The setup checklist. Every step is answered from something this install actually
-	 * recorded — detected tokens, persisted overrides, a real count of content containing a
-	 * Blicks block — in the same spirit as the activity feed below, which omits any event it
-	 * cannot date rather than inventing one. Nothing here is ticked on the user's behalf.
-	 */
-	const setupSteps: SetupStep[] = [
+	// The checks only look at files and versions, so they run when the page opens rather than
+	// leaving the Health card empty until someone asks.
+	const asked = useRef( false );
+	useEffect( () => {
+		if ( asked.current ) return;
+		asked.current = true;
+		if ( ! diagnostics && ! diagnosticsRunning ) onRunDiagnostics();
+	}, [ diagnostics, diagnosticsRunning, onRunDiagnostics ] );
+
+	const overrides = countOverrides( snapshot.overrides );
+	const posts = dashboardSummary.usage.posts;
+	const themeReady = apiStatus === 'ready';
+	const steps = [
 		{
-			id: 'theme',
-			complete: themeReady,
-			title: themeReady ? __( 'Theme tokens detected', 'blicks' ) : __( 'Theme tokens loading', 'blicks' ),
+			done: themeReady,
+			title: __( 'Theme tokens found', 'blicks' ),
 			text: themeReady
 				? sprintf(
-					/* translators: 1: number of color tokens, 2: number of typography tokens. */
-					__( '%1$d colors · %2$d type tokens', 'blicks' ),
+					/* translators: 1: number of colors, 2: number of text styles. */
+					__( '%1$d colors and %2$d text styles read from your theme.', 'blicks' ),
 					snapshot.counts.colors,
-					snapshot.counts.typography
+					snapshot.counts.typeRoles
 				)
-				: __( 'Reading the active theme', 'blicks' ),
+				: __( 'Reading your theme…', 'blicks' ),
 		},
 		{
-			id: 'tokens',
-			complete: overrideCount > 0,
+			done: overrides > 0,
 			title: __( 'Design system made yours', 'blicks' ),
-			text: overrideCount > 0
-				? sprintf(
-					/* translators: %d: number of token values changed from the theme's own. */
-					_n( '%d value changed from the theme', '%d values changed from the theme', overrideCount, 'blicks' ),
-					overrideCount
-				)
-				: __( 'Colors, type and spacing still match the theme', 'blicks' ),
-			action: { label: __( 'Tokens', 'blicks' ), onClick: () => onViewChange( 'design' ) },
+			text: overrides > 0
+				? sprintf( /* translators: %d: number of values changed from the theme. */ _n( '%d value changed from the theme.', '%d values changed from the theme.', overrides, 'blicks' ), overrides )
+				: __( 'Colors, type and spacing still match your theme.', 'blicks' ),
+			action: { label: __( 'Open Design system', 'blicks' ), href: urlForView( 'design' ), onClick: () => onViewChange( 'design' ) },
 		},
 		{
-			id: 'usage',
-			complete: pagesUsingBlicks > 0,
-			title: __( 'Blicks blocks in use', 'blicks' ),
-			text: pagesUsingBlicks > 0
-				? sprintf(
-					/* translators: %d: number of posts or pages containing a Blicks block. */
-					_n( '%d page uses Blicks', '%d pages use Blicks', pagesUsingBlicks, 'blicks' ),
-					pagesUsingBlicks
-				)
-				: __( 'Drop a Blicks block into any page', 'blicks' ),
-			action: editorUrl ? { label: __( 'Editor', 'blicks' ), href: editorUrl } : undefined,
+			done: posts > 0,
+			title: __( 'Use a Blicks block', 'blicks' ),
+			text: posts > 0
+				? sprintf( /* translators: %d: number of posts or pages that contain a Blicks block. */ _n( '%d page uses Blicks.', '%d pages use Blicks.', posts, 'blicks' ), posts )
+				: __( 'Add any Blicks block to a page to see your design system in action.', 'blicks' ),
+			action: editorUrl ? { label: __( 'Open the editor', 'blicks' ), href: editorUrl } : undefined,
 		},
 	];
+	const done = steps.filter( step => step.done ).length;
+	const next = steps.findIndex( step => ! step.done );
+	const allDone = done === steps.length;
 
-	const done = setupSteps.filter( ( step ) => step.complete ).length;
-	// The footer points at the first step still outstanding, so it always names the next
-	// real thing to do rather than a fixed suggestion that may already be finished.
-	const nextStep = setupSteps.find( ( step ) => ! step.complete && step.action );
+	const hide = ( value: boolean ): void => {
+		setSetupHidden( value );
+		writeHidden( value );
+	};
 
-	const statusValue = ( state: 'loading' | 'ready' | 'fallback' ): { value: string; tone: 'pass' | 'warn' } =>
-		state === 'ready'
-			? { value: __( 'Connected', 'blicks' ), tone: 'pass' }
-			: state === 'loading'
-				? { value: __( 'Loading', 'blicks' ), tone: 'pass' }
-				: { value: __( 'Fallback', 'blicks' ), tone: 'warn' };
-
-	const rest = statusValue( apiStatus );
-	const dash = statusValue( dashboardStatus );
-
-	return (
-		<>
-			{ /* ── HERO ── */ }
-			<div className="row hero">
-				<div className="panel hero-main">
-					<div className="kick eyebrow accent">
-						{ done === setupSteps.length ? __( 'Foundation ready', 'blicks' ) : __( 'Setup in progress', 'blicks' ) }
-					</div>
-					<h1>
-						{ done === setupSteps.length
-							? __( 'Your site foundation is ready.', 'blicks' )
-							: sprintf(
-								/* translators: 1: completed setup steps, 2: total setup steps. */
-								__( 'Setup %1$d of %2$d complete.', 'blicks' ),
-								done,
-								setupSteps.length
-							) }
-					</h1>
-					<div className="hero-actions">
-						<button className="btn primary" type="button" onClick={ () => onViewChange( 'design' ) }>
-							{ __( 'Customize design system', 'blicks' ) }
-						</button>
-					</div>
+	const setup = allDone || setupHidden
+		? (
+			<div className="card">
+				<div className="setup-done">
+					{ CHECK }
+					<span>
+						{ allDone
+							? __( 'Setup complete. Blicks is ready to build with.', 'blicks' )
+							: sprintf( /* translators: 1: steps done, 2: total steps. */ __( 'Setup %1$d of %2$d done.', 'blicks' ), done, steps.length ) }
+					</span>
+					{ ! allDone && <button type="button" className="link-btn" onClick={ () => hide( false ) }>{ __( 'Show setup', 'blicks' ) }</button> }
 				</div>
-
-				<div className="panel hero-side">
-					<div className="hs-top">
-						<span className="eyebrow">{ __( 'Getting started', 'blicks' ) }</span>
-						<span
-							className="progress"
-							style={ { '--gs-progress': `${ Math.round( ( done / setupSteps.length ) * 100 ) }%` } as React.CSSProperties }
-						>
-							<span className="bar"><i /></span>
-							{ sprintf(
-								/* translators: 1: completed setup steps, 2: total setup steps. */
-								__( '%1$d / %2$d', 'blicks' ),
-								done,
-								setupSteps.length
+			</div>
+		)
+		: (
+			<section className="card" aria-labelledby="ov-setup">
+				<div className="card-h">
+					<h2 id="ov-setup">{ __( 'Getting started', 'blicks' ) }</h2>
+					<span className="aside">{ sprintf( /* translators: 1: steps done, 2: total steps. */ __( '%1$d of %2$d done', 'blicks' ), done, steps.length ) }</span>
+					<button type="button" className="link-btn quiet" onClick={ () => hide( true ) }>{ __( 'Hide', 'blicks' ) }</button>
+				</div>
+				<ol className="setup">
+					{ steps.map( ( step, index ) => (
+						<li key={ step.title } className={ `step${ step.done ? ' done' : '' }${ index === next ? ' next' : '' }` }>
+							<span className="num" aria-hidden="true">{ step.done ? CHECK : index + 1 }</span>
+							<b>
+								{ step.title }
+								<span className="screen-reader-text">{ step.done ? __( '(done)', 'blicks' ) : __( '(to do)', 'blicks' ) }</span>
+							</b>
+							<span>{ step.text }</span>
+							{ index === next && step.action && (
+								<a
+									className="pill pill--filled sm"
+									href={ step.action.href }
+									onClick={ event => {
+										if ( ! step.action?.onClick || event.metaKey || event.ctrlKey ) return;
+										event.preventDefault();
+										step.action.onClick();
+									} }
+								>
+									{ step.action.label }
+								</a>
 							) }
+						</li>
+					) ) }
+				</ol>
+			</section>
+		);
+
+	const colors = snapshot.values.color ?? {};
+	const h1 = snapshot.typeRoles.values.h1 ?? {};
+	const body = snapshot.typeRoles.values.body ?? {};
+	const activeTheme = themes.themes.find( theme => theme.id === themes.active );
+	const designLink = ( section: string, className: string, children: React.ReactNode, style?: React.CSSProperties, title?: string ): JSX.Element => (
+		<a
+			className={ className }
+			href={ urlForView( 'design', section ) }
+			style={ style }
+			title={ title }
+			onClick={ event => {
+				if ( event.metaKey || event.ctrlKey || event.shiftKey ) return;
+				event.preventDefault();
+				onOpenDesignSection( section );
+			} }
+		>
+			{ children }
+		</a>
+	);
+	const palette: Array< [ string, string, string ] > = [
+		[ 'background', 'foreground', __( 'Page', 'blicks' ) ],
+		[ 'primary', 'primary-foreground', __( 'Main', 'blicks' ) ],
+		[ 'secondary', 'secondary-foreground', __( 'Quiet', 'blicks' ) ],
+		[ 'accent', 'accent-foreground', __( 'Highlight', 'blicks' ) ],
+		[ 'muted', 'muted-foreground', __( 'Subtle', 'blicks' ) ],
+		[ 'destructive', 'background', __( 'Error', 'blicks' ) ],
+	];
+	const spacing = snapshot.values.spacing ?? {};
+	const typeRoleCount = Object.values( snapshot.overrides.typeRoles ).reduce( ( n, props ) => n + Object.keys( props ?? {} ).length, 0 );
+
+	const designCard = (
+		<section className="card ds" aria-labelledby="ov-ds">
+			<div className="card-h">
+				<h2 id="ov-ds">{ __( 'Your design system', 'blicks' ) }</h2>
+				<a href={ urlForView( 'design' ) } onClick={ event => { event.preventDefault(); onViewChange( 'design' ); } }>{ __( 'Edit', 'blicks' ) }</a>
+			</div>
+			{ designLink( 'type', 'ds-type', (
+				<>
+					<span className="d" style={ { fontWeight: h1.fontWeight as React.CSSProperties[ 'fontWeight' ], letterSpacing: h1.letterSpacing, fontFamily: h1.fontFamily } }>{ __( 'Furniture made to outlast the trend', 'blicks' ) }</span>
+					<span className="b" style={ { fontFamily: body.fontFamily } }>{ __( 'Body text reads like this. Headings and paragraphs in every Blicks block use these styles.', 'blicks' ) }</span>
+				</>
+			), { background: colors.background, color: colors.foreground } ) }
+			<div className="ds-pal">
+				{ palette.map( ( [ surface, text, label ] ) => (
+					<Fragment key={ surface }>
+						{ designLink( 'color', 'ds-swatch', (
+							<><span className="aa" aria-hidden="true">Aa</span>{ label }</>
+						), { background: colors[ surface ], color: colors[ text ] }, `${ label }: ${ colors[ surface ] ?? '' }` ) }
+					</Fragment>
+				) ) }
+			</div>
+			<div className="ds-parts">
+				{ designLink( 'radius', 'ds-part', (
+					<><i aria-hidden="true" style={ { borderRadius: snapshot.values.radius?.md, boxShadow: 'inset 0 0 0 1.5px currentcolor' } } /><div><b>{ __( 'Corners', 'blicks' ) }</b><span>md { snapshot.values.radius?.md }</span></div></>
+				) ) }
+				{ designLink( 'shadow', 'ds-part', (
+					<><i aria-hidden="true" style={ { borderRadius: 4, boxShadow: snapshot.values.shadow?.md } } /><div><b>{ __( 'Shadows', 'blicks' ) }</b><span>{ sprintf( /* translators: %d: number of shadow levels. */ _n( '%d level', '%d levels', snapshot.counts.shadow, 'blicks' ), snapshot.counts.shadow ) }</span></div></>
+				) ) }
+				{ designLink( 'space', 'ds-part', (
+					<><i aria-hidden="true" className="bars">{ [ 'xs', 'sm', 'md', 'lg' ].map( key => <em key={ key } style={ { height: `min(32px, ${ spacing[ key ] || '4px' })` } } /> ) }</i><div><b>{ __( 'Spacing', 'blicks' ) }</b><span>{ sprintf( /* translators: %d: number of spacing steps. */ _n( '%d step', '%d steps', snapshot.counts.spacing, 'blicks' ), snapshot.counts.spacing ) }</span></div></>
+				) ) }
+			</div>
+			<div className="ds-foot">
+				{ activeTheme && <span>{ __( 'Palette', 'blicks' ) } <b>{ activeTheme.name }</b></span> }
+				<span>{ sprintf( /* translators: %d: number of values changed from the theme. */ _n( '%d value changed from it', '%d values changed from it', overrides + typeRoleCount, 'blicks' ), overrides + typeRoleCount ) }</span>
+				{ unsaved > 0 && <span className="unsaved">{ sprintf( /* translators: %d: number of unsaved changes. */ _n( '%d unsaved in Design system', '%d unsaved in Design system', unsaved, 'blicks' ), unsaved ) }</span> }
+			</div>
+		</section>
+	);
+
+	const activity = dashboardSummary.activity;
+	const recent = (
+		<section className="card" aria-labelledby="ov-act">
+			<div className="card-h"><h2 id="ov-act">{ __( 'Recent changes', 'blicks' ) }</h2></div>
+			{ activity.length > 0 ? (
+				<ul className="acts">
+					{ activity.slice( 0, 5 ).map( entry => (
+						<li key={ entry.id }>
+							<b>{ entry.label }</b>
+							<span>{ entry.detail }</span>
+							<time dateTime={ entry.time }>{ timeAgo( entry.time ) }</time>
+						</li>
+					) ) }
+				</ul>
+			) : (
+				<p className="card-empty">{ dashboardStatus === 'loading' ? __( 'Loading…', 'blicks' ) : __( 'Nothing yet. Saves, palette changes and settings show up here.', 'blicks' ) }</p>
+			) }
+		</section>
+	);
+
+	const checks = diagnostics?.checks ?? [];
+	const problems = checks.filter( check => check.status !== 'pass' );
+	const failed = checks.some( check => check.status === 'fail' );
+	const health = (
+		<section className="card" aria-labelledby="ov-health" aria-busy={ diagnosticsRunning }>
+			<div className="card-h"><h2 id="ov-health">{ __( 'Health', 'blicks' ) }</h2></div>
+			{ diagnostics ? (
+				<div className={ `health-sum${ problems.length ? ( failed ? ' bad' : ' warn' ) : '' }` }>
+					<span className="big" aria-hidden="true">{ problems.length ? <b>!</b> : CHECK }</span>
+					<div>
+						<b>
+							{ problems.length
+								? sprintf( /* translators: 1: checks passed, 2: total checks. */ __( '%1$d of %2$d checks passed', 'blicks' ), checks.length - problems.length, checks.length )
+								: __( 'All checks passed', 'blicks' ) }
+						</b>
+						<span>
+							{ failed
+								? __( 'Something needs fixing. The check below says what.', 'blicks' )
+								: problems.length
+									? _n( 'One thing to know about. Nothing is broken.', 'Some things to know about. Nothing is broken.', problems.length, 'blicks' )
+									: __( 'Blicks is installed correctly.', 'blicks' ) }
 						</span>
 					</div>
-
-					{ setupSteps.map( ( step ) => <SetupItem key={ step.id } { ...step } /> ) }
-					<div className="si-next">
-						<div>
-							<b>
-								{ nextStep
-									? sprintf(
-										/* translators: %s: the title of the next outstanding setup step. */
-										__( 'Next — %s', 'blicks' ),
-										nextStep.title.toLocaleLowerCase()
-									)
-									: __( 'You are set up', 'blicks' ) }
-							</b>
-							<small>{ nextStep ? nextStep.text : __( 'Every step done — build something', 'blicks' ) }</small>
-						</div>
-						{ nextStep?.action?.href
-							? <a className="lnk" href={ nextStep.action.href }>{ nextStep.action.label }</a>
-							: nextStep?.action
-								? <button className="lnk" type="button" onClick={ nextStep.action.onClick }>{ nextStep.action.label }</button>
-								: editorUrl && <a className="lnk" href={ editorUrl }>{ __( 'Editor', 'blicks' ) }</a> }
-					</div>
 				</div>
-			</div>
-
-			{ /* ── STAT STRIP ── */ }
-			<div className="panel stats">
-				<div className="stat">
-					<div className="eyebrow">{ __( 'Registered blocks', 'blicks' ) }</div>
-					<div className="v num">
-						{ metricValue( dashboardSummary.blocks.total, dashboardStatus ) }
-						<span className="u">{ sprintf(
-							/* translators: %d: number of blocks using the Interactivity API. */
-							_n( '%d interactive', '%d interactive', dashboardSummary.blocks.interactive, 'blicks' ),
-							dashboardSummary.blocks.interactive
-						) }</span>
-					</div>
-					<div className="foot">{ __( 'Available in editor', 'blicks' ) }</div>
-				</div>
-				<div className="stat">
-					<div className="eyebrow">{ __( 'Design tokens', 'blicks' ) }</div>
-					<div className="v num">
-						{ tokenCount }
-						<span className="u">{ __( 'theme-native', 'blicks' ) }</span>
-					</div>
-					<div className={ `foot${ apiStatus === 'fallback' ? ' is-warn' : '' }` }>
-						{ snapshot.source.themeJson ? __( 'theme.json · in sync', 'blicks' ) : __( 'Fallback values', 'blicks' ) }
-					</div>
-				</div>
-				<div className="stat">
-					<div className="eyebrow">{ __( 'Per-block help', 'blicks' ) }</div>
-					<div className="v num">
-						{ adminSettings.helpVisibility === 'show' ? __( 'Shown', 'blicks' ) : __( 'Hidden', 'blicks' ) }
-					</div>
-					<div className="foot">{ __( 'Inspector setting', 'blicks' ) }</div>
-				</div>
-			</div>
-
-			{ /* ── the four cards, one 2-column grid ──
-			     One grid rather than two rows of two, so a card's column edge is the same all
-			     the way down and the 16px rhythm comes from a single `gap` instead of a
-			     margin between two containers. */ }
-			<div className="row two">
-				<div className="panel ocard">
-					<div className="head">
-						<div>
-							<h2>{ __( 'Quick actions', 'blicks' ) }</h2>
-							<div className="sub">{ __( 'Common workflows, one click away.', 'blicks' ) }</div>
-						</div>
-						<button className="lnk" type="button" onClick={ () => onViewChange( 'settings' ) }>{ __( 'All actions', 'blicks' ) }</button>
-					</div>
-					<div className="qa">
-						<QuickAction
-							title={ __( 'Edit tokens', 'blicks' ) }
-							text={ __( 'Colors, type, spacing, radius.', 'blicks' ) }
-							meta={ sprintf(
-								/* translators: %d: number of design tokens. */
-								_n( '%d token', '%d tokens', tokenCount, 'blicks' ),
-								tokenCount
-							) }
-							glyph={ icon( <><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18Z" /></> ) }
-							onClick={ () => onOpenDesignSection( 'color' ) }
-						/>
-						<QuickAction
-							title={ __( 'Open the editor', 'blicks' ) }
-							text={ __( 'Start a new page with Blicks blocks.', 'blicks' ) }
-							meta={ __( 'Editor', 'blicks' ) }
-							glyph={ icon( <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></> ) }
-							onClick={ () => { if ( editorUrl ) window.location.assign( editorUrl ); } }
-						/>
-						<QuickAction
-							title={ __( 'Adjust settings', 'blicks' ) }
-							text={ __( 'Inspector defaults and help.', 'blicks' ) }
-							meta={ __( 'Settings', 'blicks' ) }
-							glyph={ icon( <><path d="M4 7h16M4 12h16M4 17h16" /><circle cx="9" cy="7" r="2" /><circle cx="15" cy="17" r="2" /></> ) }
-							onClick={ () => onViewChange( 'settings' ) }
-						/>
-					</div>
-				</div>
-
-				<div className="panel ocard">
-					<div className="head">
-						<div>
-							<h2>{ __( 'System health', 'blicks' ) }</h2>
-							<div className="sub">
-								{ diagnostics
-									? sprintf(
-										/* translators: 1: passing check count, 2: total check count. */
-										__( '%1$d of %2$d checks passed.', 'blicks' ),
-										diagnostics.summary.pass,
-										diagnostics.checks.length
-									)
-									: apiStatus === 'ready' && dashboardStatus === 'ready'
-										? __( 'All checks passing.', 'blicks' )
-										: __( 'Using fallback data.', 'blicks' ) }
+			) : (
+				<p className="card-empty">{ diagnosticsError || __( 'Checking your install…', 'blicks' ) }</p>
+			) }
+			{ checks.length > 0 && (
+				<div className={ `checks${ diagnosticsRunning ? ' running' : '' }` }>
+					{ checks.map( check => (
+						<div key={ check.id } className={ `check ${ check.status }` }>
+							<i aria-hidden="true" />
+							<div>
+								<b>{ check.label }<span className="screen-reader-text">{ check.status === 'pass' ? __( '(passed)', 'blicks' ) : check.status === 'warn' ? __( '(worth knowing)', 'blicks' ) : __( '(failed)', 'blicks' ) }</span></b>
+								<span>{ check.detail }</span>
 							</div>
 						</div>
-						<button className="lnk" type="button" disabled={ diagnosticsRunning } onClick={ onRunDiagnostics }>
-							{ diagnosticsRunning ? __( 'Running…', 'blicks' ) : __( 'Run diagnostics', 'blicks' ) }
-						</button>
-					</div>
-
-					<div className="health">
-						{ diagnostics
-							? diagnostics.checks.map( check => (
-								<HealthRow
-									key={ check.id }
-									title={ check.label }
-									text={ check.detail }
-									tone={ check.status }
-									value={ check.status === 'pass' ? __( 'Pass', 'blicks' ) : check.status === 'warn' ? __( 'Warning', 'blicks' ) : __( 'Fail', 'blicks' ) }
-								/>
-							) )
-							: (
-								<>
-									<HealthRow title={ __( 'REST API', 'blicks' ) } text={ __( 'Design-system endpoints', 'blicks' ) } value={ rest.value } tone={ rest.tone } />
-									<HealthRow title={ __( 'Dashboard API', 'blicks' ) } text={ __( 'Block summary', 'blicks' ) } value={ dash.value } tone={ dash.tone } />
-									<HealthRow
-										title="theme.json"
-										text={ __( 'Source of truth', 'blicks' ) }
-										value={ snapshot.source.themeJson ? __( 'In sync', 'blicks' ) : __( 'Fallback', 'blicks' ) }
-										tone={ snapshot.source.themeJson ? 'pass' : 'warn' }
-									/>
-								</>
-							) }
-					</div>
-
-					{ diagnosticsError && <p className="panel__error" role="alert">{ diagnosticsError }</p> }
-					<div className="grow" />
-					{ diagnostics && (
-						<div className="eyebrow">
-							{ sprintf(
-								/* translators: %s: relative time, e.g. "4 min ago". */
-								__( 'Last check · %s', 'blicks' ),
-								timeAgo( diagnostics.ranAt )
-							) }
-						</div>
-					) }
-				</div>
-
-				<div className="panel ocard">
-					<div className="head">
-						<div>
-							<h2>{ __( 'Current tokens', 'blicks' ) }</h2>
-							<div className="sub">{ __( 'Type roles & palette in use right now.', 'blicks' ) }</div>
-						</div>
-						<button className="lnk" type="button" onClick={ () => onOpenDesignSection( 'type' ) }>{ __( 'Edit in design system', 'blicks' ) }</button>
-					</div>
-					<TokenPreview snapshot={ snapshot } />
-					<div className="grow" />
-				</div>
-
-				<div className="panel ocard">
-					<div className="head">
-						<div>
-							<h2>{ __( 'Recent activity', 'blicks' ) }</h2>
-							<div className="sub">{ __( 'Latest changes to this workspace.', 'blicks' ) }</div>
-						</div>
-					</div>
-					<div className="act">
-						{ dashboardSummary.activity.length === 0
-							? (
-								<p className="act__empty">
-									{ dashboardStatus === 'loading'
-										? __( 'Loading activity…', 'blicks' )
-										: __( 'Nothing recorded yet. Saving tokens or settings will show up here.', 'blicks' ) }
-								</p>
-							)
-							: dashboardSummary.activity.map( ( entry, index ) => (
-								<div className={ `ar${ index === 0 ? '' : ' q' }` } key={ entry.id }>
-									<span className="mk" />
-									<span className="t">
-										<b>{ entry.label }</b>
-										<small>{ entry.detail ? `${ entry.detail } · ${ timeAgo( entry.time ) }` : timeAgo( entry.time ) }</small>
-									</span>
-								</div>
-							) ) }
-					</div>
-					<div className="grow" />
-				</div>
-			</div>
-
-			{ /* ── full-width tip strip ── */ }
-			<div className="panel tip">
-				<span className="eyebrow accent">{ __( 'Tip', 'blicks' ) }</span>
-				<div className="body">
-					<b>{ __( 'Use tokens first.', 'blicks' ) }</b>
-					<p>{ __( 'Token values become reusable classes; custom values stay inside instance variables, so Blicks pages stay fast and easy to maintain.', 'blicks' ) }</p>
-				</div>
-				<button className="lnk" type="button" onClick={ () => onOpenDesignSection( 'out' ) }>{ __( 'See generated output', 'blicks' ) }</button>
-			</div>
-
-			{ /* ── help & feedback ──
-			     The only route a user has from "this is broken" to a report we can act on. It
-			     lives at the foot of the Overview rather than behind a menu because the moment
-			     someone needs it is the moment they are least willing to go looking. Rendered
-			     from PHP's list, so it disappears cleanly if the URLs are ever unset. */ }
-			{ supportLinks.length > 0 && (
-				<div className="panel tip support">
-					<span className="eyebrow">{ __( 'Help', 'blicks' ) }</span>
-					<div className="body">
-						<b>{ __( 'Something not working?', 'blicks' ) }</b>
-						<p>{ __( 'Bug reports and feature requests go to the public issue tracker, on forms that ask for what makes a report reproducible.', 'blicks' ) }</p>
-					</div>
-					<div className="links">
-						{ supportLinks.map( link => (
-							<a key={ link.url } className="lnk" href={ link.url } target="_blank" rel="noreferrer">
-								{ link.label }
-							</a>
-						) ) }
-					</div>
+					) ) }
 				</div>
 			) }
-		</>
+			<div className="checks-foot">
+				<button type="button" className="pill sm" disabled={ diagnosticsRunning } onClick={ onRunDiagnostics }>
+					{ diagnosticsRunning ? __( 'Checking…', 'blicks' ) : __( 'Check again', 'blicks' ) }
+				</button>
+				{ diagnostics && <span>{ sprintf( /* translators: %s: relative time, e.g. "2 minutes ago". */ __( 'Last checked %s', 'blicks' ), timeAgo( diagnostics.ranAt ) ) }</span> }
+				{ diagnostics && diagnosticsError && <span className="err" role="alert">{ diagnosticsError }</span> }
+			</div>
+		</section>
+	);
+
+	const jump = ( href: string, onClick: () => void, path: string, title: string, sub: string ): JSX.Element => (
+		<a href={ href } onClick={ event => { if ( event.metaKey || event.ctrlKey ) return; event.preventDefault(); onClick(); } }>
+			{ line( path ) }
+			<div><b>{ title }</b><span>{ sub }</span></div>
+			<span className="go" aria-hidden="true">→</span>
+		</a>
+	);
+	const jumps = (
+		<section className="card" aria-labelledby="ov-jump">
+			<div className="card-h"><h2 id="ov-jump">{ __( 'Jump to', 'blicks' ) }</h2></div>
+			<nav className="jumps" aria-labelledby="ov-jump">
+				{ jump( urlForView( 'design', 'color' ), () => onOpenDesignSection( 'color' ), 'M12 3.5s6 6.4 6 10.5a6 6 0 0 1-12 0c0-4.1 6-10.5 6-10.5z', __( 'Colors', 'blicks' ), __( 'Brand, text and surfaces', 'blicks' ) ) }
+				{ jump( urlForView( 'design', 'type' ), () => onOpenDesignSection( 'type' ), 'M5 6h14M12 6v13M8 19h8', __( 'Typography', 'blicks' ), __( 'Fonts and text styles', 'blicks' ) ) }
+				{ jump( urlForView( 'settings' ), () => onViewChange( 'settings' ), 'M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4', __( 'Settings', 'blicks' ), __( 'Editor defaults and Global Styles', 'blicks' ) ) }
+			</nav>
+		</section>
+	);
+
+	const help = (
+		<section className="card" aria-label={ __( 'Help', 'blicks' ) }>
+			<div className="note">
+				<b>{ __( 'Good to know', 'blicks' ) }</b>
+				<span>{ __( 'Pick token values over custom ones. Tokens become shared classes, so pages stay fast and one edit restyles every block.', 'blicks' ) }</span>
+			</div>
+			{ supportLinks.length > 0 && (
+				<div className="note">
+					<b>{ __( 'Something not working?', 'blicks' ) }</b>
+					<span>{ __( 'Read the docs, or report a bug or an idea. The issue form asks for what makes a report easy to reproduce.', 'blicks' ) }</span>
+					{ supportLinks.map( link => (
+						<a key={ link.url } href={ link.url } target="_blank" rel="noreferrer">{ link.label } <span aria-hidden="true">↗</span></a>
+					) ) }
+				</div>
+			) }
+		</section>
+	);
+
+	return (
+		<div className="page ov">
+			<div className="page-in ov-in">
+				<div className="page-head">
+					<div>
+						<h1>{ __( 'Overview', 'blicks' ) }</h1>
+						<p>
+							{ allDone
+								? __( 'Everything is set up.', 'blicks' )
+								: sprintf( /* translators: 1: steps done, 2: total steps. */ __( 'You’re %1$d of %2$d steps from building with Blicks.', 'blicks' ), done, steps.length ) }
+						</p>
+					</div>
+				</div>
+				{ setup }
+				<div className="ov-grid">
+					<div className="ov-col">{ designCard }{ recent }</div>
+					<div className="ov-col">{ health }{ jumps }{ help }</div>
+				</div>
+			</div>
+		</div>
 	);
 }

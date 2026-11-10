@@ -59,7 +59,7 @@ final class ElementStyleControlsTest extends TestCase
 
     public function test_it_marks_the_tier_three_controls_as_scoped(): void
     {
-        $this->assertTrue(self::control('decoration.before')['scoped'], '::before needs a real selector');
+        $this->assertTrue(self::control('columns.breakInside')['scoped'], 'a child selector needs a real rule');
         $this->assertFalse(self::control('spacing.padding')['scoped']);
     }
 
@@ -85,11 +85,12 @@ final class ElementStyleControlsTest extends TestCase
     /**
      * The projection is narrower than the rule table on purpose: `cls`, `v` and the scoped
      * descriptors are emission details that must stay free to change without breaking Pro.
+     * `valueSchema` was added after the first four; adding a key is safe, removing one is not.
      */
-    public function test_it_exposes_only_the_four_documented_keys(): void
+    public function test_it_exposes_only_the_five_documented_keys(): void
     {
         foreach (ElementStyle::controls() as $control) {
-            $this->assertSame(['id', 'valueShape', 'category', 'scoped'], array_keys($control));
+            $this->assertSame(['id', 'valueShape', 'category', 'scoped', 'valueSchema'], array_keys($control));
         }
     }
 

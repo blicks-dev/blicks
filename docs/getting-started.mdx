@@ -1,34 +1,38 @@
 ---
 title: "Getting Started"
-description: "Install Blicks, insert your first block, and learn where the design system and settings live."
+description: "Install Blicks 2.0, build a first section, learn the Settings, Style and Motion tabs, and find the design system and settings in the admin."
 ---
 
-Blicks is a free WordPress plugin that adds **12 composable Gutenberg blocks** built on a
-theme-native design system. This guide covers installation, your first block, and where everything
-lives in the admin.
+Blicks is a free WordPress plugin that adds composable layout and content blocks to the block
+editor, all drawing from one design system. This page covers installing it, building a first
+section, and where everything lives.
+
+<Note>
+Updating a site that already has Blicks 1.x pages? Read [Upgrading from 1.x](/upgrading) first —
+2.0 does not carry 1.x layouts over.
+</Note>
 
 ## Requirements
 
-- WordPress **6.6** or newer (tested up to 7.1)
+- WordPress **7.0** or newer (tested up to 7.1)
 - PHP **8.1** or newer
-- A **block theme** is recommended — Blicks is designed for full site editing
+- A **block theme** is recommended
 
 <Note>
-Blicks also runs on classic themes, but falls back to its own default token values because there is
-no `theme.json` to read.
+Blicks also runs on classic themes. With no `theme.json` to sync with, its tokens use Blicks' own
+default values.
 </Note>
 
 ## Try it without installing
 
-Run Blicks in a real WordPress site in your browser — no host, no database, nothing to install.
-WordPress Playground boots WordPress on WebAssembly, installs the plugin and drops you straight
-into the editor.
+Run Blicks in a real WordPress site in your browser. WordPress Playground boots WordPress on
+WebAssembly, installs the plugin and opens the editor.
 
 <Card title="Open Blicks in WordPress Playground" icon="play" href="https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/blicks-dev/blicks/main/.playground/blueprint.json">
 	A throwaway WordPress with Blicks active. Nothing is saved when you close the tab.
 </Card>
 
-## Installation
+## Install
 
 <Steps>
 	<Step title="Search for it">
@@ -38,104 +42,113 @@ into the editor.
 		Install it, then activate **Blicks** from the Plugins screen.
 	</Step>
 	<Step title="Open the editor">
-		Open any post or page in the block editor and insert blocks from the **Blicks** category.
+		Open any post or page in the block editor. Every Blicks block is in the **Blicks** category of the inserter.
 	</Step>
 </Steps>
 
-Updates arrive through WordPress like any other Directory plugin.
+Updates arrive through WordPress like any other Directory plugin. No build step is needed: the
+plugin ships compiled scripts and styles.
 
-<Note>
-No build step is required — the plugin ships with compiled scripts and styles.
-</Note>
+To pin a version, or to install without Directory access, download `blicks.zip` from the
+[releases page](https://github.com/blicks-dev/blicks/releases) and upload it under
+**Plugins → Add New → Upload Plugin**.
 
-### Installing the zip instead
-
-To pin a specific version, or to install on a site without Directory access, download `blicks.zip`
-from the [latest release](https://github.com/blicks-dev/blicks/releases) and upload it under
-**Plugins → Add New → Upload Plugin**. Unzipping it into `/wp-content/plugins/blicks/` yourself
-works too.
-
-A zip installed this way still updates from the Directory, because it is the same plugin under the
-same slug.
-
-## Insert your first block
+## Build a first section
 
 <Steps>
-	<Step title="Open the inserter">
-		In the block editor, open the inserter (`+`).
+	<Step title="Insert a Section">
+		Open the inserter (`+`) and pick **Section**. Choose a starting layout: **Heading + copy** or **Centered hero**.
 	</Step>
-	<Step title="Choose the Blicks category">
-		Pick the **Blicks** block category.
-	</Step>
-	<Step title="Build a hero">
-		Insert a **Section**, then a **Stack**, then a **Heading** and **Buttons** inside it.
+	<Step title="Edit the words">
+		Click into the heading and text and type. Each starting layout puts a stacked **Box** inside the Section to hold them.
 	</Step>
 	<Step title="Style it">
-		Select each block and use the inspector to adjust layout, spacing, typography, color, borders, and effects.
+		Select a block and open the **Style** tab in the sidebar. Pick a size, a fill, corners, a shadow — each section shows its current value on the right.
 	</Step>
 </Steps>
 
-Blicks blocks use native WordPress controls where possible and add their own styling features for
-spacing, colors, typography, borders, effects, dimensions, position, grid-child behavior, animation,
-visibility, and pseudo-element decoration.
+## The inspector
 
-## How the design system works
-
-Blicks does not ship a hardcoded look. It reads the active theme's `theme.json` and user Global
-Styles, then projects them into `--blicks-*` CSS custom properties. Blocks reference those
-variables, so changing the theme palette, type scale, or spacing updates every Blicks block.
-
-Token values are selected as **slugs** in block controls, which emit shared utility classes. Typing
-a literal value instead (a hex code, a custom `px` size) emits a scoped CSS variable plus a static
-consumer class — never a wall of inline styles.
-
-Read the full model in [Global Tokens](/reference/design-system/global-tokens) and
-[Type Roles](/reference/design-system/type-roles).
-
-## Where things live in the admin
-
-The plugin registers a top-level **Blicks** menu with three screens:
+Every Blicks block has the same sidebar, with three tabs and a menu:
 
 <CardGroup cols={2}>
-	<Card title="Blicks" icon="gauge">
-		Overview — install state, design-system snapshot, and quick links.
+	<Card title="Settings" icon="settings-2">
+		What the block is and does: a Box's **Kind** and **Arrange**, its size, a link, its meaning for screen readers and search engines.
 	</Card>
-	<Card title="Design System" icon="palette">
-		Edit tokens, type roles, named themes, keyframe animations, and breakpoints.
+	<Card title="Style" icon="paintbrush">
+		How it looks, in sections named for the goal — **Text**, **Fill**, **Border and corners**, **Shadow and depth**, **Space** and **States**.
 	</Card>
-	<Card title="Settings" icon="sliders-horizontal">
-		Editor preferences, Global Styles sync, and uninstall behavior.
+	<Card title="Motion" icon="sparkles">
+		**Entrance** (fade in, rise or zoom as it scrolls into view) and how fast and with what feel hover and click changes play.
+	</Card>
+	<Card title="More (•••)" icon="ellipsis">
+		**Show on** (hide a block on desktop, tablet or phone), **Screen readers**, and **HTML attributes**.
 	</Card>
 </CardGroup>
 
-Tokens can also be edited from the **Theme Settings** sidebar inside the block editor, which
-previews draft values live on the canvas before you save. Both surfaces use the same
-`blicks/v1/design-system` REST contract.
+<Frame caption="A Box's Settings tab: Kind, Layout, Size, Link and Meaning and access.">
+	<img src="/images/inspector/box-1-settings.png" alt="The Settings tab for a Box, showing the Kind cards, the Arrange choices and the Size controls" style={{ maxWidth: '280px' }} />
+</Frame>
 
-## Settings worth knowing
+A section's **Customize ›** opens the finer controls for it in place of the panel. At the bottom of
+the Style tab, **All settings** lists every value the block stores — including the ones the quick
+choices above cannot show — and lets you search for and add any setting the block allows.
 
-| Setting | What it does |
+There is no state switcher and no device switcher. Hover, click and focus looks live in
+**Style ▸ States**; see [States and interactions](/guides/states-and-interactions). Phone layouts
+are switches on the block, such as **Stack on phones**; see
+[Responsive patterns](/guides/responsive-patterns).
+
+## Blicks Studio
+
+**Blicks Studio** is a full-screen workspace for composing a section from the pattern library, with
+layers, desktop, tablet and phone widths, and a Play button for motion. Open it from the
+**Blicks Studio** button in the editor's top bar, from the command palette (**Open Blicks Studio**),
+or with **Open in Studio** on a Blicks block's toolbar. Nothing is written to your post until you
+leave by **Insert**.
+
+## How the design system works
+
+Blicks keeps its own catalogue of design tokens — colors, spacing, type sizes, corners, shadows and
+more — and their values resolve through your active theme's `theme.json` presets. Change your
+theme's palette and every Blicks block that uses it follows. Where the theme defines no scale of
+its own, Blicks falls back to its own values.
+
+A block stores a token's name, not a copied value. Read the full model in
+[Global tokens](/reference/design-system/global-tokens) and
+[Type roles](/reference/design-system/type-roles).
+
+## Where things live in the admin
+
+The **Blicks** menu in wp-admin has five screens:
+
+| Screen | What it is for |
 |---|---|
-| **Default inspector panel** | Which panel opens when a Blicks block is selected — Styles, Settings, or Advanced. |
-| **Per-block help** | Surfaces each block's readme metadata inside the inspector. |
-| **Global Styles sync** | Writes newly saved design tokens back to `theme.json` Global Styles. Disabled if the active theme has no `theme.json` support. |
-| **On uninstall** | **Keep my data** (default) or **Remove everything**. Applies on delete, not deactivate. |
+| **Overview** | A getting-started checklist, a preview of your design system, recent changes, and health checks |
+| **Design System** | Colors, typography, spacing, corners, shadows, motion and the rest, with your site previewed live beside them. See [Customize the design system](/guides/customize-design-system) |
+| **Settings** | Global Styles sync, Loop data sources, form spam-check keys, and what happens to your data on delete |
+| **MCP** | Turn on AI agent access and connect a client. See [Connect an AI agent](/guides/connect-an-ai-agent) |
+| **Entries** | What visitors sent through your forms. See [Forms](/guides/forms) |
 
 <Info>
-By default, deleting the plugin removes nothing. Your tokens, themes, animations, and settings
-survive a delete and reinstall unless you opt into cleanup first.
+By default, deleting the plugin removes nothing. Your design system, settings and form entries
+survive a delete and reinstall unless you set **When Blicks is deleted** to **Remove everything** in
+**Blicks → Settings** first.
 </Info>
 
 ## Next steps
 
 <CardGroup cols={2}>
+	<Card title="Build a landing page" icon="layout-panel-top" href="/guides/build-a-landing-page">
+		A hero, a feature grid and a call to action.
+	</Card>
 	<Card title="Block reference" icon="blocks" href="/reference/blocks/index">
-		All 12 blocks, generated from block metadata.
+		Every block, generated from block metadata.
 	</Card>
 	<Card title="Customize the design system" icon="paintbrush" href="/guides/customize-design-system">
-		Override tokens, type roles, themes, and breakpoints.
+		Make the tokens yours.
 	</Card>
-	<Card title="Responsive patterns" icon="smartphone" href="/guides/responsive-patterns">
-		The three devices and how their values cascade.
+	<Card title="Forms" icon="send" href="/guides/forms">
+		Contact and sign-up forms with Entries.
 	</Card>
 </CardGroup>

@@ -1,17 +1,17 @@
-#!/usr/bin/env node
 /**
  * Writes each block's `icon` into `resources/blocks/<slug>/block.json`, outlined from the shared
  * glyph source in `resources/framework/icons/block-glyphs.json`.
  *
  * Why outlined: wordpress.org renders a block.json icon that contains `<svg` through `wp_kses`
  * with an allow-list of `svg`/`g`/`title`/`path` and, on a path, only `d`, `fill` and `transform`
- * (see the wporg-plugins-2024 theme, `template-parts/section-blocks.php`). Every stroke attribute
- * and every `<rect>`/`<circle>` is stripped, so the editor's stroked glyphs would arrive invisible.
- * Converting each stroke to its filled outline renders identically and survives the filter.
+ * (see the wporg-plugins-2024 theme, `template-parts/section-blocks.php`). Every stroke attribute,
+ * every `fill-rule` and every `<rect>`/`<circle>` is stripped, so each glyph is reduced to two
+ * filled paths — one `currentColor`, one accent — and a knockout is drawn against the winding of
+ * the shape it cuts, so the default nonzero rule punches it out without a `fill-rule`.
  *
- * The editor does not use this — `resources/framework/identity.tsx` renders the same glyphs as
- * real strokes. This file exists for the surfaces that read the metadata statically and never run
- * the editor bundle: the wordpress.org plugin page and Plugins → Add New → Blocks.
+ * The editor renders this same markup (`resources/framework/identity.tsx` reads it back out of the
+ * metadata), so wordpress.org, Plugins → Add New → Blocks, the inserter and the Studio all show one
+ * drawing, not two that are meant to agree.
  *
  * Run via `pnpm gen:block-icons` (also auto-runs before `pnpm build`/`pnpm dev`).
  */
@@ -24,7 +24,6 @@ const SOURCE = resolve( ROOT, 'resources/framework/icons/block-glyphs.json' );
 
 const { strokeWidth, accent: ACCENT, viewBox, glyphs } = JSON.parse( readFileSync( SOURCE, 'utf8' ) );
 
-const H = strokeWidth / 2;          // half the stroke — how far the outline sits from the path
 const MITER_LIMIT = 4;              // SVG's own default; past it a miter becomes a bevel
 
 /** Trim float noise: 10.700000000000001 → 10.7, 12.0 → 12. */
@@ -44,67 +43,7 @@ function unit( v ) {
 /** Left-hand normal of a unit direction. */
 const normal = ( d ) => [ -d[ 1 ], d[ 0 ] ];
 
-const polygon = ( pts ) =>
-	'M' + pts.map( ( p ) => `${ n( p[ 0 ] ) } ${ n( p[ 1 ] ) }` ).join( 'L' ) + 'Z';
-
-/** An axis-aligned rectangle, wound clockwise (or counter-clockwise, to punch a hole). */
-function rectPath( x, y, w, h, clockwise = true ) {
-	const corners = [ [ x, y ], [ x + w, y ], [ x + w, y + h ], [ x, y + h ] ];
-	return polygon( clockwise ? corners : corners.reverse() );
-}
-
-/**
- * One side of a stroked polyline. `side` is +1 for the left offset, -1 for the right.
- * Butt caps (the ends are not extended) and miter joins, matching the editor's glyph style.
- * A closed polyline has no caps — every vertex, the seam included, is a join.
- */
-function offsetSide( points, side, closed = false ) {
-	const dirs    = [];
-	const normals = [];
-	const count   = closed ? points.length : points.length - 1;
-
-	for ( let i = 0; i < count; i++ ) {
-		const d = unit( sub( points[ ( i + 1 ) % points.length ], points[ i ] ) );
-		dirs.push( d );
-		normals.push( mul( normal( d ), side ) );
-	}
-
-	/** The offset of the vertex where segment `i - 1` meets segment `i`. */
-	const join = ( vertex, prev, next ) => {
-		const bisector = add( prev, next );
-
-		// A 180° reversal has no miter, and a miter past the limit is a spike — bevel both.
-		if ( Math.hypot( bisector[ 0 ], bisector[ 1 ] ) < 1e-6 ) {
-			return [ add( vertex, mul( prev, H ) ), add( vertex, mul( next, H ) ) ];
-		}
-
-		const m      = unit( bisector );
-		const length = H / dot( m, prev );
-
-		return Math.abs( length ) > MITER_LIMIT * H
-			? [ add( vertex, mul( prev, H ) ), add( vertex, mul( next, H ) ) ]
-			: [ add( vertex, mul( m, length ) ) ];
-	};
-
-	const out = closed
-		? join( points[ 0 ], normals[ normals.length - 1 ], normals[ 0 ] )
-		: [ add( points[ 0 ], mul( normals[ 0 ], H ) ) ];
-
-	for ( let i = 1; i < points.length - 1; i++ ) {
-		out.push( ...join( points[ i ], normals[ i - 1 ], normals[ i ] ) );
-	}
-
-	if ( closed ) {
-		const last = points.length - 1;
-		out.push( ...join( points[ last ], normals[ last - 1 ], normals[ last ] ) );
-	} else {
-		out.push( add( points[ points.length - 1 ], mul( normals[ normals.length - 1 ], H ) ) );
-	}
-
-	return out;
-}
-
-/** Twice the signed area — its sign is the winding, its magnitude ranks the two offsets. */
+/** Twice the signed area. Positive is clockwise on screen (y grows downward). */
 function signedArea( pts ) {
 	let sum = 0;
 	for ( let i = 0; i < pts.length; i++ ) {
@@ -116,58 +55,114 @@ function signedArea( pts ) {
 }
 
 /**
- * Both offsets of a closed glyph, outward first — which side is which depends on the winding the
- * glyph happens to be drawn in, so it is decided by area rather than assumed.
+ * A closed polygon wound clockwise, or counter-clockwise to cut. Every filled shape is normalised
+ * to one winding, so two that overlap add up instead of cancelling into a hole.
  */
-function closedOffsets( points ) {
-	const a = offsetSide( points, 1, true );
-	const b = offsetSide( points, -1, true );
-	return Math.abs( signedArea( a ) ) > Math.abs( signedArea( b ) ) ? [ a, b ] : [ b, a ];
+function polygon( pts, cut = false ) {
+	const clockwise = signedArea( pts ) > 0;
+	const wound     = clockwise === ! cut ? pts : [ ...pts ].reverse();
+	return 'M' + wound.map( ( p ) => `${ n( p[ 0 ] ) } ${ n( p[ 1 ] ) }` ).join( 'L' ) + 'Z';
+}
+
+/** A rectangle with rounded corners, clockwise — or counter-clockwise, to punch a hole. */
+function roundRect( x, y, w, h, r, cut = false ) {
+	r = Math.max( 0, Math.min( r, w / 2, h / 2 ) );
+
+	if ( ! r ) {
+		return polygon( [ [ x, y ], [ x + w, y ], [ x + w, y + h ], [ x, y + h ] ], cut );
+	}
+
+	const R = `${ n( r ) } ${ n( r ) } 0 0 ${ cut ? 0 : 1 }`;
+
+	return cut
+		? `M${ n( x + r ) } ${ n( y ) }A${ R } ${ n( x ) } ${ n( y + r ) }V${ n( y + h - r ) }A${ R } ${ n( x + r ) } ${ n( y + h ) }`
+			+ `H${ n( x + w - r ) }A${ R } ${ n( x + w ) } ${ n( y + h - r ) }V${ n( y + r ) }A${ R } ${ n( x + w - r ) } ${ n( y ) }Z`
+		: `M${ n( x + r ) } ${ n( y ) }H${ n( x + w - r ) }A${ R } ${ n( x + w ) } ${ n( y + r ) }V${ n( y + h - r ) }`
+			+ `A${ R } ${ n( x + w - r ) } ${ n( y + h ) }H${ n( x + r ) }A${ R } ${ n( x ) } ${ n( y + h - r ) }V${ n( y + r ) }A${ R } ${ n( x + r ) } ${ n( y ) }Z`;
+}
+
+/** A disc as two half-arcs — `<circle>` is not in wordpress.org's allow-list. */
+function disc( cx, cy, r, cut = false ) {
+	const sweep = cut ? 0 : 1;
+	return `M${ n( cx - r ) } ${ n( cy ) }A${ n( r ) } ${ n( r ) } 0 1 ${ sweep } ${ n( cx + r ) } ${ n( cy ) }`
+		+ `A${ n( r ) } ${ n( r ) } 0 1 ${ sweep } ${ n( cx - r ) } ${ n( cy ) }Z`;
 }
 
 /**
- * A stroked polyline becomes one closed polygon: the left offsets, then the right ones reversed.
- * A closed shape is instead its own outline — filled, that is just the outward offset; unfilled,
- * the outward offset with the inward one punched out of it.
+ * One side of a stroked polyline, `h` (half the stroke) away. `side` is +1 for the left offset,
+ * -1 for the right. Butt caps and miter joins.
  */
-function linePath( points, { closed = false, filled = false } = {} ) {
-	if ( ! closed ) {
-		return polygon( [ ...offsetSide( points, 1 ), ...offsetSide( points, -1 ).reverse() ] );
+function offsetSide( points, side, h ) {
+	const normals = [];
+
+	for ( let i = 0; i < points.length - 1; i++ ) {
+		normals.push( mul( normal( unit( sub( points[ i + 1 ], points[ i ] ) ) ), side ) );
 	}
 
-	const [ outer, inner ] = closedOffsets( points );
+	/** The offset of the vertex where segment `i - 1` meets segment `i`. */
+	const join = ( vertex, prev, next ) => {
+		const bisector = add( prev, next );
 
-	return filled
-		? polygon( outer )
-		: polygon( outer ) + polygon( inner.reverse() );
+		// A 180° reversal has no miter, and a miter past the limit is a spike — bevel both.
+		if ( Math.hypot( bisector[ 0 ], bisector[ 1 ] ) < 1e-6 ) {
+			return [ add( vertex, mul( prev, h ) ), add( vertex, mul( next, h ) ) ];
+		}
+
+		const m      = unit( bisector );
+		const length = h / dot( m, prev );
+
+		return Math.abs( length ) > MITER_LIMIT * h
+			? [ add( vertex, mul( prev, h ) ), add( vertex, mul( next, h ) ) ]
+			: [ add( vertex, mul( m, length ) ) ];
+	};
+
+	const out = [ add( points[ 0 ], mul( normals[ 0 ], h ) ) ];
+
+	for ( let i = 1; i < points.length - 1; i++ ) {
+		out.push( ...join( points[ i ], normals[ i - 1 ], normals[ i ] ) );
+	}
+
+	out.push( add( points[ points.length - 1 ], mul( normals[ normals.length - 1 ], h ) ) );
+
+	return out;
 }
 
-/** A filled disc, as two half-arcs — `<circle>` is not in wordpress.org's allow-list. */
-const circlePath = ( cx, cy, r ) =>
-	`M${ n( cx - r ) } ${ n( cy ) }a${ n( r ) } ${ n( r ) } 0 1 0 ${ n( r * 2 ) } 0a${ n( r ) } ${ n( r ) } 0 1 0 ${ n( -r * 2 ) } 0Z`;
-
-/** Outline one shape into fill geometry. Returns the `d` for a filled path. */
+/**
+ * Outline one shape into fill geometry. Shapes sit at their exact outer edge: a `rect` or `circle`
+ * is solid when `filled`, otherwise a frame `width` thick inside that edge; a `line` is a stroke
+ * centred on its points; a `poly` is a solid polygon.
+ */
 function outline( shape ) {
+	const width = shape.width ?? strokeWidth;
+	const cut   = Boolean( shape.cut );
+
 	switch ( shape.type ) {
-		case 'rect':
-			// A filled cell also carries the stroke in the editor, so it grows by half a stroke on
-			// every side; an unfilled one is a frame — the outer rect with the inner one punched out.
+		case 'rect': {
+			const { x, y, w, h, r = 0 } = shape;
+			const outer = roundRect( x, y, w, h, r, cut );
 			return shape.filled
-				? rectPath( shape.x - H, shape.y - H, shape.w + 2 * H, shape.h + 2 * H )
-				: rectPath( shape.x - H, shape.y - H, shape.w + 2 * H, shape.h + 2 * H )
-					+ rectPath( shape.x + H, shape.y + H, shape.w - 2 * H, shape.h - 2 * H, false );
+				? outer
+				: outer + roundRect( x + width, y + width, w - 2 * width, h - 2 * width, r - width, ! cut );
+		}
+		case 'circle': {
+			const { cx, cy, r } = shape;
+			return shape.filled
+				? disc( cx, cy, r, cut )
+				: disc( cx, cy, r, cut ) + disc( cx, cy, r - width, ! cut );
+		}
 		case 'line':
-			return linePath( shape.points, shape );
-		case 'circle':
-			return circlePath( shape.cx, shape.cy, shape.r + ( shape.filled ? H : 0 ) );
-		case 'path':
-			return shape.d;
+			return polygon( [ ...offsetSide( shape.points, 1, width / 2 ), ...offsetSide( shape.points, -1, width / 2 ).reverse() ], cut );
+		case 'poly':
+			return polygon( shape.points, cut );
 		default:
 			throw new Error( `unknown glyph shape "${ shape.type }"` );
 	}
 }
 
-/** Build the full icon markup: one path per colour, base first so the accent sits on top. */
+/**
+ * Build the full icon markup: one path per colour, base first so the accent sits on top. A cut
+ * lives in its colour's path, after the shapes it punches through.
+ */
 export function buildIcon( shapes ) {
 	const base   = shapes.filter( ( s ) => ! s.accent ).map( outline ).join( '' );
 	const accent = shapes.filter( ( s ) => s.accent ).map( outline ).join( '' );

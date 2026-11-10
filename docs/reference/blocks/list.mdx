@@ -1,0 +1,124 @@
+---
+title: "List"
+description: "A bulleted, numbered or icon list you type into: Enter adds an item, Tab indents it."
+---
+
+<Info>
+Generated from `resources/blocks/list/block.json` and `readme.md`. Do not hand-edit this page.
+</Info>
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Name | `blicks/list` |
+| Category | `blicks` |
+| Text domain | `blicks` |
+| Render callback | `-` |
+| Editor script | `blicks-editor` |
+| Front-end style | `file:./index.css` |
+
+## Editor support
+
+| Field | Value |
+|---|---|
+| HTML editing | `false` |
+| Anchor | `false` |
+| Align | `-` |
+| Blicks states | `default, group, groupActive, hover, focus, active, play, on, groupOn, reduced` |
+
+## Blicks controls
+
+`gridChild.*` · `typography.*` · `colors.text` · `colors.background` · `spacing.*` · `border.*` · `effects.*` · `animation.*` · `layout.width` · `layout.minWidth` · `layout.maxWidth` · `layout.height` · `layout.minHeight` · `layout.maxHeight` · `flexChild.*` · `background.*` · `position.*`
+
+## Attributes
+
+| Attribute | Type | Default |
+|---|---|---|
+| `arrange` | `string` | `"stack"` |
+| `blicks` | `object` | `&#123;&#125;` |
+| `bullet` | `string` | `"dot"` |
+| `cardCorners` | `string` | `""` |
+| `cardFill` | `string` | `""` |
+| `columns` | `number` | `2` |
+| `content` | `string` | `""` |
+| `gap` | `string` | `""` |
+| `icon` | `string` | `"check"` |
+| `innerMarkerColour` | `string` | `""` |
+| `innerMono` | `boolean` | `false` |
+| `kind` | `string` | `"bullets"` |
+| `lines` | `boolean` | `false` |
+| `look` | `string` | `""` |
+| `markerBehind` | `string` | `""` |
+| `markerColour` | `string` | `""` |
+| `markerSize` | `number` | `100` |
+| `markerSpace` | `number` | `10` |
+| `nested` | `boolean` | `false` |
+| `numbering` | `string` | `"1"` |
+| `reversed` | `boolean` | `false` |
+| `separator` | `string` | `""` |
+| `start` | `number` | — |
+| `strikeDone` | `boolean` | `false` |
+| `uniqueId` | `string` | — |
+
+## Help
+
+## Description
+
+List is a bulleted, numbered or icon list you type into. Enter adds the next item, Tab indents it under the one above and Shift+Tab brings it back out. Enter on an empty item steps out one level, and at the top it leaves the list. Backspace at the start of an item joins it to the one above. Pasting several lines makes one item a line. Typing "- ", "* " or "1. " at the start of a Text turns it into a List.
+
+## Controls
+
+### kind
+
+What marks each item: bullets, numbers, icons, or nothing (plain). Numbered lists save as `ol`, the rest as `ul`.
+
+### bullet
+
+The bullet's shape: dot, ring, square, dash or chevron. Inner lists step down from a dot to a ring to a square.
+
+### numbering
+
+How items are counted: 1., 01, a., i., or outline numbering (1.1), where inner lists count on from their item.
+
+### icon
+
+The icon every item is marked with, from the same library as the Icon block. An item can pick its own.
+
+### start
+
+The number the list starts counting from.
+
+### reversed
+
+Counts down instead of up.
+
+### arrange
+
+Stacked (one under another), in a row (with an optional separator between items), or in two to four columns. Phones get one column.
+
+### gap
+
+The space between items: tight, normal, roomy or spacious.
+
+### lines
+
+Draws a thin line between items.
+
+### look
+
+Each item plain, as a card, or on alternating stripes.
+
+### markerColour
+
+The marker's color, from the theme. Empty uses the text color.
+
+### markerBehind
+
+A soft square, a soft circle or a solid circle behind an icon or a number.
+
+## Tips
+
+- Use the outer list's settings for the look; inner lists follow it at every level.
+- For a checklist or a feature list, pick Icons and a check, then put a soft square behind it.
+- Mark what a plan leaves out with the List item's "Left out" state rather than a second list.

@@ -7,7 +7,7 @@ import { OptionField, ValueField } from '@/controls/ValueField';
 import { ColorRow } from '@/controls/ColorRow';
 import { TokenLibrary } from '@/controls/TokenLibrary';
 import { ColorPopover } from '@/controls/color/ColorControl';
-import { tokenOptions } from '@/controls/token-utils';
+import { tokenOptions, tokenSlugOfValue } from '@/controls/token-utils';
 import { clamp, defaultGradient, gradientCss, gradientStops, positionToNumber } from '@/controls/color/gradient-css';
 import { PositionPad } from './PositionPad';
 import { sourcesFor, type FillBinding, type FillSource } from './types';
@@ -68,7 +68,7 @@ const SOURCE_ICONS: Record< FillSource, JSX.Element > = {
 };
 
 const SOURCE_TITLES: Record< FillSource, string > = {
-	color: __( 'Solid colour', 'blicks' ),
+	color: __( 'Solid color', 'blicks' ),
 	gradient: __( 'Gradient', 'blicks' ),
 	image: __( 'Image', 'blicks' ),
 };
@@ -193,7 +193,7 @@ export function FillEditor( {
 	sources,
 	source,
 	onSourceChange,
-	colorLabel = __( 'Colour', 'blicks' ),
+	colorLabel = __( 'Color', 'blicks' ),
 	hideClip,
 	searching,
 }: Props ) {
@@ -369,7 +369,7 @@ export function FillEditor( {
 									className="bl-fill-link"
 									onClick={ () => binding.set( 'gradient', defaultGradient() ) }
 								>
-									{ __( 'Customise', 'blicks' ) }
+									{ __( 'Customize', 'blicks' ) }
 								</button>
 							</>
 						) : (
@@ -392,7 +392,7 @@ export function FillEditor( {
 											type="button"
 											className={ `bl-fill-stop ${ selectedStop === index ? 'is-active' : '' }` }
 											style={ { left: `${ positionToNumber( stop.position ) }%`, background: stop.color } }
-											title={ __( 'Drag to move, click to recolour', 'blicks' ) }
+											title={ __( 'Drag to move, click to recolor', 'blicks' ) }
 											onMouseDown={ ( event ) => onStopMouseDown( event, index ) }
 											onClick={ ( event ) => event.stopPropagation() }
 											onDoubleClick={ ( event ) => { event.stopPropagation(); removeStop( index ); } }
@@ -592,6 +592,7 @@ export function FillEditor( {
 }
 
 /** The gradient token catalogue, for a summary that can name a preset rather than call it "gradient". */
-export function gradientTokenLabel( slug: string ) {
+export function gradientTokenLabel( value: string ) {
+	const slug = tokenSlugOfValue( 'gradient', value );
 	return tokenOptions( 'gradient' ).find( ( option ) => option.slug === slug )?.label ?? slug;
 }

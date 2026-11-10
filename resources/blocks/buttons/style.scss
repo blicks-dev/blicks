@@ -19,8 +19,8 @@
 		--bl-fd: row;
 		--bl-jc: flex-start;
 		--bl-fw: wrap;
-		--bl-gap-r: var(--blicks-spacing-sm, 0.5rem);
-		--bl-gap-c: var(--blicks-spacing-sm, 0.5rem);
+		--bl-gap-r: var(--blicks-spacing-sm, 0.75rem);
+		--bl-gap-c: var(--blicks-spacing-sm, 0.75rem);
 
 		display: flex;
 		flex-direction: var(--bl-fd);

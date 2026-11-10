@@ -14,6 +14,9 @@ export default async function globalSetup( config: FullConfig ): Promise< void >
 
 	const browser = await chromium.launch();
 	const page = await browser.newPage( { baseURL } );
+	// Each PHP request is a WASM round trip; on a busy machine a login redirect chain alone can
+	// outlast Playwright's 30 s default.
+	page.setDefaultTimeout( 120_000 );
 
 	await page.goto( '/wp-login.php' );
 

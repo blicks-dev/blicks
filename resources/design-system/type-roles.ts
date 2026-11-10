@@ -5,17 +5,14 @@
  * REST/snapshot fetch — the live look comes from the emitted `bl-type--{role}` class + the
  * `--blicks-type-{role}-*` vars in the canvas.
  *
- * MUST stay in sync with:
- *   - `TypeRoles::ROLES` (PHP, src/DesignSystem/TypeRoles.php) — source of truth
- *   - the `$type-roles` list in resources/runtime/runtime.scss (the global classes)
- *   - `TYPE_ROLE_LABELS` in resources/admin/constants.ts (admin editor labels)
+ * The slugs come from resources/engine/schema.json, which also generates `TypeRoles::ROLES` (PHP)
+ * and the runtime's `$type-roles` classes. Labels stay here and in `TYPE_ROLE_LABELS`
+ * (resources/admin/constants.ts) because they are translated.
  */
 import { __ } from '@wordpress/i18n';
+import { TYPE_ROLES } from '@/engine/schema.gen';
 
-/** Ordered role slugs — 1:1 with `TypeRoles::ROLES`. */
-export const TYPE_ROLES = [
-	'display', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'lead', 'small', 'caption', 'code', 'mono',
-] as const;
+export { TYPE_ROLES };
 
 export type TypeRole = ( typeof TYPE_ROLES )[ number ];
 
