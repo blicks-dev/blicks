@@ -194,9 +194,11 @@ The source is at [github.com/blicks-dev/blicks](https://github.com/blicks-dev/bl
 
 == Screenshots ==
 
-1. **The Blicks admin** - The Overview screen, and the Design System screen where design languages, palettes and tokens are edited with your site previewed live.
-2. **Theme Settings in the editor** - Colors, type scale and spacing resolved from the active theme's `theme.json`, so they are the same values the front end uses.
-3. **Block controls** - Three tabs: Settings for what the block is, Style for how it looks and how it reacts to hover, clicks and focus, and Motion for entrances and transitions.
+1. **A page built from Sections and Boxes** - A Box is plain, a card, a panel, a cover, a badge, a divider or a spacer, and arranges what is inside it stacked, side by side, in a grid or in layers. Every block has the same three tabs: Settings, Style and Motion.
+2. **Style** - Sections named for the goal: Text, Fill, Border and corners, Shadow and depth, Space, and States, where On hover, When clicked and Keyboard focus start from ready-made looks.
+3. **Motion** - An entrance effect that plays as the block scrolls into view, and the speed and feel of its hover and click changes.
+4. **Forms** - Each entry is saved under Blicks → Entries and can be emailed to you. Built-in spam checks run on every form, and reCAPTCHA or Turnstile can be added.
+5. **The Design System screen** - Palettes, colors, type, spacing, corners, shadows and motion tokens, with a live preview beside them.
 
 == External Services ==
 
