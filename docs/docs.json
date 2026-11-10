@@ -121,6 +121,11 @@
 			}
 		]
 	},
+	"integrations": {
+		"ga4": {
+			"measurementId": "G-BF1JNZ2N3K"
+		}
+	},
 	"contextual": {
 		"options": [
 			"copy",
