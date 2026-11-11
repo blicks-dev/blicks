@@ -1,6 +1,6 @@
-=== Blicks ===
+=== Blicks - Layout Blocks for the Block Editor ===
 Contributors: blicks
-Tags: gutenberg, blocks, block editor, layout, design system
+Tags: blocks, gutenberg, design system, mcp, theme.json
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
@@ -8,7 +8,7 @@ Stable tag: 2.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Layout and content blocks for the block editor, with forms, lists, dialogs and data loops, on a design system that syncs with theme.json.
+Layout and content blocks on a design system that syncs with theme.json, with forms, dialogs, data loops and an MCP server for AI agents.
 
 == Description ==
 
@@ -61,7 +61,16 @@ Phone layouts are switches on the block, such as **Stack on phones**. A **More**
 
 = 🤖 AI abilities and MCP =
 
-Blicks registers its abilities with the WordPress Abilities API and serves them as an MCP (Model Context Protocol) server, so an AI agent — Claude Code, Claude Desktop, Cursor, Codex — can list the blocks, read the design system, check a layout, read a page, create a draft and replace a page's blocks. It is off until an administrator turns it on under **Blicks → MCP**; while it is off, no ability and no server is registered.
+Blicks registers its abilities with the WordPress Abilities API and serves them as an MCP (Model Context Protocol) server, so an AI agent — Claude Code, Claude Desktop, Cursor, Codex — can work with your blocks and pages:
+
+- **List blocks** and **describe a block**: every Blicks block, then one block's attributes, defaults and style controls.
+- **Get the design system** and **save an animation**: read the site's tokens, and add a keyframe animation to the design system.
+- **Validate a layout**: check blocks against what the site can render, without changing anything.
+- **List posts**, **read a post's layout** and **replace a post's layout**: only posts and pages your account may edit.
+- **Create a draft page**: a new page or post, saved as a draft.
+- **Set a post's status**: publish, unpublish or make private, when your account may.
+
+It is off until an administrator turns it on under **Blicks → MCP**; while it is off, no ability and no server is registered.
 
 = ⚡ Output =
 
