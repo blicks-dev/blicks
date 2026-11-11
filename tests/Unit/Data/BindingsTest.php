@@ -109,7 +109,8 @@ final class BindingsTest extends TestCase
 
         [$out] = self::apply([$block], ['url' => '']);
 
-        $this->assertSame('<a class="bl-button"><span class="bl-button__label">View</span></a>', $out['innerContent'][0]);
+        // Core's tag processor leaves the space the attribute stood after; it is render-time only.
+        $this->assertSame('<a class="bl-button" ><span class="bl-button__label">View</span></a>', $out['innerContent'][0]);
     }
 
     public function testWritesAnImagesAddressAndAltAndDropsTheTemplatesSources(): void
@@ -119,7 +120,7 @@ final class BindingsTest extends TestCase
 
         [$out] = self::apply([$block], ['image' => 'https://cdn.example/p/lamp.jpg', 'title' => 'Arc "floor" lamp']);
 
-        $this->assertSame('<figure class="bl-image"><img src="https://cdn.example/p/lamp.jpg" alt="Arc &quot;floor&quot; lamp" style="aspect-ratio:4 / 3"/></figure>', $out['innerContent'][0]);
+        $this->assertSame('<figure class="bl-image"><img src="https://cdn.example/p/lamp.jpg"   alt="Arc &quot;floor&quot; lamp" style="aspect-ratio:4 / 3"/></figure>', $out['innerContent'][0]);
     }
 
     public function testDropsAnImageWithNoPicture(): void
@@ -195,6 +196,147 @@ final class BindingsTest extends TestCase
         $block['attrs'] = ['uniqueId' => 'x'];
 
         $this->assertSame([$block], self::apply([$block], ['title' => 'ignored']));
+    }
+
+    /**
+     * Every attribute name in the markup, tag by tag, as a browser's tokenizer would read them.
+     *
+     * @return list<string>
+     */
+    private static function attributeNames(string $html): array
+    {
+        $names = [];
+        $tags = new \WP_HTML_Tag_Processor($html);
+
+        while ($tags->next_tag()) {
+            $names[] = '<' . strtolower((string) $tags->get_tag());
+            foreach ($tags->get_attribute_names_with_prefix('') ?? [] as $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /** One attribute of the first tag matching a selector, decoded; null when it is absent. */
+    private static function attribute(string $html, string $tag, string $name): ?string
+    {
+        $tags = new \WP_HTML_Tag_Processor($html);
+        if (!$tags->next_tag($tag)) {
+            return null;
+        }
+        $value = $tags->get_attribute($name);
+
+        return is_string($value) ? $value : (true === $value ? '' : null);
+    }
+
+    /**
+     * Templates in which the bound attribute's name is also a word inside an earlier attribute's
+     * value: [block, template, bound attr, item key, target tag, target attribute, decoy attribute, decoy value].
+     */
+    public static function boundaryTemplates(): array
+    {
+        $label = '<span class="bl-button__label">Go</span>';
+
+        return [
+            'class names href' => ['blicks/button', '<a class="x href y" href="https://ok.example/">' . $label . '</a>', 'url', 'a', 'a', 'href', 'class', 'x href y'],
+            'title names href' => ['blicks/button', '<a title="go href now" class="bl-button" href="https://ok.example/">' . $label . '</a>', 'url', 'a', 'a', 'href', 'title', 'go href now'],
+            'class names alt' => ['blicks/image', '<figure class="bl-image"><img class="pic alt z" src="https://ok.example/a.png" alt=""/></figure>', 'alt', 'img', 'img', 'alt', 'class', 'pic alt z'],
+            'data names src' => ['blicks/image', '<figure class="bl-image"><img data-x="src" src="https://ok.example/a.png" alt=""/></figure>', 'url', 'img', 'img', 'src', 'data-x', 'src'],
+        ];
+    }
+
+    public static function boundaryPayloads(): array
+    {
+        return [
+            'slashes split a url' => ['https://x/onmouseover=alert(1)//'],
+            'spaces split a value' => ['x onerror=alert(1) y'],
+            'quote and close the tag' => ['"><svg onload=alert(1)>'],
+        ];
+    }
+
+    public static function boundaryCases(): iterable
+    {
+        foreach (self::boundaryTemplates() as $t => $template) {
+            foreach (self::boundaryPayloads() as $p => $payload) {
+                yield "$t, $p" => [...$template, $payload[0]];
+            }
+        }
+    }
+
+    /**
+     * Finding #1 of the 2026-11-11 Loop audit: a bound value written into the attribute whose
+     * name appeared inside `class` closed that value early and became an event handler.
+     *
+     * @dataProvider boundaryCases
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('boundaryCases')]
+    public function testABoundValueStaysInsideItsOwnAttribute(string $name, string $html, string $attr, string $key, string $tag, string $target, string $decoy, string $decoyValue, string $payload): void
+    {
+        $block = self::leaf($name, [], $html, self::bind($attr, $key));
+        $out = self::apply([$block], [$key => $payload]);
+        $kind = self::specs($name)[$attr]['kind'] ?? 'text';
+        $expected = 'text' === $kind ? $payload : \Blicks\Data\Formatter::safeUrl($payload);
+
+        if ([] === $out) {
+            $this->assertSame('image', $kind, 'only an image with no picture is dropped');
+            $this->assertSame('', $expected);
+            return;
+        }
+
+        $written = $out[0]['innerContent'][0];
+        $names = self::attributeNames($written);
+
+        foreach ($names as $found) {
+            $this->assertStringStartsNotWith('on', $found, "event handler in: $written");
+        }
+        $this->assertNotContains('<svg', $names, "new element in: $written");
+        $this->assertSame($decoyValue, self::attribute($written, $tag, $decoy), "decoy attribute changed in: $written");
+        $this->assertSame('' === $expected ? null : $expected, self::attribute($written, $tag, $target));
+    }
+
+    public static function quotingVariants(): array
+    {
+        $label = '<span class="bl-button__label">Go</span>';
+
+        return [
+            'single-quoted' => ['blicks/button', "<a class=\"bl-button\" href='https://old.example/'>$label</a>", 'url', 'a', 'href'],
+            'unquoted' => ['blicks/button', "<a class=\"bl-button\" href=https://old.example/>$label</a>", 'url', 'a', 'href'],
+            'valueless' => ['blicks/image', '<figure class="bl-image"><img alt src="https://ok.example/a.png"/></figure>', 'alt', 'img', 'alt'],
+            'upper-case name' => ['blicks/image', '<figure class="bl-image"><img ALT="old" src="https://ok.example/a.png"/></figure>', 'alt', 'img', 'alt'],
+        ];
+    }
+
+    /**
+     * However the template wrote the attribute, the bound value replaces it; a second copy would
+     * be ignored by the browser, which keeps the first.
+     *
+     * @dataProvider quotingVariants
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('quotingVariants')]
+    public function testReplacesAnAttributeHoweverItIsQuoted(string $name, string $html, string $attr, string $tag, string $target): void
+    {
+        // Neither value contains the attribute's name, so a raw count below is exact.
+        $value = 'href' === $target ? 'https://new.example/p' : 'Fresh text';
+
+        [$out] = self::apply([self::leaf($name, [], $html, self::bind($attr, 'v'))], ['v' => $value]);
+        $written = $out['innerContent'][0];
+
+        $this->assertSame($value, self::attribute($written, $tag, $target));
+        $this->assertSame(1, preg_match_all('/\s' . $target . '(?=[\s=\/>])/i', $written), "duplicated in: $written");
+    }
+
+    /** A `>` inside a quoted value does not end the tag for the writer either. */
+    public function testAQuotedGreaterThanDoesNotEndTheTag(): void
+    {
+        $html = '<a title="a > b" class="bl-button" href="https://ok.example/"><span class="bl-button__label">Go</span></a>';
+
+        [$out] = self::apply([self::leaf('blicks/button', [], $html, self::bind('url', 'u'))], ['u' => 'https://x/onmouseover=alert(1)//']);
+        $written = $out['innerContent'][0];
+
+        $this->assertSame('a > b', self::attribute($written, 'a', 'title'));
+        $this->assertSame('https://x/onmouseover=alert(1)//', self::attribute($written, 'a', 'href'));
+        $this->assertSame(['<a', 'title', 'class', 'href', '<span', 'class'], self::attributeNames($written));
     }
 
     public function testMarkupFindsByClassAndCountsNestedTags(): void

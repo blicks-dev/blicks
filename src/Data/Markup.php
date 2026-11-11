@@ -17,10 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The small, exact HTML editing {@see Bindings} needs: find an element by tag (and optionally a
  * class), replace what is inside it, or set one attribute.
  *
- * It reads markup Blicks blocks saved themselves — serialised by React and WordPress, so every
- * attribute is double-quoted and `<`, `>`, `&` and `"` inside values are encoded. That is what
- * makes a scanner this small exact rather than approximate. It is not a general HTML parser and
- * is never handed markup from the data: values written in are encoded by the caller.
+ * Tags and attributes are read by core's HTML tag processor ({@see TagCursor}), never by a pattern
+ * over the raw text: the markup comes from post content, and a pattern that tests attribute names
+ * cannot tell `alt` the attribute from `alt` the word inside `class="pic alt z"`. A value written
+ * in is encoded by the processor, so it can only ever be one attribute's value.
  *
  * Selectors: `:root` (the first element), `tag`, `tag.class`, or a comma list of those.
  */
@@ -45,24 +45,30 @@ final class Markup {
 			}
 
 			[ $tag, $class ] = array_pad( explode( '.', $part, 2 ), 2, '' );
-			$name = ':root' === $tag ? '[a-zA-Z][a-zA-Z0-9-]*' : preg_quote( strtolower( $tag ), '/' );
+			$query = [];
 
-			$offset = 0;
-			while ( 1 === preg_match( '/<(' . $name . ')(?=[\s\/>])[^>]*>/i', $html, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
-				$opener = $m[0][0];
-				$start = $m[0][1];
-				$offset = $start + strlen( $opener );
-
-				if ( '' === $class || self::hasClass( $opener, $class ) ) {
-					if ( null === $best || $start < $best['start'] ) {
-						$best = [
-							'start' => $start,
-							'end' => $offset,
-							'tag' => strtolower( $m[1][0] ),
-						];
-					}
-					break;
+			if ( ':root' !== $tag ) {
+				if ( 1 !== preg_match( '/^[a-z][a-z0-9-]*$/i', $tag ) ) {
+					continue;
 				}
+				$query['tag_name'] = $tag;
+			}
+			if ( '' !== $class ) {
+				$query['class_name'] = $class;
+			}
+
+			$cursor = new TagCursor( $html );
+			if ( ! $cursor->next_tag( $query ) ) {
+				continue;
+			}
+
+			$span = $cursor->span();
+			if ( null !== $span && ( null === $best || $span['start'] < $best['start'] ) ) {
+				$best = [
+					'start' => $span['start'],
+					'end' => $span['start'] + $span['length'],
+					'tag' => strtolower( (string) $cursor->get_tag() ),
+				];
 			}
 		}
 
@@ -90,6 +96,11 @@ final class Markup {
 	/**
 	 * Set one attribute on an element's opening tag; an empty value removes it.
 	 *
+	 * The existing attribute is replaced in place however it was written (double-, single- or
+	 * unquoted, or bare), and never duplicated. `$value` is raw text: the processor encodes it,
+	 * and runs `esc_url()` on it for an address attribute (`href`, `src`). A value that encoding
+	 * empties removes the attribute rather than leaving the template's.
+	 *
 	 * @param array{start: int, end: int, tag: string} $found
 	 */
 	public static function setAttribute( string $html, array $found, string $name, string $value ): string {
@@ -97,19 +108,16 @@ final class Markup {
 			return $html;
 		}
 
-		$opener = substr( $html, $found['start'], $found['end'] - $found['start'] );
-		$pattern = '/\s' . preg_quote( $name, '/' ) . '(="[^"]*")?(?=[\s\/>])/i';
-		$encoded = htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
-
-		if ( '' === $value ) {
-			$opener = (string) preg_replace( $pattern, '', $opener, 1 );
-		} elseif ( 1 === preg_match( $pattern, $opener ) ) {
-			$opener = (string) preg_replace_callback( $pattern, static fn (): string => ' ' . $name . '="' . $encoded . '"', $opener, 1 );
-		} else {
-			$opener = (string) preg_replace( '/\s*(\/?)>$/', ' ' . $name . '="' . str_replace( [ '\\', '$' ], [ '\\\\', '\$' ], $encoded ) . '"$1>', $opener, 1 );
+		$cursor = new TagCursor( $html );
+		if ( ! $cursor->openerAt( $found['start'] ) ) {
+			return $html;
 		}
 
-		return substr( $html, 0, $found['start'] ) . $opener . substr( $html, $found['end'] );
+		if ( '' === $value || ! $cursor->set_attribute( $name, $value ) ) {
+			$cursor->remove_attribute( $name );
+		}
+
+		return $cursor->get_updated_html();
 	}
 
 	/**
@@ -118,33 +126,28 @@ final class Markup {
 	 * @param array{start: int, end: int, tag: string} $found
 	 */
 	private static function closing( string $html, array $found ): ?int {
+		$cursor = new TagCursor( $html );
+		if ( ! $cursor->openerAt( $found['start'] ) ) {
+			return null;
+		}
+
 		$depth = 1;
-		$offset = $found['end'];
-		$tag = preg_quote( $found['tag'], '/' );
+		$query = [
+			'tag_name' => $found['tag'],
+			'tag_closers' => 'visit',
+		];
 
-		while ( 1 === preg_match( '/<(\/?)' . $tag . '(?=[\s\/>])[^>]*>/i', $html, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
-			$offset = $m[0][1] + strlen( $m[0][0] );
-
-			if ( '/' === $m[1][0] ) {
+		while ( $cursor->next_tag( $query ) ) {
+			if ( $cursor->is_tag_closer() ) {
 				--$depth;
 				if ( 0 === $depth ) {
-					return $m[0][1];
+					return $cursor->span()['start'] ?? null;
 				}
-			} elseif ( ! str_ends_with( $m[0][0], '/>' ) ) {
+			} elseif ( ! $cursor->has_self_closing_flag() ) {
 				++$depth;
 			}
 		}
 
 		return null;
-	}
-
-	private static function hasClass( string $opener, string $class ): bool {
-		if ( 1 !== preg_match( '/\sclass="([^"]*)"/i', $opener, $m ) ) {
-			return false;
-		}
-
-		$classes = preg_split( '/\s+/', $m[1] );
-
-		return is_array( $classes ) && in_array( $class, $classes, true );
 	}
 }

@@ -564,3 +564,5 @@ require_once __DIR__ . '/Support/FreshTables.php';
 require_once __DIR__ . '/Support/DataStubs.php';
 // What the Studio's EntityRef calls: posts, block templates, and the post update.
 require_once __DIR__ . '/Support/StudioStubs.php';
+// Core's HTML tag processor, which Data\Markup is built on.
+require_once __DIR__ . '/Support/wp-html-api/load.php';

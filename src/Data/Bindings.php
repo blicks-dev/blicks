@@ -89,6 +89,14 @@ final class Bindings {
 			$kind = in_array( $spec['kind'] ?? 'text', Formatter::KINDS, true ) ? $spec['kind'] ?? 'text' : 'text';
 			$value = Formatter::resolve( $item, is_array( $binding['args'] ?? null ) ? $binding['args'] : [], $kind )['text'];
 
+			// Defence in depth behind `Formatter::safeUrl()`: core's URL sanitizer strips quotes,
+			// spaces and anything else that could end an attribute, so an address cannot leave its
+			// attribute even if the markup writer regresses. The `_raw` form, because the writer
+			// encodes for the attribute itself; encoding here too would double it.
+			if ( 'url' === $kind || 'image' === $kind ) {
+				$value = esc_url_raw( $value );
+			}
+
 			if ( 'image' === $kind && '' === $value ) {
 				return null;
 			}
