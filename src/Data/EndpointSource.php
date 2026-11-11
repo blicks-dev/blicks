@@ -38,6 +38,8 @@ final class EndpointSource {
 
 	public const TIMEOUT = 8;
 	public const MAX_BYTES = 1048576;
+	/** Redirects followed, each one checked like the endpoint's own address before it is asked. */
+	public const MAX_REDIRECTS = 2;
 	/** How long the last good answer is kept once its fresh copy has run out. */
 	private const KEEP = 604800;
 	/** How long after a failed fetch before a page load may try again inline. */
@@ -201,25 +203,38 @@ final class EndpointSource {
 			return new WP_Error( 'blicks_loop_unsafe_url', $problem, [ 'status' => 400 ] );
 		}
 
-		// The DNS check runs as the last `pre_http_request` filter, for this request only: after
-		// anything that answers the request itself (a test double, a mocking plugin), before
-		// WordPress opens a connection.
-		add_filter( 'pre_http_request', [ self::class, 'refusePrivateHost' ], PHP_INT_MAX, 3 );
-		$response = wp_safe_remote_get(
-			$url,
-			[
-				'timeout' => self::TIMEOUT,
-				'redirection' => 2,
-				// One byte over the cap, so an answer of exactly the cap is told apart from a cut one.
-				'limit_response_size' => self::MAX_BYTES + 1,
-				'headers' => [ 'Accept' => 'application/json' ],
-				// The version only: the site's address is not the endpoint's business, and the readme
-				// promises the request carries nothing about the site.
-				'user-agent' => 'Blicks/' . ( defined( 'BLICKS_VERSION' ) ? constant( 'BLICKS_VERSION' ) : 'dev' ),
-			]
-		);
+		$response = self::get( $url );
 
-		remove_filter( 'pre_http_request', [ self::class, 'refusePrivateHost' ], PHP_INT_MAX );
+		// Redirects are followed here, not by WordPress: core checks a redirect's target with
+		// `wp_http_validate_url()`, which allows plain http and, in some supported versions,
+		// link-local addresses. Every hop must pass what the endpoint's own address had to.
+		$hops = 0;
+		while ( ! is_wp_error( $response ) && self::isRedirect( $response ) ) {
+			$next = self::location( $response, $url );
+			if ( '' === $next ) {
+				break; // Nowhere to go: reported below as the status it is.
+			}
+			if ( $hops >= self::MAX_REDIRECTS ) {
+				return new WP_Error( 'blicks_loop_unreachable', __( 'The endpoint redirected too many times.', 'blicks' ), [ 'status' => 502 ] );
+			}
+
+			$problem = EndpointRegistry::check( $next );
+			if ( '' === $problem && ! self::resolvesPublic( (string) wp_parse_url( $next, PHP_URL_HOST ) ) ) {
+				$problem = self::privateMessage();
+			}
+			if ( '' !== $problem ) {
+				return new WP_Error(
+					'blicks_loop_unsafe_url',
+					/* translators: %s: why the address was refused. */
+					sprintf( __( 'The endpoint redirected to an address that is not allowed. %s', 'blicks' ), $problem ),
+					[ 'status' => 400 ]
+				);
+			}
+
+			++$hops;
+			$url = $next;
+			$response = self::get( $url );
+		}
 
 		if ( is_wp_error( $response ) && 'blicks_loop_unsafe_url' === $response->get_error_code() ) {
 			return $response;
@@ -252,6 +267,58 @@ final class EndpointSource {
 	}
 
 	/**
+	 * One GET, no redirects followed.
+	 *
+	 * @return array<string, mixed>|WP_Error
+	 */
+	private static function get( string $url ) {
+		// The DNS check runs as the last `pre_http_request` filter, for this request only: after
+		// anything that answers the request itself (a test double, a mocking plugin), before
+		// WordPress opens a connection.
+		add_filter( 'pre_http_request', [ self::class, 'refusePrivateHost' ], PHP_INT_MAX, 3 );
+		$response = wp_safe_remote_get(
+			$url,
+			[
+				'timeout' => self::TIMEOUT,
+				// Followed by fetch(), one checked hop at a time.
+				'redirection' => 0,
+				// One byte over the cap, so an answer of exactly the cap is told apart from a cut one.
+				'limit_response_size' => self::MAX_BYTES + 1,
+				'headers' => [ 'Accept' => 'application/json' ],
+				// The version only: the site's address is not the endpoint's business, and the readme
+				// promises the request carries nothing about the site.
+				'user-agent' => 'Blicks/' . ( defined( 'BLICKS_VERSION' ) ? constant( 'BLICKS_VERSION' ) : 'dev' ),
+			]
+		);
+		remove_filter( 'pre_http_request', [ self::class, 'refusePrivateHost' ], PHP_INT_MAX );
+
+		return $response;
+	}
+
+	/** @param array<string, mixed> $response */
+	private static function isRedirect( $response ): bool {
+		return in_array( (int) wp_remote_retrieve_response_code( $response ), [ 301, 302, 303, 307, 308 ], true );
+	}
+
+	/**
+	 * Where a redirect points, made absolute against the address that answered; "" when it does
+	 * not say.
+	 *
+	 * @param array<string, mixed> $response
+	 */
+	private static function location( $response, string $from ): string {
+		$location = wp_remote_retrieve_header( $response, 'location' );
+		$location = is_array( $location ) ? (string) end( $location ) : (string) $location;
+		$location = trim( $location );
+
+		return '' === $location ? '' : (string) \WP_Http::make_absolute_url( $location, $from );
+	}
+
+	private static function privateMessage(): string {
+		return __( 'Private and local addresses are blocked, so the site can’t be used to reach its own network.', 'blicks' );
+	}
+
+	/**
 	 * `pre_http_request` callback for {@see self::fetch()}: refuse a host that resolves to a
 	 * private address, unless an earlier filter already answered the request.
 	 *
@@ -264,7 +331,7 @@ final class EndpointSource {
 			return $pre;
 		}
 
-		return new WP_Error( 'blicks_loop_unsafe_url', __( 'Private and local addresses are blocked, so the site can’t be used to reach its own network.', 'blicks' ), [ 'status' => 400 ] );
+		return new WP_Error( 'blicks_loop_unsafe_url', self::privateMessage(), [ 'status' => 400 ] );
 	}
 
 	/**
@@ -276,20 +343,32 @@ final class EndpointSource {
 	 */
 	private static function resolvesPublic( string $host ): bool {
 		$host = trim( $host, '[]' );
-		if ( '' === $host || false !== filter_var( $host, FILTER_VALIDATE_IP ) ) {
-			return true; // Literal addresses are judged by EndpointRegistry::check().
+		if ( '' === $host ) {
+			return true;
+		}
+		// A literal is judged here too: EndpointRegistry::check() does not know carrier-grade NAT.
+		if ( false !== filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			return self::isPublicIp( $host );
 		}
 
 		$ips = gethostbynamel( $host );
 		foreach ( false === $ips ? [] : $ips as $ip ) {
-			$second = (int) ( explode( '.', $ip )[1] ?? 0 );
-			$sharedNat = str_starts_with( $ip, '100.' ) && $second >= 64 && $second <= 127; // 100.64.0.0/10
-			if ( $sharedNat || false === filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+			if ( ! self::isPublicIp( $ip ) ) {
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+	/** Not private, reserved (loopback, link-local) or carrier-grade NAT (100.64.0.0/10). */
+	private static function isPublicIp( string $ip ): bool {
+		$second = (int) ( explode( '.', $ip )[1] ?? 0 );
+		if ( str_starts_with( $ip, '100.' ) && $second >= 64 && $second <= 127 ) {
+			return false;
+		}
+
+		return false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
 	}
 
 	/** One refresh per endpoint at a time: a queued one is not queued again. */

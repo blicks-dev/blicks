@@ -63,7 +63,7 @@ final class EndpointSourceTest extends TestCase
         $args = $GLOBALS['blicks_test_http_log'][0]['args'];
         $this->assertSame('https://api.shop.example/items', $GLOBALS['blicks_test_http_log'][0]['url']);
         $this->assertSame(EndpointSource::TIMEOUT, $args['timeout']);
-        $this->assertSame(2, $args['redirection']);
+        $this->assertSame(0, $args['redirection'], 'redirects are followed by fetch(), hop by checked hop');
         $this->assertSame(EndpointSource::MAX_BYTES + 1, $args['limit_response_size']);
     }
 
@@ -213,6 +213,69 @@ final class EndpointSourceTest extends TestCase
         EndpointSource::refresh('shop');
 
         $this->assertInstanceOf(\WP_Error::class, EndpointSource::read('shop'));
+    }
+
+    private static function redirect(string $to, int $code = 302): array
+    {
+        return ['response' => ['code' => $code], 'headers' => ['location' => $to], 'body' => ''];
+    }
+
+    /**
+     * Finding #2 of the 2026-11-11 Loop audit: a redirect target is held to the endpoint's own
+     * rules (https only, no private, link-local or private-resolving host) before it is asked.
+     */
+    public static function unsafeRedirects(): array
+    {
+        return [
+            'plain http' => ['http://api.shop.example/items'],
+            'link-local metadata service' => ['https://169.254.169.254/latest/meta-data/'],
+            'carrier-grade NAT' => ['https://100.64.0.1/'],
+            'private literal' => ['https://10.0.0.5/'],
+            // Passes the name checks; resolves to 127.0.0.1 from the hosts file, no network needed.
+            'name that resolves privately' => ['https://localhost./items'],
+        ];
+    }
+
+    /** @dataProvider unsafeRedirects */
+    #[\PHPUnit\Framework\Attributes\DataProvider('unsafeRedirects')]
+    public function testRefusesARedirectToAnUnsafeAddress(string $to): void
+    {
+        $GLOBALS['blicks_test_http'][] = self::redirect($to);
+        $GLOBALS['blicks_test_http'][] = self::ok([['id' => 'leaked']]);
+
+        $fetched = EndpointSource::fetch('https://api.shop.example/items');
+
+        $this->assertInstanceOf(\WP_Error::class, $fetched);
+        $this->assertSame('blicks_loop_unsafe_url', $fetched->get_error_code());
+        $this->assertCount(1, $GLOBALS['blicks_test_http_log'], 'the unsafe hop is never requested');
+    }
+
+    public function testFollowsTwoCheckedRedirectsAndNoMore(): void
+    {
+        $GLOBALS['blicks_test_http'][] = self::redirect('https://93.184.216.34/one', 301);
+        $GLOBALS['blicks_test_http'][] = self::redirect('/two', 307);
+        $GLOBALS['blicks_test_http'][] = self::ok([['id' => 1]]);
+
+        $this->assertSame([['id' => 1]], EndpointSource::fetch('https://api.shop.example/items'));
+        $this->assertSame(
+            ['https://api.shop.example/items', 'https://93.184.216.34/one', 'https://93.184.216.34/two'],
+            array_column($GLOBALS['blicks_test_http_log'], 'url')
+        );
+        foreach ($GLOBALS['blicks_test_http_log'] as $request) {
+            $this->assertSame(0, $request['args']['redirection']);
+        }
+
+        $GLOBALS['blicks_test_http'] = [];
+        $GLOBALS['blicks_test_http_log'] = [];
+        $GLOBALS['blicks_test_http'][] = self::redirect('https://93.184.216.34/one');
+        $GLOBALS['blicks_test_http'][] = self::redirect('https://93.184.216.34/two');
+        $GLOBALS['blicks_test_http'][] = self::redirect('https://93.184.216.34/three');
+        $GLOBALS['blicks_test_http'][] = self::ok([['id' => 1]]);
+
+        $third = EndpointSource::fetch('https://api.shop.example/items');
+        $this->assertInstanceOf(\WP_Error::class, $third);
+        $this->assertSame('blicks_loop_unreachable', $third->get_error_code());
+        $this->assertCount(3, $GLOBALS['blicks_test_http_log'], 'the endpoint and two hops, never a third');
     }
 
     /** A name that resolves to the machine itself is refused; an answer another filter gave is left alone. */

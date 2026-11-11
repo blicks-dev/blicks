@@ -57,6 +57,33 @@ if (!function_exists('wp_remote_retrieve_response_code')) {
 if (!function_exists('wp_remote_retrieve_body')) {
     function wp_remote_retrieve_body(mixed $r): string { return (string) ($r['body'] ?? ''); }
 }
+if (!function_exists('wp_remote_retrieve_header')) {
+    function wp_remote_retrieve_header(mixed $r, string $header): array|string
+    {
+        foreach ($r['headers'] ?? [] as $name => $value) {
+            if (strtolower((string) $name) === strtolower($header)) {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+}
+if (!class_exists('WP_Http')) {
+    /** Only make_absolute_url(): absolute and root-relative locations, as a redirect gives them. */
+    class WP_Http
+    {
+        public static function make_absolute_url(string $maybe, string $url): string
+        {
+            if (preg_match('~^[a-z][a-z0-9+.-]*:~i', $maybe) === 1) {
+                return $maybe;
+            }
+            $parts = parse_url($url);
+
+            return $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . '/' . ltrim($maybe, '/');
+        }
+    }
+}
 if (!function_exists('home_url')) {
     function home_url(string $path = ''): string { return 'https://site.test' . $path; }
 }
