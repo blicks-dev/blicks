@@ -66,7 +66,44 @@ final class PostFields {
 			$item += self::product( $post->ID );
 		}
 
-		return $item;
+		return $item + self::extra( $item, $post );
+	}
+
+	/**
+	 * The fields a companion adds to one post's item.
+	 *
+	 * Additions only: a key the item already has keeps its value, so a filter cannot change what
+	 * `url` or `title` mean to every card already built.
+	 *
+	 * @param array<string, mixed> $item
+	 * @return array<string, mixed>
+	 */
+	private static function extra( array $item, WP_Post $post ): array {
+		/**
+		 * Filters the extra fields a Loop item gets from one post.
+		 *
+		 * Return only the fields to add, keyed by name. Keys the item already has are ignored, as are
+		 * non-string keys and values that are neither scalar nor arrays. The editor lists a Loop's
+		 * fields from its first item, so give every post of a type the same keys, with an empty value
+		 * where one has none.
+		 *
+		 * @param array<string, mixed> $fields Fields to add. Empty by default.
+		 * @param WP_Post              $post   The post.
+		 * @param array<string, mixed> $item   The item as built so far, read-only.
+		 */
+		$fields = apply_filters( 'blicks_loop_item', [], $post, $item );
+		if ( ! is_array( $fields ) ) {
+			return [];
+		}
+
+		$out = [];
+		foreach ( $fields as $key => $value ) {
+			if ( is_string( $key ) && '' !== $key && ! array_key_exists( $key, $item ) && ( is_scalar( $value ) || is_array( $value ) ) ) {
+				$out[ $key ] = $value;
+			}
+		}
+
+		return $out;
 	}
 
 	/** Whether a meta key may be read into a page: not protected, and registered for REST or allowed by the filter. */

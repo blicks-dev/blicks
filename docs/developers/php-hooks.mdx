@@ -86,6 +86,34 @@ Blicks ships these, for any block to use with the directives below:
 | `portal` | `data-wp-interactive="blicks/portal"`, `data-wp-init="callbacks.init"`, `data-bl-portal="<dialog id>"` | Moves the element into that dialog while it is open and back to its place on close, so content can live in the page on wide screens and in a drawer on narrow ones. Sets `data-bl-portal-ready` once running, for CSS to show the dialog's opener only then. |
 | `sticky-shrink` | `data-wp-interactive="blicks/sticky-shrink"`, `data-wp-init="callbacks.init"`, `data-wp-on-window--scroll="callbacks.scroll"`, optional `data-bl-after` (px, default 8); optional `data-bl-hide` with `data-wp-on--focusin="callbacks.focus"` | Sets `data-bl-scrolled` on the element while the page is scrolled past that point, for CSS to shrink a sticky header. With `data-bl-hide`, also sets `data-bl-hidden` after 80px and a move of more than 6px down, and clears it on any move up or when focus comes inside, for CSS to slide the header away. |
 
+## Loop data
+
+### `blicks_loop_item`
+
+Extra fields for a post when a Loop reads it from a WordPress query. Return only the fields to
+add. A key the item already has (`title`, `url`, `price` on products and so on) keeps its value,
+and a value that is neither scalar nor an array is dropped.
+
+The editor lists a Loop's fields from its first item, so give every post of a type the same keys,
+with an empty value where a post has none.
+
+```php
+add_filter( 'blicks_loop_item', function ( array $fields, WP_Post $post, array $item ): array {
+	if ( 'trip' !== $post->post_type ) {
+		return $fields;
+	}
+	return $fields + [
+		'duration' => (int) get_post_meta( $post->ID, 'acme_duration', true ),
+		'destination' => '',
+	];
+}, 10, 3 );
+```
+
+### `blicks_loop_meta_keys`
+
+Custom-field keys a Loop may read, sort and filter by for one post type, beyond those registered
+with `show_in_rest`. Protected keys (a leading underscore) are always removed.
+
 ## AI agents
 
 ### `blicks_ai_block_catalog`
