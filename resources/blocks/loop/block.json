@@ -19,7 +19,8 @@
 	"attributes": {
 		"uniqueId": { "type": "string" },
 		"blicks": { "type": "object", "default": {} },
-		"source": { "type": "string", "enum": [ "json", "endpoint", "query" ], "default": "json" },
+		"source": { "type": "string", "default": "json" },
+		"sourceArgs": { "type": "object", "default": {} },
 		"data": { "type": "string", "default": "" },
 		"path": { "type": "string", "default": "" },
 		"endpoint": { "type": "string", "default": "" },

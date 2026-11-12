@@ -38,7 +38,7 @@ final class LoopAttributes {
 	 */
 	public static function sanitize( mixed $attrs ): array {
 		$attrs = is_array( $attrs ) ? $attrs : [];
-		$source = is_string( $attrs['source'] ?? null ) && in_array( $attrs['source'], Loop::SOURCES, true ) ? $attrs['source'] : 'json';
+		$source = is_string( $attrs['source'] ?? null ) && ( in_array( $attrs['source'], Loop::SOURCES, true ) || LoopSources::isId( $attrs['source'] ) ) ? $attrs['source'] : 'json';
 
 		$out = [
 			'source' => $source,
@@ -54,6 +54,10 @@ final class LoopAttributes {
 			$data = is_string( $attrs['data'] ?? null ) ? $attrs['data'] : '';
 			// Over the cap is refused when decoded; invalid UTF-8 is refused here.
 			$out['data'] = '' === wp_check_invalid_utf8( $data ) && '' !== $data ? '' : $data;
+		} elseif ( LoopSources::isId( $source ) ) {
+			// Another plugin's source: its own arguments, cleaned by it. Kept as the source's id
+			// even while its plugin is inactive, so turning it back on restores the Loop.
+			$out['sourceArgs'] = LoopSources::args( $source, $attrs['sourceArgs'] ?? null );
 		} elseif ( 'endpoint' === $source ) {
 			$out['endpoint'] = is_string( $attrs['endpoint'] ?? null ) ? (string) preg_replace( '/[^a-z0-9-]/', '', $attrs['endpoint'] ) : '';
 		} else {

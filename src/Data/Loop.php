@@ -51,9 +51,10 @@ final class Loop {
 		$perPage = null === $paging ? $limit : Pager::perPage( $limit );
 		[ $first, $span ] = null === $paging ? [ 1, 1 ] : Pager::window( $paging['mode'], $page, $perPage );
 		$from = ( $first - 1 ) * $perPage;
+		$registered = LoopSources::get( $source );
 		$config = [
-			'filter' => $attrs['filter'] ?? null,
-			'sort' => 'query' === $source ? null : ( $attrs['sort'] ?? null ),
+			'filter' => null !== $registered && ! $registered['rules'] ? null : ( $attrs['filter'] ?? null ),
+			'sort' => 'query' === $source || ( null !== $registered && ! $registered['sort'] ) ? null : ( $attrs['sort'] ?? null ),
 			'offset' => $offset + ( null === $paging ? 0 : $from ),
 			'limit' => null === $paging ? $limit : $span * $perPage,
 			'max' => null === $paging ? ItemPipeline::MAX_ITEMS : $span * $perPage,
@@ -96,6 +97,29 @@ final class Loop {
 				'perPage' => $perPage,
 				'found' => null === $paging ? $run['matched'] : $found,
 				'from' => $from,
+			];
+		}
+
+		if ( LoopSources::isId( $source ) ) {
+			// A source another plugin adds (or added: when it is inactive there are no items).
+			$all = LoopSources::items( $source, is_array( $attrs['sourceArgs'] ?? null ) ? $attrs['sourceArgs'] : [], [ 'current' => $current ] );
+			$run = ItemPipeline::run( $all, $config );
+			$count = max( 0, $run['matched'] - $offset );
+
+			return $run + [
+				'fields' => ItemPipeline::fields( $all ),
+				'path' => '',
+				'lists' => [],
+				'endpoint' => null,
+				'page' => $page,
+				'pages' => null === $paging ? 1 : Pager::count( $count, $perPage ),
+				'perPage' => $perPage,
+				'found' => null === $paging ? $run['matched'] : $count,
+				'from' => $from,
+				'source' => [
+					'id' => $source,
+					'active' => null !== $registered,
+				],
 			];
 		}
 
