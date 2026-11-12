@@ -7,6 +7,7 @@ import { useContext, useEffect, useMemo } from '@wordpress/element';
 import { Inspector } from '@/framework/inspector/Inspector';
 import { InspectorV2, type InspectorPanels } from '@/framework/inspector-v2/InspectorV2';
 import { StudioInspector } from '@/framework/inspector-v2/StudioInspector';
+import { withSharedPanels } from '@/framework/inspector-v2/shared-panels';
 import { buildElementStyle } from '@/framework/css/vars';
 import { applyBlockIdentity } from '@/framework/identity';
 import { cleanAttributes } from '@/framework/sanitize';
@@ -499,6 +500,10 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 	const settings = applyBlockIdentity( metadata );
 	const manifest = settings?.supports?.blicks ?? {};
 	const slug = String( settings.name ?? '' ).split( '/' )[ 1 ] ?? 'block';
+	// A companion block's v2 panels get the shared Style and Motion tabs when it has style controls.
+	const panels = config.panels
+		? withSharedPanels( config.panels, String( settings.name ?? '' ), Array.isArray( manifest.controls ) && manifest.controls.length > 0 )
+		: undefined;
 
 	// Factory-level Advanced attributes — every block gets these (visibility + custom attributes).
 	// Existing saved blocks default to empty, so no markup change / no validation break.
@@ -692,18 +697,18 @@ export function defineBlock( metadata: any, config: BlockConfig ): void {
 							setAttributes={ setAttributes }
 							clientId={ clientId }
 							name={ metadata.name }
-							panels={ config.panels }
+							panels={ panels }
 							manifest={ manifest }
 							Controls={ config.Controls }
 							Advanced={ config.Advanced }
 						/>
-					) : config.panels ? (
+					) : panels ? (
 						<InspectorV2
 							attributes={ attributes }
 							setAttributes={ setAttributes }
 							clientId={ clientId }
 							name={ metadata.name }
-							panels={ config.panels }
+							panels={ panels }
 						/>
 					) : (
 						<Inspector

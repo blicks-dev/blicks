@@ -82,6 +82,11 @@ Blicks, not an API call.
 **The inspector's internals** — its section registry and control components — are not published.
 `defineBlock` wires the inspector from your block's metadata.
 
+**Style and Motion tabs.** A block that passes `panels: { Settings }` to `defineBlock` and lists style
+controls in `supports.blicks.controls` gets Blicks' shared **Style** and **Motion** tabs (the same
+panels a Blicks box has), so its controls have somewhere to be set. Pass your own `Style` or
+`Motion` to replace one, or `tabsFor` to hide a tab.
+
 ## PHP
 
 These classes and methods are pinned by tests and stay stable within API 2:
