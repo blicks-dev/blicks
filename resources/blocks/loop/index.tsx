@@ -3,6 +3,7 @@ import metadata from './block.json';
 import { defineBlock } from '@/framework/define-block';
 import { LoopCanvas, loopLayout } from './canvas';
 import { LoopSettings, LoopToolbar } from './controls';
+import { loopSource } from '@/framework/loop-sources';
 
 const LAYOUT_NAMES: Record< string, string > = { grid: __( 'Grid', 'blicks' ), bento: __( 'Bento', 'blicks' ), list: __( 'List', 'blicks' ) };
 const SOURCE_NAMES: Record< string, string > = { json: __( 'Pasted', 'blicks' ), endpoint: __( 'Feed', 'blicks' ), query: __( 'WordPress', 'blicks' ) };
@@ -33,7 +34,7 @@ defineBlock( metadata, {
 			/* translators: 1: layout (Grid, Bento, List), 2: source (Pasted, Feed, WordPress), 3: item limit */
 			_n( '%1$s · %2$s · %3$d item', '%1$s · %2$s · %3$d items', Number( attributes.limit ) || 0, 'blicks' ),
 			LAYOUT_NAMES[ loopLayout( attributes ) ],
-			SOURCE_NAMES[ attributes.source ] ?? SOURCE_NAMES.json,
+			SOURCE_NAMES[ attributes.source ] ?? loopSource( attributes.source )?.label ?? SOURCE_NAMES.json,
 			Number( attributes.limit ) || 0
 		),
 	},
