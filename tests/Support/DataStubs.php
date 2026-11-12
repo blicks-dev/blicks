@@ -135,7 +135,7 @@ if (!function_exists('is_protected_meta')) {
 if (!function_exists('get_registered_meta_keys')) {
     function get_registered_meta_keys(string $type, string $subtype = ''): array
     {
-        return 'product' === $subtype ? ['price' => ['show_in_rest' => true], 'supplier_note' => ['show_in_rest' => false]] : [];
+        return 'product' === $subtype ? ['price' => ['show_in_rest' => true], 'supplier_note' => ['show_in_rest' => false], 'weight' => ['show_in_rest' => true, 'type' => 'number'], 'units' => ['show_in_rest' => true, 'type' => 'integer']] : [];
     }
 }
 if (!function_exists('get_post_types')) {

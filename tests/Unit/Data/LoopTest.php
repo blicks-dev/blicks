@@ -120,6 +120,17 @@ final class LoopTest extends TestCase
         }
     }
 
+    public function testQuerySortsNumberKeysAsNumbers(): void
+    {
+        foreach (['weight', 'units'] as $key) {
+            $args = QuerySource::args(['postType' => 'product', 'orderBy' => "meta:{$key}"], 6, 0, 0);
+            $this->assertSame('meta_value_num', $args['orderby'], $key);
+            $this->assertSame($key, $args['meta_key'], $key);
+        }
+
+        $this->assertSame('meta_value', QuerySource::args(['postType' => 'product', 'orderBy' => 'meta:price'], 6, 0, 0)['orderby']);
+    }
+
     public function testQueryStickyAndCurrentPost(): void
     {
         $GLOBALS['wp_options']['sticky_posts'] = [7, 9];

@@ -116,6 +116,21 @@ final class PostFields {
 	}
 
 	/**
+	 * Whether a meta key is registered as a number (`type` `number` or `integer`), for this post
+	 * type or for every type. Unregistered keys are text.
+	 */
+	public static function numericMeta( string $key, string $type = '' ): bool {
+		foreach ( [ $type, '' ] as $subtype ) {
+			$args = get_registered_meta_keys( 'post', $subtype )[ $key ] ?? null;
+			if ( is_array( $args ) ) {
+				return in_array( $args['type'] ?? '', [ 'number', 'integer' ], true );
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * The custom-field keys offered for a post type.
 	 *
 	 * @return list<string>

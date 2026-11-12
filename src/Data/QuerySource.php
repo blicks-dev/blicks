@@ -276,7 +276,8 @@ final class QuerySource {
 	}
 
 	/**
-	 * `orderBy` → WordPress `orderby` and, for `meta:<key>`, the meta key.
+	 * `orderBy` → WordPress `orderby` and, for `meta:<key>`, the meta key. A key registered as a
+	 * number sorts as one, so 900 comes before 1200; any other key sorts as text.
 	 *
 	 * @return array{0: string, 1: string}
 	 */
@@ -284,7 +285,11 @@ final class QuerySource {
 		if ( str_starts_with( $orderBy, 'meta:' ) ) {
 			$key = substr( $orderBy, 5 );
 
-			return PostFields::publicMeta( $key, $type ) ? [ 'meta_value', $key ] : [ 'date', '' ];
+			if ( ! PostFields::publicMeta( $key, $type ) ) {
+				return [ 'date', '' ];
+			}
+
+			return [ PostFields::numericMeta( $key, $type ) ? 'meta_value_num' : 'meta_value', $key ];
 		}
 
 		return [ in_array( $orderBy, self::ORDER_BY, true ) ? $orderBy : 'date', '' ];

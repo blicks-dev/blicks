@@ -114,6 +114,10 @@ add_filter( 'blicks_loop_item', function ( array $fields, WP_Post $post, array $
 Custom-field keys a Loop may read, sort and filter by for one post type, beyond those registered
 with `show_in_rest`. Protected keys (a leading underscore) are always removed.
 
+A key sorts as text unless it is registered with `'type' => 'number'` or `'integer'`
+(`register_post_meta()`, with or without `show_in_rest`); then it sorts as a number, so `900`
+comes before `1200`. Filtering with greater-than or less-than always compares numbers.
+
 ## AI agents
 
 ### `blicks_ai_block_catalog`
