@@ -62,7 +62,7 @@ from the editor.
 | `values` | `getValue`, `setValue`, `setValues`, `setValueSlots`, `hasOverrides` — read and write the style tree. Use `setValues` / `setValueSlots` to write several values at once: separate writes overwrite each other. |
 | `data` | `blockSelect`, `blockDispatch`, `setBlockRegistry` — `core/block-editor` through whichever registry is in force, so a nested editor (such as the Studio) reads its own tree, not the post. |
 | `inspector` | `registerContext`, `unregisterContext`, `hasAncestorOfName` — when a conditional inspector section may show. |
-| `ui` | `SettingsCard`, `OptionCards`, `SegmentedSetting`, `FieldRow`, `HelpTip`, `useBlockHelp`, and `ui.v2` — the inspector kit (`Sec`, `Steps`, `SegIcons`, `SegText`, `Chips`, `Opts`, `Swatches`, `Switch`, `Field`, `Select`, `Slider`, `SubView`, `Note`, `Sub`, `Icon`), so your panels look like the rest. |
+| `ui` | `SettingsCard`, `OptionCards`, `SegmentedSetting`, `FieldRow`, `HelpTip`, `useBlockHelp`, and `ui.v2` — the inspector kit (`Sec`, `Row`, `Steps`, `SegIcons`, `SegText`, `Chips`, `Opts`, `Swatches`, `Switch`, `Field`, `Select`, `Slider`, `SubView`, `Note`, `Sub`, `Icon`), so your panels look like the rest. |
 | `engine` | The style engine, read-only, and the validator. **New in 2.** See [Engine and validation](/developers/engine-api). |
 | `constants` | `STATES`, `STATE_LABELS`, `DEFAULT_BREAKPOINTS`, `UI_VARS`, `UI_DARK_VARS`. |
 | `forms` | Form field types and events. See [Forms](#forms) below. |

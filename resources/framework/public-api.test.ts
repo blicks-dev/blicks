@@ -54,7 +54,7 @@ describe( 'public API', () => {
 
 	it( 'publishes the v2 inspector kit under ui.v2, frozen', () => {
 		const v2 = ( publicApi.ui as unknown as { v2: Record< string, unknown > } ).v2;
-		const members = [ 'Sec', 'Steps', 'SegIcons', 'SegText', 'Chips', 'Opts', 'Swatches', 'Switch', 'Field', 'Select', 'Slider', 'SubView', 'Note', 'Sub', 'Icon' ];
+		const members = [ 'Sec', 'Row', 'Steps', 'SegIcons', 'SegText', 'Chips', 'Opts', 'Swatches', 'Switch', 'Field', 'Select', 'Slider', 'SubView', 'Note', 'Sub', 'Icon' ];
 
 		for ( const member of members ) {
 			expect( v2[ member ], `ui.v2.${ member } is missing` ).toBeTypeOf( 'function' );

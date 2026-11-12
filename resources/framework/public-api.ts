@@ -34,6 +34,7 @@ import {
 	Icon,
 	Note,
 	Opts,
+	Row,
 	SegIcons,
 	SegText,
 	Sec,
@@ -159,10 +160,13 @@ export const publicApi = {
 		 * they are styled by the same sheet. Added in version 1 (an addition does not move it).
 		 *
 		 * Options are `[ value, label, extra? ]` tuples; `extra` is an icon path where one is drawn.
-		 * A panel receives `{ attributes, setAttributes, clientId }`.
+		 * A panel receives `{ attributes, setAttributes, clientId }`. Every setting sits in a `Row`
+		 * (its label, then its control) inside a `Sec`, as on the free blocks; `Row` was published in
+		 * 2.0 for companions, which until then could not draw a labelled row.
 		 */
 		v2: Object.freeze( {
 			Sec,
+			Row,
 			Steps,
 			SegIcons,
 			SegText,
