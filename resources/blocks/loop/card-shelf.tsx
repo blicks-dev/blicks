@@ -17,6 +17,7 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 import { PatternShelf, type ShelfOption, type ShelfSource, type ShelfState } from '../shared/pattern-shelf';
 import type { BlockNode } from '../../studio/mount';
 import { bindBlocks, Preview } from './canvas';
+import { loopSource } from '@/framework/loop-sources';
 import { cardDesigns, countBindings, matchFields, type CardOption, type CardShelf, type CardSource } from './cards';
 import { useLoopItems } from './use-items';
 
@@ -242,7 +243,26 @@ export function LoopCardShelf( { clientId, attributes, layout }: { clientId: str
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ pending, loading ] );
 
-	if ( designs( 'builtin' ) === 'unavailable' ) return null;
+	// The Loop's source may bring starter cards (another plugin's): they lead the shelf, and show even
+	// where the Studio's own designs are not loaded.
+	const source = loopSource( attributes?.source );
+	const starters = source?.cards ?? [];
+	const studio = designs( 'builtin' ) !== 'unavailable';
+	if ( ! studio && ! starters.length ) return null;
+	const shelfSources: ShelfSource[] = [
+		...( starters.length ? [ { id: 'source', label: source!.label, empty: '' } ] : [] ),
+		...( studio ? SOURCES : [] ),
+	];
+	const starterShelf = () => ( {
+		options: starters.map( ( c ) => toOption( {
+			id: `source:${ c.id }`,
+			title: c.title,
+			source: 'builtin',
+			collection: { name: source!.label, accent: '#002bff', ground: '#e8edff' },
+			card: c.card as BlockNode,
+		} ) ),
+		error: '',
+	} );
 
 	async function pick( option: Option ): Promise< void > {
 		setBusy( option.id );
@@ -287,9 +307,10 @@ export function LoopCardShelf( { clientId, attributes, layout }: { clientId: str
 			blurb={ wide
 				? __( 'Each design is shown with your first item. It becomes a copy you can edit, with its blocks connected to fields that have matching names.', 'blicks' )
 				: __( 'Point at a design to preview it on every item. Using one replaces the current card.', 'blicks' ) }
-			sources={ SOURCES }
-			shelf={ ( source ) => {
-				const s = designs( source );
+			sources={ shelfSources }
+			shelf={ ( tab ) => {
+				if ( tab === 'source' ) return starterShelf();
+				const s = designs( tab );
 				return s === 'unavailable' ? { options: [], error: '' } : s;
 			} }
 			preview={ ( option ) => <Thumb option={ option } fields={ fields } item={ first } /> }

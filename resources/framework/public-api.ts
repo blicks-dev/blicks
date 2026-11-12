@@ -20,6 +20,7 @@ import {
 } from '@/blocks/field/registry';
 import { isKnownType } from '@/blocks/field/model';
 import { ALLOWED_BLOCKS_FILTER } from '@/blocks/form/model';
+import { loopSource, loopSources, registerSource } from '@/framework/loop-sources';
 import {
 	SettingsCard,
 	OptionCards,
@@ -196,6 +197,13 @@ export const publicApi = {
 	 * (`framework/ui-chrome.ts`). Since 2.
 	 */
 	constants: Object.freeze( { STATES, STATE_LABELS, DEFAULT_BREAKPOINTS, UI_VARS, UI_DARK_VARS } ),
+
+	/**
+	 * Loop sources: list another plugin's data in the Loop's "Comes from", with its own settings rows
+	 * and starter cards. Pairs with the PHP filter `blicks_loop_sources` (same `vendor/name` id),
+	 * which supplies the items. Added in 2.0 (an addition does not move the version).
+	 */
+	loop: Object.freeze( { registerSource, source: loopSource, sources: loopSources } ),
 } as const;
 
 /**

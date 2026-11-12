@@ -28,6 +28,7 @@ const CONTRACT: Record< string, string[] > = {
 	ui: [ 'SettingsCard', 'OptionCards', 'SegmentedSetting', 'FieldRow', 'HelpTip', 'useBlockHelp', 'v2' ],
 	engine: [ 'schema', 'control', 'valueSchema', 'isBlicksBlock', 'blockControls', 'allowsControl', 'problems', 'validateBlocks' ],
 	constants: [ 'STATES', 'STATE_LABELS', 'DEFAULT_BREAKPOINTS', 'UI_VARS', 'UI_DARK_VARS' ],
+	loop: [ 'registerSource', 'source', 'sources' ],
 };
 
 describe( 'public API', () => {

@@ -170,6 +170,41 @@ A field type also needs its server side: `blicks_form_field_types` and
 type's plugin is inactive is not shown on the page and sends nothing. The send pipeline's filters
 and the `blicks_form_sent` action are listed in the [Forms guide](/guides/forms#for-developers).
 
+## Loop sources
+
+Add your own data to the Loop's **Comes from**, beside pasted data, a feed and WordPress posts. The card
+stays the Loop's: Blicks blocks bound to your items' fields. Register the same `vendor/name` id on both
+sides.
+
+```php
+// PHP: the items. Ordered, flat arrays; the Loop applies its limit, offset and pages.
+add_filter( 'blicks_loop_sources', function ( array $sources ): array {
+	$sources['acme/trips'] = [
+		'label'    => __( 'Trips', 'acme' ),
+		'items'    => fn ( array $args, array $context ): array => acme_trip_items( $args ),
+		'sanitize' => fn ( mixed $args ): array => acme_clean_args( $args ), // the Loop's `sourceArgs`
+		'sort'     => false, // you order the items: the Loop's own Order by is off
+		'rules'    => true,  // the Loop's "Only show" rules still apply
+	];
+	return $sources;
+} );
+```
+
+```js
+// JavaScript (depends on `blicks-editor`): the editor side.
+window.blicks.loop.registerSource( {
+	id: 'acme/trips',
+	label: __( 'Trips', 'acme' ),
+	Settings: ( { args, setArgs } ) => /* your rows, on ui.v2 */ null,
+	ordersItself: true,
+	cards: [ { id: 'classic', title: 'Classic', card: { name: 'blicks/box', innerBlocks: [ /* … */ ] } } ],
+} );
+```
+
+`cards` are starter designs shown first in the card shelf while your source is the Loop's; each becomes a
+copy the author edits. A Loop whose source's plugin is deactivated keeps the source and shows nothing until
+it is back. Give every item the same keys: the field list is read from the first item.
+
 ## Reserved block names
 
 `blicks/scene`, `blicks/scene-box`, `blicks/scene-text` and `blicks/scene-image` are reserved for

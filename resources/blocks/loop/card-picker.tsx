@@ -9,6 +9,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import type { PanelProps } from '@/framework/inspector-v2/InspectorV2';
 import { Note, Row, Sec } from '@/framework/inspector-v2/kit';
 import { cardDesigns } from './cards';
+import { loopSource } from '@/framework/loop-sources';
 import { closeCardShelf, openCardShelf, useShelfView } from './card-shelf';
 
 /** Second fields a block can show, named after the block: "%s alt text", "%s link". */
@@ -36,7 +37,10 @@ function bindings( blocks: any[] ): Array< { block: string; field: string } > {
 	} );
 }
 
-export function CardSec( { clientId }: PanelProps ) {
+export function CardSec( { clientId, attributes }: PanelProps ) {
+	// A source another plugin adds may bring its own starter cards: the shelf opens for those even
+	// where the Studio (and so the built-in designs) is not loaded.
+	const canPick = !! cardDesigns() || ( loopSource( attributes?.source )?.cards?.length ?? 0 ) > 0;
 	const card = useSelect( ( select: any ) => ( clientId ? select( 'core/block-editor' ).getBlocks( clientId ) : [] ), [ clientId ] );
 	const view = useShelfView( clientId ?? '' );
 	const name: string | undefined = card[ 0 ]?.attributes?.metadata?.name;
@@ -48,10 +52,10 @@ export function CardSec( { clientId }: PanelProps ) {
 				label={ __( 'Card design', 'blicks' ) }
 				stack
 				set={ !! name }
-				note={ cardDesigns() ? undefined : __( 'Card designs come with the Studio, which is not loaded in this editor.', 'blicks' ) }
+				note={ canPick ? undefined : __( 'Card designs come with the Studio, which is not loaded in this editor.', 'blicks' ) }
 				noteIcon="info"
 			>
-				{ cardDesigns() ? (
+				{ canPick ? (
 					<button
 						type="button"
 						className="link-btn"

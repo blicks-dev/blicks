@@ -20,6 +20,7 @@ import { setPreview, setPreviewPage, usePreview, usePreviewPage, useLoopItems } 
 import { DEFAULT_PER_PAGE, paging, type Pagination } from './pager';
 import { loopLayout } from './canvas';
 import { CardSec } from './card-picker';
+import { isSourceId, loopSource, loopSources } from '@/framework/loop-sources';
 
 const SOURCES: Option[] = [ [ 'json', __( 'Pasted', 'blicks' ) ], [ 'endpoint', __( 'Feed', 'blicks' ) ], [ 'query', __( 'WordPress', 'blicks' ) ] ];
 const LAYOUTS: Option[] = [ [ 'grid', __( 'Grid', 'blicks' ) ], [ 'bento', __( 'Bento', 'blicks' ) ], [ 'list', __( 'List', 'blicks' ) ] ];
@@ -118,19 +119,40 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 	const canManage = useSelect( ( select: any ) => !! select( 'core' ).canUser?.( 'update', { kind: 'root', name: 'site' } ), [] );
 	const fields: Option[] = ( data?.fields ?? [] ).map( ( f ) => [ f.key, f.key ] );
 	const filter = attributes.filter ?? {};
-	const sourceNote = {
-		json: undefined,
-		endpoint: __( 'The server fetches the feed and keeps the answer, so visitors never wait on the API.', 'blicks' ),
-		query: __( 'Only published posts show, and only what visitors may see.', 'blicks' ),
-	}[ source as 'json' | 'endpoint' | 'query' ];
+	const registered = loopSource( source );
+	const missing = ! registered && isSourceId( source );
+	const sourceNote = registered
+		? registered.note
+		: missing
+			? sprintf( /* translators: %s: a data source's id, e.g. "acme/trips" */ __( 'This Loop reads from %s, which a plugin adds. That plugin is not active, so the Loop shows nothing.', 'blicks' ), source )
+			: {
+				json: undefined,
+				endpoint: __( 'The server fetches the feed and keeps the answer, so visitors never wait on the API.', 'blicks' ),
+				query: __( 'Only published posts show, and only what visitors may see.', 'blicks' ),
+			}[ source as 'json' | 'endpoint' | 'query' ];
+	// Other plugins' sources after the built-ins; a missing one stays listed so the value still shows.
+	const sourceOptions: Option[] = [
+		...SOURCES,
+		...loopSources().map( ( s ): Option => [ s.id, s.label ] ),
+		...( missing ? [ [ source, source ] as Option ] : [] ),
+	];
+	const Settings = registered?.Settings;
 
 	useEffect( () => setDraft( attributes.data ?? '' ), [ clientId ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<Sec title={ __( 'Data', 'blicks' ) } icon="database" value={ data ? sprintf( /* translators: %d: items */ _n( '%d item', '%d items', data.total, 'blicks' ), data.total ) : '' }>
 			<Row label={ __( 'Comes from', 'blicks' ) } stack set={ source !== 'json' } hint={ __( 'JSON · an endpoint · a WordPress query', 'blicks' ) } note={ sourceNote } noteIcon="info">
-				<SegText label={ __( 'Where the items come from', 'blicks' ) } options={ SOURCES } value={ source } onChange={ ( v ) => setAttributes( { source: v } ) } />
+				<SegText label={ __( 'Where the items come from', 'blicks' ) } options={ sourceOptions } value={ source } onChange={ ( v ) => setAttributes( loopSource( v ) ? { source: v, sourceArgs: {} } : { source: v } ) } />
 			</Row>
+
+			{ Settings && (
+				<Settings
+					args={ ( attributes.sourceArgs ?? {} ) as Record< string, unknown > }
+					setArgs={ ( sourceArgs ) => setAttributes( { sourceArgs } ) }
+					attributes={ attributes }
+				/>
+			) }
 
 			{ source === 'json' && (
 				<Row label={ __( 'Pasted data', 'blicks' ) } stack hint="JSON" set={ !! attributes.data } note={ problem || __( 'Up to 256 KB. Values are shown as text, never as markup.', 'blicks' ) } noteIcon={ problem ? 'warning' : 'code' }>
@@ -214,6 +236,8 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 				</Row>
 			) }
 
+			{ registered?.rules !== false && ! missing && (
+			<>
 			<Row label={ __( 'Only show', 'blicks' ) } stack set={ !! filter.field } note={ filter.field && data ? sprintf( /* translators: 1: matching, 2: total */ __( '%1$d of %2$d items match.', 'blicks' ), data.matched, data.total ) : undefined } noteIcon="info">
 				<div className="row2">
 					<Select label={ __( 'Only show', 'blicks' ) } value={ filter.field ?? '' } options={ [ [ '', __( 'Every item', 'blicks' ) ], ...fields ] } onChange={ ( field ) => setAttributes( { filter: field ? { field, op: filter.op ?? 'is', value: filter.value ?? '' } : undefined } ) } />
@@ -224,6 +248,8 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 				<Row label={ __( 'Value', 'blicks' ) } set={ !! filter.value }>
 					<Field label={ __( 'Value', 'blicks' ) } value={ String( filter.value ?? '' ) } placeholder={ __( 'Value', 'blicks' ) } onChange={ ( value ) => setAttributes( { filter: { ...filter, value } } ) } />
 				</Row>
+			) }
+			</>
 			) }
 
 			{ error && <Note>{ error }</Note> }
@@ -284,7 +310,7 @@ function ItemsSec( { attributes, setAttributes, clientId }: PanelProps ) {
 				</Row>
 			) }
 
-			{ attributes.source !== 'query' && (
+			{ attributes.source !== 'query' && ! loopSource( attributes.source )?.ordersItself && ! ( isSourceId( attributes.source ) && ! loopSource( attributes.source ) ) && (
 				<Row label={ __( 'Order by', 'blicks' ) } stack set={ !! sort.field }>
 					<div className="row2">
 						<Select label={ __( 'Order by', 'blicks' ) } value={ sort.field ?? '' } options={ [ [ '', __( 'As the data lists them', 'blicks' ) ], ...fields ] } onChange={ ( field ) => setAttributes( { sort: field ? { field, dir: sort.dir ?? 'asc' } : undefined } ) } />
