@@ -56,7 +56,10 @@ function drawImage( { attributes, setAttributes, blockProps, richText, isEdit }:
 				</div>
 			);
 		}
-		if ( ! attributes.url ) return null;
+		// Bound to an item field (a Loop card), the picture is filled per item on the server
+		// (`Bindings::write()` sets `src`), so the figure is saved even before it has an address.
+		const bound = !! attributes.metadata?.bindings?.url;
+		if ( ! attributes.url && ! bound ) return null;
 
 		const ratio = cleanAspectRatio( attributes.aspectRatio );
 		const href = imageHref( attributes );
@@ -67,7 +70,7 @@ function drawImage( { attributes, setAttributes, blockProps, richText, isEdit }:
 		const focus = ratio !== 'auto' && fit === 'cover' ? cleanFocus( attributes.focus ) : '';
 		const img = (
 			<img
-				src={ attributes.url }
+				src={ attributes.url || undefined }
 				alt={ attributes.decorative ? '' : attributes.alt || '' }
 				style={ {
 					aspectRatio: ratio === 'auto' ? undefined : ratio,

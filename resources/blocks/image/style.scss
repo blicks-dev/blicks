@@ -185,3 +185,12 @@
 		vertical-align: middle;
 	}
 }
+
+// WordPress's block library gives every figure a bottom margin, unlayered (`:where(figure)
+// { margin: 0 0 1em }`), and a layered rule always loses to an unlayered one, so the reset above
+// never reaches the front end: every picture carried 1em of space under it (a card's photo sat
+// apart from its body). Unlayered, and only the bottom, which is all that rule adds: the top and
+// sides stay the theme layout's (block gap, centring). Margin set in Style (`.bl-mar`) wins.
+.bl-image:where(:not(.bl-mar)) {
+	margin-block-end: 0;
+}
