@@ -330,6 +330,19 @@ export function applyBlockIdentity( metadata: Metadata ): Metadata {
 		...metadata,
 		...identity,
 		icon: glyph( metadata.icon ) ?? metadata.icon,
-		category: CATEGORY,
+		category: blockCategory( metadata as { name: string; category?: unknown } ),
 	};
+}
+
+/**
+ * Blicks' own blocks sit in the Blicks category. A companion block registered through
+ * `defineBlock` keeps the category its `block.json` names (a travel block in "Travel"), and lands
+ * in Blicks only when it names none.
+ */
+export function blockCategory( metadata: { name: string; category?: unknown } ): string {
+	if ( metadata.name.startsWith( 'blicks/' ) ) {
+		return CATEGORY;
+	}
+
+	return 'string' === typeof metadata.category && '' !== metadata.category ? metadata.category : CATEGORY;
 }
