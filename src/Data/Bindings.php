@@ -38,6 +38,9 @@ final class Bindings {
 	/** The binding source a Loop's items answer to, in `metadata.bindings`. */
 	public const SOURCE = 'blicks/item';
 
+	/** A Loop inside a card: its blocks are bound to its own items, so the card's stop at it. */
+	private const LOOP = 'blicks/loop';
+
 	private function __construct() {}
 
 	/**
@@ -74,6 +77,12 @@ final class Bindings {
 
 		if ( '' !== $id && in_array( $id, $hide, true ) ) {
 			return null;
+		}
+
+		// A Loop inside the card binds to its own items, not this one: leave it and everything in it
+		// as saved. It gets this item through block context instead ({@see LoopRenderer::list()}).
+		if ( self::LOOP === ( $block['blockName'] ?? '' ) ) {
+			return $block;
 		}
 
 		$bindings = is_array( $attrs['metadata']['bindings'] ?? null ) ? $attrs['metadata']['bindings'] : [];

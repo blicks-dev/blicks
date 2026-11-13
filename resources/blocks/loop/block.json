@@ -39,7 +39,7 @@
 		"itemInUrl": { "type": "boolean", "default": false },
 		"pagination": { "type": "object" }
 	},
-	"usesContext": [ "postId", "postType" ],
+	"usesContext": [ "postId", "postType", "blicks/loopItem", "blicks/loopDepth" ],
 	"render": "file:./render.php",
 	"editorScript": "blicks-editor",
 	"style": "file:./index.css"

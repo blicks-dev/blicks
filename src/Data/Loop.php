@@ -21,7 +21,8 @@ use WP_Error;
  */
 final class Loop {
 
-	public const SOURCES = [ 'json', 'endpoint', 'query' ];
+	/** The built-in sources. `item` is a list of the item above, for a Loop inside another Loop's card. */
+	public const SOURCES = [ 'json', 'endpoint', 'query', ItemSource::ID ];
 
 	private function __construct() {}
 
@@ -38,9 +39,10 @@ final class Loop {
 	 * @param int                  $current The post the Loop is on, for "leave out the current page".
 	 * @param bool                 $wait    Refresh an endpoint now rather than from the background queue.
 	 * @param int                  $page    The page asked for; ignored unless the Loop is paged.
+	 * @param array<string, mixed>|null $parent The item of the Loop card this Loop sits in, for the `item` source.
 	 * @return array{items: list<array<string, mixed>>, fields: list<array{key: string, type: string}>, total: int, matched: int, path: string, lists: list<array{path: string, count: int}>, endpoint: array{fetchedAt: int, stale: bool, error: string}|null, page: int, pages: int, perPage: int, found: int, from: int}|WP_Error
 	 */
-	public static function items( array $attrs, int $current = 0, bool $wait = false, int $page = 1 ): array|WP_Error {
+	public static function items( array $attrs, int $current = 0, bool $wait = false, int $page = 1, ?array $parent = null ): array|WP_Error {
 		$attrs = LoopAttributes::sanitize( $attrs );
 		$source = $attrs['source'];
 		$path = $attrs['path'];
@@ -59,6 +61,24 @@ final class Loop {
 			'limit' => null === $paging ? $limit : $span * $perPage,
 			'max' => null === $paging ? ItemPipeline::MAX_ITEMS : $span * $perPage,
 		];
+
+		if ( ItemSource::ID === $source ) {
+			// A list of the card's item: never paged (every card's copy would share one page).
+			$read = ItemSource::items( $parent, $path );
+			$run = ItemPipeline::run( $read['items'], $config );
+
+			return $run + [
+				'fields' => ItemPipeline::fields( $read['items'] ),
+				'path' => $read['path'],
+				'lists' => null === $parent ? [] : ItemSource::lists( $parent ),
+				'endpoint' => null,
+				'page' => 1,
+				'pages' => 1,
+				'perPage' => $perPage,
+				'found' => $run['matched'],
+				'from' => 0,
+			];
+		}
 
 		if ( 'query' === $source ) {
 			$query = is_array( $attrs['query'] ?? null ) ? $attrs['query'] : [];

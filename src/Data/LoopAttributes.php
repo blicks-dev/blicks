@@ -50,7 +50,10 @@ final class LoopAttributes {
 			'pagination' => Pager::sanitize( $attrs['pagination'] ?? null ),
 		];
 
-		if ( 'json' === $source ) {
+		if ( ItemSource::ID === $source ) {
+			// A list of the card's item: `path` names it. Not paged: each card holds its own copy.
+			$out['pagination'] = null;
+		} elseif ( 'json' === $source ) {
 			$data = is_string( $attrs['data'] ?? null ) ? $attrs['data'] : '';
 			// Over the cap is refused when decoded; invalid UTF-8 is refused here.
 			$out['data'] = '' === wp_check_invalid_utf8( $data ) && '' !== $data ? '' : $data;

@@ -47,6 +47,12 @@ final class LoopRenderer {
 	/** A Dialog among the Loop's children: what a card opens, with that card's item. */
 	public const DIALOG_BLOCK = 'blicks/dialog';
 
+	/** Block context a card hands its blocks: the card's item, for a Loop inside it ({@see ItemSource}). */
+	public const ITEM_CONTEXT = 'blicks/loopItem';
+
+	/** Block context: how many Loops this one sits inside. */
+	public const DEPTH_CONTEXT = 'blicks/loopDepth';
+
 	private function __construct() {}
 
 	/**
@@ -58,7 +64,12 @@ final class LoopRenderer {
 		$uniqueId = is_string( $attributes['uniqueId'] ?? null ) ? $attributes['uniqueId'] : '';
 		$arg = Pager::arg( $uniqueId );
 		$inherit = 'query' === ( $attributes['source'] ?? '' ) && is_array( $attributes['query'] ?? null ) && ! empty( $attributes['query']['inherit'] );
-		$result = Loop::items( $attributes, $current, false, null === $paging ? 1 : Pager::requested( $arg, $inherit ) );
+		// Loops inside cards inside cards stop at the cap, whatever their source.
+		if ( self::depth( $block ) >= ItemSource::MAX_DEPTH ) {
+			return '';
+		}
+		$parent = is_array( $block->context[ self::ITEM_CONTEXT ] ?? null ) ? $block->context[ self::ITEM_CONTEXT ] : null;
+		$result = Loop::items( $attributes, $current, false, null === $paging ? 1 : Pager::requested( $arg, $inherit ), $parent );
 
 		$inner = is_array( $block->parsed_block['innerBlocks'] ?? null ) ? $block->parsed_block['innerBlocks'] : [];
 		$template = array_values( array_filter( $inner, static fn ( array $b ): bool => ! in_array( $b['blockName'] ?? '', [ self::EMPTY_BLOCK, self::DIALOG_BLOCK ], true ) ) );
@@ -130,9 +141,17 @@ final class LoopRenderer {
 				$fx['span'] = [ 1, 1 ];
 			}
 
+			// The card's blocks get its item and their depth: a Loop inside reads its list from them.
+			$cardContext = array_merge(
+				$context,
+				[
+					self::ITEM_CONTEXT => $item,
+					self::DEPTH_CONTEXT => self::depth( $block ) + 1,
+				]
+			);
 			$card = '';
 			foreach ( Bindings::apply( $template, $item, [ self::class, 'bindable' ], $fx['hide'] ) as $parsed ) {
-				$card .= ( new WP_Block( $parsed, $context ) )->render();
+				$card .= ( new WP_Block( $parsed, $cardContext ) )->render();
 			}
 
 			// The card's dialog: this item's blocks, ready for the dialog behaviour to copy in.
@@ -146,7 +165,7 @@ final class LoopRenderer {
 				if ( is_string( $item['url'] ?? null ) && '' !== $item['url'] ) {
 					$open .= ' data-bl-url="' . esc_url( $item['url'] ) . '"';
 				}
-				$card .= '<template class="bl-loop__dialog"' . self::dialogRules( $fx ) . '>' . self::dialogBody( $dialog, $item, $context, $fx['hide'] ) . '</template>';
+				$card .= '<template class="bl-loop__dialog"' . self::dialogRules( $fx ) . '>' . self::dialogBody( $dialog, $item, $cardContext, $fx['hide'] ) . '</template>';
 			}
 
 			$html .= '<li' . ( '' !== $idBase ? ' id="' . esc_attr( $idBase . '-' . ( $from + $index + 1 ) ) . '" tabindex="-1"' : '' ) . self::itemAttributes( $fx ) . $open . '>' . $card . '</li>';
@@ -351,5 +370,10 @@ final class LoopRenderer {
 	 */
 	private static function context( WP_Block $block ): array {
 		return is_array( $block->context ) ? $block->context : [];
+	}
+
+	/** How many Loops this one sits inside: 0 for a Loop on the page itself. */
+	private static function depth( WP_Block $block ): int {
+		return max( 0, (int) ( $block->context[ self::DEPTH_CONTEXT ] ?? 0 ) );
 	}
 }
