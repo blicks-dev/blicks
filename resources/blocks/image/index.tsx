@@ -1,4 +1,5 @@
-import { MediaPlaceholder } from '@wordpress/block-editor';
+import { MediaPlaceholder, store as blockEditorStore } from '@wordpress/block-editor';
+import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import metadata from './block.json';
 import { defineBlock, type RenderCtx } from '@/framework/define-block';
@@ -27,11 +28,25 @@ function imageHref( attributes: any ): string {
 	return '';
 }
 
+/**
+ * Where the Image waits for a picture. In a preview (a Loop's card designs, the inserter) nothing can
+ * be clicked, and the upload buttons would sit inside the preview's own button: an empty frame
+ * stands in for them.
+ */
+function ImagePlaceholder( { blockProps, ratio, children }: { blockProps: any; ratio: string; children: JSX.Element } ): JSX.Element {
+	const preview = useSelect( ( select: any ) => !! select( blockEditorStore ).getSettings().isPreviewMode, [] );
+	if ( preview ) {
+		const style = { ...blockProps.style, aspectRatio: 'auto' === ratio ? '4 / 3' : ratio };
+		return <div { ...blockProps } className={ [ blockProps.className, 'bl-image-placeholder', 'is-preview' ].filter( Boolean ).join( ' ' ) } style={ style } aria-hidden="true" />;
+	}
+	return <div { ...blockProps }>{ children }</div>;
+}
+
 /** The Image's markup, editor and save alike. */
 function drawImage( { attributes, setAttributes, blockProps, richText, isEdit }: RenderCtx ): JSX.Element | null {
 		if ( isEdit && ! attributes.url ) {
 			return (
-				<div { ...blockProps }>
+				<ImagePlaceholder blockProps={ blockProps } ratio={ cleanAspectRatio( attributes.aspectRatio ) }>
 					<MediaPlaceholder
 						icon={ imageGlyph }
 						labels={ {
@@ -53,7 +68,7 @@ function drawImage( { attributes, setAttributes, blockProps, richText, isEdit }:
 							setAttributes( { url, id: undefined, alt: attributes.alt || '' } )
 						}
 					/>
-				</div>
+				</ImagePlaceholder>
 			);
 		}
 		// Bound to an item field (a Loop card), the picture is filled per item on the server

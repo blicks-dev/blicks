@@ -61,10 +61,13 @@ function ButtonToolbar( { attributes, setAttributes, clientId }: { attributes: a
 	);
 }
 
-/** The Button's markup, editor and save alike. */
-function drawButton( { attributes, blockProps, richText, children }: RenderCtx ): JSX.Element {
+/**
+ * The Button's markup, editor and save alike. In a preview (a Loop's card designs) it is a span:
+ * nothing there can be pressed, and a `<button>` would sit inside the preview's own button.
+ */
+function drawButton( { attributes, blockProps, richText, children }: RenderCtx, preview = false ): JSX.Element {
 		const action = buttonAction( attributes );
-		const Tag = action === 'link' && attributes.url ? 'a' : 'button';
+		const Tag = preview ? 'span' : action === 'link' && attributes.url ? 'a' : 'button';
 		const blocksMode = cleanContentMode( attributes.content ) === 'blocks';
 		const variant = cleanButtonVariant( attributes.variant );
 		const size = cleanButtonSize( attributes.size );
@@ -78,7 +81,7 @@ function drawButton( { attributes, blockProps, richText, children }: RenderCtx )
 		].filter( Boolean ).join( ' ' );
 		// Open dialog and Close dialog are the browser's invoker commands. Close names no dialog:
 		// the one it sits in is filled in when the page renders (Blicks\Blocks\Dialogs).
-		const tagProps: Record< string, unknown > = Tag === 'a'
+		const tagProps: Record< string, unknown > = Tag === 'span' ? {} : Tag === 'a'
 			? { href: attributes.url, target: attributes.linkTarget || undefined, rel: attributes.rel || undefined }
 			: {
 				// Send form is the one `type="submit"` and Clear form the one `type="reset"`; everything
@@ -152,22 +155,28 @@ defineBlock( metadata, {
 		},
 	],
 	render( ctx ) {
-		// Inside a Loop with its label or link bound to a field, the live card draws the current
-		// item's values (loop/binding.tsx). Saved markup is unchanged.
-		const label = bindingOf( ctx.attributes, 'text' );
-		if ( ctx.isEdit && ( label || bindingOf( ctx.attributes, 'url' ) ) ) {
-			return (
-				<WithBound attributes={ ctx.attributes } clientId={ ctx.clientId } kinds={ { text: 'text', url: 'url' } }>
-					{ ( attributes ) => drawButton( {
-						...ctx,
-						attributes,
-						richText: label
-							? ( opts: any ) => <span className={ `${ opts.className ?? '' } is-bound` }><span className="bl-bound-chip" aria-hidden="true">{ label.key }</span>{ attributes.text }</span>
-							: ctx.richText,
-					} ) }
-				</WithBound>
-			);
-		}
-		return drawButton( ctx );
+		return ctx.isEdit ? <EditButton ctx={ ctx } /> : drawButton( ctx );
 	},
 } );
+
+/** The Button in the editor. Saved markup is unchanged. */
+function EditButton( { ctx }: { ctx: RenderCtx } ): JSX.Element {
+	const preview = useSelect( ( select: any ) => !! select( 'core/block-editor' ).getSettings().isPreviewMode, [] );
+	// Inside a Loop with its label or link bound to a field, the live card draws the current
+	// item's values (loop/binding.tsx).
+	const label = bindingOf( ctx.attributes, 'text' );
+	if ( label || bindingOf( ctx.attributes, 'url' ) ) {
+		return (
+			<WithBound attributes={ ctx.attributes } clientId={ ctx.clientId } kinds={ { text: 'text', url: 'url' } }>
+				{ ( attributes ) => drawButton( {
+					...ctx,
+					attributes,
+					richText: label
+						? ( opts: any ) => <span className={ `${ opts.className ?? '' } is-bound` }><span className="bl-bound-chip" aria-hidden="true">{ label.key }</span>{ attributes.text }</span>
+						: ctx.richText,
+				}, preview ) }
+			</WithBound>
+		);
+	}
+	return drawButton( ctx, preview );
+}

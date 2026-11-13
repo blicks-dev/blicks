@@ -147,6 +147,13 @@
 	}
 }
 
+/* An Image with no picture yet, inside a preview (a Loop's card designs): an empty frame in the
+   Image's own ratio where the upload buttons would be. Editor only. */
+.bl-image-placeholder.is-preview {
+	width: 100%;
+	background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 8%, #eef0f6);
+}
+
 /* Editor-only media placeholder — a Blicks-skinned WordPress MediaPlaceholder. Echoes the
    `.bl-placeholder` family (accent dashed border + faint accent fill + accent icon chip) so the
    empty Image block reads as part of the same system. Never present on the front end. */
