@@ -19,7 +19,9 @@ import type { BlockNode } from '../../studio/mount';
 import { bindBlocks, Preview } from './canvas';
 import { loopSource } from '@/framework/loop-sources';
 import { cardDesigns, countBindings, matchFields, type CardOption, type CardShelf, type CardSource } from './cards';
-import { useLoopItems } from './use-items';
+import { ITEM_SOURCE, useLoopItems } from './use-items';
+import { useParentItem } from './item-context';
+import { useLoop } from './binding';
 
 /* ------------------------------------------------------------------ editor state per Loop */
 
@@ -223,7 +225,9 @@ function Thumb( { option, fields, item }: { option: Option; fields: string[]; it
 
 export function LoopCardShelf( { clientId, attributes, layout }: { clientId: string; attributes: any; layout: 'wide' | 'grid' } ) {
 	const designs = useDesigns();
-	const { data, loading } = useLoopItems( attributes );
+	const { data, loading } = useLoopItems( attributes, 1, useParentItem( clientId ) );
+	// A Loop over a list of its card's item takes its starters from the outer Loop's source.
+	const outer = useLoop( clientId );
 	const fields = useMemo( () => ( data?.fields ?? [] ).map( ( f ) => f.key ), [ data ] );
 	const first = data?.items[ 0 ];
 	const current = useSelect( ( select: any ) => select( 'core/block-editor' ).getBlocks( clientId ), [ clientId ] );
@@ -245,8 +249,12 @@ export function LoopCardShelf( { clientId, attributes, layout }: { clientId: str
 
 	// The Loop's source may bring starter cards (another plugin's): they lead the shelf, and show even
 	// where the Studio's own designs are not loaded.
-	const source = loopSource( attributes?.source );
-	const starters = source?.cards ?? [];
+	// A starter tagged with a `list` is for a Loop over that list inside the source's card (a trip's
+	// itinerary); the others are cards for the source's own items.
+	const nested = attributes?.source === ITEM_SOURCE;
+	const source = loopSource( nested ? outer?.attributes?.source : attributes?.source );
+	const list = nested ? String( attributes?.path || data?.path || '' ) : '';
+	const starters = ( source?.cards ?? [] ).filter( ( c ) => ( nested ? !! list && c.list === list : ! c.list ) );
 	const studio = designs( 'builtin' ) !== 'unavailable';
 	if ( ! studio && ! starters.length ) return null;
 	const shelfSources: ShelfSource[] = [

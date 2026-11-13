@@ -6,14 +6,15 @@
  * Previews use core's block preview hook, the one core's Post Template uses for every post but
  * the active one. It is experimental, so it is reached only through `usePreviewProps` below.
  */
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { cloneBlock, getBlockType } from '@wordpress/blocks';
 import { BlockControls, __experimentalUseBlockPreview as useBlockPreview } from '@wordpress/block-editor';
 import { ToolbarButton } from '@wordpress/components';
 import { effects, resolve, slotSpan, type Effects, type Item, type Rule } from './data';
-import { usePreview, usePreviewPage, useLoopItems } from './use-items';
+import { ITEM_SOURCE, usePreview, usePreviewPage, useLoopItems } from './use-items';
+import { LoopItemContext, useRecordParentItem } from './item-context';
 import { PagerPreview } from './pager-preview';
 import { LoopCardShelf, closeCardShelf, isStarterCard, openCardShelf, toBlocks, useShelfView } from './card-shelf';
 import { matchFields } from './cards';
@@ -77,6 +78,12 @@ export function bindBlocks( blocks: any[], item: Item, hide: string[] ): any[] {
 	for ( const block of blocks ) {
 		const attrs = block.attributes ?? {};
 		if ( attrs.uniqueId && hide.includes( attrs.uniqueId ) ) continue;
+		// A Loop inside the card binds to its own items: copied as it is, as the page leaves it
+		// (Bindings.php). It reads this item from the card it sits in (item-context.tsx).
+		if ( block.name === 'blicks/loop' ) {
+			out.push( cloneBlock( block ) );
+			continue;
+		}
 		const bindings = attrs.metadata?.bindings ?? {};
 		const next: Record< string, unknown > = {};
 		let drop = false;
@@ -107,7 +114,11 @@ function usePreviewProps( blocks: any[] ): Record< string, unknown > {
 }
 
 export function LoopCanvas( { attributes, blockProps, innerBlocksProps, clientId }: { attributes: any; blockProps: any; innerBlocksProps: any; clientId: string } ) {
-	const { data, error, loading } = useLoopItems( attributes, usePreviewPage( clientId ) );
+	// The card this Loop sits in, if any: a Loop over a list of that card's item reads it.
+	const parent = useContext( LoopItemContext );
+	useRecordParentItem( clientId, parent );
+	const nested = attributes.source === ITEM_SOURCE;
+	const { data, error, loading } = useLoopItems( attributes, usePreviewPage( clientId ), parent );
 	const items = data?.items ?? [];
 	const index = usePreview( clientId, items.length );
 	const template = useSelect( ( select: any ) => select( 'core/block-editor' ).getBlocks( clientId ), [ clientId ] );
@@ -134,7 +145,8 @@ export function LoopCanvas( { attributes, blockProps, innerBlocksProps, clientId
 	const style = { ...( blockProps.style ?? {} ), ...loopVars( attributes ) };
 
 	let state: string | null = null;
-	if ( loading && ! data ) state = __( 'Loading the items…', 'blicks' );
+	if ( nested && ! parent ) state = __( 'This Loop repeats over a list of the item above. Put it inside another Loop’s card.', 'blicks' );
+	else if ( loading && ! data ) state = __( 'Loading the items…', 'blicks' );
 	else if ( error ) state = error;
 	else if ( ! items.length ) state = attributes.emptyText || __( 'No items to show. Check the Loop’s Data and Items settings.', 'blicks' );
 
@@ -164,22 +176,27 @@ export function LoopCanvas( { attributes, blockProps, innerBlocksProps, clientId
 						const fx = itemEffects( attributes, item, i );
 						const props = itemProps( fx, layout );
 						return (
-							<li key={ i } { ...props } className={ `${ props.className } is-preview` }>
-								<Preview blocks={ bindBlocks( ghost, item, [] ) } />
-							</li>
+							<LoopItemContext.Provider key={ i } value={ item }>
+								<li { ...props } className={ `${ props.className } is-preview` }>
+									<Preview blocks={ bindBlocks( ghost, item, [] ) } />
+								</li>
+							</LoopItemContext.Provider>
 						);
 					} ) }
 				</ul>
 			) }
 			<ul className="bl-loop__items" role="list" hidden={ !! ghost && ! state }>
-				<li { ...innerBlocksProps } { ...itemProps( templateFx, layout ) } className={ `${ itemProps( templateFx, layout ).className } ${ innerBlocksProps?.className ?? '' } is-template` } />
+				{ /* Each card hands its item to a Loop inside it: the live card the item it shows. */ }
+				<LoopItemContext.Provider value={ items.length ? current : undefined }>
+					<li { ...innerBlocksProps } { ...itemProps( templateFx, layout ) } className={ `${ itemProps( templateFx, layout ).className } ${ innerBlocksProps?.className ?? '' } is-template` } />
+				</LoopItemContext.Provider>
 				{ ! state && previews.map( ( item, i ) => {
 					const fx = itemEffects( attributes, item, i + 1 );
 					const props = itemProps( fx, layout );
 					return (
 						// A preview stands for the Loop: clicking it selects the Loop, not a block inside.
+						<LoopItemContext.Provider key={ i } value={ item }>
 						<li
-							key={ i }
 							{ ...props }
 							className={ `${ props.className } is-preview` }
 							onClickCapture={ ( e ) => {
@@ -190,6 +207,7 @@ export function LoopCanvas( { attributes, blockProps, innerBlocksProps, clientId
 						>
 							<Preview blocks={ bindBlocks( card, item, fx.hide ) } />
 						</li>
+						</LoopItemContext.Provider>
 					);
 				} ) }
 			</ul>

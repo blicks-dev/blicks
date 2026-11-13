@@ -12,6 +12,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import { Field, Note, Row, Sec, SegText, Select, Switch, type Option } from '@/framework/inspector-v2/kit';
 import { format as formatValue, resolve, setSiteDateFormat, upgrade, type BindingArgs } from './data';
 import { usePreview, usePreviewPage, useLoopItems } from './use-items';
+import { useParentItem } from './item-context';
 
 export const SOURCE = 'blicks/item';
 
@@ -66,7 +67,8 @@ export function useLoop( clientId: string | undefined ): { clientId: string; att
 
 /** The Loop's fields and the item the live card is showing. */
 function useLoopItem( loop: { clientId: string; attributes: any } | null ) {
-	const { data } = useLoopItems( loop?.attributes ?? null, usePreviewPage( loop?.clientId ) );
+	// A Loop over a list of its card's item needs that item, as its canvas recorded it.
+	const { data } = useLoopItems( loop?.attributes ?? null, usePreviewPage( loop?.clientId ), useParentItem( loop?.clientId ) );
 	const items = loop ? data?.items ?? [] : [];
 	const index = usePreview( loop?.clientId, items.length );
 	return { fields: loop ? data?.fields ?? [] : [], item: items[ index ] ?? null, index, count: items.length };

@@ -31,6 +31,7 @@ use Blicks\Http\Controllers\EntriesController;
 use Blicks\Http\Controllers\FormsController;
 use Blicks\Http\Controllers\FormsSettingsController;
 use Blicks\Data\EndpointRegistry;
+use Blicks\Data\JsonSource;
 use Blicks\Data\LoopAttributes;
 use Blicks\Studio\EntityRef;
 
@@ -251,6 +252,12 @@ final class RestServiceProvider extends ServiceProvider {
 						'sanitize_callback' => static fn ( $value ): int => max( 1, min( 100000, absint( $value ) ) ),
 					],
 					'refresh' => RestArgs::boolean(),
+					// The card item a Loop inside a card repeats over (source `item`): the editor
+					// sends the item its card shows. Only read as data, capped like pasted JSON.
+					'parent' => [
+						'type' => 'object',
+						'validate_callback' => static fn ( $value ): bool => is_array( $value ) && strlen( (string) wp_json_encode( $value ) ) <= JsonSource::MAX_BYTES,
+					],
 				]
 			);
 

@@ -125,6 +125,42 @@ final class LoopNestedTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'bl-loop__items', do_blocks( self::inner( 'days', 'title' ) ) );
 	}
 
+	public function test_the_editor_gets_a_cards_list_by_sending_its_item(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$ask = static function ( array $body ): array {
+			$request = new \WP_REST_Request( 'POST', '/blicks/v1/loop/items' );
+			$request->set_body_params( $body );
+			$response = rest_do_request( $request );
+
+			return [ $response->get_status(), $response->get_data() ];
+		};
+
+		[ $status, $data ] = $ask(
+			[
+				'attributes' => [
+					'source' => 'item',
+					'path' => 'days',
+				],
+				'parent' => self::TRIPS[0],
+			]
+		);
+		$this->assertSame( 200, $status );
+		$this->assertSame( [ 'Fly to Lukla', 'Trek to Namche' ], array_column( $data['items'], 'title' ) );
+		$this->assertSame( [ 'days', 'includes' ], array_column( $data['lists'], 'path' ) );
+
+		[ $status, $data ] = $ask( [ 'attributes' => [ 'source' => 'item' ] ] );
+		$this->assertSame( 200, $status );
+		$this->assertSame( [], $data['items'], 'no card item: nothing to repeat over' );
+
+		[ $status ] = $ask(
+			[
+				'attributes' => [ 'source' => 'item' ],
+				'parent' => [ 'big' => str_repeat( 'x', 262145 ) ],
+			]
+		);
+		$this->assertSame( 400, $status, 'a parent over the pasted-JSON cap is refused' );
+	}
+
 	public function test_loops_stop_three_deep(): void {
 		$level = [
 			'name' => 'L4',

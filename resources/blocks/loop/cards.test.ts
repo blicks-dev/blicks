@@ -56,3 +56,15 @@ describe( 'matchFields', () => {
 		expect( bound.innerBlocks![ 0 ].attributes?.content ).toBe( 'Title' );
 	} );
 } );
+
+describe( 'a Loop inside the card', () => {
+	it( 'keeps its own blocks: they never take the outer Loop’s fields', () => {
+		const nested: BlockNode = { name: 'blicks/loop', attributes: { source: 'item', path: 'days' }, innerBlocks: [ heading(), text() ] };
+		const bound = matchFields( card( [ heading(), nested, text() ] ), [ 'title', 'excerpt', 'price' ] );
+
+		expect( key( bound.innerBlocks![ 0 ], 'content' ) ).toBe( 'title' );
+		expect( key( bound.innerBlocks![ 2 ], 'content' ) ).toBe( 'excerpt' );
+		expect( bound.innerBlocks![ 1 ] ).toBe( nested );
+		expect( countBindings( bound ) ).toBe( 2 );
+	} );
+} );

@@ -6,7 +6,7 @@ import { LoopSettings, LoopToolbar } from './controls';
 import { loopSource } from '@/framework/loop-sources';
 
 const LAYOUT_NAMES: Record< string, string > = { grid: __( 'Grid', 'blicks' ), bento: __( 'Bento', 'blicks' ), list: __( 'List', 'blicks' ) };
-const SOURCE_NAMES: Record< string, string > = { json: __( 'Pasted', 'blicks' ), endpoint: __( 'Feed', 'blicks' ), query: __( 'WordPress', 'blicks' ) };
+const SOURCE_NAMES: Record< string, string > = { json: __( 'Pasted', 'blicks' ), endpoint: __( 'Feed', 'blicks' ), query: __( 'WordPress', 'blicks' ), item: __( 'List above', 'blicks' ) };
 
 /**
  * The Loop: repeats its inner blocks — the card — once per item, rendered on the server

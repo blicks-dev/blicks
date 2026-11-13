@@ -12,6 +12,8 @@ import type { ComponentType } from 'react';
 export interface SourceCard {
 	id: string;
 	title: string;
+	/** For a Loop over this list of the source's item (a trip's `itinerary`), not for the source's own items. */
+	list?: string;
 	card: { name: string; attributes?: Record< string, unknown >; innerBlocks?: SourceCard[ 'card' ][] };
 }
 

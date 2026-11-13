@@ -88,7 +88,10 @@ export function matchFields( card: BlockNode, fields: string[] ): BlockNode {
 	// Texts are given fields longest first, so the body copy shows `description` and a short
 	// eyebrow or label above it keeps its own words. Equal lengths keep their order.
 	const texts: BlockNode[] = [];
+	// A Loop inside the card has its own items: neither its texts nor its blocks take this Loop's fields.
+	const inner = ( node: BlockNode ): boolean => node !== card && node.name === 'blicks/loop';
 	const collect = ( node: BlockNode ): void => {
+		if ( inner( node ) ) return;
 		if ( node.name === 'blicks/text' && ! ( node.attributes?.metadata as { bindings?: { content?: unknown } } | undefined )?.bindings?.content ) {
 			texts.push( node );
 		}
@@ -100,6 +103,7 @@ export function matchFields( card: BlockNode, fields: string[] ): BlockNode {
 	[ ...texts ].sort( ( a, b ) => plain( b ) - plain( a ) ).forEach( ( node ) => textFields.set( node, take( NAMES.text ) ) );
 
 	const visit = ( node: BlockNode ): BlockNode => {
+		if ( inner( node ) ) return node;
 		const { uniqueId: _drop, ...attributes } = ( node.attributes ?? {} ) as Record< string, unknown >;
 		const metadata = ( attributes.metadata ?? {} ) as { bindings?: Record< string, unknown > };
 		const bindings: Record< string, unknown > = { ...( metadata.bindings ?? {} ) };

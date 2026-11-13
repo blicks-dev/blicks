@@ -39,7 +39,14 @@ final class LoopController {
 
 	public static function items( WP_REST_Request $request ): WP_REST_Response {
 		$attrs = $request->get_param( 'attributes' );
-		$result = Loop::items( is_array( $attrs ) ? $attrs : [], (int) $request->get_param( 'postId' ), (bool) $request->get_param( 'refresh' ), max( 1, (int) $request->get_param( 'page' ) ) );
+		$parent = $request->get_param( 'parent' );
+		$result = Loop::items(
+			is_array( $attrs ) ? $attrs : [],
+			(int) $request->get_param( 'postId' ),
+			(bool) $request->get_param( 'refresh' ),
+			max( 1, (int) $request->get_param( 'page' ) ),
+			is_array( $parent ) && ! array_is_list( $parent ) ? $parent : null
+		);
 
 		if ( is_wp_error( $result ) ) {
 			return new WP_REST_Response(

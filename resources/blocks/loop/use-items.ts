@@ -51,15 +51,23 @@ export function dataAttributes( attributes: Record< string, unknown > ): Record<
 
 const cache = new Map< string, LoopItems >();
 
+/** The built-in source for a Loop inside a card: a list of the card's item (src/Data/ItemSource.php). */
+export const ITEM_SOURCE = 'item';
+
 /**
  * `null` is "not in a Loop": nothing is fetched. A bindable block outside a Loop (and every block in
  * a design preview) calls this too, and used to post empty attributes on each mount for a 422.
+ *
+ * `parent` is the card item a Loop with the `item` source repeats over a list of; it is sent with
+ * the request, so the server's own code reads the list, filters, sorts and limits it. Until there is
+ * one (outside any Loop card) nothing is fetched.
  */
-export function useLoopItems( attributes: Record< string, unknown > | null, page = 1 ): ItemsState {
+export function useLoopItems( attributes: Record< string, unknown > | null, page = 1, parent?: Item ): ItemsState {
 	const postId = useSelect( ( select: any ) => select( 'core/editor' )?.getCurrentPostId?.() ?? 0, [] );
 	// Only a paged Loop has pages, so an unpaged one shares its cache entry with every caller.
 	const at = attributes?.pagination ? Math.max( 1, page ) : 1;
-	const key = attributes ? JSON.stringify( [ dataAttributes( attributes ), postId, at ] ) : '';
+	const nested = attributes?.source === ITEM_SOURCE;
+	const key = attributes && ( ! nested || parent ) ? JSON.stringify( [ dataAttributes( attributes ), postId, at, nested ? parent : null ] ) : '';
 	const [ state, setState ] = useState< { key: string; data: LoopItems | null; error: string; loading: boolean } >( () => ( {
 		key,
 		data: cache.get( key ) ?? null,
@@ -86,7 +94,7 @@ export function useLoopItems( attributes: Record< string, unknown > | null, page
 			( apiFetch( {
 				path: '/blicks/v1/loop/items',
 				method: 'POST',
-				data: { attributes: dataAttributes( attributes ?? {} ), postId: Number( postId ) || 0, page: at, refresh: force },
+				data: { attributes: dataAttributes( attributes ?? {} ), postId: Number( postId ) || 0, page: at, refresh: force, ...( nested ? { parent } : {} ) },
 			} ) as Promise< LoopItems > )
 				.then( ( data ) => {
 					cache.set( key, data );
@@ -95,7 +103,7 @@ export function useLoopItems( attributes: Record< string, unknown > | null, page
 				.catch( ( e: any ) => {
 					if ( latest.current === key ) setState( { key, data: null, error: String( e?.message || 'The items could not be loaded.' ), loading: false } );
 				} );
-		}, force ? 0 : 400 );
+		}, force || nested ? 0 : 400 );
 		return () => clearTimeout( timer );
 		// `attributes` is read through `key`.
 		// eslint-disable-next-line react-hooks/exhaustive-deps

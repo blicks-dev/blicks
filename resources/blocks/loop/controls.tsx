@@ -16,7 +16,9 @@ import { ToolbarChoice } from '@/blocks/shared/toolbar';
 import type { PanelProps } from '@/framework/inspector-v2/InspectorV2';
 import { Field, Note, Row, Sec, SegText, Select, Steps, SubView, Switch, type Option } from '@/framework/inspector-v2/kit';
 import { ACTIONS, OPS, hits, type Rule } from './data';
-import { setPreview, setPreviewPage, usePreview, usePreviewPage, useLoopItems } from './use-items';
+import { ITEM_SOURCE, setPreview, setPreviewPage, usePreview, usePreviewPage, useLoopItems } from './use-items';
+import { useParentItem } from './item-context';
+import { useLoop } from './binding';
 import { DEFAULT_PER_PAGE, paging, type Pagination } from './pager';
 import { loopLayout } from './canvas';
 import { CardSec } from './card-picker';
@@ -109,7 +111,7 @@ export function jsonProblem( text: string ): string {
 const slugs = ( value: unknown ): string => ( Array.isArray( value ) ? value : typeof value === 'string' ? [ value ] : [] ).join( ', ' );
 
 function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
-	const { data, error, loading, refresh } = useLoopItems( attributes );
+	const { data, error, loading, refresh } = useLoopItems( attributes, 1, useParentItem( clientId ) );
 	const endpoints = useEndpoints();
 	const [ draft, setDraft ] = useState< string >( attributes.data ?? '' );
 	const problem = jsonProblem( draft );
@@ -121,7 +123,14 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 	const filter = attributes.filter ?? {};
 	const registered = loopSource( source );
 	const missing = ! registered && isSourceId( source );
-	const sourceNote = registered
+	// Inside another Loop's card, a Loop can repeat over one of that card item's lists.
+	const inCard = !! useLoop( clientId );
+	const nested = source === ITEM_SOURCE;
+	const sourceNote = nested
+		? ( inCard
+			? __( 'Repeats over one of the card item’s lists: a trip’s itinerary, a product’s variants. Its blocks show that list’s fields.', 'blicks' )
+			: __( 'This Loop is not inside another Loop’s card, so it has no list to repeat over.', 'blicks' ) )
+		: registered
 		? registered.note
 		: missing
 			? sprintf( /* translators: %s: a data source's id, e.g. "acme/trips" */ __( 'This Loop reads from %s, which a plugin adds. That plugin is not active, so the Loop shows nothing.', 'blicks' ), source )
@@ -133,6 +142,7 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 	// Other plugins' sources after the built-ins; a missing one stays listed so the value still shows.
 	const sourceOptions: Option[] = [
 		...SOURCES,
+		...( inCard || nested ? [ [ ITEM_SOURCE, __( 'A list of the item above', 'blicks' ) ] as Option ] : [] ),
 		...loopSources().map( ( s ): Option => [ s.id, s.label ] ),
 		...( missing ? [ [ source, source ] as Option ] : [] ),
 	];
@@ -225,8 +235,8 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 				</>
 			) }
 
-			{ source !== 'query' && data && data.lists.length > 1 && (
-				<Row label={ __( 'List to loop over', 'blicks' ) } stack hint={ __( 'path in the JSON', 'blicks' ) } set={ !! attributes.path }>
+			{ source !== 'query' && data && data.lists.length > ( nested ? 0 : 1 ) && (
+				<Row label={ __( 'List to loop over', 'blicks' ) } stack hint={ nested ? __( 'a list of the card’s item', 'blicks' ) : __( 'path in the JSON', 'blicks' ) } set={ !! attributes.path }>
 					<Select
 						label={ __( 'List to loop over', 'blicks' ) }
 						value={ data.path }
@@ -266,7 +276,7 @@ function DataSec( { attributes, setAttributes, clientId }: PanelProps ) {
 }
 
 function ItemsSec( { attributes, setAttributes, clientId }: PanelProps ) {
-	const { data } = useLoopItems( attributes, usePreviewPage( clientId ) );
+	const { data } = useLoopItems( attributes, usePreviewPage( clientId ), useParentItem( clientId ) );
 	const paged = !! paging( attributes );
 	const count = data?.items.length ?? 0;
 	const index = usePreview( clientId, count );
@@ -329,7 +339,7 @@ function ItemsSec( { attributes, setAttributes, clientId }: PanelProps ) {
 function PagesSec( { attributes, setAttributes, clientId, onWords }: PanelProps & { onWords: () => void } ) {
 	const settings = paging( attributes );
 	const pagination: Pagination = attributes.pagination ?? {};
-	const { data } = useLoopItems( attributes, usePreviewPage( clientId ) );
+	const { data } = useLoopItems( attributes, usePreviewPage( clientId ), useParentItem( clientId ) );
 	const inherit = attributes.source === 'query' && !! attributes.query?.inherit;
 	const labels = pagination.labels ?? {};
 	const restart = () => clientId && setPreviewPage( clientId, 1 );
@@ -570,7 +580,7 @@ function useCardBlocks( clientId: string | undefined ): Option[] {
 }
 
 function RulesSec( { attributes, setAttributes, clientId }: PanelProps ) {
-	const { data } = useLoopItems( attributes );
+	const { data } = useLoopItems( attributes, 1, useParentItem( clientId ) );
 	const rules: Rule[] = Array.isArray( attributes.rules ) ? attributes.rules : [];
 	const fields: Option[] = ( data?.fields ?? [] ).map( ( f ) => [ f.key, f.key ] );
 	const cardBlocks = useCardBlocks( clientId );
