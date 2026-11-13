@@ -22,9 +22,12 @@ const imageGlyph = (
 // Both sources are user-controlled and neither is scheme-checked upstream: `url` arrives from
 // the media library or `onSelectURL`, `href` from the link control or the HTML importer, which
 // reads a pasted `src`. Filtering here covers every path into the rendered anchor.
+//
+// A link bound to a Loop field saves `#`: the anchor must be in the markup for the page to write
+// the item's address into it (`Bindings`, selector `a`).
 function imageHref( attributes: any ): string {
 	if ( attributes.linkTo === 'media' ) return cleanHref( attributes.url );
-	if ( attributes.linkTo === 'custom' ) return cleanHref( attributes.href );
+	if ( attributes.linkTo === 'custom' || bindingOf( attributes, 'href' ) ) return cleanHref( attributes.href ) || ( bindingOf( attributes, 'href' ) ? '#' : '' );
 	return '';
 }
 

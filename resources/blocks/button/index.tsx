@@ -67,7 +67,10 @@ function ButtonToolbar( { attributes, setAttributes, clientId }: { attributes: a
  */
 function drawButton( { attributes, blockProps, richText, children }: RenderCtx, preview = false ): JSX.Element {
 		const action = buttonAction( attributes );
-		const Tag = preview ? 'span' : action === 'link' && attributes.url ? 'a' : 'button';
+		// A link bound to a Loop field saves `#`: the anchor must be in the markup for the page to
+		// write the item's address into it (`Bindings`, selector `a`).
+		const href = attributes.url || ( bindingOf( attributes, 'url' ) ? '#' : '' );
+		const Tag = preview ? 'span' : action === 'link' && href ? 'a' : 'button';
 		const blocksMode = cleanContentMode( attributes.content ) === 'blocks';
 		const variant = cleanButtonVariant( attributes.variant );
 		const size = cleanButtonSize( attributes.size );
@@ -82,7 +85,7 @@ function drawButton( { attributes, blockProps, richText, children }: RenderCtx, 
 		// Open dialog and Close dialog are the browser's invoker commands. Close names no dialog:
 		// the one it sits in is filled in when the page renders (Blicks\Blocks\Dialogs).
 		const tagProps: Record< string, unknown > = Tag === 'span' ? {} : Tag === 'a'
-			? { href: attributes.url, target: attributes.linkTarget || undefined, rel: attributes.rel || undefined }
+			? { href, target: attributes.linkTarget || undefined, rel: attributes.rel || undefined }
 			: {
 				// Send form is the one `type="submit"` and Clear form the one `type="reset"`; everything
 				// else must not send a form it sits in.
