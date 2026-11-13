@@ -38,8 +38,12 @@ export interface ItemsState {
 	refresh: () => void;
 }
 
-/** The attributes that decide which items come back; everything else is layout. */
-export const DATA_KEYS = [ 'source', 'data', 'path', 'endpoint', 'query', 'limit', 'offset', 'sort', 'filter', 'pagination' ] as const;
+/**
+ * The attributes that decide which items come back; everything else is layout. Every key
+ * `LoopAttributes::sanitize()` reads belongs here, or the editor previews items the page won't show
+ * (a registered source's settings, `sourceArgs`, were missing: changing them never reached the preview).
+ */
+export const DATA_KEYS = [ 'source', 'sourceArgs', 'data', 'path', 'endpoint', 'query', 'limit', 'offset', 'sort', 'filter', 'pagination' ] as const;
 
 export function dataAttributes( attributes: Record< string, unknown > ): Record< string, unknown > {
 	const out: Record< string, unknown > = {};
