@@ -91,6 +91,15 @@
 		var( --blicks-surface-border-color, var( --bl-bcl, currentcolor ) );
 }
 
+/* A badge with no words draws nothing: a Loop card's badge bound to a field an item leaves empty
+   (a discount on a trip without one) would otherwise show as a bare coloured pill. Outside the
+   layer, so it beats the engine's `.bl-d` display that the Badge kind always sets. The editable
+   badge is skipped: an empty one must stay visible to be typed into. */
+.bl-box--badge:empty:not( [contenteditable] ),
+.bl-loop__preview .bl-box--badge.is-empty {
+	display: none;
+}
+
 /* Editor: keep a dashed outline on a selected Box (or while a child is selected) so an unstyled
    box stays visible, and show a spacer's room. Editor-only — `.is-selected` never reaches the
    front end. `outline` never overrides a user-set border or background. */

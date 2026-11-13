@@ -3,6 +3,7 @@ import { defineBlock } from '@/framework/define-block';
 import metadata from './block.json';
 import { BoxMotion, BoxSettings, BoxStyle, BoxToolbar, KINDS } from './controls';
 import { cleanKind, cleanTag } from './model';
+import { bindingOf } from '@/blocks/loop/binding';
 
 defineBlock( metadata, {
 	innerBlocks: true,
@@ -36,6 +37,10 @@ defineBlock( metadata, {
 		if ( kind === 'divider' ) return <hr { ...blockProps } className={ className } />;
 		if ( kind === 'spacer' ) return <div { ...blockProps } className={ className } aria-hidden="true" />;
 		if ( kind === 'badge' ) {
+			// A badge bound to a field an item leaves empty is hidden in the Loop's preview cards, as
+			// it is on the front end (style.scss). The editor draws an empty RichText as a `<br>`, so
+			// `:empty` can't see it there: the class says so instead. Editor only; saves nothing.
+			const emptyBound = isEdit && !! bindingOf( attributes, 'text' ) && ! String( attributes.text ?? '' ).replace( /<[^>]*>/g, '' ).trim();
 			// A linked badge is the link itself: a short label, so there is nothing to stretch over.
 			return richText( {
 				attr: 'text',
@@ -43,7 +48,7 @@ defineBlock( metadata, {
 				placeholder: __( 'Badge', 'blicks' ),
 				allowedFormats: [ 'core/bold', 'core/italic' ],
 				...blockProps,
-				className,
+				className: emptyBound ? `${ className } is-empty` : className,
 				...( href && ! isEdit ? linkProps : {} ),
 			} );
 		}
