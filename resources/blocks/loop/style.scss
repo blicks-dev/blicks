@@ -19,7 +19,12 @@
 		--bl-loop-cols: var(--bl-loop-cols-d, 3);
 	}
 
+	// Child combinators throughout: a Loop inside a card must take none of its outer Loop's layout.
 	.bl-loop__items {
+		// The tile size is per item; reset here so an inner Loop's items don't inherit their card's.
+		--bl-loop-c: 1;
+		--bl-loop-r: 1;
+
 		display: grid;
 		grid-template-columns: repeat(var(--bl-loop-cols), minmax(0, 1fr));
 		grid-auto-flow: row dense;
@@ -44,19 +49,19 @@
 		}
 	}
 
-	.bl-loop--top .bl-loop__item > * {
+	.bl-loop--top > .bl-loop__items > .bl-loop__item > * {
 		flex: 0 0 auto;
 	}
 
-	.bl-loop--list .bl-loop__items {
+	.bl-loop--list > .bl-loop__items {
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	.bl-loop--bento .bl-loop__items {
+	.bl-loop--bento > .bl-loop__items {
 		grid-auto-rows: var(--bl-loop-row, 180px);
 	}
 
-	.bl-loop--bento .bl-loop__item {
+	.bl-loop--bento > .bl-loop__items > .bl-loop__item {
 		min-height: 0;
 		overflow: hidden;
 	}
@@ -78,11 +83,11 @@
 		}
 
 		// One column: tiles stack at their natural height and the pattern no longer applies.
-		.bl-loop--bento .bl-loop__items {
+		.bl-loop--bento > .bl-loop__items {
 			grid-auto-rows: auto;
 		}
 
-		.bl-loop--bento .bl-loop__item {
+		.bl-loop--bento > .bl-loop__items > .bl-loop__item {
 			grid-row: auto;
 			overflow: visible;
 		}
