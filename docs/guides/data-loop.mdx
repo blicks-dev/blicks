@@ -38,11 +38,15 @@ Values from JSON and endpoints are always shown as text, never as markup, and li
 	<Step title="Connect a block to a field">
 		Select a Heading, Text, Image, Button or a Box badge inside the card. Its **Data** section has a
 		*comes from* menu listing the item's fields. Choose one and the block shows that field for each
-		item, with a chip naming it.
+		item. Point at it, or select it, and a chip names the field.
 	</Step>
 	<Step title="Format the value">
-		Under **Format**: upper case, shorten, number, currency, date, text before or after, or join a list.
-		**If the field is empty, show…** sets a fallback.
+		Under **Format**: case, shorten, number, currency, date, or join a list. Each has its own options:
+		decimals, thousands separator and decimal mark for numbers and prices; a price's currency typed
+		(`$`, `USD`) or read from a field of the item, and shown as `$200`, `USD 200`, `200 USD` or
+		`$200 USD`; a date style, the site's own format, or a pattern of your own.
+		**Text before** and **Text after** wrap any value (`From ` … ` / person`), and **If empty** sets a
+		fallback.
 	</Step>
 </Steps>
 

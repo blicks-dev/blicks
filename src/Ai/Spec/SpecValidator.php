@@ -466,10 +466,10 @@ final class SpecValidator {
 	private const ROLES = [ 'label', 'help' ];
 
 	/** What a binding's `args` may hold ({@see Formatter::resolve()}). */
-	private const BINDING_ARGS = [ 'key', 'fallback', 'format', 'formatArg' ];
+	private const BINDING_ARGS = [ 'key', 'fallback', 'format', 'formatArg', 'opts', 'before', 'after' ];
 
 	/**
-	 * `metadata.bindings`: attribute → `{ source: "blicks/item", args: { key, format?, formatArg?, fallback? } }`.
+	 * `metadata.bindings`: attribute → `{ source: "blicks/item", args: { key, format?, formatArg?, opts?, before?, after?, fallback? } }`.
 	 *
 	 * Only attributes the block declares `bindable` can be bound, and only inside a Loop — outside
 	 * one there is no item, and the page would show the typed value with nothing to say why.
@@ -528,6 +528,8 @@ final class SpecValidator {
 					$errors[] = self::metadataError( $here . '.args.' . $key, sprintf( 'A binding\'s "args" may hold only: %s.', implode( ', ', self::BINDING_ARGS ) ) );
 				} elseif ( 'format' === $key && ! in_array( $arg, Formatter::FORMATS, true ) ) {
 					$errors[] = self::metadataError( $here . '.args.format', sprintf( '"format" must be one of: %s.', implode( ', ', Formatter::FORMATS ) ) );
+				} elseif ( 'opts' === $key ) {
+					$errors = array_merge( $errors, self::checkFormatOpts( $arg, $here . '.args.opts' ) );
 				} elseif ( 'format' !== $key && ! is_string( $arg ) ) {
 					$errors[] = self::metadataError( $here . '.args.' . $key, sprintf( '"%s" must be a string.', $key ) );
 				} elseif ( 'fallback' === $key && in_array( $declared[ $attribute ]['bindable']['kind'] ?? 'text', [ 'url', 'image' ], true ) && '' !== $arg && '' === Formatter::safeUrl( $arg ) ) {
@@ -535,6 +537,38 @@ final class SpecValidator {
 				} elseif ( is_string( $arg ) && 1 === preg_match( '/<!|<\?|-->/', $arg ) ) {
 					$errors[] = self::metadataError( $here . '.args.' . $key, sprintf( '"%s" may not contain an HTML comment, `<!` or `<?`.', $key ), 'invalid-markup' );
 				}
+			}
+		}
+
+		return $errors;
+	}
+
+	/**
+	 * A binding's `opts`: an object of the format options {@see Formatter::OPTS} (each one of its
+	 * values) and the free-text ones {@see Formatter::TEXT_OPTS}.
+	 *
+	 * @return list<array{path: string, message: string, reason: string}>
+	 */
+	private static function checkFormatOpts( mixed $opts, string $at ): array {
+		if ( ! is_array( $opts ) || ( [] !== $opts && array_is_list( $opts ) ) ) {
+			return [ self::metadataError( $at, '"opts" must be an object, e.g. { "currency": "USD", "show": "code" }.' ) ];
+		}
+
+		$errors = [];
+		foreach ( $opts as $key => $value ) {
+			$here = $at . '.' . $key;
+			if ( isset( Formatter::OPTS[ $key ] ) ) {
+				if ( ! in_array( $value, Formatter::OPTS[ $key ], true ) ) {
+					$errors[] = self::metadataError( $here, sprintf( '"%s" must be one of: %s.', $key, implode( ', ', array_map( static fn ( string $v ): string => '"' . $v . '"', Formatter::OPTS[ $key ] ) ) ) );
+				}
+			} elseif ( in_array( $key, Formatter::TEXT_OPTS, true ) ) {
+				if ( ! is_string( $value ) ) {
+					$errors[] = self::metadataError( $here, sprintf( '"%s" must be a string.', $key ) );
+				} elseif ( 1 === preg_match( '/<!|<\?|-->/', $value ) ) {
+					$errors[] = self::metadataError( $here, sprintf( '"%s" may not contain an HTML comment, `<!` or `<?`.', $key ), 'invalid-markup' );
+				}
+			} else {
+				$errors[] = self::metadataError( $here, sprintf( '"opts" may hold only: %s.', implode( ', ', array_merge( array_keys( Formatter::OPTS ), Formatter::TEXT_OPTS ) ) ) );
 			}
 		}
 

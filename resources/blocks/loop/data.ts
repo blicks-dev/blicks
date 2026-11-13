@@ -10,7 +10,40 @@
 export type Item = Record< string, unknown >;
 
 export const OPS = [ 'is', 'not', 'has', 'gt', 'lt', 'set', 'empty' ] as const;
-export const FORMATS = [ 'none', 'upper', 'truncate', 'number', 'currency', 'date', 'prefix', 'suffix', 'join' ] as const;
+// `upper`, `prefix` and `suffix` are read for bindings saved before Case and Text before/after;
+// the Data section writes `case` and the `before`/`after` args instead.
+export const FORMATS = [ 'none', 'upper', 'case', 'truncate', 'number', 'currency', 'date', 'prefix', 'suffix', 'join' ] as const;
+
+/** Each format's options (`args.opts`): the values each may take, the first the default. */
+export const FORMAT_OPTS = {
+	case: [ 'upper', 'lower', 'title' ],
+	cut: [ 'word', 'char' ],
+	decimals: [ 'auto', '0', '1', '2' ],
+	group: [ ',', '.', ' ', '' ],
+	point: [ '.', ',' ],
+	compact: [ '', 'yes' ],
+	show: [ 'symbol', 'code', 'code-after', 'both' ],
+	style: [ 'short', 'long', 'us', 'dmy', 'mdy', 'iso', 'weekday', 'site', 'custom' ],
+} as const;
+
+/** Currency codes → the symbol shown for them. A code not here shows as itself. */
+export const CURRENCY_SYMBOLS: Record< string, string > = {
+	USD: '$', EUR: '€', GBP: '£', JPY: '¥', CNY: '¥', INR: '₹', NPR: 'Rs', LKR: 'Rs', PKR: 'Rs', BDT: '৳',
+	AUD: 'A$', CAD: 'CA$', NZD: 'NZ$', HKD: 'HK$', SGD: 'S$', MXN: 'MX$', BRL: 'R$', ZAR: 'R', CHF: 'CHF',
+	SEK: 'kr', NOK: 'kr', DKK: 'kr', PLN: 'zł', TRY: '₺', RUB: '₽', KRW: '₩', THB: '฿', VND: '₫', PHP: '₱',
+	IDR: 'Rp', MYR: 'RM', AED: 'AED', SAR: 'SAR', EGP: 'E£', KES: 'KSh', NGN: '₦', ILS: '₪',
+};
+
+/** The date styles as PHP date patterns, the same on both sides. `site` and `custom` come from elsewhere. */
+export const DATE_STYLES: Record< string, string > = {
+	short: 'j M Y', long: 'j F Y', us: 'M j, Y', dmy: 'd/m/Y', mdy: 'm/d/Y', iso: 'Y-m-d', weekday: 'D, j M',
+};
+
+let siteDateFormat = 'F j, Y';
+/** The site's date format (Settings → General), for the `site` date style. */
+export function setSiteDateFormat( pattern: string ): void {
+	if ( pattern ) siteDateFormat = pattern;
+}
 export const ACTIONS = {
 	size: [ '1x1', '2x1', '1x2', '2x2', '3x2', '4x1' ],
 	card: [ 'highlight', 'dark', 'muted' ],
@@ -134,40 +167,134 @@ export function lists( value: unknown ): Array< { path: string; count: number } 
 }
 
 const MONTHS = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];
+const DAYS = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+const pad = ( n: number ): string => String( n ).padStart( 2, '0' );
+const ordinal = ( n: number ): string => ( n % 100 >= 11 && n % 100 <= 13 ? 'th' : [ 'th', 'st', 'nd', 'rd' ][ n % 10 ] ?? 'th' );
 
-function date( v: string, long: boolean ): string {
+/**
+ * A date through a PHP date pattern, in UTC. Only the day, month and year letters below are read
+ * (`\x` is a literal x); any other letter shows as itself, on the page as here.
+ */
+function date( v: string, pattern: string ): string {
 	const t = Date.parse( v );
 	if ( Number.isNaN( t ) ) return v;
 	const d = new Date( t );
-	const month = MONTHS[ d.getUTCMonth() ];
-	return `${ d.getUTCDate() } ${ long ? month : month.slice( 0, 3 ) } ${ d.getUTCFullYear() }`;
+	const day = d.getUTCDate();
+	const month = d.getUTCMonth();
+	const tokens: Record< string, () => string > = {
+		d: () => pad( day ), j: () => String( day ), S: () => ordinal( day ),
+		D: () => DAYS[ d.getUTCDay() ].slice( 0, 3 ), l: () => DAYS[ d.getUTCDay() ],
+		m: () => pad( month + 1 ), n: () => String( month + 1 ),
+		M: () => MONTHS[ month ].slice( 0, 3 ), F: () => MONTHS[ month ],
+		y: () => String( d.getUTCFullYear() ).slice( -2 ), Y: () => String( d.getUTCFullYear() ),
+	};
+	let out = '';
+	for ( let i = 0; i < pattern.length; i++ ) {
+		const c = pattern[ i ];
+		if ( c === '\\' ) {
+			out += pattern[ ++i ] ?? '';
+			continue;
+		}
+		out += tokens[ c ] ? tokens[ c ]() : c;
+	}
+	return out;
 }
 
-const grouped = ( n: number, decimals: number ): string =>
-	n.toLocaleString( 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals } );
+/** One of an option's allowed values, or its default (the first). */
+function opt< K extends keyof typeof FORMAT_OPTS >( opts: Record< string, unknown >, key: K, fallback?: string ): string {
+	const allowed = FORMAT_OPTS[ key ] as readonly string[];
+	const v = scalar( opts[ key ] ?? '' );
+	if ( opts[ key ] !== undefined && allowed.includes( v ) ) return v;
+	return fallback !== undefined && allowed.includes( fallback ) ? fallback : allowed[ 0 ];
+}
 
-export function format( value: unknown, fmt: string, arg: string ): string {
+/** A number rounded to `decimals` places, in decimal (1.005 → 1.01, as PHP's round does). */
+const rounded = ( n: number, decimals: number ): number => Number( Math.round( Number( `${ n }e${ decimals }` ) ) + `e-${ decimals }` );
+
+/** A non-negative number with its thousands grouped and its decimal mark. */
+function digits( n: number, decimals: number, group: string, point: string ): string {
+	const [ whole, frac ] = rounded( n, decimals ).toFixed( decimals ).split( '.' );
+	const grouped = whole.replace( /\B(?=(\d{3})+(?!\d))/g, group );
+	return frac ? grouped + point + frac : grouped;
+}
+
+/** `auto` decimals: none for a whole number, two otherwise. */
+const places = ( n: number, decimals: string ): number => ( decimals === 'auto' ? ( n % 1 === 0 ? 0 : 2 ) : Number( decimals ) );
+
+function compact( n: number, point: string ): string | null {
+	for ( const [ size, unit ] of [ [ 1e9, 'B' ], [ 1e6, 'M' ], [ 1e3, 'K' ] ] as const ) {
+		if ( n >= size ) return digits( n / size, 1, '', point ).replace( new RegExp( `\\${ point }0$` ), '' ) + unit;
+	}
+	return null;
+}
+
+/** A symbol that ends in a letter (`Rs`, `CHF`) is kept apart from the number. */
+const glue = ( symbol: string ): string => ( /\p{L}$/u.test( symbol ) ? symbol + ' ' : symbol );
+
+function money( n: number, arg: string, opts: Record< string, unknown >, item: Item ): string {
+	const field = scalar( opts.currencyField ?? '' );
+	let currency = field ? scalar( item[ field ] ?? '' ).trim() : '';
+	// Typed in the Data section, else the symbol saved before options (`formatArg`), else US dollars.
+	if ( ! currency ) currency = scalar( opts.currency ?? '' ).trim() || arg.trim() || 'USD';
+	const isCode = /^[A-Za-z]{3}$/.test( currency );
+	const code = isCode ? currency.toUpperCase() : currency;
+	const symbol = isCode ? CURRENCY_SYMBOLS[ code ] ?? code : currency;
+	const abs = Math.abs( n );
+	const num = digits( abs, places( abs, opt( opts, 'decimals' ) ), opt( opts, 'group' ), opt( opts, 'point' ) );
+	let out: string;
+	switch ( opt( opts, 'show' ) ) {
+		case 'code': out = `${ code } ${ num }`; break;
+		case 'code-after': out = `${ num } ${ code }`; break;
+		case 'both': out = symbol === code ? `${ code } ${ num }` : `${ glue( symbol ) }${ num } ${ code }`; break;
+		default: out = glue( symbol ) + num;
+	}
+	return ( n < 0 ? '-' : '' ) + out;
+}
+
+function cased( s: string, how: string ): string {
+	if ( how === 'lower' ) return s.toLowerCase();
+	if ( how === 'title' ) return s.toLowerCase().replace( /(^|[\s-])(\p{L})/gu, ( _m, a: string, b: string ) => a + b.toUpperCase() );
+	return s.toUpperCase();
+}
+
+
+/**
+ * One value through one format. `arg` is the single setting saved before options (`formatArg`);
+ * `opts` are the format's options; `item` is the whole item, for a currency read from a field.
+ * A format that cannot read the value leaves it as it was.
+ */
+export function format( value: unknown, fmt: string, arg: string, opts: Record< string, unknown > = {}, item: Item = {} ): string {
 	switch ( fmt ) {
 		case 'upper': return text( value ).toUpperCase();
+		case 'case': return cased( text( value ), opt( opts, 'case' ) );
 		case 'truncate': {
 			const limit = Math.max( 1, parseInt( arg === '' ? '80' : arg, 10 ) || 1 );
 			const s = text( value );
 			const chars = Array.from( s );
 			if ( chars.length <= limit ) return s;
-			return chars.slice( 0, limit ).join( '' ).replace( /\s+\S*$/u, '' ) + '…';
+			const cut = chars.slice( 0, limit ).join( '' );
+			return ( opt( opts, 'cut' ) === 'char' ? cut : cut.replace( /\s+\S*$/u, '' ) ) + '…';
 		}
 		case 'number': {
 			const s = text( value );
 			if ( ! isNumeric( s ) ) return s;
-			return grouped( Number( s ), Math.max( 0, Math.min( 6, parseInt( arg, 10 ) || 0 ) ) );
+			const n = Number( s );
+			const abs = Math.abs( n );
+			const point = opt( opts, 'point' );
+			const short = opt( opts, 'compact' ) === 'yes' ? compact( abs, point ) : null;
+			// No Decimals option: the setting saved before options (0–6), else none.
+			const decimals = opts.decimals !== undefined ? places( abs, opt( opts, 'decimals' ) ) : Math.max( 0, Math.min( 6, parseInt( arg, 10 ) || 0 ) );
+			return ( n < 0 ? '-' : '' ) + ( short ?? digits( abs, decimals, opt( opts, 'group' ), point ) );
 		}
 		case 'currency': {
 			const s = text( value );
-			if ( ! isNumeric( s ) ) return s;
-			const n = Number( s );
-			return ( arg === '' ? '$' : arg ) + grouped( n, n % 1 === 0 ? 0 : 2 );
+			return isNumeric( s ) ? money( Number( s ), arg, opts, item ) : s;
 		}
-		case 'date': return date( text( value ), arg === 'long' );
+		case 'date': {
+			const style = opt( opts, 'style', arg === 'long' ? 'long' : 'short' );
+			const pattern = style === 'site' ? siteDateFormat : style === 'custom' ? scalar( opts.pattern ?? '' ) || DATE_STYLES.short : DATE_STYLES[ style ];
+			return date( text( value ), pattern );
+		}
 		case 'prefix': return arg + text( value );
 		case 'suffix': return text( value ) + arg;
 		case 'join': return isList( value ) ? value.map( scalar ).join( arg === '' ? ', ' : arg ) : text( value );
@@ -180,7 +307,65 @@ export function safeUrl( url: string ): string {
 	return /^(https?:\/\/\S+|\/(?!\/)\S*|#\S*)$/i.test( u ) ? u : '';
 }
 
-export interface BindingArgs { key?: string; fallback?: unknown; format?: string; formatArg?: unknown }
+export interface BindingArgs {
+	key?: string;
+	fallback?: unknown;
+	format?: string;
+	formatArg?: unknown;
+	/** The format's options ({@see FORMAT_OPTS}, plus `currency`, `currencyField` and `pattern`). */
+	opts?: Record< string, unknown >;
+	/** Text around the value, whatever the format; not around the fallback. */
+	before?: unknown;
+	after?: unknown;
+}
+
+/**
+ * A binding saved before format options, in today's shape: Upper case → Case, "Add text
+ * before/after" → the Text before/after fields, a currency symbol, decimals or date style kept in
+ * `formatArg` → its option. Shows the same text; the Data section writes this shape back.
+ */
+export function upgrade( args: BindingArgs ): BindingArgs {
+	const next: BindingArgs = { ...args, opts: { ...( args.opts ?? {} ) } };
+	const arg = args.formatArg === undefined ? '' : String( args.formatArg );
+	const opts = next.opts as Record< string, unknown >;
+	const take = () => delete next.formatArg;
+	switch ( args.format ) {
+		case 'upper':
+			next.format = 'case';
+			opts.case = 'upper';
+			break;
+		case 'prefix':
+			next.before = arg + String( args.before ?? '' );
+			delete next.format;
+			take();
+			break;
+		case 'suffix':
+			next.after = String( args.after ?? '' ) + arg;
+			delete next.format;
+			take();
+			break;
+		case 'currency':
+			if ( arg && opts.currency === undefined ) {
+				opts.currency = arg;
+				take();
+			}
+			break;
+		case 'number':
+			if ( [ '0', '1', '2' ].includes( arg ) && opts.decimals === undefined ) {
+				opts.decimals = arg;
+				take();
+			}
+			break;
+		case 'date':
+			if ( arg && opts.style === undefined ) {
+				opts.style = arg === 'long' ? 'long' : 'short';
+				take();
+			}
+			break;
+	}
+	if ( ! Object.keys( opts ).length ) delete next.opts;
+	return next;
+}
 
 export function resolve( item: Item, args: BindingArgs, kind: string = 'text' ): { text: string; from: 'field' | 'fallback' } {
 	const key = typeof args.key === 'string' ? args.key : '';
@@ -193,7 +378,8 @@ export function resolve( item: Item, args: BindingArgs, kind: string = 'text' ):
 	if ( isList( value ) && fmt !== 'join' ) value = value.map( scalar ).join( ', ' );
 	if ( isObject( value ) ) value = undefined;
 	if ( value === undefined || value === null || value === '' || ( isList( value ) && ! value.length ) ) return { text: fallback, from: 'fallback' };
-	let out = format( value, fmt, arg );
+	const opts = isObject( args.opts ) ? args.opts : {};
+	let out = scalar( args.before ?? '' ) + format( value, fmt, arg, opts, item ) + scalar( args.after ?? '' );
 	if ( isUrl ) {
 		out = safeUrl( out );
 		if ( ! out ) return { text: fallback, from: 'fallback' };

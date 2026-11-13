@@ -119,6 +119,20 @@ final class LoopSpecTest extends TestCase
         $this->assertSame('', $this->messages($with(['source' => 'blicks/item', 'args' => ['key' => 'a', 'format' => 'truncate', 'formatArg' => '40', 'fallback' => 'None']])));
     }
 
+    public function test_a_bindings_format_options_and_surrounding_text(): void
+    {
+        $with = fn (array $args): array => self::loop(['data' => '[{"a":1}]'], [['name' => 'blicks/text', 'attributes' => ['metadata' => ['bindings' => ['content' => ['source' => 'blicks/item', 'args' => ['key' => 'a'] + $args]]]]]]);
+
+        $this->assertSame('', $this->messages($with(['format' => 'currency', 'opts' => ['currencyField' => 'currency', 'currency' => 'USD', 'show' => 'code', 'decimals' => 'auto', 'group' => ''], 'before' => 'From ', 'after' => ' / person'])));
+        $this->assertSame('', $this->messages($with(['format' => 'date', 'opts' => ['style' => 'custom', 'pattern' => 'l, jS F']])));
+        $this->assertStringContainsString('"show" must be one of', $this->messages($with(['format' => 'currency', 'opts' => ['show' => 'emoji']])));
+        $this->assertStringContainsString('"opts" may hold only', $this->messages($with(['format' => 'number', 'opts' => ['style' => 'short', 'locale' => 'de']])));
+        $this->assertStringContainsString('"opts" must be an object', $this->messages($with(['opts' => ['upper']])));
+        $this->assertStringContainsString('"currency" must be a string', $this->messages($with(['format' => 'currency', 'opts' => ['currency' => 1]])));
+        $this->assertStringContainsString('HTML comment', $this->messages($with(['format' => 'date', 'opts' => ['pattern' => '--><!-- wp:x']])));
+        $this->assertStringContainsString('HTML comment', $this->messages($with(['after' => '--><!-- wp:x'])));
+    }
+
     public function test_a_link_fallback_must_be_a_safe_address(): void
     {
         $button = static fn (string $fallback): array => self::loop(['data' => '[{"a":1}]'], [['name' => 'blicks/button', 'attributes' => ['text' => 'Go', 'metadata' => ['bindings' => ['url' => ['source' => 'blicks/item', 'args' => ['key' => 'link', 'fallback' => $fallback]]]]]]]);

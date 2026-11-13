@@ -2,7 +2,7 @@
 
 Loop repeats the blocks inside it, the card, once for every item in a list: pasted JSON, a data endpoint an administrator added, or a WordPress query. Design the card once; the Loop draws one per item, in a grid, a bento or a list.
 
-In the editor the first card is the live one you edit, and the others preview the next items. A Heading, Text, Image, Button or Box badge inside the card can show a field of each item: choose it under **Data › comes from**, and format it under **Format**.
+In the editor the first card is the live one you edit, and the others preview the next items. A Heading, Text, Image, Button or Box badge inside the card can show a field of each item: choose it under **Data › comes from**, format it under **Format** (case, shorten, number, currency, date, join a list), and wrap it in **Text before** and **Text after**.
 
 Values from JSON and endpoints are always shown as text, never as markup, and links must be `http`, `https` or a path on your site.
 

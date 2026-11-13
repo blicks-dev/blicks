@@ -9,31 +9,30 @@
  */
 import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
-import { Field, Note, Sec, Select, type Option } from '@/framework/inspector-v2/kit';
-import { FORMATS, resolve, type BindingArgs } from './data';
+import { Field, Note, Row, Sec, SegText, Select, Switch, type Option } from '@/framework/inspector-v2/kit';
+import { format as formatValue, resolve, setSiteDateFormat, upgrade, type BindingArgs } from './data';
 import { usePreview, usePreviewPage, useLoopItems } from './use-items';
 
 export const SOURCE = 'blicks/item';
 
-const FORMAT_NAMES: Record< string, string > = {
-	none: __( 'As it is', 'blicks' ),
-	upper: __( 'Upper case', 'blicks' ),
-	truncate: __( 'Shorten', 'blicks' ),
-	number: __( 'Number', 'blicks' ),
-	currency: __( 'Currency', 'blicks' ),
-	date: __( 'Date', 'blicks' ),
-	prefix: __( 'Add text before', 'blicks' ),
-	suffix: __( 'Add text after', 'blicks' ),
-	join: __( 'Join a list', 'blicks' ),
-};
-const FORMAT_ARG: Record< string, [ label: string, placeholder: string ] > = {
-	truncate: [ __( 'Characters', 'blicks' ), '80' ],
-	number: [ __( 'Decimals', 'blicks' ), '0' ],
-	currency: [ __( 'Symbol', 'blicks' ), '$' ],
-	prefix: [ __( 'Text before', 'blicks' ), '' ],
-	suffix: [ __( 'Text after', 'blicks' ), '' ],
-	join: [ __( 'Between items', 'blicks' ), ', ' ],
-};
+// The site's date format, for the "Site's format" date style; the page reads it from Settings → General.
+setSiteDateFormat( ( globalThis as any ).wp?.date?.getSettings?.()?.formats?.date ?? '' );
+
+/** The formats the Data section offers; `upper`, `prefix` and `suffix` are only read ({@see upgrade}). */
+const FORMAT_NAMES: Option[] = [
+	[ 'none', __( 'As it is', 'blicks' ) ],
+	[ 'case', __( 'Case', 'blicks' ) ],
+	[ 'truncate', __( 'Shorten', 'blicks' ) ],
+	[ 'number', __( 'Number', 'blicks' ) ],
+	[ 'currency', __( 'Currency', 'blicks' ) ],
+	[ 'date', __( 'Date', 'blicks' ) ],
+	[ 'join', __( 'Join a list', 'blicks' ) ],
+];
+
+const GROUPS: Option[] = [ [ ',', '1,000' ], [ '.', '1.000' ], [ ' ', '1 000' ], [ '', '1000' ] ];
+const POINTS: Option[] = [ [ '.', '0.50' ], [ ',', '0,50' ] ];
+const EXAMPLE_DATE = '2026-11-03';
+const DATE_STYLES = [ 'short', 'long', 'us', 'weekday', 'dmy', 'mdy', 'iso', 'site' ] as const;
 
 export function bindingOf( attributes: any, attr: string ): BindingArgs | null {
 	const b = attributes?.metadata?.bindings?.[ attr ];
@@ -91,7 +90,8 @@ export function DataSec( { attributes, setAttributes, clientId, attr, kind = 'te
 	const { fields, item, index, count } = useLoopItem( loop );
 	if ( ! loop ) return null;
 
-	const args = bindingOf( attributes, attr );
+	const saved = bindingOf( attributes, attr );
+	const args = saved ? upgrade( saved ) : null;
 	const set = ( next: BindingArgs | null ) => {
 		const patch: Record< string, unknown > = withBinding( attributes, attr, next );
 		// An address must be in the saved markup for the page to rewrite (an Image with no URL
@@ -103,11 +103,32 @@ export function DataSec( { attributes, setAttributes, clientId, attr, kind = 'te
 		setAttributes( patch );
 	};
 	const format = args?.format ?? 'none';
-	const formatArg = FORMAT_ARG[ format ];
-	const options: Option[] = [ [ '', __( 'Typed text', 'blicks' ) ], ...fields.map( ( f ): Option => [ f.key, `${ f.key } · ${ f.type }` ] ) ];
+	const opts = ( args?.opts ?? {} ) as Record< string, unknown >;
+	const o = ( key: string, fallback = '' ): string => ( opts[ key ] === undefined ? fallback : String( opts[ key ] ) );
+	const setOpt = ( key: string, value: string | undefined ) => {
+		const next = { ...opts, [ key ]: value };
+		if ( value === undefined ) delete next[ key ];
+		set( { ...args, opts: Object.keys( next ).length ? next : undefined } );
+	};
+	const setText = ( key: 'before' | 'after' | 'fallback' ) => ( v: string ) => set( { ...args, [ key ]: v || undefined } );
+	const fieldOptions: Option[] = [ [ '', __( 'Typed text', 'blicks' ) ], ...fields.map( ( f ): Option => [ f.key, `${ f.key } · ${ f.type }` ] ) ];
+	const options: Option[] = [ ...fieldOptions ];
 	// A field the data no longer has stays listed, so the binding is not silently changed.
 	if ( args?.key && ! fields.some( ( f ) => f.key === args.key ) ) options.push( [ args.key, sprintf( /* translators: %s: field name */ __( '%s (not in this data)', 'blicks' ), args.key ) ] );
 	const shown = args && item ? resolve( item, args, kind ) : null;
+	// Each choice drawn as what it makes of this item's value (or a stand-in), so the list is the preview.
+	const sample = ( fmt: string, more: Record< string, unknown >, value: unknown ) => formatValue( value, fmt, '', { ...opts, ...more }, item ?? {} );
+	const price = item && args?.key && Number.isFinite( Number( item[ args.key ] ) ) && item[ args.key ] !== '' ? Number( item[ args.key ] ) : 1290;
+	const separators = (
+		<>
+			<Row label={ __( 'Thousands', 'blicks' ) } set={ opts.group !== undefined }>
+				<Select label={ __( 'Thousands', 'blicks' ) } value={ o( 'group', ',' ) } options={ GROUPS } onChange={ ( v ) => setOpt( 'group', v ) } />
+			</Row>
+			<Row label={ __( 'Decimal mark', 'blicks' ) } set={ opts.point !== undefined }>
+				<SegText label={ __( 'Decimal mark', 'blicks' ) } options={ POINTS } value={ o( 'point', '.' ) } onChange={ ( v ) => setOpt( 'point', v ) } />
+			</Row>
+		</>
+	);
 
 	return (
 		<Sec title={ title ?? __( 'Data', 'blicks' ) } value={ args?.key ? sprintf( /* translators: %s: field name */ __( 'From %s', 'blicks' ), args.key ) : __( 'Typed', 'blicks' ) }>
@@ -120,26 +141,99 @@ export function DataSec( { attributes, setAttributes, clientId, attr, kind = 'te
 			{ args?.key && (
 				<>
 					{ kind === 'text' && (
-						<div className="mt">
-							<Select label={ __( 'Format', 'blicks' ) } value={ format } options={ FORMATS.map( ( f ): Option => [ f, FORMAT_NAMES[ f ] ] ) }
-								onChange={ ( f ) => set( { ...args, format: f === 'none' ? undefined : f, formatArg: undefined } ) } />
-						</div>
+						<Row label={ __( 'Format', 'blicks' ) } set={ format !== 'none' }>
+							<Select label={ __( 'Format', 'blicks' ) } value={ format } options={ FORMAT_NAMES }
+								onChange={ ( f ) => set( { ...args, format: f === 'none' ? undefined : f, formatArg: undefined, opts: undefined } ) } />
+						</Row>
 					) }
+
+					{ format === 'case' && (
+						<Row label={ __( 'Case', 'blicks' ) } stack>
+							<SegText label={ __( 'Case', 'blicks' ) } value={ o( 'case', 'upper' ) } onChange={ ( v ) => setOpt( 'case', v ) }
+								options={ [ [ 'upper', __( 'UPPER', 'blicks' ) ], [ 'lower', __( 'lower', 'blicks' ) ], [ 'title', __( 'Title Case', 'blicks' ) ] ] } />
+						</Row>
+					) }
+
+					{ format === 'truncate' && (
+						<>
+							<Row label={ __( 'Characters', 'blicks' ) } set={ args.formatArg !== undefined }>
+								<Field label={ __( 'Characters', 'blicks' ) } type="number" value={ String( args.formatArg ?? '' ) } placeholder="80" onChange={ ( v ) => set( { ...args, formatArg: v || undefined } ) } />
+							</Row>
+							<Row label={ __( 'Cut', 'blicks' ) } set={ opts.cut !== undefined }>
+								<SegText label={ __( 'Cut', 'blicks' ) } value={ o( 'cut', 'word' ) } onChange={ ( v ) => setOpt( 'cut', v ) }
+									options={ [ [ 'word', __( 'At a word', 'blicks' ) ], [ 'char', __( 'Exactly', 'blicks' ) ] ] } />
+							</Row>
+						</>
+					) }
+
+					{ format === 'number' && (
+						<>
+							<Row label={ __( 'Decimals', 'blicks' ) } set={ opts.decimals !== undefined } stack>
+								<SegText label={ __( 'Decimals', 'blicks' ) } value={ o( 'decimals', args.formatArg !== undefined ? String( args.formatArg ) : '0' ) } onChange={ ( v ) => set( { ...args, formatArg: undefined, opts: { ...opts, decimals: v } } ) }
+									options={ [ [ 'auto', __( 'Auto', 'blicks' ) ], [ '0', '0' ], [ '1', '0.0' ], [ '2', '0.00' ] ] } />
+							</Row>
+							{ separators }
+							<Switch label={ __( 'Short (1.2K, 3.4M)', 'blicks' ) } checked={ o( 'compact' ) === 'yes' } onChange={ ( on ) => setOpt( 'compact', on ? 'yes' : undefined ) } />
+						</>
+					) }
+
+					{ format === 'currency' && (
+						<>
+							<Row label={ __( 'Currency from', 'blicks' ) } set={ !! o( 'currencyField' ) }>
+								<Select label={ __( 'Currency from', 'blicks' ) } value={ o( 'currencyField' ) } options={ [ [ '', __( 'Typed below', 'blicks' ) ], ...fieldOptions.slice( 1 ).filter( ( [ k ] ) => k !== args.key ) ] }
+									onChange={ ( v ) => setOpt( 'currencyField', v || undefined ) } />
+							</Row>
+							<Row label={ o( 'currencyField' ) ? __( 'If none', 'blicks' ) : __( 'Currency', 'blicks' ) } set={ opts.currency !== undefined }
+								note={ __( 'A symbol ($) or a three-letter code (USD).', 'blicks' ) }>
+								<Field label={ __( 'Currency', 'blicks' ) } value={ o( 'currency' ) } placeholder="$" onChange={ ( v ) => setOpt( 'currency', v || undefined ) } />
+							</Row>
+							<Row label={ __( 'Show as', 'blicks' ) } set={ opts.show !== undefined } stack>
+								<SegText label={ __( 'Show as', 'blicks' ) } value={ o( 'show', 'symbol' ) } onChange={ ( v ) => setOpt( 'show', v ) }
+									options={ ( [ 'symbol', 'code', 'code-after', 'both' ] as const ).map( ( show ): Option => [ show, sample( 'currency', { show }, price ) ] ) } />
+							</Row>
+							<Row label={ __( 'Decimals', 'blicks' ) } set={ opts.decimals !== undefined }>
+								<SegText label={ __( 'Decimals', 'blicks' ) } value={ o( 'decimals', 'auto' ) } onChange={ ( v ) => setOpt( 'decimals', v ) }
+									options={ [ [ 'auto', __( 'Auto', 'blicks' ) ], [ '2', '0.00' ], [ '0', __( 'None', 'blicks' ) ] ] } />
+							</Row>
+							{ separators }
+						</>
+					) }
+
 					{ format === 'date' && (
-						<div className="mt">
-							<Select label={ __( 'Date style', 'blicks' ) } value={ String( args.formatArg ?? 'short' ) } options={ [ [ 'short', '3 Nov 2026' ], [ 'long', '3 November 2026' ] ] }
-								onChange={ ( formatArg ) => set( { ...args, formatArg } ) } />
-						</div>
+						<>
+							<Row label={ __( 'Style', 'blicks' ) } set={ opts.style !== undefined }>
+								<Select label={ __( 'Date style', 'blicks' ) } value={ o( 'style', args.formatArg === 'long' ? 'long' : 'short' ) } onChange={ ( v ) => set( { ...args, formatArg: undefined, opts: { ...opts, style: v } } ) }
+									options={ [
+										...DATE_STYLES.map( ( style ): Option => [ style, style === 'site'
+											? sprintf( /* translators: %s: a date in the site's format */ __( "Site's format (%s)", 'blicks' ), sample( 'date', { style }, EXAMPLE_DATE ) )
+											: sample( 'date', { style }, EXAMPLE_DATE ) ] ),
+										[ 'custom', __( 'Custom…', 'blicks' ) ],
+									] } />
+							</Row>
+							{ o( 'style' ) === 'custom' && (
+								<Row label={ __( 'Pattern', 'blicks' ) } set={ !! o( 'pattern' ) }
+									note={ __( 'd j: day · D l: weekday · S: 1st · m n M F: month · y Y: year · \\x: a letter as is', 'blicks' ) }>
+									<Field label={ __( 'Pattern', 'blicks' ) } value={ o( 'pattern' ) } placeholder="j M Y" onChange={ ( v ) => setOpt( 'pattern', v || undefined ) } />
+								</Row>
+							) }
+						</>
 					) }
-					{ formatArg && (
-						<div className="mt">
-							<Field label={ formatArg[ 0 ] } value={ String( args.formatArg ?? '' ) } placeholder={ formatArg[ 1 ] } onChange={ ( formatArg ) => set( { ...args, formatArg } ) } />
-						</div>
+
+					{ format === 'join' && (
+						<Row label={ __( 'Between items', 'blicks' ) } set={ args.formatArg !== undefined }>
+							<Field label={ __( 'Between items', 'blicks' ) } value={ String( args.formatArg ?? '' ) } placeholder=", " onChange={ ( v ) => set( { ...args, formatArg: v || undefined } ) } />
+						</Row>
 					) }
-					<div className="mt">
-						<Field label={ __( 'If the field is empty', 'blicks' ) } value={ String( args.fallback ?? '' ) } placeholder={ __( 'If the field is empty, show…', 'blicks' ) }
-							onChange={ ( fallback ) => set( { ...args, fallback: fallback || undefined } ) } />
-					</div>
+
+					<Row label={ __( 'Text before', 'blicks' ) } set={ !! args.before }>
+						<Field label={ __( 'Text before', 'blicks' ) } value={ String( args.before ?? '' ) } placeholder={ __( 'From ', 'blicks' ) } onChange={ setText( 'before' ) } />
+					</Row>
+					<Row label={ __( 'Text after', 'blicks' ) } set={ !! args.after }>
+						<Field label={ __( 'Text after', 'blicks' ) } value={ String( args.after ?? '' ) } placeholder={ __( ' / person', 'blicks' ) } onChange={ setText( 'after' ) } />
+					</Row>
+					<Row label={ __( 'If empty', 'blicks' ) } set={ !! args.fallback }>
+						<Field label={ __( 'If the field is empty', 'blicks' ) } value={ String( args.fallback ?? '' ) } placeholder={ __( 'Show…', 'blicks' ) } onChange={ setText( 'fallback' ) } />
+					</Row>
 					{ shown && (
 						<Note>
 							{ shown.from === 'fallback'

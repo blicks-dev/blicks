@@ -352,5 +352,16 @@
 		color: #fff;
 		font: 500 10px/14px ui-monospace, Menlo, monospace;
 		pointer-events: none;
+
+		// Shown only while the value is pointed at or its block is selected, so the card reads as
+		// it will on the page; the Data section names the field the rest of the time.
+		opacity: 0;
+		transition: opacity 0.12s ease;
+	}
+
+	.is-bound:is(:hover, .is-selected) > .bl-bound-chip,
+	.is-selected > .is-bound > .bl-bound-chip,
+	.is-selected > * > .is-bound > .bl-bound-chip {
+		opacity: 1;
 	}
 }

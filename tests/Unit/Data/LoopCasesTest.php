@@ -49,7 +49,7 @@ final class LoopCasesTest extends TestCase
     #[DataProvider('formatCases')]
     public function testFormat(array $case): void
     {
-        $this->assertSame($case['out'], Formatter::format($case['value'], $case['format'], $case['arg']));
+        $this->assertSame($case['out'], Formatter::format($case['value'], $case['format'], $case['arg'], $case['opts'] ?? [], $case['item'] ?? []));
     }
 
     #[DataProvider('resolveCases')]
