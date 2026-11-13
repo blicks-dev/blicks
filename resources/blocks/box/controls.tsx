@@ -7,6 +7,7 @@ import { StylePanel } from '@/framework/inspector-v2/StylePanel';
 import { readStyle, writeStyle, type Look } from '@/framework/inspector-v2/style-model';
 import { MotionPanel } from '@/framework/inspector-v2/MotionPanel';
 import { HideFromReaders } from '@/framework/inspector-v2/More';
+import { DataSec } from '@/blocks/loop/binding';
 import { useState } from 'react';
 import { Chips, Exact, Field, Icon, Note, Row, SegIcons, SegText, Sec, Select, Slider, Steps, SubView, Switch, type Option } from '@/framework/inspector-v2/kit';
 import {
@@ -459,6 +460,8 @@ export function BoxSettings( { attributes, setAttributes, clientId }: PanelProps
 		return (
 			<>
 				{ kindSec }
+				{ /* In a Loop's card, the badge's words can come from a field: "−11%", "2–12 people". */ }
+				<DataSec attributes={ attributes } setAttributes={ setAttributes } clientId={ clientId } attr="text" label={ __( 'Badge text', 'blicks' ) } />
 				<LinkSec attributes={ attributes } setAttributes={ setAttributes } />
 			</>
 		);

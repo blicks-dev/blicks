@@ -3,7 +3,7 @@ import { defineBlock } from '@/framework/define-block';
 import metadata from './block.json';
 import { BoxMotion, BoxSettings, BoxStyle, BoxToolbar, KINDS } from './controls';
 import { cleanKind, cleanTag } from './model';
-import { bindingOf } from '@/blocks/loop/binding';
+import { BoundValue, bindingOf } from '@/blocks/loop/binding';
 
 defineBlock( metadata, {
 	innerBlocks: true,
@@ -19,7 +19,7 @@ defineBlock( metadata, {
 	// A Box is routinely meant to stay empty — a rule, a swatch, a sized block of colour — so it gets
 	// no starting-layout placeholder and no ghost add-slot, only WordPress's own appender while it is
 	// selected. Its kinds and arrangements are in Settings, and they write ordinary style values.
-	render( { attributes, blockProps, children, isEdit, richText } ) {
+	render( { attributes, blockProps, children, isEdit, richText, clientId } ) {
 		const kind = cleanKind( attributes.kind );
 		// A plain box carries no kind class, so its markup is just the wrapper and its style classes.
 		const className = [ blockProps.className, kind !== 'plain' ? `bl-box--${ kind }` : '', attributes.layers ? 'bl-box--layers' : '' ]
@@ -42,7 +42,7 @@ defineBlock( metadata, {
 			// `:empty` can't see it there: the class says so instead. Editor only; saves nothing.
 			const emptyBound = isEdit && !! bindingOf( attributes, 'text' ) && ! String( attributes.text ?? '' ).replace( /<[^>]*>/g, '' ).trim();
 			// A linked badge is the link itself: a short label, so there is nothing to stretch over.
-			return richText( {
+			const editable = () => richText( {
 				attr: 'text',
 				tagName: href && ! isEdit ? 'a' : 'span',
 				placeholder: __( 'Badge', 'blicks' ),
@@ -51,6 +51,12 @@ defineBlock( metadata, {
 				className: emptyBound ? `${ className } is-empty` : className,
 				...( href && ! isEdit ? linkProps : {} ),
 			} );
+			// Bound to a field in a Loop's live card: the current item's value, with a chip naming the
+			// field, as a bound Text shows it (loop/binding.tsx). Saved markup is unchanged.
+			if ( isEdit && bindingOf( attributes, 'text' ) ) {
+				return <BoundValue attributes={ attributes } clientId={ clientId } attr="text" tagName="span" props={ { ...blockProps, className } } fallback={ editable } />;
+			}
+			return editable();
 		}
 
 		const Tag = cleanTag( attributes.tag ) as keyof JSX.IntrinsicElements;
