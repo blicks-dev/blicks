@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { DATA_KEYS, dataAttributes, isRegisteredSource } from './use-items';
+import { DATA_KEYS, dataAttributes } from './use-items';
+import { isSourceId } from '@/framework/loop-sources';
 
 describe( 'the attributes the editor sends for a Loop’s items', () => {
 	it( 'carries a registered source’s settings, so changing them reaches the preview', () => {
@@ -25,9 +26,9 @@ describe( 'which sources are told the card they sit in', () => {
 		const php = readFileSync( new URL( '../../../src/Data/LoopSources.php', import.meta.url ), 'utf8' );
 
 		expect( php ).toContain( "public const ID = '/^[a-z0-9-]+\\/[a-z0-9-]+$/';" );
-		expect( isRegisteredSource( 'blicks-kits/departures' ) ).toBe( true );
+		expect( isSourceId( 'blicks-kits/departures' ) ).toBe( true );
 		for ( const builtIn of [ 'json', 'feed', 'query', 'endpoint', 'item', 'Acme/Trips', undefined ] ) {
-			expect( isRegisteredSource( builtIn ), String( builtIn ) ).toBe( false );
+			expect( isSourceId( builtIn ), String( builtIn ) ).toBe( false );
 		}
 	} );
 } );

@@ -14,6 +14,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import apiFetch from '@wordpress/api-fetch';
 import { useSelect } from '@wordpress/data';
 import type { Item } from './data';
+import { isSourceId } from '@/framework/loop-sources';
 
 export interface LoopItems {
 	items: Item[];
@@ -58,11 +59,6 @@ const cache = new Map< string, LoopItems >();
 /** The built-in source for a Loop inside a card: a list of the card's item (src/Data/ItemSource.php). */
 export const ITEM_SOURCE = 'item';
 
-/** A source another plugin registered: `vendor/name` (`LoopSources::ID`). */
-export function isRegisteredSource( source: unknown ): boolean {
-	return typeof source === 'string' && /^[a-z0-9-]+\/[a-z0-9-]+$/.test( source );
-}
-
 /**
  * `null` is "not in a Loop": nothing is fetched. A bindable block outside a Loop (and every block in
  * a design preview) calls this too, and used to post empty attributes on each mount for a 422.
@@ -78,7 +74,7 @@ export function useLoopItems( attributes: Record< string, unknown > | null, page
 	const at = attributes?.pagination ? Math.max( 1, page ) : 1;
 	const nested = attributes?.source === ITEM_SOURCE;
 	// What reads the card around the Loop: the `item` source, and a registered one in a card.
-	const withParent = nested || ( isRegisteredSource( attributes?.source ) && parent !== undefined );
+	const withParent = nested || ( isSourceId( attributes?.source ) && parent !== undefined );
 	const key = attributes && ( ! nested || parent ) ? JSON.stringify( [ dataAttributes( attributes ), postId, at, withParent ? parent : null ] ) : '';
 	const [ state, setState ] = useState< { key: string; data: LoopItems | null; error: string; loading: boolean } >( () => ( {
 		key,
