@@ -88,6 +88,11 @@
 	],
 	"match": [
 		{ "value": "Lighting", "op": "is", "want": "lighting", "out": true },
+		{ "value": [ { "question": "Is it safe?" } ], "op": "set", "want": "", "out": true, "name": "a list of one object is set" },
+		{ "value": [ { "question": "Is it safe?" } ], "op": "empty", "want": "", "out": false },
+		{ "value": [], "op": "empty", "want": "", "out": true },
+		{ "value": [], "op": "set", "want": "", "out": false },
+		{ "value": [ "Lunch", "Dinner" ], "op": "set", "want": "", "out": true },
 		{ "value": "Lighting", "op": "not", "want": "Decor", "out": true },
 		{ "value": "A slim brass arc", "op": "has", "want": "BRASS", "out": true },
 		{ "value": 189, "op": "gt", "want": "100", "out": true },

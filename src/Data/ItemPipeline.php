@@ -79,9 +79,14 @@ final class ItemPipeline {
 
 	/**
 	 * Whether a value passes one operator. Lists compare as their items joined with ", ", the way
-	 * they read on the page; text compares without case.
+	 * they read on the page; text compares without case. A list is set when it has items, whatever
+	 * they hold: a list of objects joins to nothing, and must not read as empty.
 	 */
 	public static function matches( mixed $value, string $op, string $want ): bool {
+		if ( is_array( $value ) && ( 'set' === $op || 'empty' === $op ) ) {
+			return ( [] === $value ) === ( 'empty' === $op );
+		}
+
 		$text = is_array( $value ) ? implode( ', ', array_map( [ self::class, 'scalar' ], $value ) ) : self::scalar( $value );
 
 		switch ( $op ) {

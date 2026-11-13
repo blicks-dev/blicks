@@ -75,6 +75,10 @@ const text = ( v: unknown ): string => ( isList( v ) ? v.map( scalar ).join( ', 
 const isNumeric = ( s: string ): boolean => s.trim() !== '' && Number.isFinite( Number( s ) );
 
 export function matches( value: unknown, op: string, want: string ): boolean {
+	// A list is set when it has items: a list of objects joins to nothing (ItemPipeline::matches).
+	if ( value !== null && typeof value === 'object' && ( op === 'set' || op === 'empty' ) ) {
+		return ( Object.keys( value ).length > 0 ) === ( op === 'set' );
+	}
 	const s = text( value );
 	switch ( op ) {
 		case 'is': return s.toLowerCase() === want.toLowerCase();
