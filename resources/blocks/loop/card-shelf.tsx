@@ -303,6 +303,9 @@ export function LoopCardShelf( { clientId, attributes, layout }: { clientId: str
 
 	return (
 		<PatternShelf< Option >
+			// A new source opens the shelf on its own tab: switching to one that brings starter cards
+			// (Comes from: Trips) shows those first, not the tab the previous source left open.
+			key={ attributes?.source ?? '' }
 			title={ wide ? __( 'Choose a card for this Loop', 'blicks' ) : __( 'Change the card', 'blicks' ) }
 			blurb={ wide
 				? __( 'Each design is shown with your first item. It becomes a copy you can edit, with its blocks connected to fields that have matching names.', 'blicks' )
