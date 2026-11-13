@@ -7,8 +7,19 @@
  * hand. A container already marked is left alone, and so is everything above it.
  */
 
+import { STATE_ANCESTOR } from '@/engine/schema.gen';
+
 export const CARD_CONTROL = 'layout.group';
 export const CARD_VALUE = 'card';
+
+/**
+ * Whether a value in this state needs a card around the block, part prefix or not (`before:groupOn`):
+ * the states an ancestor turns on (`STATE_ANCESTOR`) — the card's hover, press and On. A value in
+ * one of them does nothing until something around the block is marked as the card.
+ */
+export function needsCard( state: string ): boolean {
+	return Object.hasOwn( STATE_ANCESTOR, state.split( ':' ).pop() ?? '' );
+}
 
 type Tree = Record< string, Record< string, Record< string, unknown > > >;
 

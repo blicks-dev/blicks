@@ -2,8 +2,9 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { MediaUpload, MediaUploadCheck, store as blockEditorStore, useBlockEditContext } from '@wordpress/block-editor';
 import { getBlockType } from '@wordpress/blocks';
-import { useDispatch, useRegistry, useSelect } from '@wordpress/data';
-import { CARD_CONTROL, canBeCard, cardToMark, isCard, markCard, type Ancestor } from './card';
+import { useSelect } from '@wordpress/data';
+import { CARD_CONTROL, isCard, markCard } from './card';
+import { useCard } from './use-card';
 import { DecorationEditor, DecorationsSec } from './Decorations';
 import { AllSettings, AllSettingsSec, EditInStudioSec } from './AllSettings';
 import { doorFor, hiddenFor, hiddenOf, type Entry } from './all-settings-model';
@@ -1040,30 +1041,3 @@ function ColourEditor( { which, look, set, back, css, fillCss, kind }: {
 
 const L0 = (): GradLayer => ( { type: 'linear', angle: 135, pos: '50% 50%', shape: 'circle', stops: [ { c: 'primary', a: 100, p: 0 }, { c: 'accent', a: 100, p: 100 } ] } );
 
-/**
- * Whether this block can answer to its card (its states include the engine's `group`), and how to
- * mark that card. The ancestors are read when the choice is made rather than subscribed to: the
- * panel has no reason to re-render as blocks above it change.
- */
-function useCard(): { available: boolean; container: boolean; mark: () => void } {
-	const { clientId, name } = useBlockEditContext();
-	const registry = useRegistry();
-	const { updateBlockAttributes } = useDispatch( blockEditorStore ) as unknown as { updateBlockAttributes: ( id: string, a: Record< string, unknown > ) => void };
-	const supportsOf = ( blockName: string | undefined ) => ( blockName ? ( getBlockType( blockName )?.supports as any )?.blicks : undefined );
-	const states = supportsOf( name )?.states;
-
-	return {
-		available: Array.isArray( states ) && states.includes( 'group' ),
-		container: canBeCard( supportsOf( name )?.controls ),
-		mark: () => {
-			if ( ! clientId ) return;
-			const store = registry.select( blockEditorStore ) as any;
-			const ancestors: Ancestor[] = ( store.getBlockParents( clientId, true ) as string[] ).map( ( id ) => {
-				const block = store.getBlock( id );
-				return { clientId: id, controls: supportsOf( block?.name )?.controls, blicks: block?.attributes?.blicks };
-			} );
-			const target = cardToMark( ancestors );
-			if ( target ) updateBlockAttributes( target.clientId, { blicks: markCard( target.blicks ) } );
-		},
-	};
-}

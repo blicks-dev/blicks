@@ -20,6 +20,8 @@ import { tokenOptions } from '@/controls/token-utils';
 import { CONTROL_VALUES, STATE_CONTROLS } from '@/engine/schema.gen';
 import { BREAKPOINTS, ELEMENT, entriesOf, keysOf, msOf, PARTS, problemOf, propertyOf, quickSourceOf, setEntry, textOf, tokensOf, valueOf } from './all-settings-model';
 import { BP_NAME, PART_NAME, STATE_NAME, WHY } from './labels';
+import { needsCard } from './card';
+import { useCard } from './use-card';
 import {
 	allowedIds,
 	BASE,
@@ -163,6 +165,7 @@ export function DesignPanel( { attributes, setAttributes, clientId, name, quick,
 	const controls: string[] | undefined = supports.controls;
 	const blockStates: string[] = supports.states ?? [ 'default' ];
 	const ancestors = useAncestors( clientId );
+	const card = useCard( { clientId, name } );
 	const { selectBlock } = useDispatch( blockEditorStore ) as any;
 
 	const [ tab, setTabState ] = useState< PanelTab >( () => resolveTab( sticky.tab, { quick: !! quick, settings: !! settings } ) );
@@ -226,6 +229,9 @@ export function DesignPanel( { attributes, setAttributes, clientId, name, quick,
 		setRefused( null );
 		setFlash( id );
 		setAttributes( { blicks: setEntry( tree, id, here.part, here.state, here.breakpoint, value ) } );
+		// A card state plays only inside a card: mark the nearest container, as the Style tab's
+		// "when its card is pointed at" does, or the value is saved and never seen.
+		if ( value !== undefined && needsCard( here.state ) ) card.mark();
 	};
 
 	/** Open on one value: its tab, its section (and its fold), then scroll to it and flash it. */
