@@ -39,7 +39,7 @@ final class Loop {
 	 * @param int                  $current The post the Loop is on, for "leave out the current page".
 	 * @param bool                 $wait    Refresh an endpoint now rather than from the background queue.
 	 * @param int                  $page    The page asked for; ignored unless the Loop is paged.
-	 * @param array<string, mixed>|null $parent The item of the Loop card this Loop sits in, for the `item` source.
+	 * @param array<string, mixed>|null $parent The item of the Loop card this Loop sits in, for the `item` source and registered sources.
 	 * @return array{items: list<array<string, mixed>>, fields: list<array{key: string, type: string}>, total: int, matched: int, path: string, lists: list<array{path: string, count: int}>, endpoint: array{fetchedAt: int, stale: bool, error: string}|null, page: int, pages: int, perPage: int, found: int, from: int}|WP_Error
 	 */
 	public static function items( array $attrs, int $current = 0, bool $wait = false, int $page = 1, ?array $parent = null ): array|WP_Error {
@@ -122,7 +122,15 @@ final class Loop {
 
 		if ( LoopSources::isId( $source ) ) {
 			// A source another plugin adds (or added: when it is inactive there are no items).
-			$all = LoopSources::items( $source, is_array( $attrs['sourceArgs'] ?? null ) ? $attrs['sourceArgs'] : [], [ 'current' => $current ] );
+			// With the card it sits in, for a source that depends on it (a trip's departures).
+			$all = LoopSources::items(
+				$source,
+				is_array( $attrs['sourceArgs'] ?? null ) ? $attrs['sourceArgs'] : [],
+				[
+					'current' => $current,
+					'parent' => $parent,
+				]
+			);
 			$run = ItemPipeline::run( $all, $config );
 			$count = max( 0, $run['matched'] - $offset );
 

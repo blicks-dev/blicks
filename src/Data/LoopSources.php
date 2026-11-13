@@ -33,6 +33,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The Loop then treats the items like pasted data: its limit, offset and pages, and its own sort and
  * rules unless the source turns them off. An id is a namespaced slug (`vendor/name`), so it can never
  * be one of the built-ins.
+ *
+ * `$context` holds `current` (the post being shown or edited, 0 when none) and `parent` (the item of
+ * the Loop card the Loop sits in, `null` outside a card), so a source can depend on the card around it.
  */
 final class LoopSources {
 
@@ -111,7 +114,7 @@ final class LoopSources {
 	 * Anything else it returns is dropped, and a source that throws reads as empty.
 	 *
 	 * @param array<string, mixed> $args
-	 * @param array{current: int} $context
+	 * @param array{current: int, parent: array<string, mixed>|null} $context
 	 * @return list<array<string, mixed>>
 	 */
 	public static function items( string $id, array $args, array $context ): array {

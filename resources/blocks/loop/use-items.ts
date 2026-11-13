@@ -58,20 +58,28 @@ const cache = new Map< string, LoopItems >();
 /** The built-in source for a Loop inside a card: a list of the card's item (src/Data/ItemSource.php). */
 export const ITEM_SOURCE = 'item';
 
+/** A source another plugin registered: `vendor/name` (`LoopSources::ID`). */
+export function isRegisteredSource( source: unknown ): boolean {
+	return typeof source === 'string' && /^[a-z0-9-]+\/[a-z0-9-]+$/.test( source );
+}
+
 /**
  * `null` is "not in a Loop": nothing is fetched. A bindable block outside a Loop (and every block in
  * a design preview) calls this too, and used to post empty attributes on each mount for a 422.
  *
  * `parent` is the card item a Loop with the `item` source repeats over a list of; it is sent with
  * the request, so the server's own code reads the list, filters, sorts and limits it. Until there is
- * one (outside any Loop card) nothing is fetched.
+ * one (outside any Loop card) nothing is fetched. A registered source inside a card gets it too, as
+ * `$context['parent']`; outside a card it fetches without one.
  */
 export function useLoopItems( attributes: Record< string, unknown > | null, page = 1, parent?: Item ): ItemsState {
 	const postId = useSelect( ( select: any ) => select( 'core/editor' )?.getCurrentPostId?.() ?? 0, [] );
 	// Only a paged Loop has pages, so an unpaged one shares its cache entry with every caller.
 	const at = attributes?.pagination ? Math.max( 1, page ) : 1;
 	const nested = attributes?.source === ITEM_SOURCE;
-	const key = attributes && ( ! nested || parent ) ? JSON.stringify( [ dataAttributes( attributes ), postId, at, nested ? parent : null ] ) : '';
+	// What reads the card around the Loop: the `item` source, and a registered one in a card.
+	const withParent = nested || ( isRegisteredSource( attributes?.source ) && parent !== undefined );
+	const key = attributes && ( ! nested || parent ) ? JSON.stringify( [ dataAttributes( attributes ), postId, at, withParent ? parent : null ] ) : '';
 	const [ state, setState ] = useState< { key: string; data: LoopItems | null; error: string; loading: boolean } >( () => ( {
 		key,
 		data: cache.get( key ) ?? null,
@@ -98,7 +106,7 @@ export function useLoopItems( attributes: Record< string, unknown > | null, page
 			( apiFetch( {
 				path: '/blicks/v1/loop/items',
 				method: 'POST',
-				data: { attributes: dataAttributes( attributes ?? {} ), postId: Number( postId ) || 0, page: at, refresh: force, ...( nested ? { parent } : {} ) },
+				data: { attributes: dataAttributes( attributes ?? {} ), postId: Number( postId ) || 0, page: at, refresh: force, ...( withParent ? { parent } : {} ) },
 			} ) as Promise< LoopItems > )
 				.then( ( data ) => {
 					cache.set( key, data );

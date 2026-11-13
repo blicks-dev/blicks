@@ -23,7 +23,7 @@ use WP_Block_Type_Registry;
  * ```html
  * <div class="bl-loop bl-loop--grid …" style="--bl-loop-cols-d:3;…">
  *   <ul class="bl-loop__items" role="list">
- *     <li class="bl-loop__item is-card-highlight" style="--bl-loop-c:2;--bl-loop-r:2">…card…</li>
+ *     <li class="bl-loop__item is-card-highlight" style="--bl-loop-c:2;--bl-loop-r:2" data-bl-key="everest">…card…</li>
  *   </ul>
  * </div>
  * ```
@@ -168,7 +168,9 @@ final class LoopRenderer {
 				$card .= '<template class="bl-loop__dialog"' . self::dialogRules( $fx ) . '>' . self::dialogBody( $dialog, $item, $cardContext, $fx['hide'] ) . '</template>';
 			}
 
-			$html .= '<li' . ( '' !== $idBase ? ' id="' . esc_attr( $idBase . '-' . ( $from + $index + 1 ) ) . '" tabindex="-1"' : '' ) . self::itemAttributes( $fx ) . $open . '>' . $card . '</li>';
+			// Every item names itself, so a script can tell them apart (a picked date, a saved item).
+			$key = ' data-bl-key="' . esc_attr( self::itemKey( $item, $from + $index + 1 ) ) . '"';
+			$html .= '<li' . ( '' !== $idBase ? ' id="' . esc_attr( $idBase . '-' . ( $from + $index + 1 ) ) . '" tabindex="-1"' : '' ) . self::itemAttributes( $fx ) . $key . $open . '>' . $card . '</li>';
 		}
 
 		return '<ul class="bl-loop__items" role="list">' . $html . '</ul>' . $shell;
@@ -212,7 +214,7 @@ final class LoopRenderer {
 	}
 
 	/**
-	 * What `?item=` names an item by: its `slug`, else its `id`, else its place in the Loop.
+	 * What `?item=` and `data-bl-key` name an item by: its `slug`, else its `id`, else its place in the Loop.
 	 *
 	 * @param array<string, mixed> $item
 	 */

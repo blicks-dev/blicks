@@ -100,6 +100,7 @@ final class LoopSourcesTest extends WP_UnitTestCase {
 		$this->assertSame( [ 'Chitwan', 'Annapurna', 'Everest' ], array_column( $result['items'], 'title' ) );
 		$this->assertSame( [ 'cheapFirst' => true ], self::$seen['args'] );
 		$this->assertSame( 17, self::$seen['context']['current'] );
+		$this->assertNull( self::$seen['context']['parent'], 'not in a card' );
 		$this->assertSame( [ 'title', 'price' ], array_column( $result['fields'], 'key' ) );
 		$this->assertSame(
 			[
@@ -165,5 +166,56 @@ final class LoopSourcesTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Chitwan', $html );
 		$this->assertStringContainsString( 'Annapurna', $html );
 		$this->assertStringNotContainsString( 'Bhutan', $html );
+	}
+
+	public function test_a_source_in_a_card_is_told_the_cards_item(): void {
+		$seen = [];
+		$record = static function ( array $sources ) use ( &$seen ): array {
+			$sources['acme/departures'] = [
+				'items' => static function ( array $args, array $context ) use ( &$seen ): array {
+					$seen[] = $context['parent']['title'] ?? null;
+					return [ [ 'date' => 'for ' . ( $context['parent']['title'] ?? 'none' ) ] ];
+				},
+			];
+			return $sources;
+		};
+		add_filter( 'blicks_loop_sources', $record, 20 );
+		LoopSources::reset();
+
+		$html = do_blocks(
+			'<!-- wp:blicks/loop ' . wp_json_encode(
+				[
+					'source' => 'json',
+					'data' => wp_json_encode( [ [ 'title' => 'Everest' ], [ 'title' => 'Bhutan' ] ] ),
+				]
+			) . ' -->'
+			. '<!-- wp:blicks/loop {"source":"acme/departures"} -->'
+			. '<!-- wp:blicks/text {"content":"x","metadata":{"bindings":{"content":{"source":"blicks/item","args":{"key":"date"}}}}} --><p class="bl-text">x</p><!-- /wp:blicks/text -->'
+			. '<!-- /wp:blicks/loop -->'
+			. '<!-- /wp:blicks/loop -->'
+		);
+		remove_filter( 'blicks_loop_sources', $record, 20 );
+
+		// WordPress renders a block's inner blocks before its own callback, so the inner Loop also
+		// runs once outside any card (no parent) before each card renders it with its own.
+		$this->assertSame( [ 'Everest', 'Bhutan' ], array_values( array_filter( $seen ) ), 'each card\'s own item' );
+		$this->assertStringContainsString( '>for Everest<', $html );
+		$this->assertStringContainsString( '>for Bhutan<', $html );
+	}
+
+	public function test_every_item_names_itself_for_scripts(): void {
+		$html = do_blocks(
+			'<!-- wp:blicks/loop ' . wp_json_encode(
+				[
+					'source' => 'json',
+					'data' => wp_json_encode( [ [ 'slug' => 'everest-base-camp', 'id' => 101 ], [ 'id' => '2027-03-10' ], [ 'title' => 'No key' ] ] ),
+				]
+			) . ' -->'
+			. '<!-- wp:blicks/text {"content":"x"} --><p class="bl-text">x</p><!-- /wp:blicks/text -->'
+			. '<!-- /wp:blicks/loop -->'
+		);
+
+		preg_match_all( '/<li[^>]* data-bl-key="([^"]*)"/', $html, $keys );
+		$this->assertSame( [ 'everest-base-camp', '2027-03-10', '3' ], $keys[1], 'slug, else id, else place' );
 	}
 }

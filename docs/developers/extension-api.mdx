@@ -181,6 +181,7 @@ sides.
 add_filter( 'blicks_loop_sources', function ( array $sources ): array {
 	$sources['acme/trips'] = [
 		'label'    => __( 'Trips', 'acme' ),
+		// $context: 'current' (the post shown or edited, 0 for none) and 'parent' (see below).
 		'items'    => fn ( array $args, array $context ): array => acme_trip_items( $args ),
 		'sanitize' => fn ( mixed $args ): array => acme_clean_args( $args ), // the Loop's `sourceArgs`
 		'sort'     => false, // you order the items: the Loop's own Order by is off
@@ -200,6 +201,14 @@ window.blicks.loop.registerSource( {
 	cards: [ { id: 'classic', title: 'Classic', card: { name: 'blicks/box', innerBlocks: [ /* … */ ] } } ],
 } );
 ```
+
+**A source inside a card.** A Loop can sit in another Loop's card. Your source is then given that card's
+item as `$context['parent']` (`null` outside a card), on the page and in the editor's preview alike, so it
+can depend on it: a trip's departures, a product's variations. WordPress renders a block's inner blocks
+before the block itself, so expect one extra call with no parent and keep it cheap (return `[]`).
+
+**Telling items apart.** Each rendered item, `li.bl-loop__item`, carries `data-bl-key`: the item's `slug`,
+else its `id`, else its place in the Loop. A script of yours can find the item a click landed in by it.
 
 `cards` are starter designs shown first in the card shelf while your source is the Loop's; each becomes a
 copy the author edits. A Loop whose source's plugin is deactivated keeps the source and shows nothing until
