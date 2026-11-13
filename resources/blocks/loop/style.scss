@@ -93,56 +93,6 @@
 		}
 	}
 
-	// ---------- what card rules change ----------
-	.bl-loop__item.is-card-highlight > * {
-		box-shadow: 0 0 0 2px var(--blicks-color-primary, #18181b);
-	}
-
-	.bl-loop__item.is-card-dark > * {
-		background-color: var(--blicks-color-foreground, #09090b);
-		color: var(--blicks-color-background, #fff);
-	}
-
-	.bl-loop__item.is-card-muted > * {
-		opacity: 0.55;
-		filter: grayscale(0.7);
-	}
-
-	.bl-loop__item.is-badge-brand .bl-box--badge,
-	.bl-dialog__item.is-badge-brand .bl-box--badge {
-		background-color: var(--blicks-color-primary, #18181b);
-		color: var(--blicks-color-primary-foreground, #fafafa);
-	}
-
-	.bl-loop__item.is-badge-success .bl-box--badge,
-	.bl-dialog__item.is-badge-success .bl-box--badge {
-		background-color: var(--blicks-color-success, #e7f4ec);
-		color: var(--blicks-color-success-foreground, #11692f);
-	}
-
-	.bl-loop__item.is-badge-warn .bl-box--badge,
-	.bl-dialog__item.is-badge-warn .bl-box--badge {
-		background-color: var(--blicks-color-warning, #fcefe6);
-		color: var(--blicks-color-warning-foreground, #b4410a);
-	}
-
-	.bl-loop__item.is-badge-danger .bl-box--badge,
-	.bl-dialog__item.is-badge-danger .bl-box--badge {
-		background-color: var(--blicks-color-destructive, #dc2626);
-		color: var(--blicks-color-destructive-foreground, #fff);
-	}
-
-	.bl-loop__item.is-heading-lg .bl-heading,
-	.bl-dialog__item.is-heading-lg .bl-heading {
-		font-size: var(--blicks-type-h3-font-size, 1.5rem);
-	}
-
-	.bl-loop__item.is-heading-xl .bl-heading,
-	.bl-dialog__item.is-heading-xl .bl-heading {
-		font-size: var(--blicks-type-h2-font-size, 2rem);
-		line-height: 1.15;
-	}
-
 	@media (prefers-reduced-motion: no-preference) {
 		.bl-loop__item > * {
 			transition: box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
@@ -290,6 +240,65 @@
 	.bl-loop__item:focus-visible > * {
 		box-shadow: 0 0 0 2px var(--blicks-color-ring, var(--blicks-color-primary, #18181b));
 	}
+}
+
+// ---------- what card rules change ----------
+//
+// Outside the layer, on purpose. The style engine's classes are unlayered (resources/runtime), and
+// an unlayered declaration beats every layered one whatever its specificity, so from inside
+// blicks.base a rule could only restyle a block with no colour, shadow or size of its own. A Box of
+// kind Badge always has a fill and a Card a shadow, so the rules did nothing on the blocks they
+// are for. A rule is the author's "when the item is this, show it like that", and it wins over the
+// block's own look. Specificity settles the rest: every selector here is (0,3,0) or more, above the
+// engine's strongest colour, shadow or size selector (a state class doubled, (0,2,0)), so a hover
+// or card-hover look gives way to it too. A theme can still override it with a stronger selector.
+.bl-loop__items > .bl-loop__item.is-card-highlight > * {
+	box-shadow: 0 0 0 2px var(--blicks-color-primary, #18181b);
+}
+
+.bl-loop__items > .bl-loop__item.is-card-dark > * {
+	background-color: var(--blicks-color-foreground, #09090b);
+	color: var(--blicks-color-background, #fff);
+}
+
+.bl-loop__items > .bl-loop__item.is-card-muted > * {
+	opacity: 0.55;
+	filter: grayscale(0.7);
+}
+
+.bl-loop__item.is-badge-brand .bl-box--badge,
+.bl-dialog__item.is-badge-brand .bl-box--badge {
+	background-color: var(--blicks-color-primary, #18181b);
+	color: var(--blicks-color-primary-foreground, #fafafa);
+}
+
+.bl-loop__item.is-badge-success .bl-box--badge,
+.bl-dialog__item.is-badge-success .bl-box--badge {
+	background-color: var(--blicks-color-success, #e7f4ec);
+	color: var(--blicks-color-success-foreground, #11692f);
+}
+
+.bl-loop__item.is-badge-warn .bl-box--badge,
+.bl-dialog__item.is-badge-warn .bl-box--badge {
+	background-color: var(--blicks-color-warning, #fcefe6);
+	color: var(--blicks-color-warning-foreground, #b4410a);
+}
+
+.bl-loop__item.is-badge-danger .bl-box--badge,
+.bl-dialog__item.is-badge-danger .bl-box--badge {
+	background-color: var(--blicks-color-destructive, #dc2626);
+	color: var(--blicks-color-destructive-foreground, #fff);
+}
+
+.bl-loop__item.is-heading-lg .bl-heading,
+.bl-dialog__item.is-heading-lg .bl-heading {
+	font-size: var(--blicks-type-h3-font-size, 1.5rem);
+}
+
+.bl-loop__item.is-heading-xl .bl-heading,
+.bl-dialog__item.is-heading-xl .bl-heading {
+	font-size: var(--blicks-type-h2-font-size, 2rem);
+	line-height: 1.15;
 }
 
 // ---------- editor only: the live card, its previews and the Loop's notes ----------
