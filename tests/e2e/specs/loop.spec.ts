@@ -285,3 +285,66 @@ test( 'offers a card from the site’s saved patterns', async ( { page } ) => {
 
 	expect( watcher.errors ).toEqual( [] );
 } );
+
+const TRIPS = [
+	{ title: 'Everest', days: [ { title: 'Fly to Lukla' }, { title: 'Trek to Namche' } ] },
+	{ title: 'Bhutan', days: [ { title: 'Arrive in Paro' } ] },
+	{ title: 'Mustang', days: [ { title: 'Drive to Jomsom' }, { title: 'Kagbeni' }, { title: 'Lo Manthang' } ] },
+];
+
+test( 'a Loop inside a card repeats over that card’s list, in the editor and on the page', async ( { page } ) => {
+	const watcher = new ConsoleWatcher( page );
+	await openEditor( page );
+
+	// Both levels bind `title`: each must show its own.
+	const innerId = await page.evaluate(
+		( { trips, title } ) => {
+			const { createBlock } = ( window as any ).wp.blocks;
+			const inner = createBlock( 'blicks/loop', { layout: 'list' }, [ createBlock( 'blicks/text', { content: 'Day', ...title } ) ] );
+			const outer = createBlock( 'blicks/loop', { source: 'json', data: JSON.stringify( trips ) }, [
+				createBlock( 'blicks/box', { kind: 'card', tag: 'article' }, [ createBlock( 'blicks/heading', { level: 3, content: 'Trip', ...title } ), inner ] ),
+			] );
+			( window as any ).wp.data.dispatch( 'core/block-editor' ).insertBlocks( outer );
+			( window as any ).wp.data.dispatch( 'core/block-editor' ).selectBlock( inner.clientId );
+			return inner.clientId as string;
+		},
+		{ trips: TRIPS, title: bind( 'content', 'title' ) }
+	);
+
+	// Inside a card, the inner Loop can come from a list of the card's item.
+	await page.getByRole( 'radio', { name: 'A list of the item above' } ).click();
+	await expect( page.getByLabel( 'List to loop over' ) ).toHaveValue( 'days' );
+	expect( await page.evaluate( ( id ) => ( window as any ).wp.data.select( 'core/block-editor' ).getBlockAttributes( id ).source, innerId ) ).toBe( 'item' );
+
+	// Every card, the live one and each preview, shows its own trip's days. Each inner Loop's first
+	// day is its live card, so it also carries the field's chip: matched by contained text.
+	const outer = canvas( page ).locator( '.bl-loop' ).first();
+	const cards = outer.locator( ':scope > .bl-loop__items > .bl-loop__item' );
+	const days = ( i: number ) => cards.nth( i ).locator( '.bl-loop .bl-loop__items > .bl-loop__item .bl-text' );
+	await expect( cards ).toHaveCount( 3 );
+	for ( const [ i, trip ] of TRIPS.entries() ) {
+		await expect( days( i ) ).toHaveCount( trip.days.length );
+		await expect( days( i ) ).toContainText( trip.days.map( ( d ) => d.title ) );
+	}
+	await expect( cards.nth( 1 ).locator( '.bl-heading' ).first() ).toHaveText( 'Bhutan' );
+
+	// The outer Loop is in no card, so it does not offer the list source.
+	await page.evaluate( () => {
+		const editor = ( window as any ).wp.data;
+		editor.dispatch( 'core/block-editor' ).selectBlock( editor.select( 'core/block-editor' ).getBlocks()[ 0 ].clientId );
+	} );
+	await expect( page.getByRole( 'radio', { name: 'Pasted' } ) ).toBeVisible();
+	await expect( page.getByRole( 'radio', { name: 'A list of the item above' } ) ).toHaveCount( 0 );
+
+	const permalink = await publishCurrentContent( page, 'Loop inside a card' );
+	await page.goto( permalink );
+
+	const published = page.locator( '.bl-loop' ).first().locator( ':scope > .bl-loop__items > .bl-loop__item' );
+	await expect( published ).toHaveCount( 3 );
+	for ( const [ i, trip ] of TRIPS.entries() ) {
+		await expect( published.nth( i ).locator( '.bl-heading' ) ).toHaveText( trip.title );
+		await expect( published.nth( i ).locator( '.bl-loop .bl-text' ) ).toHaveText( trip.days.map( ( d ) => d.title ) );
+	}
+
+	expect( watcher.errors ).toEqual( [] );
+} );

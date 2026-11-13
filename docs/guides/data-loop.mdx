@@ -20,6 +20,7 @@ Pick the source in the Loop's **Data** settings.
 | **JSON** | A short list you type or paste: team members, prices, a timeline | Up to 256 KB. If the JSON holds several lists, choose one under **List to loop over**. |
 | **Endpoint** | A list from an API: products, events, listings | Administrators add endpoints in **Blicks → Settings → Data sources**; authors pick one by name. |
 | **WordPress** | Your own posts, pages or products | Only published posts, and only what visitors may see. |
+| **A list of the item above** | A list inside each item: a trip's itinerary, a product's sizes, an event's speakers | Only for a Loop inside another Loop's card. See [A Loop inside a card](#a-loop-inside-a-card). |
 
 <Note>
 Values from JSON and endpoints are always shown as text, never as markup, and links must be
@@ -77,6 +78,39 @@ designs and keeps the starter card.
 **Items** limits how many to show (up to 50) and how many to skip, sorts JSON and endpoint items by
 a field, and keeps only items where one field matches. The arrows at the top of **Items** preview each
 item in the live card.
+
+## A Loop inside a card
+
+When each item holds a list of its own (a trip and its days, a product and its sizes), put a
+second Loop inside the card and let it repeat over that list.
+
+<Steps>
+	<Step title="Add a Loop to the card">
+		Select the first card and insert a Loop where the list should go.
+	</Step>
+	<Step title="Choose the list">
+		In the inner Loop's **Data** settings, set **Comes from** to **A list of the item above**, then
+		pick the list under **List to loop over**. It offers every list the card's item holds, with how
+		many entries the item in the live card has.
+	</Step>
+	<Step title="Connect its blocks">
+		Blocks inside the inner Loop show fields of the list's entries: a day's `title`, a size's
+		`price`. Blocks outside it keep showing the outer item's fields.
+	</Step>
+</Steps>
+
+Every card repeats over its own item's list: in the editor the previews show each item's list too,
+and on the page each card gets its own.
+
+- A list of plain words or numbers (`["Guide", "Permits"]`) gives one entry per value, with the field `value`.
+- An item with no list at that name shows the inner Loop's **When there are no items** content.
+- The inner Loop sorts, filters and limits like any Loop, but is never split into pages.
+- Loops go three deep at most: a Loop in a card in a card in a card shows nothing.
+
+<Tip>
+To show a list as one line instead (`Guide, Permits, Transfers`), bind a Text to the list and use
+**Format → Join a list**. A Loop inside the card is for when each entry needs blocks of its own.
+</Tip>
 
 ## Split the items into pages
 
