@@ -65,6 +65,18 @@ describe( 'what card rules change', () => {
 		}
 	} );
 
+	// Load more focuses the first item it added. The ring is the card's box-shadow, so it faces the
+	// same engine classes, and it must also win a tie with the highlight rule's shadow.
+	it( 'shows focus on a card that has a shadow of its own, or is highlighted', () => {
+		const ring = rules.findIndex( ( r ) => r.selector.includes( '.bl-loop__item:focus-visible' ) );
+		const highlight = rules.findIndex( ( r ) => r.selector.includes( '.is-card-highlight' ) );
+
+		expect( ring ).toBeGreaterThan( -1 );
+		expect( rules[ ring ].layer ).toBeNull();
+		expect( specificity( rules[ ring ].selector ) ).toBeGreaterThanOrEqual( specificity( rules[ highlight ].selector ) );
+		expect( ring ).toBeGreaterThan( highlight );
+	} );
+
 	it( 'keeps the rest of the Loop in the base layer, where a theme overrides it', () => {
 		const items = rules.filter( ( r ) => /^\.bl-loop__items\s*\{?$/.test( r.selector ) || r.selector === '.bl-loop__item' );
 

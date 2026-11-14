@@ -232,13 +232,10 @@
 		}
 	}
 
-	// The first item Load more added takes focus; it is a list item, not a control.
+	// The first item Load more added takes focus; it is a list item, not a control. Its ring is
+	// drawn on the card, below the rule looks.
 	.bl-loop__item:focus {
 		outline: none;
-	}
-
-	.bl-loop__item:focus-visible > * {
-		box-shadow: 0 0 0 2px var(--blicks-color-ring, var(--blicks-color-primary, #18181b));
 	}
 }
 
@@ -299,6 +296,13 @@
 .bl-dialog__item.is-heading-xl .bl-heading {
 	font-size: var(--blicks-type-h2-font-size, 2rem);
 	line-height: 1.15;
+}
+
+// The focus ring on the first item Load more added, outside the layer for the same reason: it is
+// drawn as the card's box-shadow, and a Card always has a shadow of its own. Last, so that on a tie
+// with is-card-highlight (both (0,3,0)) a focused card shows focus.
+.bl-loop__items > .bl-loop__item:focus-visible > * {
+	box-shadow: 0 0 0 2px var(--blicks-color-ring, var(--blicks-color-primary, #18181b));
 }
 
 // ---------- editor only: the live card, its previews and the Loop's notes ----------
