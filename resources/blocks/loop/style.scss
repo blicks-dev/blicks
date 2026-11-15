@@ -383,3 +383,12 @@
 		opacity: 1;
 	}
 }
+
+// The list's reset, emitted UNLAYERED as well: a theme's unlayered list padding (Ollie's
+// `ul:where(:not([class*="wp-block"])) { padding-inline-start: … }`) beats any @layer rule, and
+// would push every Loop's items in from the left. The items' own layout stays in the layer above.
+.bl-loop__items {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}

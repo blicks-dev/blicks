@@ -79,8 +79,14 @@ describe( 'what card rules change', () => {
 
 	it( 'keeps the rest of the Loop in the base layer, where a theme overrides it', () => {
 		const items = rules.filter( ( r ) => /^\.bl-loop__items\s*\{?$/.test( r.selector ) || r.selector === '.bl-loop__item' );
+		const layered = items.filter( ( r ) => null !== r.layer );
 
-		expect( items.length ).toBeGreaterThan( 0 );
-		for ( const rule of items ) expect( rule.layer ).toBe( 'blicks.base' );
+		expect( layered.length ).toBeGreaterThan( 0 );
+		for ( const rule of layered ) expect( rule.layer ).toBe( 'blicks.base' );
+		// The one exception, as with Button's padding: the list's own reset is unlayered, so a theme's
+		// unlayered list padding (Ollie's `ul:where(…)`) can't indent the items. It holds nothing else.
+		expect( items.filter( ( r ) => null === r.layer ).map( ( r ) => r.selector ) ).toEqual( [ '.bl-loop__items' ] );
+		const reset = css.slice( css.lastIndexOf( '.bl-loop__items {' ) );
+		expect( reset.slice( reset.indexOf( '{' ) + 1, reset.indexOf( '}' ) ).replace( /\s+/g, ' ' ).trim() ).toBe( 'margin: 0; padding: 0; list-style: none;' );
 	} );
 } );

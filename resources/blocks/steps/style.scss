@@ -299,3 +299,9 @@ $tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
 .bl-step__label[contenteditable] {
 	min-width: 2em;
 }
+
+// The list's reset, UNLAYERED so a theme's unlayered list padding (Ollie's `ol:where(…)`) can't
+// indent the steps; padding set in Style (`.bl-pad`) still wins.
+.bl-steps:where(:not(.bl-pad)) {
+	padding: 0;
+}
