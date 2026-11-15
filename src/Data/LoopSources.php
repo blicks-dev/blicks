@@ -25,6 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *         'sanitize' => fn ( mixed $args ): array => acme_clean( $args ),               // the Loop's `sourceArgs`
  *         'sort'     => false, // the source orders its own items; the Loop's Sort does not apply
  *         'rules'    => true,  // the Loop's "Only show" rules still filter them
+ *         'paged'    => false, // true: the source slices its own pages (below)
  *     ];
  *     return $sources;
  * } );
@@ -36,13 +37,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * `$context` holds `current` (the post being shown or edited, 0 when none) and `parent` (the item of
  * the Loop card the Loop sits in, `null` outside a card), so a source can depend on the card around it.
+ *
+ * **A source that pages itself** (`'paged' => true`) is for lists longer than the
+ * {@see ItemPipeline::MAX_ITEMS} a flat list is held to. Its `$context` also carries `offset` (items
+ * to skip: the Loop's offset plus the pages before this one) and `limit` (how many to return), and
+ * it returns `[ 'items' => …, 'total' => N ]`, N being every item it has, before the offset. It orders
+ * its own items: the Loop's Order by never reorders a page. A Loop with an "Only show" rule can't be
+ * paged by the source (the rule would change the count), so it gets no `offset` or `limit` and reads
+ * a flat list, as any source does; a flat list returned to a paged call is read that way too.
  */
 final class LoopSources {
 
 	/** A registered source's id: `vendor/name`, lower case. */
 	public const ID = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
 
-	/** @var array<string, array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool}>|null */
+	/** @var array<string, array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool, paged: bool}>|null */
 	private static ?array $sources = null;
 
 	private function __construct() {}
@@ -50,7 +59,7 @@ final class LoopSources {
 	/**
 	 * Every registered source, by id. Read once per request.
 	 *
-	 * @return array<string, array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool}>
+	 * @return array<string, array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool, paged: bool}>
 	 */
 	public static function all(): array {
 		if ( null !== self::$sources ) {
@@ -75,6 +84,7 @@ final class LoopSources {
 				'sanitize' => is_callable( $source['sanitize'] ?? null ) ? $source['sanitize'] : null,
 				'sort' => (bool) ( $source['sort'] ?? true ),
 				'rules' => (bool) ( $source['rules'] ?? true ),
+				'paged' => (bool) ( $source['paged'] ?? false ),
 			];
 		}
 
@@ -83,7 +93,7 @@ final class LoopSources {
 		return $out;
 	}
 
-	/** @return array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool}|null */
+	/** @return array{label: string, items: callable, sanitize: callable|null, sort: bool, rules: bool, paged: bool}|null */
 	public static function get( string $id ): ?array {
 		return self::all()[ $id ] ?? null;
 	}
@@ -118,28 +128,52 @@ final class LoopSources {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function items( string $id, array $args, array $context ): array {
+		return self::read( $id, $args, $context )['items'];
+	}
+
+	/**
+	 * A source's items and, from a source that pages itself and was asked for a page (`offset` and
+	 * `limit` in `$context`), how many it has in all. `total` is null for a flat list, which is held
+	 * to `ItemPipeline::MAX_ITEMS`; a page is held to its `limit` and to {@see Pager::MAX_STACK}.
+	 *
+	 * @param array<string, mixed> $args
+	 * @param array<string, mixed> $context `current`, `parent`, and for a page `offset` and `limit`.
+	 * @return array{items: list<array<string, mixed>>, total: int|null}
+	 */
+	public static function read( string $id, array $args, array $context ): array {
 		$source = self::get( $id );
 		if ( null === $source ) {
-			return [];
+			return [
+				'items' => [],
+				'total' => null,
+			];
 		}
 
 		try {
-			$items = ( $source['items'] )( $args, $context );
+			$got = ( $source['items'] )( $args, $context );
 		} catch ( \Throwable $e ) {
-			return [];
+			$got = [];
 		}
+
+		$asked = $source['paged'] && isset( $context['limit'] );
+		$paged = $asked && is_array( $got ) && array_key_exists( 'items', $got ) && is_array( $got['items'] ) && is_numeric( $got['total'] ?? null );
+		$items = $paged ? $got['items'] : $got;
+		$cap = $paged ? min( Pager::MAX_STACK, max( 1, (int) $context['limit'] ) ) : ItemPipeline::MAX_ITEMS;
 
 		$out = [];
 		foreach ( is_array( $items ) ? $items : [] as $item ) {
 			if ( is_array( $item ) ) {
 				$out[] = $item;
 			}
-			if ( count( $out ) >= ItemPipeline::MAX_ITEMS ) {
+			if ( count( $out ) >= $cap ) {
 				break;
 			}
 		}
 
-		return $out;
+		return [
+			'items' => $out,
+			'total' => $paged ? max( count( $out ), (int) $got['total'] ) : null,
+		];
 	}
 
 	/**

@@ -52,6 +52,26 @@ final class LoopSourcesTest extends WP_UnitTestCase {
 						throw new \RuntimeException( 'down' );
 					},
 				],
+				'acme/many' => [
+					'label' => 'Many',
+					'items' => static function ( array $args, array $context ): array {
+						self::$seen = compact( 'args', 'context' );
+						$all = array_map( static fn ( int $n ): array => [ 'n' => $n ], range( 1, 120 ) );
+						if ( ! isset( $context['limit'] ) ) {
+							return $all;
+						}
+						if ( ! empty( $args['flat'] ) ) {
+							return array_slice( $all, 0, 5 );
+						}
+						return [
+							'items' => array_slice( $all, $context['offset'], $context['limit'] ),
+							'total' => count( $all ),
+						];
+					},
+					'sanitize' => static fn ( mixed $args ): array => [ 'flat' => ! empty( $args['flat'] ) ],
+					'sort' => false,
+					'paged' => true,
+				],
 				'NotAnId' => [ 'items' => static fn (): array => self::TRIPS ],
 				'acme/no-callback' => [ 'label' => 'Nothing' ],
 			]
@@ -74,6 +94,10 @@ final class LoopSourcesTest extends WP_UnitTestCase {
 				[
 					'id' => 'acme/broken',
 					'label' => 'acme/broken',
+				],
+				[
+					'id' => 'acme/many',
+					'label' => 'Many',
 				],
 			],
 			LoopSources::describe()
@@ -217,5 +241,95 @@ final class LoopSourcesTest extends WP_UnitTestCase {
 
 		preg_match_all( '/<li[^>]* data-bl-key="([^"]*)"/', $html, $keys );
 		$this->assertSame( [ 'everest-base-camp', '2027-03-10', '3' ], $keys[1], 'slug, else id, else place' );
+	}
+
+	public function test_a_source_that_pages_itself_is_asked_for_one_page(): void {
+		$result = Loop::items(
+			[
+				'source' => 'acme/many',
+				'limit' => 12,
+				'offset' => 2,
+				'pagination' => [ 'mode' => 'pages' ],
+				'sort' => [
+					'field' => 'n',
+					'dir' => 'desc',
+				],
+			],
+			0,
+			false,
+			3
+		);
+
+		$this->assertSame( 26, self::$seen['context']['offset'], 'the Loop\'s offset plus two pages' );
+		$this->assertSame( 12, self::$seen['context']['limit'] );
+		$this->assertSame( range( 27, 38 ), array_column( $result['items'], 'n' ), 'in the source\'s order: Order by never reorders a page' );
+		$this->assertSame( 118, $result['found'], 'every item after the offset, past the 50 a flat list holds' );
+		$this->assertSame( 10, $result['pages'] );
+		$this->assertSame( 120, $result['total'] );
+	}
+
+	public function test_load_more_asks_for_every_page_so_far(): void {
+		$result = Loop::items(
+			[
+				'source' => 'acme/many',
+				'limit' => 20,
+				'pagination' => [ 'mode' => 'more' ],
+			],
+			0,
+			false,
+			3
+		);
+
+		$this->assertSame( 0, self::$seen['context']['offset'] );
+		$this->assertSame( 60, self::$seen['context']['limit'] );
+		$this->assertCount( 60, $result['items'] );
+		$this->assertSame( 6, $result['pages'] );
+	}
+
+	public function test_an_unpaged_loop_asks_for_its_limit(): void {
+		$result = Loop::items(
+			[
+				'source' => 'acme/many',
+				'limit' => 0,
+			]
+		);
+
+		$this->assertSame( 50, self::$seen['context']['limit'], 'no limit: the most a Loop shows' );
+		$this->assertCount( 50, $result['items'] );
+	}
+
+	public function test_an_only_show_rule_reads_a_flat_list(): void {
+		$result = Loop::items(
+			[
+				'source' => 'acme/many',
+				'filter' => [
+					'field' => 'n',
+					'op' => 'gt',
+					'value' => '45',
+				],
+				'limit' => 10,
+				'pagination' => [ 'mode' => 'pages' ],
+			]
+		);
+
+		$this->assertArrayNotHasKey( 'limit', self::$seen['context'], 'a rule changes the count, so the source does not page' );
+		$this->assertSame( range( 46, 50 ), array_column( $result['items'], 'n' ), 'the first 50, then the rule' );
+	}
+
+	public function test_a_flat_list_answer_to_a_paged_call_is_read_as_a_list(): void {
+		$result = Loop::items(
+			[
+				'source' => 'acme/many',
+				'sourceArgs' => [ 'flat' => true ],
+				'limit' => 2,
+				'pagination' => [ 'mode' => 'pages' ],
+			],
+			0,
+			false,
+			2
+		);
+
+		$this->assertSame( [ 3, 4 ], array_column( $result['items'], 'n' ) );
+		$this->assertSame( 3, $result['pages'] );
 	}
 }

@@ -207,6 +207,26 @@ item as `$context['parent']` (`null` outside a card), on the page and in the edi
 can depend on it: a trip's departures, a product's variations. WordPress renders a block's inner blocks
 before the block itself, so expect one extra call with no parent and keep it cheap (return `[]`).
 
+**More than 50 items.** A flat list is held to 50. A source with more (a whole catalogue) registers
+`'paged' => true` and slices its own pages: `$context` then also carries `offset` (items to skip) and
+`limit` (how many to return), and the source returns `[ 'items' => $page, 'total' => $count ]`. The Loop's
+numbered pages and Load more read `total`; its Order by never reorders a page, so order your items yourself.
+A Loop with an "Only show" rule doesn't page through the source (the rule would change the count): it gets
+no `offset` or `limit`, and your source returns a flat list as before.
+
+```php
+'items' => function ( array $args, array $context ): array {
+	if ( ! isset( $context['limit'] ) ) {
+		return acme_trips( $args, 0, 50 );                                      // a flat list
+	}
+	return [
+		'items' => acme_trips( $args, $context['offset'], $context['limit'] ),
+		'total' => acme_trip_count( $args ),
+	];
+},
+'paged' => true,
+```
+
 **Telling items apart.** Each rendered item, `li.bl-loop__item`, carries `data-bl-key`: the item's `slug`,
 else its `id`, else its place in the Loop. A script of yours can find the item a click landed in by it.
 

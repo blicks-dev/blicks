@@ -123,15 +123,36 @@ final class Loop {
 		if ( LoopSources::isId( $source ) ) {
 			// A source another plugin adds (or added: when it is inactive there are no items).
 			// With the card it sits in, for a source that depends on it (a trip's departures).
-			$all = LoopSources::items(
-				$source,
-				is_array( $attrs['sourceArgs'] ?? null ) ? $attrs['sourceArgs'] : [],
-				[
-					'current' => $current,
-					'parent' => $parent,
-				]
-			);
-			$run = ItemPipeline::run( $all, $config );
+			$context = [
+				'current' => $current,
+				'parent' => $parent,
+			];
+			// A source that pages itself is asked for just this window, unless an "Only show" rule
+			// would change what counts: then it gives a flat list like any other source.
+			$filtered = is_array( $config['filter'] ) && '' !== ( $config['filter']['field'] ?? '' );
+			if ( null !== $registered && $registered['paged'] && ! $filtered ) {
+				$context['offset'] = (int) $config['offset'];
+				$context['limit'] = (int) $config['limit'] > 0 ? (int) $config['limit'] : ItemPipeline::MAX_ITEMS;
+			}
+			$read = LoopSources::read( $source, is_array( $attrs['sourceArgs'] ?? null ) ? $attrs['sourceArgs'] : [], $context );
+			$all = $read['items'];
+
+			if ( null !== $read['total'] ) {
+				// Already this window, in the source's order: nothing to filter, sort or slice.
+				$run = ItemPipeline::run(
+					$all,
+					[
+						'filter' => null,
+						'sort' => null,
+						'max' => $config['max'],
+					],
+					true
+				);
+				$run['total'] = $read['total'];
+				$run['matched'] = $read['total'];
+			} else {
+				$run = ItemPipeline::run( $all, $config );
+			}
 			$count = max( 0, $run['matched'] - $offset );
 
 			return $run + [
