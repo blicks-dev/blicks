@@ -5,6 +5,16 @@
 	"features": { "networking": false },
 	"steps": [
 		{ "step": "login" },
-		{ "step": "activatePlugin", "pluginPath": "blicks/blicks.php" }
+		{ "step": "activatePlugin", "pluginPath": "blicks/blicks.php" },
+		{
+			"step": "installTheme",
+			"themeData": { "resource": "wordpress.org/themes", "slug": "twentytwentyone" },
+			"options": { "activate": false }
+		},
+		{
+			"step": "installTheme",
+			"themeData": { "resource": "wordpress.org/themes", "slug": "ollie" },
+			"options": { "activate": false }
+		}
 	]
 }

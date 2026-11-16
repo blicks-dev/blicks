@@ -139,6 +139,26 @@
 	color: var(--blicks-color-primary, #18181b);
 }
 
+// The fill, for the same reason: classic themes ship normalize's unlayered
+// `a { background-color: transparent }` (Twenty Twenty-One), which beats every layered rule, so a
+// link button lost its fill and showed its light label on the page. Only `background-color` is
+// unlayered, the one longhand those resets touch; the sheen stays on `background-image` in the
+// layer. The rule steps aside when the Style tab set a fill (`.bl-bg`, or the layered
+// `.bl-bg-layers` shorthand) at the base or at a breakpoint: those markers are one class too, and
+// this sheet may load after the runtime. State rules (`.bl-bg--hov:hover`) outrank it anyway.
+// Borders need no copy: these resets leave a link's border alone.
+.bl-button--default:where(:not(.bl-bg, .bl-bg--tab, .bl-bg--mob, .bl-bg-layers, .bl-bg-layers--tab, .bl-bg-layers--mob)) {
+	background-color: var(--blicks-color-primary, #18181b);
+}
+
+.bl-button--secondary:where(:not(.bl-bg, .bl-bg--tab, .bl-bg--mob, .bl-bg-layers, .bl-bg-layers--tab, .bl-bg-layers--mob)) {
+	background-color: var(--blicks-button-secondary-background, var(--blicks-color-secondary, #f4f4f5));
+}
+
+.bl-button--destructive:where(:not(.bl-bg, .bl-bg--tab, .bl-bg--mob, .bl-bg-layers, .bl-bg-layers--tab, .bl-bg-layers--mob)) {
+	background-color: var(--blicks-color-destructive, #dc2626);
+}
+
 // Box-model padding emitted UNLAYERED so a host theme's `* { padding: 0 }` reset can't strip a
 // button's inner spacing (layered @layer rules always lose to an unlayered universal selector).
 // default-size honours the button component token; padding set in Style (`.bl-pad`) wins.
