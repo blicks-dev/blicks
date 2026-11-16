@@ -18,6 +18,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class ThemeProjection {
 
+	/** A fill, and the token for the text drawn on it ({@see readableForegrounds()}). */
+	private const FOREGROUND_PAIRS = [
+		'primary' => 'primary-foreground',
+		'secondary' => 'secondary-foreground',
+		'accent' => 'accent-foreground',
+		'card' => 'card-foreground',
+		'popover' => 'popover-foreground',
+	];
+
+	/** WCAG AA for body text; a button label is body-sized. */
+	private const READABLE_RATIO = 4.5;
+
+	/** The plugin's own light and dark foregrounds, the two a swap chooses between. */
+	private const READABLE_LIGHT = '#fafafa';
+	private const READABLE_DARK = '#18181b';
+
 	private const FALLBACKS = [
 		'color' => [
 			'background' => '#ffffff',
@@ -185,6 +201,8 @@ final class ThemeProjection {
 			}
 		}
 
+		$themeColors = [];
+
 		foreach ( TokenMap::descriptors() as $descriptor ) {
 			$category = $descriptor['category'];
 			if ( ! isset( $values[ $category ] ) ) {
@@ -192,11 +210,15 @@ final class ThemeProjection {
 			}
 
 			if ( 'preset' === $descriptor['kind'] ) {
-				self::applyPresets(
-					$values[ $category ],
-					self::presetList( $settings, $descriptor['settings'] ),
-					(string) $descriptor['valueKey']
-				);
+				$presets = self::presetList( $settings, $descriptor['settings'] );
+				self::applyPresets( $values[ $category ], $presets, (string) $descriptor['valueKey'] );
+				if ( 'color' === $category ) {
+					foreach ( $presets as $preset ) {
+						if ( is_string( $preset['slug'] ?? null ) ) {
+							$themeColors[] = $preset['slug'];
+						}
+					}
+				}
 				continue;
 			}
 
@@ -212,6 +234,10 @@ final class ThemeProjection {
 					$values[ $category ][ $slug ] = (string) $value;
 				}
 			}
+		}
+
+		if ( isset( $values['color'] ) ) {
+			self::readableForegrounds( $values['color'], $themeColors );
 		}
 
 		return $values;
@@ -330,9 +356,13 @@ final class ThemeProjection {
 	/**
 	 * @param array<string, array<string, string>> $values
 	 * @param array{tokens: array<string, array<string, string>>, breakpoints: array<string, int>} $overrides
+	 * @param bool $readable Keep text readable on a fill this layer changes without its foreground
+	 *                       ({@see readableForegrounds()}). On for the design language, which sits
+	 *                       under the author; off for the author's own values, which the Design
+	 *                       screen previews as they are.
 	 * @return array<string, array<string, string>>
 	 */
-	public static function applyOverrides( array $values, array $overrides ): array {
+	public static function applyOverrides( array $values, array $overrides, bool $readable = false ): array {
 		foreach ( $overrides['tokens'] as $category => $tokens ) {
 			foreach ( $tokens as $slug => $value ) {
 				if ( isset( $values[ $category ][ $slug ] ) ) {
@@ -341,7 +371,51 @@ final class ThemeProjection {
 			}
 		}
 
+		if ( $readable && isset( $values['color'] ) ) {
+			self::readableForegrounds( $values['color'], array_map( 'strval', array_keys( $overrides['tokens']['color'] ?? [] ) ) );
+		}
+
 		return $values;
+	}
+
+	/**
+	 * Keeps the text on a fill readable when a layer sets the fill but not the text on it.
+	 *
+	 * A theme's palette fills Blicks' slugs by name, so Ollie's `secondary` (a dark purple) becomes
+	 * `--blicks-color-secondary` while `secondary-foreground`, which Ollie does not define, stays the
+	 * plugin's dark default: dark on dark. Mapping neither would drop the theme's brand colours;
+	 * mapping the pair is impossible when the theme has no foreground. So the fill is the theme's,
+	 * and its foreground is kept while it still reads (WCAG AA, 4.5:1) or else swapped for whichever
+	 * of the plugin's light and dark foregrounds reads better on that fill. A foreground the same
+	 * layer sets is the author's choice and left alone, and so is any colour this cannot parse
+	 * (a `var()`, `color-mix()`, a named colour): no guess is better than a wrong one.
+	 *
+	 * @param array<string, string> $colors
+	 * @param list<string>          $set    Slugs this layer set.
+	 */
+	private static function readableForegrounds( array &$colors, array $set ): void {
+		foreach ( self::FOREGROUND_PAIRS as $fill => $foreground ) {
+			if ( ! in_array( $fill, $set, true ) || in_array( $foreground, $set, true ) ) {
+				continue;
+			}
+			if ( ! isset( $colors[ $fill ], $colors[ $foreground ] ) ) {
+				continue;
+			}
+
+			$fillLuminance = Contrast::luminance( $colors[ $fill ] );
+			if ( null === $fillLuminance ) {
+				continue;
+			}
+
+			$current = Contrast::luminance( $colors[ $foreground ] );
+			if ( null !== $current && Contrast::ratio( $fillLuminance, $current ) >= self::READABLE_RATIO ) {
+				continue;
+			}
+
+			$light = Contrast::ratio( $fillLuminance, (float) Contrast::luminance( self::READABLE_LIGHT ) );
+			$dark = Contrast::ratio( $fillLuminance, (float) Contrast::luminance( self::READABLE_DARK ) );
+			$colors[ $foreground ] = $light >= $dark ? self::READABLE_LIGHT : self::READABLE_DARK;
+		}
 	}
 
 	/**

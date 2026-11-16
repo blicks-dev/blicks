@@ -142,6 +142,79 @@ final class ThemeProjectionTest extends TestCase
         $this->assertSame(['color' => ['primary' => '#abcdef']], $merged);
     }
 
+    private const PAIRS = [
+        'color' => ['primary', 'primary-foreground', 'secondary', 'secondary-foreground', 'accent', 'accent-foreground'],
+    ];
+
+    public function test_a_theme_fill_without_its_foreground_gets_a_readable_one(): void
+    {
+        // Ollie: `primary` and `secondary` in its palette, neither foreground.
+        $values = ThemeProjection::fromSettings([
+            'color' => [
+                'palette' => [
+                    'theme' => [
+                        ['slug' => 'primary', 'color' => '#5344F4'],
+                        ['slug' => 'secondary', 'color' => '#545473'],
+                    ],
+                ],
+            ],
+        ], self::PAIRS);
+
+        $this->assertSame('#545473', $values['color']['secondary'], 'The theme keeps its fill.');
+        $this->assertSame('#fafafa', $values['color']['secondary-foreground'], 'Dark default on dark purple swaps to light.');
+        // The default light foreground already reads on Ollie's primary: left as it was.
+        $this->assertSame('#fafafa', $values['color']['primary-foreground']);
+        // Not set by the theme: untouched.
+        $this->assertSame('#18181b', $values['color']['accent-foreground']);
+    }
+
+    public function test_a_light_theme_fill_keeps_a_dark_foreground(): void
+    {
+        $values = ThemeProjection::fromSettings([
+            'color' => ['palette' => [['slug' => 'primary', 'color' => '#fde047']]],
+        ], self::PAIRS);
+
+        $this->assertSame('#18181b', $values['color']['primary-foreground']);
+    }
+
+    public function test_a_foreground_the_theme_sets_is_never_replaced(): void
+    {
+        $values = ThemeProjection::fromSettings([
+            'color' => [
+                'palette' => [
+                    ['slug' => 'secondary', 'color' => '#545473'],
+                    ['slug' => 'secondary-foreground', 'color' => '#333333'],
+                ],
+            ],
+        ], self::PAIRS);
+
+        $this->assertSame('#333333', $values['color']['secondary-foreground']);
+    }
+
+    public function test_an_unreadable_colour_notation_is_left_alone(): void
+    {
+        $values = ThemeProjection::fromSettings([
+            'color' => ['palette' => [['slug' => 'secondary', 'color' => 'var(--brand-dark)']]],
+        ], self::PAIRS);
+
+        $this->assertSame('#18181b', $values['color']['secondary-foreground']);
+    }
+
+    public function test_a_language_fill_over_a_derived_foreground_reads_again(): void
+    {
+        // Ollie's dark secondary swapped its foreground to light; Neumorphism then paints the
+        // secondary fill light without a foreground of its own.
+        $theme = ThemeProjection::fromSettings([
+            'color' => ['palette' => [['slug' => 'secondary', 'color' => '#545473']]],
+        ], self::PAIRS);
+
+        $language = ['tokens' => ['color' => ['secondary' => '#e7ecf2']], 'breakpoints' => []];
+
+        $this->assertSame('#18181b', ThemeProjection::applyOverrides($theme, $language, true)['color']['secondary-foreground']);
+        // The author's own values are previewed as they are, so they are applied verbatim.
+        $this->assertSame('#fafafa', ThemeProjection::applyOverrides($theme, $language)['color']['secondary-foreground']);
+    }
+
     public function test_font_families_extracts_theme_and_user_origins(): void
     {
         $families = ThemeProjection::fontFamilies([

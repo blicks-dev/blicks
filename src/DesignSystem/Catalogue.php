@@ -106,7 +106,7 @@ final class Catalogue {
 		// The design language sits between the theme and your own values: it is the base a token
 		// resets to, and what your overrides change.
 		$language = ( null === $languageId ? null : DesignLanguages::find( $languageId ) ) ?? DesignLanguages::active();
-		$projectedValues = ThemeProjection::applyOverrides( ThemeProjection::fromSettings( $settings, $tokens ), [ 'tokens' => $language['tokens'] ] );
+		$projectedValues = ThemeProjection::applyOverrides( ThemeProjection::fromSettings( $settings, $tokens ), [ 'tokens' => $language['tokens'] ], true );
 
 		$roleBase = TypeRoleProjection::applyOverrides( TypeRoleProjection::current(), $language['typeRoles'] );
 		$roleValues = TypeRoleProjection::applyOverrides(
