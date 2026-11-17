@@ -1,0 +1,114 @@
+---
+title: "Travel sections: build a home page from patterns"
+sidebarTitle: "Travel sections"
+description: "Eleven ready-made sections for a travel site's pages, from a hero with trip search to an enquiry form that knows which trip it is about, filled from your trips and hidden when they have nothing to show."
+---
+
+[Blicks Kits](/guides/travel) adds eleven sections to the block inserter, under **Patterns › Travel**. Stack them to
+make a home page, an about page or a contact page in minutes, then change them like any blocks:
+every part is a Blicks block you can restyle, move or remove.
+
+The live sections fill themselves from your trips, through the same sources as [Kits templates](/guides/travel/templates): your
+destinations, activities and trip types, the trips on sale, your reviews and your totals. Add a
+trip and the sections follow. None of them is a WP Travel Engine block, so a page made of them loads
+no WP Travel Engine file and no jQuery (see [Speed](#speed) below).
+
+Patterns work on every theme, block or classic. On a classic theme they are the way to bring Kits
+into a page.
+
+## Insert a section
+
+In the editor, open the inserter, choose **Patterns**, then **Travel**. Or type `/` in the page and
+search: "destinations", "reviews", "enquiry". A section is inserted as its blocks, so once it is on
+the page it is yours: nothing changes it when Kits updates.
+
+## The sections
+
+| Section | What it shows | Comes from |
+|---|---|---|
+| **Home hero** | A full-width photo, a heading, a line and **Trip search**. | Trip search |
+| **Featured destinations** | Your top-level destinations with most trips, as photo tiles, and a link to all trips. | Places: destinations |
+| **Popular activities** | Activities with most trips, as chips ("Trekking · 12 trips"). | Places: activities |
+| **Trip-type tiles** | Your trip types as photo tiles, three across. | Places: trip types |
+| **Deals** | Trips on sale, with the saving, and a link to all of them. | Trips: on sale |
+| **Why travel with us** | Four reasons, each with an icon, in your own words. | Your words |
+| **Reviews wall** | Your average rating and number of reviews, then your best reviews of four stars and up. | Places: totals, and Reviews |
+| **About the agency** | A photo, your story, and your numbers: trips, destinations and years. | Places: totals |
+| **Newsletter** | A heading beside a signup form: email, consent, Subscribe. | A Blicks Form |
+| **Call to action** | A dark band with "Find your trip" and "Talk to us". | Your words |
+| **Contact and enquiry** | Your details beside an enquiry form that asks which trip. | A Blicks Form |
+
+Each live section is a Blicks **Loop** with its **Comes from** set. Select the Loop to change what it
+shows: pick your own destinations under **These places**, show more chips, or sort reviews by
+newest.
+
+### Sections with nothing to show
+
+Featured destinations, Popular activities, Trip-type tiles, Deals and the Reviews wall leave the
+page when they have nothing to show: no destination with trips, nothing on sale, no reviews yet. A
+heading over an empty space is worse than no section. They come back by themselves once there is
+something to show.
+
+In the editor they stay, so you can still edit them, with a note in place of the cards saying that
+visitors don't see the section for now. The Reviews wall goes by its reviews alone: your totals
+always have something to show, so they don't keep it on the page.
+
+## Replace the stand-ins
+
+A few things in the sections are yours to fill in:
+
+- **Pictures.** The hero and About the agency use small placeholder pictures that ship with Kits.
+  Replace them with your photos. Place tiles show each place's own picture, or its first trip's.
+- **Links.** "Our story" and "Talk to us" link to `#`. Point them at your about and contact pages.
+  "All trips", "See all deals" and "Find your trip" already open your trip archive.
+- **Contact details.** Contact and enquiry shows `hello@example.com`, a phone number and an address.
+  Put yours in.
+- **Your words.** Why travel with us, About the agency and the years in business ("15") are typed,
+  not counted. Make them true for you.
+
+The fixed words of every section (headings, labels, buttons) follow the site's language, so a German
+site gets them in German where a translation exists.
+
+## Forms
+
+Newsletter and Contact and enquiry are Blicks Forms. What visitors send arrives in **Blicks ›
+Entries** and by email, like any Blicks Form, with Blicks' spam checks and its consent box. Kits
+doesn't pass newsletter signups on to a mailing service; a developer can, from Blicks'
+`blicks_form_sent` hook.
+
+### The Trip field
+
+Contact and enquiry asks which trip with **Trip**, a field type Kits adds to Blicks Forms. You can
+add it to any form: in a Form, add a Field and choose **Trip** under Travel.
+
+- Visitors pick from your trips by name. The first choice is "Not sure yet", or "Choose a trip" when
+  the field is required.
+- On a trip's own page it starts on that trip, so an enquiry sent from a trip page names it without
+  the visitor choosing.
+- In Blicks › Entries, the email and the CSV export, an entry shows the trip's name. A trip deleted
+  since shows as "Trip 123".
+
+In the editor the Trip field draws as an empty box, since the trips are listed on the page itself;
+its settings show it as Trip.
+
+## Themes
+
+The sections are tested on a page of all eleven, on Twenty Twenty-Five and Ollie (block themes) and
+Twenty Twenty-One (a classic theme), on a wide screen and a phone: nothing wider than the screen, no
+errors, the theme's header and footer around them, and empty sections left off.
+
+## Speed
+
+A page of all eleven sections, measured on a phone (412 px wide, fast 4G, CPU slowed four times, cold
+cache) on Twenty Twenty-Five:
+
+| | With WP Travel Engine | With test trips, all eleven drawn |
+|---|---|---|
+| Requests | 16 | 21 |
+| Transferred | 153 KB | 165 KB |
+| WP Travel Engine files, jQuery | none, no | none, no |
+| Largest paint (the hero's heading) | 1.2–1.4 s | 1.1–1.2 s |
+
+On the test site's WP Travel Engine five sections had nothing to show and left the page, which is why
+it transfers less. Most of its extra time is the server's: WP Travel Engine works out a trip's
+departure dates the first time a page reads the trip, here three years of daily departures.

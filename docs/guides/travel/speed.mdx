@@ -1,0 +1,138 @@
+---
+title: "Speed: WP Travel Engine's files"
+sidebarTitle: "Speed"
+description: "How Blicks Kits keeps WP Travel Engine's styles and scripts off pages built with Kits blocks, and how to change where."
+---
+
+WP Travel Engine loads its styles and scripts on every page of a site: its main stylesheet, its
+main script, a date picker and, through them, jQuery. Pages built with Kits blocks don't use any
+of it until a visitor starts a booking. Kits takes those files off such pages, and loads WP Travel
+Engine's booking window only when a visitor shows they want it.
+
+You don't have to set anything up. With WP Travel Engine active, pages with Kits travel blocks are
+trimmed from the start.
+
+## What a visitor gets
+
+Measured on a phone (412 px wide, slow 4G, CPU slowed four times, cold cache), on the Single trip
+pattern for one trip:
+
+| | Kits page, trimmed | Same page, not trimmed | WP Travel Engine's own trip page |
+|---|---|---|---|
+| Requests | 14 | 23 | 53 |
+| Transferred | 150 KB | 275 KB | 520 KB |
+| WP Travel Engine files | none | 5 | 14 |
+| jQuery | no | yes | yes |
+
+Your numbers depend on your theme and the rest of your page, but the WP Travel Engine files and
+jQuery are gone either way.
+
+## The booking window
+
+Book this trip opens WP Travel Engine's own booking window: its packages, travellers, extras,
+prices and checkout, unchanged. On a trimmed page its files are not in the page. They load at the
+first sign that a visitor wants to book:
+
+- a click in that trip's **Trip dates** (picking a date comes first, and phones have no hover),
+- a hover over or focus on **Book this trip**,
+- a tap on it.
+
+A visitor who picks a date and looks at it for a few seconds finds the window ready to open at once.
+If the window can't open, Book this trip takes them to the trip's own page instead.
+
+## Where Kits trims
+
+Go to **Blicks › Kits**, then **Speed**. Under **Trim them on**:
+
+- **Pages with Kits travel blocks** (the default). Only pages Kits draws. A form with a **Trip** field
+  counts too, so a contact page made of the Contact and enquiry section is trimmed.
+- **Every page that doesn't use them.** Also blog posts and the home page. Check first that your
+  theme doesn't style anything with WP Travel Engine's stylesheet.
+- **Nowhere.** WP Travel Engine loads as it does without Kits.
+
+**Not loaded** shows what a trimmed page goes without, by size on disk and compressed.
+
+### Never trimmed
+
+Whatever you choose, these keep all of WP Travel Engine's files:
+
+- WP Travel Engine's own pages: checkout, thank-you, traveller information, traveller account and
+  terms, and trip, archive and taxonomy pages drawn by WP Travel Engine's own templates. (With a
+  block template, the blocks on it decide.)
+- Pages whose content uses WP Travel Engine's blocks, shortcodes (`[wte_trip]` and the others) or
+  its Featured Trips widget, even if they also have Kits blocks.
+- Pages set to keep them (below).
+
+The settings screen lists these pages.
+
+## Groups and files
+
+WP Travel Engine's files are grouped by what needs them: site-wide styles and scripts, the coupon
+banner, the booking window, the trip page, trip search and archives, checkout, traveller account,
+wishlist, and add-ons and other files.
+
+- **Keep everywhere** keeps a group's files on every page, trimmed or not.
+- **Show files** lists a group's files with their sizes. Set one to **Always keep** or **Always
+  trim** to override its group.
+- The **coupon banner** keeps itself while a coupon is set to show WP Travel Engine's banner.
+- The **booking window** has no switch: it is never in the page, and loads when a visitor starts a
+  booking.
+- Files from WP Travel Engine add-ons are found by their folder and grouped under **Add-ons and
+  other files**. An add-on script that hooks into the booking window comes with the window.
+
+## One page
+
+In the block editor, the **WP Travel Engine files** panel in the page's sidebar says whether the
+page is trimmed and why. Under **This page**:
+
+- **Site setting** (the default): follow Blicks › Kits › Speed.
+- **Keep all**: load everything here, for custom work on the page that needs WP Travel Engine's files.
+- **Trim**: trim here whatever the site setting says. Not available while the page uses WP Travel
+  Engine's content.
+
+On a trimmed page, **Keep on this page** keeps chosen groups here only. The setting saves with the
+page.
+
+## Check a page
+
+**Check a page** on Blicks › Kits › Speed says whether a page is trimmed, why, and what happens to each group.
+It reads the page's saved content: your theme's header and footer are not part of the check.
+
+## Page caches
+
+A caching plugin stores pages as they were. After changing these settings, clear the page cache so
+cached pages follow.
+
+## If something looks wrong
+
+A page that looks unstyled or loses a feature after trimming usually has something that relies on
+WP Travel Engine's files:
+
+1. Run **Check a page** on it to see what was decided.
+2. Set the page to **Keep all** in its panel. If that fixes it, keep the group it needs instead
+   (most often **Site-wide styles and scripts**), here or everywhere.
+3. If many pages are affected (often a theme styling with WP Travel Engine's stylesheet), switch
+   **Site-wide styles and scripts** to **Keep everywhere**, or trim **Nowhere**.
+
+## For developers
+
+| Hook | |
+|---|---|
+| `blicks_kits_asset_manifest` (filter) | `( array $manifest, string $adapterId )`: the host's files by group, what marks host content, the host's own pages. |
+| `blicks_kits_host_assets` (filter) | The site settings: `scope` (`kits`, `all`, `off`), `groups` and `files` (`keep` or `trim`). |
+| `blicks_kits_host_assets_decided` (action) | `( array $decision )` once per request: `trim`, `reason`, `detail`, `kept`. |
+| `blicks_kits_wpte_booking_window` (filter) | Whether Book this trip opens WP Travel Engine's window (tested versions only). |
+
+- **Settings** are stored in the `blicks_kits_host_assets` option; a page's own setting in the
+  `_blicks_kits_host_assets` post meta (`{ mode: site|keep|trim, keep: [ group ] }`), editable
+  through the REST API by anyone who can edit the post.
+- **REST:** `GET` and `POST /wp-json/blicks-kits/v1/host-assets` (administrators) and
+  `GET /wp-json/blicks-kits/v1/host-assets/check/{id}` (anyone who can edit that post).
+- **Only dequeued, never deregistered.** A file another plugin depends on still prints as that
+  plugin's dependency, and only files named in the manifest are touched.
+- **The decision**, in order: not a front-end page, keep; trimming off, keep; the page set to keep,
+  keep; the host's own page, keep; host content on the page, keep; the page set to trim, trim;
+  scope Kits pages and no Kits travel block, keep; otherwise trim.
+- **Another travel plugin's [adapter](/developers/write-an-adapter)** describes its files in `assets()`, in the same shape as WP
+  Travel Engine's: groups with `scripts` and `styles` listed apart, `load` (`page` or `demand`),
+  `needed`, `follow`, `match`; `content` (`blocks`, `shortcodes`, `widgets`); `system`; and `pages`.

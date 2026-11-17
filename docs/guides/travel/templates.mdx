@@ -1,0 +1,148 @@
+---
+title: "Templates: trip pages, the archive and place pages"
+sidebarTitle: "Templates"
+description: "Draw WP Travel Engine's trip pages, trip archive and destination pages with Kits blocks, add filters and search, and finish bookings on a Kits Thank you page."
+---
+
+Blicks Kits can draw the pages WP Travel Engine makes for you: each trip's own page, the list of
+all trips, and the pages of your destinations, activities and trip types. Every part of a Kits
+template is a Blicks block you can change in the Site Editor, and the pages load far less than WP
+Travel Engine's own (see [Speed](#speed) below).
+
+Nothing changes until you choose. WP Travel Engine's templates keep drawing your pages, and you can
+go back to them at any time.
+
+<Note>
+	Templates need a block theme, such as Twenty Twenty-Five or Ollie. On a classic theme the same
+	trip layouts are in the inserter as patterns (**Travel › Single trip**), to place on any page.
+</Note>
+
+## Choose a template
+
+Go to **Blicks › Kits › Templates**. There is one choice for each kind of page:
+
+| Kind of page | Kits templates |
+|---|---|
+| **Trip pages** | Single trip: Classic, Hero or Editorial |
+| **Trip archive and search results** | Trips: Kits archive |
+| **Destination, activity and trip-type pages** | Place: Kits |
+
+Pick one and press **Save changes**. Under each choice the screen says which template draws those
+pages now: WP Travel Engine's, your theme's, a Kits one, or a copy you edited in the Site Editor. If
+you use a page cache, clear it afterwards so cached pages pick up the change.
+
+To go back, choose WP Travel Engine's and save. Its templates draw the pages again at once.
+
+### Edit a template
+
+**Edit in the Site Editor** opens the chosen template. It is made of the theme's header and footer
+and Blicks blocks between them, so you change it like any page: move sections, restyle cards, add
+your own blocks. Your edits are kept when you switch templates and back. To start over, reset the
+template in the Site Editor.
+
+### One trip, a different layout
+
+The three trip layouts are also listed in the editor's **Template** panel for a single trip. Open a
+trip, pick Hero (say) there, and only that trip uses it.
+
+## Trip pages
+
+| Layout | What it is |
+|---|---|
+| **Classic** | Photos, facts, overview, day by day, what is included, questions and reviews, with a booking column that stays in view. |
+| **Hero** | A full-width photo with the trip's name, and a bar that stays at the top and jumps to the overview, the days, the dates and booking. |
+| **Editorial** | A long read in one centred column: the days as a timeline, then the dates and booking at the end. |
+
+Each books through WP Travel Engine's own booking window: a visitor picks a date in **Trip dates**,
+presses **Book this trip**, and carries on to WP Travel Engine's Checkout.
+
+## The trip archive
+
+The Kits archive shows a heading, **Trip search**, **Trip filters** and your trips, twelve to a page.
+It is also where Trip search sends visitors, so search results and the archive are one page to
+style.
+
+- **Trips heading** keeps your words ("All trips") until a visitor filters or searches, then says
+  what they see: "1 trip in Bhutan", "3 trips · Trekking · 8 to 14 days".
+- **Trip search** asks Where, When and What (and Words, if you switch it on), as a bar or stacked.
+  Put it on any page; Search takes visitors to the archive with their choices.
+- **Trip filters** narrows the trips by destination, activity, trip type, difficulty, price, length
+  or month, and can show a Sort and the number of trips. Choose which filters show and whether they
+  look like dropdowns, chips or a list. A filter only shows when your trips differ in it.
+
+Choices go into the page address (`/trip/?bk_where=nepal&bk_month=2027-03`), so a filtered page can
+be shared, bookmarked and cached, and paging through the trips keeps them.
+
+### Follow the page
+
+A Trips Loop shows exactly the trips its own settings pick. Switch on **Follow the page** (under
+**Comes from: Trips**, A list) and it also follows the page it is on: the place an archive page is
+for, and the visitor's filters and search. The archive and place templates have it on. Use it in
+your own templates the same way.
+
+## Place pages
+
+A destination, activity or trip-type page on the Kits template shows:
+
+1. The place: its picture, where it sits ("Destinations / Nepal"), its name, its description and
+   how many trips it has.
+2. **Places in …**: the places inside it, as photo tiles that open their own pages. Left out when
+   there are none.
+3. **Trips in …**, Trip filters (without a filter for the page's own kind) and the place's trips.
+   A trip in a place inside it counts: Nepal's page shows a trip tagged only Annapurna.
+
+The description is the term's description in WP Travel Engine, or its **Short Description** when the
+term has none. The picture is the term's image from WP Travel Engine. A place without one shows the
+photo of its first trip.
+
+### The Places source
+
+The same parts are open to any page: in a Loop, **Comes from: Places**.
+
+| Which place | Shows |
+|---|---|
+| **A list** | Destinations, activities or trip types: the top level, the places inside the page's place, or every one. Places with no trips are left out. |
+| **This place** | The place the page is, for a place template. The editor shows the place under Preview with. |
+| **One I pick** | One place, with the places inside it, for a Loop inside its card. |
+
+Start a card from the **Tile** or **Card** starter, or bind your own blocks to a place's fields:
+name, description, picture, trip count ("12 trips"), where it sits, and "Places in …" and
+"Trips in …" headings ready to use.
+
+## The Thank you page
+
+After Checkout, WP Travel Engine sends the visitor to its Thank you page. Kits has a pattern for
+it: in the inserter, **Travel › Thank you page**. Open WP Travel Engine's Thank you page, replace
+its content with the pattern, and update.
+
+The pattern keeps WP Travel Engine's own booking details at the top (its
+`[WP_TRAVEL_ENGINE_THANK_YOU]` shortcode, which must stay on the page), then shows what happens
+next and three more trips. Change the words of the next steps to match how you work.
+
+<Warning>
+	**Check this before you take bookings.** On a site where WP Travel Engine's email settings have
+	never been saved, WP Travel Engine 6.8.10 stops at Checkout with a critical error after saving the
+	booking, and the visitor never reaches the Thank you page. Open **WP Travel Engine › Settings ›
+	Emails**, check **Admin Notification Emails** and save.
+</Warning>
+
+## Themes
+
+Kits templates use your theme's header and footer, and are tested with Twenty Twenty-Five and Ollie:
+every template, on a wide screen and a phone, booking included.
+
+## Speed
+
+Measured on a phone (412 px wide, fast 4G, CPU slowed four times, cold cache) on Twenty Twenty-Five:
+
+| | WP Travel Engine's template | Kits template |
+|---|---|---|
+| Trip page: requests | 53 | 14 |
+| Trip page: transferred | 520 KB | 151 KB |
+| Trip page: WP Travel Engine files, jQuery | 14, yes | none, no |
+| Trip archive: requests | 18 | 13 |
+| Trip archive: transferred | 192 KB | 144 KB |
+| Trip archive: WP Travel Engine files | 5 | none |
+
+WP Travel Engine's booking window loads when a visitor starts to book. [Speed: WP Travel
+Engine's files](/guides/travel/speed) explains how that works and how to change it.

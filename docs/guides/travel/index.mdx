@@ -1,0 +1,89 @@
+---
+title: "Travel sites with Blicks Kits"
+sidebarTitle: "Overview"
+description: "Blicks Kits brings a travel booking plugin's trips into Blicks: trip pages, archives, search, home page sections and a faster, restyled booking, for WP Travel Engine sites."
+---
+
+**Blicks Kits** is a free plugin that brings the trips of a travel booking plugin into the Blicks
+block editor. Your trip pages, trip archive, destination pages, home page sections and enquiry
+forms are built from Blicks blocks you can restyle and rearrange, while bookings still go through
+your booking plugin.
+
+Kits works with **WP Travel Engine** (6.8 and 6.9). It is an independent plugin, not made by or
+affiliated with WP Travel Engine.
+
+<Note>
+	Blicks Kits, the plugin, is not the same thing as a design-system **kit**: a design language,
+	palette and values saved together under
+	[Customize the design system](/guides/customize-design-system#kits).
+</Note>
+
+## What you need
+
+- **Blicks** 2.0 or later. WordPress installs it with Kits.
+- **WP Travel Engine** 6.8 or 6.9, active and with trips. Without it Kits adds no blocks, templates
+  or patterns, and a notice on the Plugins screen says so.
+- A **block theme** for the templates, such as Twenty Twenty-Five or Ollie. The blocks and patterns
+  work with any theme, classic ones included.
+
+## Get started
+
+<Steps>
+	<Step title="Install Blicks Kits">
+		Install and activate **Blicks Kits** from the Plugins screen. WordPress installs Blicks with it.
+	</Step>
+	<Step title="Check WP Travel Engine">
+		Make sure WP Travel Engine is active and has a few published trips.
+	</Step>
+	<Step title="Choose templates">
+		Go to **Blicks › Kits › Templates** and pick a layout for trip pages, the trip archive and place
+		pages. Nothing changes until you save, and you can go back to WP Travel Engine's templates at any
+		time.
+	</Step>
+	<Step title="Build pages">
+		In the editor, insert the **Travel** sections, or add a Blicks Loop and choose **Comes from:
+		Trips**.
+	</Step>
+</Steps>
+
+## What is in Kits
+
+<CardGroup cols={2}>
+	<Card title="Templates" icon="layout-template" href="/guides/travel/templates">
+		Trip pages (Classic, Hero, Editorial), the trip archive with search and filters, and place pages.
+	</Card>
+	<Card title="Travel sections" icon="layout-panel-top" href="/guides/travel/sections">
+		Eleven patterns for a home page, from a hero with trip search to an enquiry form.
+	</Card>
+	<Card title="Booking look" icon="palette" href="/guides/travel/booking-look">
+		WP Travel Engine's booking window and checkout in your Blicks colours, fonts and corners.
+	</Card>
+	<Card title="Speed" icon="gauge" href="/guides/travel/speed">
+		WP Travel Engine's files and jQuery kept off pages that don't need them.
+	</Card>
+</CardGroup>
+
+## Blocks and Loop sources
+
+| | What it does |
+|---|---|
+| **Trips** source | Trips in any Blicks Loop: filter by destination, activity, trip type, price, length or month; sort by price, rating or next departure; follow the archive page and the visitor's filters. |
+| **Places**, **Reviews**, **Departures** sources | Destinations, activities and trip types; a trip's reviews; its dates. Each has ready-made card starters. |
+| **Trip dates** | A trip's departures with seats and prices; picking one starts the booking. |
+| **Book this trip** | Opens WP Travel Engine's booking window, on the date picked. |
+| **Trip search** | Where, When and What, as a bar or stacked; sends visitors to the trip archive. |
+| **Trip filters** | Narrows a Trips Loop by the visitor's choices, kept in the page address. |
+| **Trips heading** | Says what a visitor sees: "3 trips · Trekking · 8 to 14 days". |
+| **Trip** form field | Lets an enquiry name the trip it is about. Starts on the trip when the form is on a trip page. |
+
+## Privacy
+
+Kits sends nothing to any server and loads no remote files. It reads your booking plugin's data on
+your own site. Enquiries made with the Trip field are stored by Blicks Forms, like any other Blicks
+form entry.
+
+## Another travel plugin
+
+Kits reads trips through an **adapter**, one per booking plugin; the blocks never talk to the
+booking plugin directly. To bring another travel plugin's trips into Kits, see
+[Write an adapter](/developers/write-an-adapter).

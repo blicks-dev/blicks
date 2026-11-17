@@ -1,0 +1,105 @@
+---
+title: "Booking look: WP Travel Engine's booking window and checkout in your site's style"
+sidebarTitle: "Booking look"
+description: "Give WP Travel Engine's booking window and checkout page your site's colours, type and corners from your Blicks design system, or keep WP Travel Engine's own look."
+---
+
+Kits blocks draw your trip pages, but a booking still goes through two screens that belong to WP
+Travel Engine: its **booking window** (dates, packages, travellers) and its **checkout page**. Kits can
+draw those two screens in your site's style: your primary colour, text colours, fonts and corners,
+read from your Blicks design system. WP Travel Engine's steps, words and checkout stay exactly as they
+are; only how they look changes.
+
+## Choose the look
+
+Go to **Blicks › Kits › Booking look** and pick one:
+
+| Look | What visitors see |
+|---|---|
+| **Match my site** (recommended) | The window and the checkout in your Blicks colours, fonts and corners. Continue and Confirm Booking look like your Blicks buttons. |
+| **WP Travel Engine's look** | Both screens exactly as WP Travel Engine draws them: its colour, its buttons and fonts. |
+
+Each choice shows a small drawing of the window and the checkout in that look. Press **Save
+changes**. If you use a page cache, clear it afterwards.
+
+Until you save a choice, Kits starts on **Match my site**, unless you have set WP Travel Engine's own
+primary colour in its Appearance settings. Then it starts on WP Travel Engine's look, since you chose a
+colour there, and the tab says so.
+
+## What changes with Match my site
+
+**The booking window:**
+
+- The window, its steps and the summary column in your surface, text and muted colours, instead of
+  white with a blue-tinted column.
+- The calendar as a bordered box, the picked day and start time in your primary colour.
+- Traveller rows as bordered rows, with matching counters.
+- Back in your primary colour; Continue drawn like a Blicks button, without the glow, in your font.
+- WP Travel Engine's icons (the close cross, Back's arrow, the counters) follow the text around them.
+- A visible focus outline in your focus colour for keyboard visitors.
+
+**The checkout:**
+
+- Its steps in your primary colour instead of WP Travel Engine's green.
+- Its boxes as bordered panels in your corners.
+- Fields in your font and border colour, with WP Travel Engine's floating labels kept and their
+  contrast raised to 4.5:1.
+- Payment methods, coupons, the trip details and the booking summary in your colours.
+- Confirm Booking drawn like a Blicks button.
+
+A dark design system carries through: on a site with a dark palette, the window and the checkout are
+dark too.
+
+## The checkout on block themes
+
+WP Travel Engine's checkout stylesheet removes the side padding of block themes such as Twenty
+Twenty-Five, which cuts the checkout page off on the left on a wide screen and on a phone. Kits puts
+the padding back on the checkout page, **whichever look you choose**.
+
+A developer can turn that fix off with the `blicks_kits_host_fix` filter (its arguments: whether to
+apply it, and the WP Travel Engine stylesheet it follows, `trip-checkout`).
+
+## Your own CSS
+
+Kits' rules are WP Travel Engine's own selectors with one class more (two on buttons, to outrank the
+button styles of classic themes such as Twenty Twenty-One). A rule of yours for these screens with a
+little more specificity still wins. Kits uses `!important` only where WP Travel Engine does.
+
+## Speed
+
+The look is one small stylesheet (about 4 KB compressed). It loads only:
+
+- with WP Travel Engine's booking window, when a visitor starts to book (the window's own files are
+  about 100 KB compressed), and
+- on WP Travel Engine's checkout page.
+
+Trip pages, archives and the rest of your site never load it. See [Speed](/guides/travel/speed) for how Kits keeps
+WP Travel Engine's own files off your pages.
+
+## WP Travel Engine versions
+
+Tested with WP Travel Engine 6.8 and 6.9. 6.9 redrew its checkout (labels above the fields, a new trip
+details box and order summary) on colour and size settings of its own; Kits points those at your
+Blicks design system, so both checkouts follow your site. On a WP Travel Engine version Kits hasn't
+been tested with, Book this trip takes visitors to the trip's own page instead of opening the booking
+window.
+
+## Themes
+
+The booking look is tested with Twenty Twenty-Five and Ollie (block themes) and Twenty Twenty-One (a
+classic theme), on a wide screen and a phone: the window and the checkout in your Blicks colours and
+the theme's font, nothing wider than the screen, and a booking that reaches the checkout.
+
+On Twenty Twenty-One the checkout sits in the theme's narrow content column, so WP Travel Engine's
+trip details and summary table are cramped there, whichever look you choose. That layout is WP Travel
+Engine's own; the booking look changes colours, type and corners, not layout.
+
+## Developers
+
+- The look is the option `blicks_kits_booking_look` (`site` or `host`), and the filter
+  `blicks_kits_booking_look` decides it per request.
+- `blicks-kits/v1/booking-look` (administrators) reads the tab's data and saves the choice.
+- An adapter that ships with Kits brings its own stylesheet for its host's screens through its
+  `assets()` manifest's `style` entry; WP Travel Engine's is
+  `resources/travel/hosts/wp-travel-engine/style.css`. See
+  [Write an adapter](/developers/write-an-adapter#the-booking-look).

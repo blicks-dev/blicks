@@ -84,7 +84,17 @@
 							"guides/dialogs",
 							"guides/customize-design-system",
 							"guides/connect-an-ai-agent",
-							"guides/header-studio"
+							"guides/header-studio",
+							{
+								"group": "Travel",
+								"pages": [
+									"guides/travel/index",
+									"guides/travel/templates",
+									"guides/travel/sections",
+									"guides/travel/booking-look",
+									"guides/travel/speed"
+								]
+							}
 						]
 					},
 					{
@@ -94,7 +104,8 @@
 							"developers/migrating-from-v1",
 							"developers/engine-api",
 							"developers/studio-api",
-							"developers/php-hooks"
+							"developers/php-hooks",
+							"developers/write-an-adapter"
 						]
 					},
 					{

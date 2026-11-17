@@ -1,0 +1,347 @@
+---
+title: "Write a Blicks Kits adapter"
+sidebarTitle: "Write an adapter"
+description: "Bring another travel booking plugin's trips into Blicks Kits: the Adapter interface, the travel schema, capabilities, booking, the host's files and a worked example."
+---
+
+[Blicks Kits](/guides/travel) never talks to a booking plugin directly. Its blocks, Loop sources,
+templates and patterns read trips in one shape, the **travel schema**, from an **adapter**: one
+class per booking plugin that answers a fixed set of questions in that shape. WP Travel Engine's
+adapter ships with Kits. A second travel plugin is a second adapter, and no block changes.
+
+This page is for the developer of a travel plugin, or of a site on one, who wants Kits on it.
+
+## How Kits uses an adapter
+
+- Kits collects the adapters from the `blicks_kits_travel_adapters` filter at `plugins_loaded`
+  (priority 20) and uses **one**: the one named in the `blicks_kits_travel_adapter` option if it is
+  active, otherwise the first active one in the list.
+- With no active adapter, Kits adds nothing: no blocks, sources, templates or patterns.
+- Only Kits' `Store` calls the adapter. Blocks render from the Store, and the editor reads the same
+  data through Kits' REST routes, so an adapter is plain PHP with no editor code.
+- The Store passes everything through `Schema::normalize()`: missing keys are filled, unknown keys
+  dropped and scalars cast. A bug in an adapter shows as an empty field, never a broken page. Test
+  against the strict check anyway (see [Test it](#test-it)).
+
+## The interface
+
+`BlicksKits\Verticals\Travel\Adapter`:
+
+| Method | Returns |
+|---|---|
+| `id(): string` | A stable id, such as `wp-travel-engine`. Saved in settings; never change it. |
+| `name(): string` | The plugin's name, for settings and notices. |
+| `active(): bool` | Whether the booking plugin is there and recent enough to use. Check its version here. |
+| `version(): string` | The booking plugin's version. |
+| `postType(): string` | The trip post type. Templates and Trip search use its archive. |
+| `tripForPost( int $postId ): ?int` | The trip a page shows: the trip's own id on a published trip, else `null`. |
+| `placeTaxonomies(): array` | `destination`, `activity`, `trip_type`, `difficulty` → your taxonomy names. Leave out what you don't have. |
+| `places(): array` | Every destination, activity and trip type, as `place` items, with or without trips. |
+| `capabilities(): array` | The optional parts you can fill (below). |
+| `ids(): array` | Every published trip's id. |
+| `trip( int $id ): ?array` | One published trip as a `trip`, or `null`. |
+| `departures( int $id, string $from, string $to ): array` | Departures between two `YYYY-MM-DD` dates, inclusive. |
+| `reviews( int $id, int $limit ): array` | The newest reviews, at most `$limit` (1 to 50). |
+| `invalidation(): array` | Your hooks that change travel data → `trip`, `departures` or `all`. |
+| `assets(): array` | Your front-end files, for [Speed](/guides/travel/speed). `[]` is fine. |
+
+Kits reads trips once per request today. `version()` and `invalidation()` are in the contract so a
+longer-lived cache can be added later without a change to your adapter: return real values now.
+
+## The travel schema
+
+Everything an adapter returns is in the schema `travel/1`, defined as data in
+`BlicksKits\Verticals\Travel\Schema::TYPES`. The rules:
+
+- **Every key is present.** No value means the empty one: `''`, `0`, `false`, `[]`, or `null` where
+  the type starts with `?`. Start from `Schema::blank( 'trip' )` and fill in what you have.
+- **Plain types:** dates `YYYY-MM-DD`, times `HH:MM`, absolute URLs.
+- **Money is an object**, `{ amount, currency, display }`: the amount in the currency's main unit, an
+  ISO 4217 code, and the price formatted by your plugin's own settings ("$1,200").
+- `overview`, FAQ answers, itinerary days and review texts may hold HTML. Kits shows them as plain
+  text.
+
+### Trip
+
+| Keys | Notes |
+|---|---|
+| `id`, `title`, `url`, `excerpt`, `code`, `featured`, `image` | `image` is a `media` or `null`. `code` is your trip code. |
+| `price`, `regular_price`, `sale_price`, `on_sale`, `discount_percent` | `price` is what a traveller pays now (the sale price when on sale); `sale_price` is `null` when not on sale. |
+| `price_per`, `price_label` | `person`, `group` or `''`; a ready label such as "From $900 / person", translated. |
+| `duration`, `duration_unit`, `duration_days`, `nights`, `duration_label` | Unit `days`, `hours` or `''`; `duration_days` is for sorting (hours ÷ 24, rounded up). |
+| `destinations`, `activities`, `trip_types`, `difficulty` | Lists of `term` (`difficulty` is one or `null`). The first destination is the main one. |
+| `group_size`, `age` | `{ min, max }`, `0` for no limit. |
+| `facts`, `highlights`, `includes`, `excludes`, `faq`, `itinerary` | `fact` is `{ label, value, icon }`, where `icon` is a Blicks icon name or `''`. |
+| `map`, `gallery`, `videos` | `map` is `{ image, embed_url, lat, lng }`. |
+| `rating`, `review_count` | 0 to 5, one decimal. |
+| `departure_dates` | The next twelve months' dates. Kits works out `next_departure` from them. |
+| `booking` | How Book this trip books it (below). |
+| `capabilities` | The same list as the adapter's `capabilities()`. |
+
+### The other types
+
+| Type | Keys |
+|---|---|
+| `term` | `id`, `name`, `slug`, `url`, `image` |
+| `media` | `id` (the attachment id, so blocks print `srcset`; `0` otherwise), `type` (`image`, `video`), `url`, `thumb`, `alt`, `width`, `height`, `provider` (`youtube`, `vimeo`, `file`, `''`) |
+| `day` | `day` (from 1), `title`, `content`, `meals`, `accommodation`, `altitude` (`{ value, unit }` in `m` or `ft`, or `null`), `images` |
+| `departure` | `date`, `times` (`HH:MM`), `seats_left` (`null` for no limit), `price` (money), `status` (`available`, `few`, `full`) |
+| `place` | `id`, `kind` (`destination`, `activity`, `trip_type`), `name`, `slug`, `url`, `description` (text), `image`, `parent` (the slug of the place it sits in, `''` at the top), `count` (always `0`: Kits counts) |
+| `review` | `author`, `rating`, `title`, `content`, `date` |
+
+`Schema::TYPES` and `Schema::ENUMS` are the full list, with every closed set of values.
+
+## Capabilities
+
+`capabilities()` names the optional parts your plugin can fill, from
+`Schema::CAPABILITIES`:
+
+| Capability | Fills |
+|---|---|
+| `departures` | `departure_dates` and `departures()`: Trip dates, the Departures source, the month filter. |
+| `reviews` | `rating`, `review_count` and `reviews()`: the Reviews source and the Reviews wall. |
+| `map` | `map` |
+| `video` | `videos` |
+| `advanced_itinerary` | A day's `meals`, `accommodation`, `altitude` and `images`. |
+| `wishlist` | Reserved. |
+
+Declare only what you fill. Without `departures`, return `[]` from `departures()` and leave
+`departure_dates` empty: Trip dates and the Departures source then have nothing to show. Without
+`reviews`, the Reviews wall leaves the page.
+
+## Booking
+
+Each trip's `booking` tells **Book this trip** what to do:
+
+| `type` | Book this trip |
+|---|---|
+| `redirect` | Links to `url`: your plugin's booking or checkout page for that trip. **Use this.** |
+| `none` | Shows nothing (the trip can't be booked online). |
+| `modal` | Opens the booking plugin's own window in the page. Today only WP Travel Engine's window is wired into Kits' front-end script; other plugins use `redirect`. |
+
+`assets` and `trigger` belong to `modal`. Leave them `[]`.
+
+When a visitor picks a date in **Trip dates** first, Book this trip adds it to the link as
+`bk_date=YYYY-MM-DD`, and the start time as `bk_time=HH:MM` when the departure has times, so your
+booking page can start on them.
+
+## Your plugin's files
+
+`assets()` describes your plugin's front-end styles and scripts, so Kits can keep them off pages
+built with Kits blocks. Return `[]` and Kits leaves your files alone. The shape, in brief:
+
+```php
+[
+	'host'    => 'Acme Tours',
+	'groups'  => [
+		'site' => [
+			'label'   => __( 'Site-wide styles and scripts', 'acme-tours' ),
+			'why'     => __( 'Acme Tours loads these on every page.', 'acme-tours' ),
+			'scripts' => [ 'acme-tours' ],
+			'styles'  => [ 'acme-tours' ],
+		],
+	],
+	// What marks a page as using your plugin's own content: it then keeps every file.
+	'content' => [ 'blocks' => [ 'acme/' ], 'shortcodes' => [ 'acme_tour' ], 'widgets' => [] ],
+	// Your plugin's own pages (checkout, account): never trimmed.
+	'system'  => fn (): bool => function_exists( 'acme_is_checkout' ) && acme_is_checkout(),
+]
+```
+
+Groups list `scripts` and `styles` apart. A group can also set `load` (`page`, or `demand` for files
+loaded when a visitor starts to book), `needed` (a callback that keeps the group while it returns
+true), `follow` and `match`. [Speed](/guides/travel/speed#for-developers) describes them, and the
+`blicks_kits_asset_manifest` filter shows WP Travel Engine's full manifest to compare with.
+
+### The booking look
+
+The [booking look](/guides/travel/booking-look) is a stylesheet drawn over the booking plugin's own
+booking and checkout markup, named by the manifest's `style` entry. Its `file` is a path inside Kits,
+so the booking look is for adapters that ship with Kits. An adapter in another plugin leaves `style`
+out.
+
+## A worked example
+
+A plugin called Acme Tours keeps trips as `acme_tour` posts, destinations in the `acme_destination`
+taxonomy, and a price and length in post meta. Its adapter:
+
+```php
+<?php
+namespace Acme\Tours;
+
+use BlicksKits\Verticals\Travel\Adapter;
+use BlicksKits\Verticals\Travel\Schema;
+
+final class KitsAdapter implements Adapter {
+
+	public function id(): string { return 'acme-tours'; }
+
+	public function name(): string { return 'Acme Tours'; }
+
+	public function active(): bool {
+		return defined( 'ACME_TOURS_VERSION' ) && version_compare( ACME_TOURS_VERSION, '3.0', '>=' );
+	}
+
+	public function version(): string { return ACME_TOURS_VERSION; }
+
+	public function postType(): string { return 'acme_tour'; }
+
+	public function tripForPost( int $postId ): ?int {
+		return 'acme_tour' === get_post_type( $postId ) && 'publish' === get_post_status( $postId ) ? $postId : null;
+	}
+
+	public function placeTaxonomies(): array { return [ 'destination' => 'acme_destination' ]; }
+
+	public function places(): array {
+		$terms = get_terms( [ 'taxonomy' => 'acme_destination', 'hide_empty' => false ] );
+		$out = [];
+		foreach ( is_array( $terms ) ? $terms : [] as $term ) {
+			$parent = $term->parent ? get_term( $term->parent ) : null;
+			$out[] = [
+				'id' => $term->term_id,
+				'kind' => 'destination',
+				'name' => $term->name,
+				'slug' => $term->slug,
+				'url' => (string) get_term_link( $term ),
+				'description' => wp_strip_all_tags( $term->description ),
+				'image' => null,
+				'parent' => $parent instanceof \WP_Term ? $parent->slug : '',
+				'count' => 0,
+			];
+		}
+		return $out;
+	}
+
+	public function capabilities(): array { return []; }
+
+	public function ids(): array {
+		return array_map( 'intval', get_posts( [
+			'post_type' => 'acme_tour',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'fields' => 'ids',
+		] ) );
+	}
+
+	public function trip( int $id ): ?array {
+		if ( null === $this->tripForPost( $id ) ) {
+			return null;
+		}
+
+		$amount = (float) get_post_meta( $id, '_acme_price', true );
+		$days = (int) get_post_meta( $id, '_acme_days', true );
+		$price = [ 'amount' => $amount, 'currency' => 'USD', 'display' => '$' . number_format_i18n( $amount ) ];
+
+		$trip = Schema::blank( 'trip' );
+		$trip['id'] = $id;
+		$trip['title'] = get_the_title( $id );
+		$trip['url'] = (string) get_permalink( $id );
+		$trip['excerpt'] = get_the_excerpt( $id );
+		$trip['overview'] = (string) get_post_field( 'post_content', $id );
+		$trip['price'] = $price;
+		$trip['regular_price'] = $price;
+		$trip['price_per'] = 'person';
+		/* translators: %s: a price. */
+		$trip['price_label'] = sprintf( __( 'From %s / person', 'acme-tours' ), $price['display'] );
+		$trip['duration'] = $days;
+		$trip['duration_unit'] = $days ? 'days' : '';
+		$trip['duration_days'] = $days;
+		/* translators: %d: a number of days. */
+		$trip['duration_label'] = $days ? sprintf( _n( '%d day', '%d days', $days, 'acme-tours' ), $days ) : '';
+		$trip['destinations'] = $this->terms( $id, 'acme_destination' );
+		$trip['booking'] = [
+			'type' => 'redirect',
+			'url' => add_query_arg( 'tour', $id, home_url( '/book/' ) ),
+			'assets' => [],
+			'trigger' => [],
+		];
+
+		$image = get_post_thumbnail_id( $id );
+		if ( $image ) {
+			[ $url, $width, $height ] = wp_get_attachment_image_src( $image, 'full' ) ?: [ '', 0, 0 ];
+			$trip['image'] = [
+				'id' => $image,
+				'type' => 'image',
+				'url' => (string) $url,
+				'thumb' => (string) wp_get_attachment_image_url( $image, 'medium_large' ),
+				'alt' => (string) get_post_meta( $image, '_wp_attachment_image_alt', true ),
+				'width' => (int) $width,
+				'height' => (int) $height,
+				'provider' => '',
+			];
+		}
+
+		return $trip;
+	}
+
+	public function departures( int $id, string $from, string $to ): array { return []; }
+
+	public function reviews( int $id, int $limit ): array { return []; }
+
+	public function invalidation(): array { return [ 'save_post_acme_tour' => 'trip' ]; }
+
+	public function assets(): array { return []; }
+
+	/** @return list<array<string, mixed>> */
+	private function terms( int $id, string $taxonomy ): array {
+		$terms = get_the_terms( $id, $taxonomy );
+		return array_map(
+			static fn ( \WP_Term $t ): array => [
+				'id' => $t->term_id,
+				'name' => $t->name,
+				'slug' => $t->slug,
+				'url' => (string) get_term_link( $t ),
+				'image' => null,
+			],
+			is_array( $terms ) ? $terms : []
+		);
+	}
+}
+```
+
+Register it from your plugin's main file. The filter runs when Kits boots, so load the class inside
+the callback, where Kits' interface is already loaded:
+
+```php
+add_filter( 'blicks_kits_travel_adapters', function ( array $adapters ): array {
+	require_once __DIR__ . '/src/KitsAdapter.php';
+	array_unshift( $adapters, new \Acme\Tours\KitsAdapter() );
+	return $adapters;
+} );
+```
+
+Add the filter when your plugin loads, or at `plugins_loaded` before priority 20. Put your adapter
+first, as here: without a saved choice Kits uses the first active one.
+
+With this adapter, the Trips source, the trip archive and place templates, Trip search, Trip
+filters by destination, the Trips heading, the Trip form field and the Travel sections that need no
+reviews or departures all work on Acme Tours' trips. Add `departures` and `reviews` to fill Trip
+dates, the Departures and Reviews sources and the Reviews wall.
+
+## Test it
+
+`Schema::errors( $type, $value )` lists everything wrong with a value, strictly: a missing key, a
+wrong type, a value outside a closed set, a key that isn't in the schema. Kits' own adapters are
+tested with it. Do the same in your tests:
+
+```php
+$adapter = new \Acme\Tours\KitsAdapter();
+
+foreach ( $adapter->ids() as $id ) {
+	$this->assertSame( [], Schema::errors( 'trip', $adapter->trip( $id ) ) );
+}
+$this->assertSame( [], Schema::errors( 'place[]', $adapter->places() ) );
+$this->assertSame( [], Schema::errors( 'departure[]', $adapter->departures( $id, '2027-01-01', '2027-12-31' ) ) );
+$this->assertSame( [], Schema::errors( 'review[]', $adapter->reviews( $id, 5 ) ) );
+```
+
+Then open **Blicks › Kits › Templates**: it names the booking plugin in use. If it names another, set
+the `blicks_kits_travel_adapter` option to your adapter's id.
+
+## Hooks
+
+| Hook | |
+|---|---|
+| `blicks_kits_travel_adapters` (filter) | `( list<Adapter> $adapters )`: add yours. |
+| `blicks_kits_travel_loaded` (action) | `( Adapter $adapter, Store $store )`, once Kits has booted with an adapter. |
+| `blicks_kits_asset_manifest` (filter) | `( array $manifest, string $adapterId )`: change an adapter's `assets()`. |
