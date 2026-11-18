@@ -35,7 +35,7 @@ final class AdminViewsTest extends TestCase
     {
         $views = AdminServiceProvider::views();
 
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys($views));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-entries', 'blicks-settings', 'blicks-mcp'], array_keys($views));
 
         foreach ($views as $slug => $page) {
             $this->assertIsString($page['view'], "{$slug} needs a view id");
@@ -61,11 +61,14 @@ final class AdminViewsTest extends TestCase
         $this->assertSame('blicks-pro/license', $views['blicks-pro-license']['view']);
         $this->assertSame('Licence', $views['blicks-pro-license']['label']);
 
-        // Order is menu order. A registered page goes after the built-ins, never above Overview.
+        // Order is menu order. A page that names no group or order goes last in `build`, the
+        // first group — never above Overview, and before the `system` pages.
         $this->assertSame(
-            ['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries', 'blicks-pro-license'],
+            ['blicks', 'blicks-design', 'blicks-entries', 'blicks-pro-license', 'blicks-settings', 'blicks-mcp'],
             array_keys($views)
         );
+        $this->assertSame('build', $views['blicks-pro-license']['group']);
+        $this->assertSame(AdminServiceProvider::DEFAULT_ORDER, $views['blicks-pro-license']['order']);
     }
 
     public function test_a_registered_page_reaches_the_slug_map_the_app_routes_on(): void
@@ -116,7 +119,7 @@ final class AdminViewsTest extends TestCase
     public function test_a_callback_cannot_remove_or_replace_a_built_in_page(): void
     {
         $this->filter(static fn (): array => []);
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys(AdminServiceProvider::views()));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-entries', 'blicks-settings', 'blicks-mcp'], array_keys(AdminServiceProvider::views()));
 
         blicks_test_reset_filters();
         $this->filter(static function (array $views): array {
@@ -137,7 +140,7 @@ final class AdminViewsTest extends TestCase
     {
         $this->filter(static fn (): string => 'nonsense');
 
-        $this->assertSame(['blicks', 'blicks-design', 'blicks-settings', 'blicks-mcp', 'blicks-entries'], array_keys(AdminServiceProvider::views()));
+        $this->assertSame(['blicks', 'blicks-design', 'blicks-entries', 'blicks-settings', 'blicks-mcp'], array_keys(AdminServiceProvider::views()));
     }
 
     /** @return array<string, array{mixed}> */
@@ -175,5 +178,100 @@ final class AdminViewsTest extends TestCase
         });
 
         $this->assertCount(5, AdminServiceProvider::views());
+    }
+
+    // --- Groups and order --------------------------------------------------------------------
+
+    public function test_the_built_ins_are_grouped_build_then_system(): void
+    {
+        $groups = array_map(static fn (array $page): string => $page['group'], AdminServiceProvider::views());
+
+        $this->assertSame(
+            ['blicks' => 'build', 'blicks-design' => 'build', 'blicks-entries' => 'build', 'blicks-settings' => 'system', 'blicks-mcp' => 'system'],
+            $groups
+        );
+    }
+
+    public function test_a_page_lands_in_its_group_at_its_order(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-kits'] = ['view' => 'kits', 'label' => 'Kits', 'group' => 'build', 'order' => 30];
+            $views['blicks-pro-license'] = ['view' => 'blicks-pro/license', 'label' => 'Licence', 'group' => 'system', 'order' => 30];
+            return $views;
+        });
+
+        $this->assertSame(
+            ['blicks', 'blicks-design', 'blicks-kits', 'blicks-entries', 'blicks-settings', 'blicks-mcp', 'blicks-pro-license'],
+            array_keys(AdminServiceProvider::views())
+        );
+    }
+
+    public function test_pages_with_the_same_order_keep_the_order_they_registered_in(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-b'] = ['view' => 'b', 'label' => 'B', 'group' => 'system', 'order' => 50];
+            $views['blicks-a'] = ['view' => 'a', 'label' => 'A', 'group' => 'system', 'order' => 50];
+            return $views;
+        });
+
+        $keys = array_keys(AdminServiceProvider::views());
+
+        $this->assertSame(['blicks-b', 'blicks-a'], array_slice($keys, -2));
+    }
+
+    public function test_an_unknown_group_falls_back_to_build_and_a_low_order_cannot_pass_overview(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-x'] = ['view' => 'x', 'label' => 'X', 'group' => 'nowhere', 'order' => -50];
+            $views['blicks-y'] = ['view' => 'y', 'label' => 'Y', 'order' => 'soon'];
+            return $views;
+        });
+
+        $views = AdminServiceProvider::views();
+
+        $this->assertSame('blicks', array_key_first($views), 'Overview stays first');
+        $this->assertSame('build', $views['blicks-x']['group']);
+        $this->assertSame(1, $views['blicks-x']['order']);
+        $this->assertSame(AdminServiceProvider::DEFAULT_ORDER, $views['blicks-y']['order']);
+    }
+
+    public function test_a_callback_cannot_regroup_or_reorder_a_built_in_page(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-settings']['group'] = 'build';
+            $views['blicks-settings']['order'] = 1;
+            return $views;
+        });
+
+        $views = AdminServiceProvider::views();
+
+        $this->assertSame('system', $views['blicks-settings']['group']);
+        $this->assertSame(10, $views['blicks-settings']['order']);
+    }
+
+    public function test_the_menu_lists_every_page_in_order_with_its_group(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-kits'] = ['view' => 'kits', 'label' => 'Kits', 'group' => 'build', 'order' => 30];
+            return $views;
+        });
+
+        $menu = AdminServiceProvider::menu();
+
+        $this->assertSame(
+            ['overview', 'design', 'kits', 'entries', 'settings', 'mcp'],
+            array_column($menu, 'id')
+        );
+        $this->assertSame(['id' => 'kits', 'label' => 'Kits', 'slug' => 'blicks-kits', 'group' => 'build'], $menu[2]);
+    }
+
+    public function test_external_views_leave_out_every_built_in(): void
+    {
+        $this->filter(static function (array $views): array {
+            $views['blicks-kits'] = ['view' => 'kits', 'label' => 'Kits'];
+            return $views;
+        });
+
+        $this->assertSame(['kits'], array_column(AdminServiceProvider::externalViews(), 'id'));
     }
 }

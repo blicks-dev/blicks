@@ -93,6 +93,9 @@ final class AssetServiceProvider extends ServiceProvider {
 					// Pages registered by other plugins. The app renders their nav entry from
 					// this, and looks up the component a companion script registered at runtime.
 					'externalViews' => AdminServiceProvider::externalViews(),
+					// Every page this user can open, in menu order and with its group, so the
+					// header's tabs and dividers match the WP submenu.
+					'menu' => AdminServiceProvider::menu(),
 					'adminUrl' => admin_url( 'admin.php' ),
 					'docsUrl' => defined( 'BLICKS_DOCS_URI' ) ? BLICKS_DOCS_URI : '',
 					// Label and url both, so the app renders whatever the filter left rather

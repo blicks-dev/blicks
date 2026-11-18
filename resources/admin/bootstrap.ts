@@ -1,5 +1,5 @@
 import { BUILTIN_VIEWS } from './constants';
-import type { AdminBootstrap, AdminView, ExternalView, SupportLink } from './types';
+import type { AdminBootstrap, AdminView, ExternalView, MenuEntry, MenuGroup, SupportLink } from './types';
 
 // `window.blicksAdminSettings` is injected by AssetServiceProvider. Everything the admin UI
 // needs from PHP — the real plugin version, the real docs URL, the page slug of each view —
@@ -13,7 +13,10 @@ const FALLBACK: AdminBootstrap = {
 	editorUrl: '',
 	supportLinks: [],
 	externalViews: [],
+	menu: [],
 };
+
+const MENU_GROUPS: readonly MenuGroup[] = [ 'build', 'system' ];
 
 function readInjected(): Record< string, unknown > {
 	const injected = ( window as unknown as { blicksAdminSettings?: unknown } ).blicksAdminSettings;
@@ -61,6 +64,32 @@ function readExternalViews( source: Record< string, unknown > ): ExternalView[] 
 }
 
 /**
+ * The admin menu, in PHP's order. An entry with an unknown group is kept in `build` — the same
+ * fallback PHP applies — and one missing its id, label or slug is dropped.
+ */
+function readMenu( source: Record< string, unknown > ): MenuEntry[] {
+	const raw = source.menu;
+	if ( ! Array.isArray( raw ) ) return [];
+
+	return raw.flatMap( ( entry ): MenuEntry[] => {
+		if ( typeof entry !== 'object' || entry === null ) return [];
+
+		const { id, label, slug, group } = entry as Partial< Record< keyof MenuEntry, unknown > >;
+
+		if ( typeof id !== 'string' || id === '' || typeof label !== 'string' || label === '' || typeof slug !== 'string' || slug === '' ) {
+			return [];
+		}
+
+		return [ {
+			id,
+			label,
+			slug,
+			group: ( MENU_GROUPS as readonly unknown[] ).includes( group ) ? group as MenuGroup : 'build',
+		} ];
+	} );
+}
+
+/**
  * Docs and issue links. Dropped rather than rendered if either half is missing — a CTA with an
  * empty href looks like a broken button, which is worse than one link fewer.
  */
@@ -102,6 +131,7 @@ export function bootstrap(): AdminBootstrap {
 		editorUrl: readString( source, 'editorUrl' ),
 		supportLinks: readSupportLinks( source ),
 		externalViews,
+		menu: readMenu( source ),
 	};
 
 	return cached;

@@ -161,7 +161,7 @@ final class ExtensionApiTest extends TestCase
      */
     public function test_the_admin_page_extension_points_exist(): void
     {
-        foreach (['views', 'pageSlugs', 'externalViews', 'viewForSlug'] as $method) {
+        foreach (['views', 'pageSlugs', 'externalViews', 'viewForSlug', 'menu'] as $method) {
             $this->assertTrue(
                 method_exists(\Blicks\Providers\AdminServiceProvider::class, $method),
                 "AdminServiceProvider::{$method}() is part of the admin extension API"
@@ -177,6 +177,10 @@ final class ExtensionApiTest extends TestCase
             $source,
             'the filter name is the extension point companion plugins hook; it cannot be renamed freely'
         );
+
+        foreach (["do_action( 'blicks_admin_page_load'", "do_action( 'blicks_admin_menu_registered'"] as $hook) {
+            $this->assertStringContainsString($hook, $source, 'the admin actions companion plugins hook cannot be renamed freely');
+        }
     }
 
     /**

@@ -45,13 +45,17 @@ export function CommandPalette( {
 	}, [ open ] );
 
 	const commands = useMemo< Command[] >( () => {
-		const views: Array< { id: AdminView; label: string } > = [
+		const builtin: Array< { id: AdminView; label: string } > = [
 			{ id: 'overview', label: __( 'Overview', 'blicks' ) },
 			{ id: 'design', label: __( 'Design system', 'blicks' ) },
 			{ id: 'settings', label: __( 'Settings', 'blicks' ) },
 			{ id: 'mcp', label: __( 'MCP', 'blicks' ) },
-			...bootstrap().externalViews.map( entry => ( { id: entry.id as AdminView, label: entry.label } ) ),
 		];
+		const menu = bootstrap().menu;
+		// In menu order when PHP sent one, so Jump to lists pages the way the header does.
+		const views: Array< { id: AdminView; label: string } > = menu.length > 0
+			? menu.map( entry => ( { id: entry.id as AdminView, label: builtin.find( view => view.id === entry.id )?.label ?? entry.label } ) )
+			: [ ...builtin, ...bootstrap().externalViews.map( entry => ( { id: entry.id as AdminView, label: entry.label } ) ) ];
 
 		const viewCommands: Command[] = views.map( view => ( {
 			id: `view:${ view.id }`,

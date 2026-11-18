@@ -40,6 +40,12 @@ export type AdminView = BuiltinView | ( string & {} );
 /** A page registered in PHP, as injected into the app's bootstrap. */
 export type ExternalView = { id: string; label: string; slug: string };
 
+/** The admin menu's groups, in order: what a site is made with, then how Blicks runs. */
+export type MenuGroup = 'build' | 'system';
+
+/** One page in the admin menu, built-in or registered, in the order PHP sorted them. */
+export type MenuEntry = { id: string; label: string; slug: string; group: MenuGroup };
+
 /** What a companion plugin passes to `window.blicks.admin.registerView()`. */
 export type ExternalViewDefinition = {
 	id: string;
@@ -188,5 +194,7 @@ export type AdminBootstrap = {
 	supportLinks: SupportLink[];
 	/** Pages other plugins registered in PHP. Their components arrive separately, at runtime. */
 	externalViews: ExternalView[];
+	/** Every page this user can open, in menu order, with its group. Drives the header's tabs. */
+	menu: MenuEntry[];
 };
 

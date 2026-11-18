@@ -25,8 +25,23 @@ final class AdminServiceProvider extends ServiceProvider {
 
 	public const PARENT_SLUG = 'blicks';
 
+	/** The view ids this plugin owns. A registered page can never take one over. */
+	public const BUILTIN_VIEWS = [ 'overview', 'design', 'settings', 'mcp', 'entries' ];
+
 	/** Capability every built-in view requires, and the default for a registered one. */
 	public const DEFAULT_CAPABILITY = 'manage_options';
+
+	/**
+	 * The menu's groups, in menu order: `build` is what a site is made with and what it collects,
+	 * `system` is how Blicks runs. The WP submenu and the admin header draw a divider between them.
+	 */
+	public const GROUPS = [ 'build', 'system' ];
+
+	/** Where a registered page lands in its group when it names no `order`: last. */
+	public const DEFAULT_ORDER = 1000;
+
+	/** The class WordPress puts on the first submenu item of each group after the first. */
+	public const GROUP_START_CLASS = 'blicks-menu-group-start';
 
 	/**
 	 * Every admin view is its own submenu page so it can be reached from the WP menu and
@@ -38,7 +53,11 @@ final class AdminServiceProvider extends ServiceProvider {
 	 * bug waiting to happen and would have meant a companion plugin hooking two filters to add
 	 * one page.
 	 *
-	 * @return array<string, array{view:string,label:string,capability:string}> slug => page
+	 * Each page also names its `group` (one of {@see self::GROUPS}) and an `order` inside it, so a
+	 * companion page lands beside the pages it belongs with rather than after every built-in.
+	 * The returned array is in menu order.
+	 *
+	 * @return array<string, array{view:string,label:string,capability:string,group:string,order:int}> slug => page
 	 */
 	public static function views(): array {
 		$builtin = [
@@ -46,26 +65,36 @@ final class AdminServiceProvider extends ServiceProvider {
 				'view' => 'overview',
 				'label' => __( 'Overview', 'blicks' ),
 				'capability' => self::DEFAULT_CAPABILITY,
+				'group' => 'build',
+				'order' => 0,
 			],
 			'blicks-design' => [
 				'view' => 'design',
 				'label' => __( 'Design System', 'blicks' ),
 				'capability' => self::DEFAULT_CAPABILITY,
+				'group' => 'build',
+				'order' => 10,
 			],
 			'blicks-settings' => [
 				'view' => 'settings',
 				'label' => __( 'Settings', 'blicks' ),
 				'capability' => self::DEFAULT_CAPABILITY,
+				'group' => 'system',
+				'order' => 10,
 			],
 			'blicks-mcp' => [
 				'view' => 'mcp',
 				'label' => __( 'MCP', 'blicks' ),
 				'capability' => self::DEFAULT_CAPABILITY,
+				'group' => 'system',
+				'order' => 20,
 			],
 			'blicks-entries' => [
 				'view' => 'entries',
 				'label' => __( 'Entries', 'blicks' ),
 				'capability' => self::entriesCapability(),
+				'group' => 'build',
+				'order' => 40,
 			],
 		];
 
@@ -76,18 +105,41 @@ final class AdminServiceProvider extends ServiceProvider {
 		 * enqueue in one step. Rendering the page's contents is a separate, JS-side registration.
 		 *
 		 * Built-in pages are restored after filtering, so a buggy or hostile callback can add
-		 * pages but cannot remove, relabel or re-capability the ones this plugin owns — losing
-		 * the Settings screen because a third party returned the wrong shape is not a failure
-		 * mode worth allowing.
+		 * pages but cannot remove, relabel, regroup or re-capability the ones this plugin owns —
+		 * losing the Settings screen because a third party returned the wrong shape is not a
+		 * failure mode worth allowing.
 		 *
-		 * @param array<string, array{view:string,label:string,capability:string}> $views slug => page.
+		 * A page may name its `group` (`build` or `system`; default `build`) and an `order` inside
+		 * it (default last). Built-ins use 0–40 in steps of 10; Overview's 0 is reserved, so a
+		 * registered page never lands above it.
+		 *
+		 * @param array<string, array{view:string,label:string,capability?:string,group?:string,order?:int}> $views slug => page.
 		 */
 		$filtered = apply_filters( 'blicks_admin_views', $builtin );
 
-		// `+`, not array_merge(): the union operator keeps the left-hand side on a key collision
-		// *and* puts its keys first, so the built-ins both win and stay at the top of the menu.
-		// array_merge() would have listed every registered page above Overview.
-		return $builtin + self::normalizeViews( $filtered, $builtin );
+		// `+`, not array_merge(): the union operator keeps the left-hand side on a key collision,
+		// so the built-ins win. Menu order is then decided by group and order alone.
+		return self::sortViews( $builtin + self::normalizeViews( $filtered, $builtin ) );
+	}
+
+	/**
+	 * Menu order: group by group, then `order`, then the order the pages were registered in, so
+	 * two pages with the same `order` keep a stable, predictable place.
+	 *
+	 * @param array<string, array{view:string,label:string,capability:string,group:string,order:int}> $views
+	 * @return array<string, array{view:string,label:string,capability:string,group:string,order:int}>
+	 */
+	private static function sortViews( array $views ): array {
+		$keys = [];
+		$index = 0;
+
+		foreach ( $views as $slug => $page ) {
+			$keys[ $slug ] = [ (int) array_search( $page['group'], self::GROUPS, true ), $page['order'], $index++ ];
+		}
+
+		uksort( $views, static fn ( $a, $b ): int => $keys[ $a ] <=> $keys[ $b ] );
+
+		return $views;
 	}
 
 	/** Who opens Blicks › Entries: the same capability its REST routes check. */
@@ -105,9 +157,12 @@ final class AdminServiceProvider extends ServiceProvider {
 	 * user, so this is a gate, not a convenience: an entry is kept only if its slug, view id and
 	 * label are all non-empty strings.
 	 *
-	 * @param mixed                                                             $filtered Raw filter output.
-	 * @param array<string, array{view:string,label:string,capability:string}> $builtin  Pages this plugin owns.
-	 * @return array<string, array{view:string,label:string,capability:string}>
+	 * A `group` it does not know falls back to `build`, and an `order` below 1 is raised to 1:
+	 * a bad value moves the page, it never drops it.
+	 *
+	 * @param mixed                                                                                $filtered Raw filter output.
+	 * @param array<string, array{view:string,label:string,capability:string,group:string,order:int}> $builtin  Pages this plugin owns.
+	 * @return array<string, array{view:string,label:string,capability:string,group:string,order:int}>
 	 */
 	private static function normalizeViews( mixed $filtered, array $builtin ): array {
 		if ( ! is_array( $filtered ) ) {
@@ -134,10 +189,20 @@ final class AdminServiceProvider extends ServiceProvider {
 				? $page['capability']
 				: self::DEFAULT_CAPABILITY;
 
+			$group = isset( $page['group'] ) && in_array( $page['group'], self::GROUPS, true )
+				? $page['group']
+				: 'build';
+
+			$order = isset( $page['order'] ) && is_numeric( $page['order'] )
+				? max( 1, (int) $page['order'] )
+				: self::DEFAULT_ORDER;
+
 			$views[ $slug ] = [
 				'view' => $view,
 				'label' => $label,
 				'capability' => $capability,
+				'group' => $group,
+				'order' => $order,
 			];
 		}
 
@@ -174,7 +239,7 @@ final class AdminServiceProvider extends ServiceProvider {
 	 * @return list<array{id:string,label:string,slug:string}>
 	 */
 	public static function externalViews(): array {
-		$builtin = [ 'overview', 'design', 'settings' ];
+		$builtin = self::BUILTIN_VIEWS;
 		$external = [];
 
 		foreach ( self::views() as $slug => $page ) {
@@ -259,6 +324,33 @@ final class AdminServiceProvider extends ServiceProvider {
 		);
 	}
 
+	/**
+	 * Every page the current user can open, in menu order, with the group it sits in.
+	 *
+	 * The admin header draws its tabs from this, so it shows the same pages, in the same order,
+	 * with the dividers in the same places as the WP submenu.
+	 *
+	 * @return list<array{id:string,label:string,slug:string,group:string}>
+	 */
+	public static function menu(): array {
+		$menu = [];
+
+		foreach ( self::views() as $slug => $page ) {
+			if ( ! current_user_can( $page['capability'] ) ) {
+				continue;
+			}
+
+			$menu[] = [
+				'id' => $page['view'],
+				'label' => $page['label'],
+				'slug' => $slug,
+				'group' => $page['group'],
+			];
+		}
+
+		return $menu;
+	}
+
 	/** The view a slug maps to, or an empty string when the slug is not ours. */
 	public static function viewForSlug( string $slug ): string {
 		return self::views()[ $slug ]['view'] ?? '';
@@ -293,8 +385,19 @@ final class AdminServiceProvider extends ServiceProvider {
 
 		// The first submenu re-registers the parent slug so WP labels it "Overview" instead of
 		// repeating "Blicks" — the rest add the remaining views, registered ones included.
-		foreach ( self::views() as $slug => $page ) {
-			add_submenu_page(
+		$views = self::views();
+		$group = '';
+		$starts = [];
+
+		foreach ( $views as $slug => $page ) {
+			if ( current_user_can( $page['capability'] ) ) {
+				if ( '' !== $group && $page['group'] !== $group ) {
+					$starts[] = $slug;
+				}
+				$group = $page['group'];
+			}
+
+			$hook = add_submenu_page(
 				self::PARENT_SLUG,
 				sprintf(
 					/* translators: %s: admin view name, e.g. "Design System". */
@@ -306,7 +409,78 @@ final class AdminServiceProvider extends ServiceProvider {
 				$slug,
 				[ $this, 'renderPage' ]
 			);
+
+			if ( is_string( $hook ) && '' !== $hook ) {
+				$view = $page['view'];
+				add_action(
+					"load-{$hook}",
+					static function () use ( $view, $slug ): void {
+						/**
+						 * Fires when one of the Blicks admin pages starts loading, before any output.
+						 *
+						 * The place to act on a Blicks page as a whole — redirect, add help tabs or
+						 * screen options, read a form post — without knowing WordPress's hook suffix
+						 * for it. A companion plugin checks `$view` for its own page.
+						 *
+						 * @param string $view The page's view id, e.g. `settings` or `kits`.
+						 * @param string $slug The page's slug, e.g. `blicks-settings`.
+						 */
+						do_action( 'blicks_admin_page_load', $view, $slug );
+					}
+				);
+			}
 		}
+
+		self::markGroupStarts( $starts );
+
+		/**
+		 * Fires once the Blicks admin menu and its submenu are registered.
+		 *
+		 * The place to add a page to the Blicks menu that is not part of the admin app (one with
+		 * its own `add_submenu_page()` call, under {@see self::PARENT_SLUG}), or to hide one from the
+		 * menu while keeping it reachable.
+		 *
+		 * @param array<string, array{view:string,label:string,capability:string,group:string,order:int}> $views
+		 *        Every page, in menu order, slug => page.
+		 */
+		do_action( 'blicks_admin_menu_registered', $views );
+	}
+
+	/**
+	 * Puts {@see self::GROUP_START_CLASS} on the first item of each group after the first, which
+	 * is where {@see self::addMenuGroupStyle()} draws the divider.
+	 *
+	 * `add_submenu_page()` takes no class, but WordPress prints a submenu entry's fifth element as
+	 * its `<li>` class (wp-admin/menu-header.php), so the class is set on the entry it just added.
+	 *
+	 * @param list<string> $slugs Page slugs that start a group.
+	 */
+	private static function markGroupStarts( array $slugs ): void {
+		global $submenu;
+
+		if ( [] === $slugs || ! isset( $submenu[ self::PARENT_SLUG ] ) || ! is_array( $submenu[ self::PARENT_SLUG ] ) ) {
+			return;
+		}
+
+		foreach ( $submenu[ self::PARENT_SLUG ] as $index => $item ) {
+			if ( isset( $item[2] ) && in_array( $item[2], $slugs, true ) ) {
+				// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Adds a class to our own submenu entry; WP has no API for it.
+				$submenu[ self::PARENT_SLUG ][ $index ][4] = self::GROUP_START_CLASS;
+			}
+		}
+	}
+
+	/**
+	 * The divider between the Blicks submenu's groups. The menu is on every admin screen, so this
+	 * rides on core's own `admin-menu` stylesheet rather than on a Blicks one.
+	 */
+	#[Action( 'admin_enqueue_scripts' )]
+	public function addMenuGroupStyle(): void {
+		wp_add_inline_style(
+			'admin-menu',
+			'#adminmenu .wp-submenu li.' . self::GROUP_START_CLASS . '{margin-top:6px;padding-top:6px;border-top:1px solid rgba(240,246,252,.12)}'
+			. '#adminmenu .wp-submenu li.' . self::GROUP_START_CLASS . ' a{padding-top:5px}'
+		);
 	}
 
 	/** The notice hooks WordPress fires above a screen's content, every admin context included. */

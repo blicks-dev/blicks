@@ -1,13 +1,37 @@
+import { Fragment } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { bootstrap } from '../bootstrap';
 import { StackBMark } from '../icons';
 import { urlForView } from '../routing';
-import type { AdminView } from '../types';
+import { BUILTIN_VIEWS } from '../constants';
+import type { AdminView, MenuEntry } from '../types';
+
+/** The header's own labels for the built-ins: sentence case, unlike the WP submenu's. */
+function builtinLabels(): Record< string, string > {
+	return {
+		overview: __( 'Overview', 'blicks' ),
+		design: __( 'Design system', 'blicks' ),
+		entries: __( 'Entries', 'blicks' ),
+		settings: __( 'Settings', 'blicks' ),
+		mcp: __( 'MCP', 'blicks' ),
+	};
+}
+
+/** Before PHP sends a menu (a stale page, a test): the built-ins in their groups. */
+function fallbackMenu(): MenuEntry[] {
+	return [
+		{ id: 'overview', label: '', slug: '', group: 'build' },
+		{ id: 'design', label: '', slug: '', group: 'build' },
+		{ id: 'settings', label: '', slug: '', group: 'system' },
+		{ id: 'mcp', label: '', slug: '', group: 'system' },
+	];
+}
 
 /**
  * One bar for the whole admin: the brand, a tab per page, the actions that belong to the open
- * page, and Jump to. Pages other plugins register (Blicks Pro adds Licence) follow a divider,
- * in the order PHP gave them, so it is always clear which tabs ship with Blicks.
+ * page, and Jump to. The tabs are PHP's menu — the same pages, order and groups as the WP
+ * submenu — so a companion page (Kits, Licence) sits with the pages it belongs to, and a divider
+ * falls between the groups.
  */
 export function AdminHeader( {
 	activeView,
@@ -22,13 +46,9 @@ export function AdminHeader( {
 	onViewChange: ( view: AdminView ) => void;
 	onOpenPalette: () => void;
 } ): JSX.Element {
-	const builtin: Array< { id: AdminView; label: string } > = [
-		{ id: 'overview', label: __( 'Overview', 'blicks' ) },
-		{ id: 'design', label: __( 'Design system', 'blicks' ) },
-		{ id: 'settings', label: __( 'Settings', 'blicks' ) },
-		{ id: 'mcp', label: __( 'MCP', 'blicks' ) },
-	];
-	const external = bootstrap().externalViews;
+	const labels = builtinLabels();
+	const sent = bootstrap().menu;
+	const menu = sent.length > 0 ? sent : fallbackMenu();
 	const shortcut = isAppleOs() ? '⌘K' : 'Ctrl K';
 
 	const tab = ( id: AdminView, label: string, title?: string ): JSX.Element => (
@@ -74,9 +94,21 @@ export function AdminHeader( {
 			</a>
 
 			<nav className="pages" aria-label={ __( 'Blicks pages', 'blicks' ) }>
-				{ builtin.map( entry => tab( entry.id, entry.label ) ) }
-				{ external.length > 0 && <span className="pages-sep" aria-hidden="true" /> }
-				{ external.map( entry => tab( entry.id as AdminView, entry.label, __( 'Added by another plugin', 'blicks' ) ) ) }
+				{ menu.map( ( entry, index ) => {
+					const builtin = ( BUILTIN_VIEWS as readonly string[] ).includes( entry.id );
+					const divider = index > 0 && menu[ index - 1 ].group !== entry.group;
+
+					return (
+						<Fragment key={ entry.id }>
+							{ divider && <span className="pages-sep" aria-hidden="true" /> }
+							{ tab(
+								entry.id as AdminView,
+								builtin ? labels[ entry.id ] ?? entry.label : entry.label,
+								builtin ? undefined : __( 'Added by another plugin', 'blicks' )
+							) }
+						</Fragment>
+					);
+				} ) }
 			</nav>
 
 			<span className="grow" />

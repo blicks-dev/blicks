@@ -1,11 +1,61 @@
 ---
 title: "PHP hooks"
-description: "Filters another plugin uses to load Studio modes, store Studio trees, add front-end behaviors and add blocks for AI agents."
+description: "Filters and actions another plugin uses to add admin pages, load Studio modes, store Studio trees, add front-end behaviors and add blocks for AI agents."
 ---
 
 Every filter here is read defensively: whatever it returns is checked, and anything malformed is
 dropped rather than allowed to break the screen. Entries the plugin owns are restored after
 filtering, so another plugin can add to these lists but never redefine what Blicks ships.
+
+## Admin
+
+### `blicks_admin_views`
+
+The pages of the Blicks admin, slug => page. A page you add gets its submenu entry, its tab in the
+admin header and its route in the admin app in one step; draw its contents with
+`window.blicks.admin.registerView()` (see [Extension API](/developers/extension-api)).
+
+| Key | |
+|---|---|
+| `view` | The id the app routes on. Required. |
+| `label` | The menu and tab label, translated. Required. |
+| `capability` | Who may open it. Default `manage_options`. |
+| `group` | `build` (what a site is made with and what it collects) or `system` (how Blicks runs). Default `build`. The menu draws a divider between the groups. |
+| `order` | Its place in the group. Blicks' own pages use 0–40 in steps of 10; default last. Overview's 0 is reserved, so a page never lands above it. |
+
+```php
+add_filter( 'blicks_admin_views', fn ( $views ) => $views + [
+	'acme-reports' => [
+		'view' => 'acme-reports',
+		'label' => __( 'Reports', 'acme' ),
+		'group' => 'build',
+		'order' => 35,
+	],
+] );
+```
+
+Blicks' own pages are restored after the filter: a page cannot be removed, relabelled, regrouped or
+reordered by another plugin.
+
+### `blicks_admin_page_load`
+
+An action, fired when one of the Blicks admin pages starts loading, before any output — the place to
+redirect, add help tabs or read a form post without knowing WordPress's hook suffix for the page.
+It passes the page's view id and slug:
+
+```php
+add_action( 'blicks_admin_page_load', function ( string $view, string $slug ) {
+	if ( 'acme-reports' === $view ) {
+		// …
+	}
+}, 10, 2 );
+```
+
+### `blicks_admin_menu_registered`
+
+An action, fired once the Blicks menu and its submenu are registered, with every page in menu order.
+Use it for a page under the Blicks menu that is not part of the admin app (its own
+`add_submenu_page()` under `blicks`).
 
 ## Studio
 
