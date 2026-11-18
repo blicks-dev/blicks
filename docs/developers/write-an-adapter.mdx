@@ -335,7 +335,7 @@ $this->assertSame( [], Schema::errors( 'departure[]', $adapter->departures( $id,
 $this->assertSame( [], Schema::errors( 'review[]', $adapter->reviews( $id, 5 ) ) );
 ```
 
-Then open **Blicks › Kits › Templates**: it names the booking plugin in use. If it names another, set
+Then open **Kits › Travel › Templates**: it names the booking plugin in use. If it names another, set
 the `blicks_kits_travel_adapter` option to your adapter's id.
 
 ## Hooks
@@ -345,15 +345,18 @@ the `blicks_kits_travel_adapter` option to your adapter's id.
 | `blicks_kits_travel_adapters` (filter) | `( list<Adapter> $adapters )`: add yours. |
 | `blicks_kits_travel_loaded` (action) | `( Adapter $adapter, Store $store )`, once Kits has booted with an adapter. |
 | `blicks_kits_asset_manifest` (filter) | `( array $manifest, string $adapterId )`: change an adapter's `assets()`. |
-| `blicks_kits_admin_sections` (filter) | `( list<array> $sections )`: add a section to Blicks › Kits. See [Your own settings](#your-own-settings). |
-| `blicks_kits_travel_overview` (filter) | `( array $overview, Adapter $adapter )`: add a key of your own under `setup` for the Travel Overview. Kits' own keys are kept. |
-| `blicks_kits_travel_source_changed` (action) | `( string $source, string $previous )`, when an administrator picks another travel plugin on the Overview. Kits boots on it from the next request. |
+| `blicks_kits_admin_sections` (filter) | `( list<array> $sections )`: add a section to a kit's page under Kits. See [Your own settings](#your-own-settings). |
+| `blicks_kits_admin_kits` (filter) | `( array $kits )`: a kit's card on the Kits home, keyed by vertical. |
+| `blicks_kits_travel_overview` (filter) | `( array $overview, Adapter $adapter )`: add a key of your own under `setup` for Travel's Trip data and home card. Kits' own keys are kept. |
+| `blicks_kits_travel_source_changed` (action) | `( string $source, string $previous )`, when an administrator picks another travel plugin under Kits › Travel › Settings › Trip data. Kits boots on it from the next request. |
 
 ## Your own settings
 
-Blicks › Kits lists each kit's sections in a rail: the kit's own (Overview, Templates), then your
-plugin's, under its name. Kits adds Speed there when `assets()` is not empty, and Booking look when
-the manifest has a `style`. To add a section of your own, declare it in PHP and draw it in JS:
+Kits has a menu of its own in wp-admin: **Kits › Home**, with a card per running kit, then a page
+per kit (**Kits › Travel**, `admin.php?page=blicks-kits-travel`) with a Templates tab and a Settings
+tab. On Settings, the kit's own sections (Trip data) come first, then your plugin's, under its name.
+Kits adds Speed there when `assets()` is not empty, and Booking look when the manifest has a
+`style`. To add a section of your own, declare it in PHP and draw it in JS:
 
 ```php
 add_filter( 'blicks_kits_admin_sections', fn ( $sections ) => [
@@ -361,6 +364,7 @@ add_filter( 'blicks_kits_admin_sections', fn ( $sections ) => [
 	[
 		'vertical'      => 'travel',
 		'verticalLabel' => __( 'Travel', 'acme-tours' ),
+		'tab'           => 'settings',
 		'group'         => 'host',
 		'groupLabel'    => 'Acme Tours',
 		'id'            => 'acme-sync',
@@ -372,7 +376,7 @@ add_filter( 'blicks_kits_admin_sections', fn ( $sections ) => [
 ```
 
 ```js
-// Enqueued on the Kits page, with `blicks-kits-admin` as a dependency.
+// Enqueued on the Kits pages, with `blicks-kits-admin` as a dependency.
 window.blicks.kits.registerSection( {
 	vertical: 'travel',
 	id: 'acme-sync',
@@ -380,6 +384,8 @@ window.blicks.kits.registerSection( {
 } );
 ```
 
-The section's address is `admin.php?page=blicks-kits#kits/travel/acme-sync`. `go( vertical, id )`
-opens another section. A section declared in PHP but never drawn still shows in the rail and says
-it could not be drawn, so a script that fails to load is visible rather than silent.
+The section's address is `admin.php?page=blicks-kits-travel&tab=settings#acme-sync`. `go( vertical, id )`
+opens another section. A section declared in PHP but never drawn still shows and says it could not
+be drawn, so a script that fails to load is visible rather than silent. A kit's card on the home
+comes from the `blicks_kits_admin_kits` filter, keyed by vertical: `label`, `description`, `source`,
+`stats` (`value`, `label`) and `checks` (`done`, `label`).

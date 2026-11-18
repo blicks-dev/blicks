@@ -112,29 +112,52 @@ final class AssetServiceProvider extends ServiceProvider {
 		wp_set_script_translations( 'blicks-admin', 'blicks', BasePlugin::path( 'languages' ) );
 		wp_set_script_translations( 'blicks-block-library', 'blicks', BasePlugin::path( 'languages' ) );
 
-		if ( file_exists( BasePlugin::path( 'build/admin.css' ) ) ) {
-			// Version the stylesheet by its OWN mtime, not the JS bundle hash — a CSS-only rebuild
-			// leaves the JS hash unchanged, so reusing it would keep serving a stale cached file.
-			$cssMtime   = filemtime( BasePlugin::path( 'build/admin.css' ) );
-			$cssVersion = (string) ( $cssMtime ? $cssMtime : $asset['version'] );
-
-			// theme.json's own variables, first: `--blicks-*` aliases resolve to `--wp--preset--*`,
-			// which wp-admin does not define anywhere. Without them every preset-backed token
-			// silently falls back to the inherited value — the Design System's type specimens all
-			// rendered at the admin's 15px, so eight of the thirteen roles looked identical.
-			// Only custom-property declarations, so it cannot restyle admin chrome.
-			$themeVariables = wp_get_global_stylesheet( [ 'variables' ] );
-
-			Asset::style( 'blicks-admin', BasePlugin::url( 'build/admin.css' ) )
-				->version( $cssVersion )
-				// Same `</style` guard the front-end path applies (StyleServiceProvider::172,182).
-				// Nothing here can currently produce one — CssValue::clean() refuses `<` outright —
-				// but the two paths carry the same payload and should not diverge.
-				->addInlineStyle(
-					Sanitize::styleTagContent( $themeVariables . "\n" . CssVariables::css() . "\n" . Keyframes::css() )
-				)
-				->enqueue();
+		if ( '' !== self::adminStyle() ) {
+			wp_enqueue_style( self::ADMIN_STYLE );
 		}
+	}
+
+	/** The Blicks admin stylesheet's handle. */
+	public const ADMIN_STYLE = 'blicks-admin';
+
+	/**
+	 * Registers the Blicks admin stylesheet — the tokens, the theme's variables and the admin
+	 * kit's classes, all under `.blicks-admin` — and returns its handle, or '' when it is not built.
+	 *
+	 * Part of the extension API: a companion plugin with an admin page of its own (Blicks Kits)
+	 * calls this on that page and lists the handle as a dependency of its stylesheet, then draws
+	 * inside a `.blicks-admin` element to look like the rest of Blicks. Safe to call more than once.
+	 */
+	public static function adminStyle(): string {
+		if ( wp_style_is( self::ADMIN_STYLE, 'registered' ) ) {
+			return self::ADMIN_STYLE;
+		}
+		if ( ! file_exists( BasePlugin::path( 'build/admin.css' ) ) ) {
+			return '';
+		}
+
+		// Version the stylesheet by its OWN mtime, not the JS bundle hash — a CSS-only rebuild
+		// leaves the JS hash unchanged, so reusing it would keep serving a stale cached file.
+		$cssMtime = filemtime( BasePlugin::path( 'build/admin.css' ) );
+		$cssVersion = $cssMtime ? (string) $cssMtime : ( defined( 'BLICKS_VERSION' ) ? (string) BLICKS_VERSION : '' );
+
+		// theme.json's own variables, first: `--blicks-*` aliases resolve to `--wp--preset--*`,
+		// which wp-admin does not define anywhere. Without them every preset-backed token
+		// silently falls back to the inherited value — the Design System's type specimens all
+		// rendered at the admin's 15px, so eight of the thirteen roles looked identical.
+		// Only custom-property declarations, so it cannot restyle admin chrome.
+		$themeVariables = wp_get_global_stylesheet( [ 'variables' ] );
+
+		wp_register_style( self::ADMIN_STYLE, BasePlugin::url( 'build/admin.css' ), [], $cssVersion );
+		// Same `</style` guard the front-end path applies (StyleServiceProvider::172,182).
+		// Nothing here can currently produce one — CssValue::clean() refuses `<` outright —
+		// but the two paths carry the same payload and should not diverge.
+		wp_add_inline_style(
+			self::ADMIN_STYLE,
+			Sanitize::styleTagContent( $themeVariables . "\n" . CssVariables::css() . "\n" . Keyframes::css() )
+		);
+
+		return self::ADMIN_STYLE;
 	}
 
 	private function assetManifest( string $entry ): array {
