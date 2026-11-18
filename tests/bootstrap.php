@@ -399,6 +399,22 @@ if (!function_exists('add_action')) {
     }
 }
 
+if (!function_exists('remove_all_actions')) {
+    function remove_all_actions(string $hook, int|false $priority = false): bool
+    {
+        blicks_test_record('remove_all_actions', compact('hook', 'priority'));
+
+        return true;
+    }
+}
+
+if (!function_exists('is_admin')) {
+    function is_admin(): bool
+    {
+        return (bool) ($GLOBALS['blicks_test_is_admin'] ?? false);
+    }
+}
+
 if (!function_exists('add_filter')) {
     function add_filter(string $hook, callable|array $callback, int $priority = 10, int $args = 1): bool
     {

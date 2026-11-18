@@ -309,6 +309,41 @@ final class AdminServiceProvider extends ServiceProvider {
 		}
 	}
 
+	/** The notice hooks WordPress fires above a screen's content, every admin context included. */
+	public const NOTICE_HOOKS = [ 'admin_notices', 'all_admin_notices', 'user_admin_notices', 'network_admin_notices' ];
+
+	/** Whether this request is one of the Blicks admin pages, registered ones included. */
+	public static function isBlicksScreen(): bool {
+		$slug = self::currentSlug();
+
+		return is_admin()
+			&& 'admin.php' === ( $GLOBALS['pagenow'] ?? '' )
+			&& '' !== $slug
+			&& isset( self::views()[ $slug ] );
+	}
+
+	/**
+	 * Keeps every admin notice off the Blicks pages.
+	 *
+	 * The admin is a full-bleed app with its own toasts, and a notice WordPress prints above
+	 * `#wpbody-content` pushes it down, sits outside its design and cannot be dismissed from inside
+	 * it — core's update nag and another plugin's promo banner alike. Saves and failures inside the
+	 * app reach the user as its own toasts, so nothing the user needs here travels on these hooks.
+	 *
+	 * `in_admin_header` fires in admin-header.php just before the notice hooks run, late enough that
+	 * every plugin has registered its notice, and only on screens that render the admin chrome.
+	 */
+	#[Action( 'in_admin_header', PHP_INT_MAX )]
+	public function hideAdminNotices(): void {
+		if ( ! self::isBlicksScreen() ) {
+			return;
+		}
+
+		foreach ( self::NOTICE_HOOKS as $hook ) {
+			remove_all_actions( $hook );
+		}
+	}
+
 	public function renderPage(): void {
 		printf(
 			'<div id="blicks-admin-root" class="blicks-admin-root" data-view="%s"></div>',

@@ -22,6 +22,11 @@ body:has(#blicks-admin-root) #wpbody-content { padding-bottom: 0; }
 body:has(#blicks-admin-root) #wpcontent { padding-left: 0; }
 body:has(#blicks-admin-root) #wpfooter { display: none; }
 
+/* AdminServiceProvider::hideAdminNotices() empties the notice hooks; this catches what skips
+   them — a notice echoed from another hook, or one core's common.js moves to the top of the
+   page. Only direct children of #wpbody-content, so nothing inside the app is touched. */
+body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .update-nag) { display: none !important; }
+
 .blicks-admin {
 	@include ui-tokens.palette;
 	@include ui-tokens.bui;
