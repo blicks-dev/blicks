@@ -31,6 +31,11 @@ body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .u
 	@include ui-tokens.palette;
 	@include ui-tokens.bui;
 
+	/* Where sticky chrome parks: under the WP admin bar, and under the top bar after it. */
+	--bx-bar-h: var(--wp-admin--admin-bar--height, 32px);
+	--bx-top-h: 64px;
+	--bx-sticky-top: calc(var(--bx-bar-h) + var(--bx-top-h));
+
 	/* The shared token follows the user's admin colour scheme, which suits the
 	   inspector. The admin page is Blicks' own surface, so it pins the brand
 	   (`BRAND_ACCENT` in framework/brand.tsx). */
@@ -98,26 +103,25 @@ body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .u
 	.screen-reader-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
-/* ---------- shell: one rounded window on the page ground, inset the way wp-admin pads #wpbody ---------- */
+/* ---------- shell: full width, as tall as its content ----------
+   The page scrolls, not the shell: one scrollbar, the browser's own. The shell is at least one
+   screen tall so its ground reaches the bottom of a short page, and never a fixed height. */
 .blicks-admin .bx-shell {
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - 32px);
-	min-height: 520px;
-	margin: 12px 20px 20px;
-	border-radius: var(--r-lg);
-	background: var(--paper);
-	box-shadow: var(--bui-shadow-window);
-	overflow: hidden;
+	min-height: calc(100vh - var(--bx-bar-h));
+	background: var(--rail);
 }
 
 .blicks-admin .top {
-	position: relative;
+	position: sticky;
+	top: var(--bx-bar-h);
+	z-index: 20;
 	display: flex;
 	flex-shrink: 0;
 	align-items: center;
 	gap: 4px;
-	height: 64px;
+	height: var(--bx-top-h);
 	padding: 0 16px 0 20px;
 	border-bottom: 1px solid var(--field);
 	background: var(--paper);
@@ -348,7 +352,7 @@ body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .u
 .blicks-admin .toast .link-btn { color: var(--bl-ui-frost-blue); }
 
 /* ---------- pages that are one scrolling column ---------- */
-.blicks-admin .page { flex-grow: 1; min-height: 0; overflow: auto; background: var(--rail); }
+.blicks-admin .page { flex-grow: 1; background: var(--rail); }
 .blicks-admin .page-in { display: grid; align-content: start; gap: 24px; width: 100%; padding: 32px 40px 96px; }
 .blicks-admin .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .blicks-admin .page-head h1 { margin-bottom: 4px; font-size: 26px; font-weight: 700; line-height: 32px; letter-spacing: -0.015em; text-wrap: balance; }
@@ -382,13 +386,7 @@ body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .u
 	.blicks-admin .pages { flex-shrink: 1; }
 }
 
-@media (width <= 960px) {
-	.blicks-admin .bx-shell { height: auto; min-height: 0; overflow: visible; }
-	.blicks-admin .page { overflow: visible; }
-}
-
 @media (width <= 782px) {
-	.blicks-admin .bx-shell { margin: 10px 10px 16px; }
 	.blicks-admin .top { flex-wrap: wrap; height: auto; padding: 8px 8px 0 12px; }
 	.blicks-admin .brand { margin-right: auto; }
 	.blicks-admin .brand .t { display: none; }
@@ -397,6 +395,11 @@ body:has(#blicks-admin-root) #wpbody-content > :is(.notice, .error, .updated, .u
 	.blicks-admin .unsaved-n { display: none; }
 	.blicks-admin .page-in { padding: 24px 16px 64px; }
 	.blicks-admin .changes-pop { top: 50px; right: 8px; }
+}
+
+/* Below 600px core stops fixing the admin bar to the viewport, so nothing sits above the top bar. */
+@media (width <= 600px) {
+	.blicks-admin { --bx-bar-h: 0px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

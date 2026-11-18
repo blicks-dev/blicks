@@ -1,11 +1,13 @@
 /* ---------- Design system ----------
-   Sections on the left, one open in the middle, the person's own site on the right. Each
-   column scrolls on its own; below 1200px they stack and the page scrolls instead. */
+   Sections on the left, one open in the middle, the person's own site on the right. The middle
+   flows with the page; the two side columns stay in view beside it, each a screen tall and
+   scrolling only when it is longer than that. Below 1200px they stack and simply flow. */
 
-.blicks-admin .ds-body { display: flex; flex-grow: 1; min-height: 0; }
+.blicks-admin .ds-body { display: flex; flex-grow: 1; align-items: flex-start; }
 
 /* ---------- section nav ---------- */
-.blicks-admin .ds-body > .nav { flex-shrink: 0; width: 256px; padding: 12px 12px 24px; overflow: auto; border-right: 1px solid var(--hair); background: var(--rail); }
+.blicks-admin .ds-body > :is(.nav, .pv) { position: sticky; top: var(--bx-sticky-top); height: calc(100vh - var(--bx-sticky-top)); overflow: auto; overscroll-behavior: contain; }
+.blicks-admin .ds-body > .nav { flex-shrink: 0; width: 256px; padding: 12px 12px 24px; border-right: 1px solid var(--hair); background: var(--rail); }
 .blicks-admin .nav .search { display: flex; align-items: center; gap: 8px; height: 36px; margin: 4px 4px 8px; padding: 0 8px 0 10px; border: 0; border-radius: var(--pill); background: var(--field); color: var(--ink-2); }
 .blicks-admin .nav .search:focus-within { background: var(--paper); box-shadow: var(--shadow-focus); }
 .blicks-admin .nav .search input { flex-grow: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: none; box-shadow: none; font-size: 13px; }
@@ -40,7 +42,7 @@
 .blicks-admin .nav-foot b { color: var(--ink); font-weight: 500; }
 
 /* ---------- the open section ---------- */
-.blicks-admin .ds-body > .main { flex-grow: 1; min-width: 0; overflow: auto; }
+.blicks-admin .ds-body > .main { flex-grow: 1; min-width: 0; }
 .blicks-admin .main-in { max-width: 760px; padding: 32px 40px 96px; container-type: inline-size; }
 .blicks-admin .head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
 .blicks-admin .head h1 { margin-bottom: 4px; font-size: 30px; font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; }
@@ -275,7 +277,7 @@
 /* ---------- the preview: the person's own site ----------
    Painted only from the tokens being edited (the `--c-*`, `--s-*`… set inline), never from
    the chrome. Fallbacks keep it drawn while values load. */
-.blicks-admin .pv { flex-shrink: 0; width: 400px; padding: 20px; overflow: auto; border-left: 1px solid var(--hair); background: var(--plate-lg), var(--canvas); }
+.blicks-admin .pv { flex-shrink: 0; width: 400px; padding: 20px; border-left: 1px solid var(--hair); background: var(--plate-lg), var(--canvas); }
 .blicks-admin .pv-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-bottom: 12px; }
 .blicks-admin .pv-head h2 { font-size: 14px; font-weight: 600; }
 .blicks-admin .pv-head .hint { color: var(--ink-3); font-size: 12px; }
@@ -379,13 +381,14 @@
 }
 
 @media (width <= 1200px) {
-	.blicks-admin .ds-body { flex-direction: column; overflow: auto; }
-	.blicks-admin .ds-body > .nav { width: auto; padding: 8px 16px; overflow: visible; border-right: 0; border-bottom: 1px solid var(--hair); }
+	.blicks-admin .ds-body { flex-direction: column; align-items: stretch; }
+	.blicks-admin .ds-body > :is(.nav, .pv) { position: static; height: auto; overflow: visible; }
+	.blicks-admin .ds-body > .nav { width: auto; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--hair); }
 	.blicks-admin .nav .search { margin: 0 0 8px; }
 	.blicks-admin .nav-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
 	.blicks-admin .nav-list h2, .blicks-admin .nav-foot, .blicks-admin .nav-item .n { display: none; }
 	.blicks-admin .nav-item { flex-shrink: 0; width: auto; padding: 0 14px; }
-	.blicks-admin .ds-body > .main, .blicks-admin .pv { flex-shrink: 0; overflow: visible; }
+	.blicks-admin .ds-body > .main, .blicks-admin .pv { flex-shrink: 0; }
 	.blicks-admin .pv { width: auto; padding: 20px 16px; border-top: 1px solid var(--hair); border-left: 0; }
 	.blicks-admin .site { max-width: 480px; }
 }
