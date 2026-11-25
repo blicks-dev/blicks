@@ -96,6 +96,34 @@ Blicks generates itself.
 Revoke an agent under **Blicks → MCP** or **Users → Profile → Application Passwords**. Turning MCP
 access off stops every agent at once; their passwords stay, so turning it back on reconnects them.
 
+## From the command line
+
+Every tool is also a [WP-CLI](https://wp-cli.org) command, by the same name, taking the same input and
+printing the same JSON. Use it from scripts, CI, or an agent that has a shell on the server but no MCP
+client.
+
+```bash
+wp blicks abilities --user=admin                       # the tools, and which ones change content
+wp blicks list-blocks --user=admin
+wp blicks describe-block box --user=admin
+wp blicks get-post-layout 42 --user=admin > page.json
+wp blicks validate-layout page.json --user=admin
+wp blicks update-post-layout 42 page.json --dry-run --user=admin
+wp blicks update-post-layout 42 page.json --yes --user=admin
+wp blicks run list-posts --input='{"postType":"post"}' --user=admin
+```
+
+- **It runs as an account.** `--user` is required, and the command can do exactly what that account
+  could do over MCP: the same capability checks, the same validation, the same revision before a write.
+- **MCP access does not need to be on.** That switch decides whether remote agents may connect; whoever
+  runs `wp` is already on the server.
+- **Layouts come from a file or STDIN.** Pass a file, `-`, or pipe in. A list of blocks, one block, or
+  `get-post-layout`'s output are all accepted, so a page can be read, edited and written back.
+- **Changes are confirmed.** `update-post-layout` and `set-post-status` ask first; `--yes` skips the
+  question, and `--dry-run` never asks.
+- **Exit status** is 0 when the tool ran and reported no problem, and 1 otherwise. When the tool itself
+  found the problem, its JSON is still printed with every error in it.
+
 ## Versioning
 
 The server reports a tool-set version (`1.1.0` in Blicks 2.0) in its `serverInfo`. An added tool bumps the minor

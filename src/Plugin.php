@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Blicks\Cli\Command;
 use Blicks\Core\Plugin as BasePlugin;
 use Blicks\Core\DevModules;
 use Blicks\Providers\HookServiceProvider;
@@ -95,6 +96,11 @@ final class Plugin {
 		( new BehaviourServiceProvider() )->register();
 		( new DialogServiceProvider() )->register();
 		( new FormServiceProvider() )->register();
+
+		// `wp blicks`: the MCP tools, from a shell. Only under WP-CLI, which defines the constant.
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			Command::register();
+		}
 
 		// Pro modules under development, on an install that names them. Never in a release.
 		DevModules::load();

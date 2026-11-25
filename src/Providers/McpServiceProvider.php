@@ -113,8 +113,20 @@ final class McpServiceProvider extends ServiceProvider {
 	 * ({@see Posts::types()}) — `edit_post` alone would admit a template or a navigation menu.
 	 */
 	public static function permissionCallback( mixed $permission ): callable {
+		return static fn ( mixed $input = null ): bool => Access::enabled() && self::permits( $permission, $input );
+	}
+
+	/**
+	 * Does a declared permission admit the current user, for this input? The rule itself, without
+	 * the MCP switch — {@see self::permissionCallback()} adds that for agents, and the `wp blicks`
+	 * command ({@see \Blicks\Cli\AbilityRunner}) applies the rule alone, so a shell account can do
+	 * exactly what that account could do over MCP and nothing more.
+	 *
+	 * An unrecognised declaration admits nobody.
+	 */
+	public static function permits( mixed $permission, mixed $input = null ): bool {
 		if ( is_string( $permission ) && '' !== $permission ) {
-			return static fn (): bool => Access::enabled() && current_user_can( $permission );
+			return current_user_can( $permission );
 		}
 
 		if ( is_array( $permission ) && is_string( $permission['cap'] ?? null ) && is_string( $permission['arg'] ?? null ) ) {
@@ -122,55 +134,48 @@ final class McpServiceProvider extends ServiceProvider {
 			$arg = $permission['arg'];
 			$publishArg = is_string( $permission['publishArg'] ?? null ) ? $permission['publishArg'] : null;
 
-			return static function ( mixed $input = null ) use ( $cap, $arg, $publishArg ): bool {
-				$id = is_array( $input ) ? ( $input[ $arg ] ?? null ) : null;
-				$id = is_int( $id ) || ( is_string( $id ) && ctype_digit( $id ) ) ? (int) $id : 0;
+			$id = is_array( $input ) ? ( $input[ $arg ] ?? null ) : null;
+			$id = is_int( $id ) || ( is_string( $id ) && ctype_digit( $id ) ) ? (int) $id : 0;
 
-				if ( ! Access::enabled() || $id <= 0 ) {
-					return false;
-				}
+			if ( $id <= 0 ) {
+				return false;
+			}
 
-				$post = get_post( $id );
+			$post = get_post( $id );
 
-				if ( null === $post || ! Posts::isAllowedType( $post->post_type ) || ! current_user_can( $cap, $id ) ) {
-					return false;
-				}
+			if ( null === $post || ! Posts::isAllowedType( $post->post_type ) || ! current_user_can( $cap, $id ) ) {
+				return false;
+			}
 
-				// WordPress answers `edit_post` for a trashed post from the status it had before,
-				// so without this a status change would restore it from the trash without the
-				// `delete_post` check, the untrash hooks or the trash metadata being cleared.
-				// Restoring belongs to the Trash screen.
-				if ( 'trash' === $post->post_status ) {
-					return false;
-				}
+			// WordPress answers `edit_post` for a trashed post from the status it had before,
+			// so without this a status change would restore it from the trash without the
+			// `delete_post` check, the untrash hooks or the trash metadata being cleared.
+			// Restoring belongs to the Trash screen.
+			if ( 'trash' === $post->post_status ) {
+				return false;
+			}
 
-				if ( null !== $publishArg && in_array( $input[ $publishArg ] ?? null, Posts::PUBLIC_STATUSES, true ) ) {
-					return current_user_can( 'publish_post', $id );
-				}
+			if ( null !== $publishArg && in_array( $input[ $publishArg ] ?? null, Posts::PUBLIC_STATUSES, true ) ) {
+				return current_user_can( 'publish_post', $id );
+			}
 
-				return true;
-			};
+			return true;
 		}
 
 		if ( is_array( $permission ) && is_string( $permission['typeCap'] ?? null ) && is_string( $permission['typeArg'] ?? null ) ) {
-			$typeCap = $permission['typeCap'];
-			$typeArg = $permission['typeArg'];
+			$type = is_array( $input ) && is_string( $input[ $permission['typeArg'] ] ?? null ) ? $input[ $permission['typeArg'] ] : 'page';
+			$object = get_post_type_object( $type );
 
-			return static function ( mixed $input = null ) use ( $typeCap, $typeArg ): bool {
-				$type = is_array( $input ) && is_string( $input[ $typeArg ] ?? null ) ? $input[ $typeArg ] : 'page';
-				$object = get_post_type_object( $type );
+			if ( null === $object || ! Posts::isAllowedType( $type ) ) {
+				return false;
+			}
 
-				if ( ! Access::enabled() || null === $object || ! Posts::isAllowedType( $type ) ) {
-					return false;
-				}
+			$cap = $object->cap->{$permission['typeCap']} ?? null;
 
-				$cap = $object->cap->{$typeCap} ?? null;
-
-				return is_string( $cap ) && current_user_can( $cap );
-			};
+			return is_string( $cap ) && current_user_can( $cap );
 		}
 
-		return '__return_false';
+		return false;
 	}
 
 	/**
